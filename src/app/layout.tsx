@@ -1,7 +1,7 @@
 import '../styles/globals.css'
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
-import { Inter, Geist } from 'next/font/google'
+import { Inter } from 'next/font/google'
 import Providers from './providers'
 import Footer from '../components/Footer'
 
@@ -51,17 +51,16 @@ export const metadata: Metadata = {
   },
 }
 
+
 import { getTenantConfig } from '@/lib/tenant'
 import { cn } from "@/lib/utils";
-
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
-
+import Header from "@/components/layout/Header";
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const config = await getTenantConfig()
 
   return (
-    <html lang="pl" className={cn("font-sans", geist.variable)}>
+    <html lang="pl" className={cn("font-sans")}>
       <head>
         <script
           dangerouslySetInnerHTML={{
@@ -110,8 +109,9 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       </head>
       <body className={inter.className}>
         <Providers>
-          <div className="min-h-screen flex flex-col">
-            <div className="flex-1">
+          <div className="min-h-screen flex flex-col bg-background text-foreground">
+            <Header />
+            <div className="flex-1 w-full mx-auto">
               {children}
             </div>
             <Footer />

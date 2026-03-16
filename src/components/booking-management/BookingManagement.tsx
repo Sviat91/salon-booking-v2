@@ -2,7 +2,7 @@
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import Card from '../ui/Card'
+import { Card } from '@/components/ui/card'
 import PanelRenderer from './PanelRenderer'
 import { useBookingManagementState } from './state/useBookingManagementState'
 import { useTurnstileSession } from './hooks/useTurnstileSession'
