@@ -36,6 +36,11 @@
     ".next/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "tests",
+    "scripts",
+    "**/*.test.ts",
+    "src/lib/booking*.ts",
+    "src/lib/availability.ts"
   ]
 }

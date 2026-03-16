@@ -1,23 +1,13 @@
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
   provider = "sqlite"
+  url      = env("DATABASE_URL")
 }
 
-enum Role {
-  SUPERADMIN
-  MASTER
-  CLIENT
-}
-
-enum AppointmentStatus {
-  PENDING
-  CONFIRMED
-  CANCELLED
-}
+// Enums replaced with String constants due to SQLite limitations
 
 model User {
   id            String    @id @default(cuid())
@@ -27,7 +17,7 @@ model User {
   phone         String?   @unique
   password      String?
   image         String?
-  role          Role      @default(CLIENT)
+  role          String    @default("CLIENT")
   isGuest       Boolean   @default(false)
 
   createdAt DateTime @default(now())
@@ -89,7 +79,7 @@ model Appointment {
   date        DateTime // The date of the appointment
   startTime   String   // "10:00" format
   endTime     String   // "11:00" format
-  status      AppointmentStatus @default(PENDING)
+  status      String   @default("PENDING")
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -100,12 +90,26 @@ model Appointment {
 }
 
 model TenantConfig {
-  id             String   @id @default(cuid())
-  brandName      String   @default("Salon Booking")
-  primaryColor   String   @default("#000000") // Hex color
-  secondaryColor String   @default("#ffffff") // Hex color
-  logoUrl        String?
+  id              String   @id @default(cuid())
+  brandName       String   @default("Salon Booking")
+  primaryColor    String   @default("#FDE5C3")
+  secondaryColor  String   @default("#FFF6E9")
+  accentColor     String   @default("#FFBBBD")
+  textColor       String   @default("#2B2B2B")
+  mutedColor      String   @default("#6B6B6B")
+  borderColor     String   @default("#E9E2D6")
+  successColor    String   @default("#21A67A")
+  errorColor      String   @default("#D84E4E")
+  
+  // Dark mode colors
+  darkBgColor     String   @default("#9c6849")
+  darkTextColor   String   @default("#FFFFFF")
+  darkMutedColor  String   @default("#D0D0D0")
+  darkBorderColor String   @default("#7A4F35")
+  darkCardColor   String   @default("#2A2A2A")
+  
+  logoUrl         String?
 
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }

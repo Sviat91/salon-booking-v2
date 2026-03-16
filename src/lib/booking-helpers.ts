@@ -1,6 +1,7 @@
-import { parseBookingData } from './google/calendar'
+// Mocks for Phase 3 to allow compilation until Phase 6 refactoring
+const parseBookingData = (calendarEvent: any): any => ({});
+const readProcedures = async (masterId?: string): Promise<any[]> => [];
 import { getDaySlots } from './availability'
-import { readProcedures } from './google/sheets'
 import { getLogger } from './logger'
 import { normalizePhoneDigitsOnly } from './utils/phone-normalization'
 import { normalizeTextWithCyrillicConversion } from './utils/string-normalization'

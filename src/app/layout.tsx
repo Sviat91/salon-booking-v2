@@ -81,7 +81,20 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
             :root {
               --color-primary: ${config.primaryColor};
               --color-secondary: ${config.secondaryColor};
-              --color-primary-dark: #9c6849; /* We can make this dynamic later */
+              --color-accent: ${config.accentColor};
+              --color-text: ${config.textColor};
+              --color-muted: ${config.mutedColor};
+              --color-border: ${config.borderColor};
+              --color-success: ${config.successColor};
+              --color-error: ${config.errorColor};
+              
+              /* Dark mode colors */
+              --color-dark-bg: ${config.darkBgColor};
+              --color-dark-text: ${config.darkTextColor};
+              --color-dark-muted: ${config.darkMutedColor};
+              --color-dark-border: ${config.darkBorderColor};
+              --color-dark-card: ${config.darkCardColor};
+              --color-primary-dark: ${config.darkBgColor}; /* Fallback for legacy ref */
             }
           `
         }} />

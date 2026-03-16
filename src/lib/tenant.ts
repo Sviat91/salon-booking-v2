@@ -1,9 +1,20 @@
 import prisma from "@/lib/prisma"
 
 const DEFAULT_CONFIG = {
-  brandName: "Salon Booking",
-  primaryColor: "#000000",
-  secondaryColor: "#ffffff",
+  brandName: "Somique Beauty",
+  primaryColor: "#FDE5C3",
+  secondaryColor: "#FFF6E9",
+  accentColor: "#FFBBBD",
+  textColor: "#2B2B2B",
+  mutedColor: "#6B6B6B",
+  borderColor: "#E9E2D6",
+  successColor: "#21A67A",
+  errorColor: "#D84E4E",
+  darkBgColor: "#9c6849",
+  darkTextColor: "#FFFFFF",
+  darkMutedColor: "#D0D0D0",
+  darkBorderColor: "#7A4F35",
+  darkCardColor: "#2A2A2A",
   logoUrl: null,
 }
 

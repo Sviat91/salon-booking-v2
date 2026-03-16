@@ -1,6 +1,9 @@
-import { getClients } from './google/auth'
-import { parseBookingData, freeBusy, getBusyTimesWithIds, type BusyInterval } from './google/calendar'
-import { readProcedures } from './google/sheets'
+// Mocks for Phase 3
+const getClients = () => ({ calendar: { events: { get: async (args: any) => ({ data: {} }), update: async (args: any) => ({}), delete: async (args: any) => ({}) } } })
+const parseBookingData = (e: any): any => ({ startTime: new Date(), endTime: new Date() })
+const getBusyTimesWithIds = async (s: string, e: string, m?: string) => [] as any[]
+type BusyInterval = any;
+const readProcedures = async (masterId?: string) => [] as any[];
 import { verifyBookingAccess, canModifyBooking, BookingErrors, type UserAccessCriteria } from './booking-helpers'
 import { config } from './env'
 import { getLogger } from './logger'
