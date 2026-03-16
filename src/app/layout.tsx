@@ -1,7 +1,7 @@
 import '../styles/globals.css'
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
-import { Inter } from 'next/font/google'
+import { Inter, Geist } from 'next/font/google'
 import Providers from './providers'
 import Footer from '../components/Footer'
 
@@ -52,12 +52,16 @@ export const metadata: Metadata = {
 }
 
 import { getTenantConfig } from '@/lib/tenant'
+import { cn } from "@/lib/utils";
+
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const config = await getTenantConfig()
 
   return (
-    <html lang="pl">
+    <html lang="pl" className={cn("font-sans", geist.variable)}>
       <head>
         <script
           dangerouslySetInnerHTML={{
