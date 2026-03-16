@@ -31,3 +31,5 @@ pnpm-debug.log*
 # Local-only docs
 PLAN.MD
 TASK.md
+
+/src/generated/prisma

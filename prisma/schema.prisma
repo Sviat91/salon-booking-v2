@@ -1,0 +1,111 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+enum Role {
+  SUPERADMIN
+  MASTER
+  CLIENT
+}
+
+enum AppointmentStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  phone         String?   @unique
+  password      String?
+  image         String?
+  role          Role      @default(CLIENT)
+  isGuest       Boolean   @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  masterProfile MasterProfile?
+  appointmentsAsClient Appointment[] @relation("ClientAppointments")
+  appointmentsAsMaster Appointment[] @relation("MasterAppointments")
+  schedules            Schedule[]    @relation("MasterSchedules")
+}
+
+model MasterProfile {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  avatarUrl   String?
+  bio         String?
+  specialties String?  // Stored as JSON string or comma-separated
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Service {
+  id          String   @id @default(cuid())
+  name        String
+  duration    Int      // Duration in minutes
+  price       Float
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  appointments Appointment[]
+}
+
+model Schedule {
+  id          String   @id @default(cuid())
+  masterId    String
+  dayOfWeek   Int      // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+  startTime   String   // "09:00" format
+  endTime     String   // "18:00" format
+  isDayOff    Boolean  @default(false)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  master      User     @relation("MasterSchedules", fields: [masterId], references: [id], onDelete: Cascade)
+
+  @@unique([masterId, dayOfWeek])
+}
+
+model Appointment {
+  id          String   @id @default(cuid())
+  clientId    String
+  masterId    String
+  serviceId   String
+  date        DateTime // The date of the appointment
+  startTime   String   // "10:00" format
+  endTime     String   // "11:00" format
+  status      AppointmentStatus @default(PENDING)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  client      User     @relation("ClientAppointments", fields: [clientId], references: [id], onDelete: Cascade)
+  master      User     @relation("MasterAppointments", fields: [masterId], references: [id], onDelete: Cascade)
+  service     Service  @relation(fields: [serviceId], references: [id])
+}
+
+model TenantConfig {
+  id             String   @id @default(cuid())
+  brandName      String   @default("Salon Booking")
+  primaryColor   String   @default("#000000") // Hex color
+  secondaryColor String   @default("#ffffff") // Hex color
+  logoUrl        String?
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}

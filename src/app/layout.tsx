@@ -51,7 +51,11 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+import { getTenantConfig } from '@/lib/tenant'
+
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  const config = await getTenantConfig()
+
   return (
     <html lang="pl">
       <head>
@@ -72,6 +76,15 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             `,
           }}
         />
+        <style dangerouslySetInnerHTML={{
+          __html: `
+            :root {
+              --color-primary: ${config.primaryColor};
+              --color-secondary: ${config.secondaryColor};
+              --color-primary-dark: #9c6849; /* We can make this dynamic later */
+            }
+          `
+        }} />
         <script
           async
           src="https://stats.theboatscanner.com/script.js"

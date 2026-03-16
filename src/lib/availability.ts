@@ -1,7 +1,8 @@
 import { format, addDays } from 'date-fns'
 import { toZonedTime, fromZonedTime, formatInTimeZone } from 'date-fns-tz'
-import { readExceptions, readWeekly } from './google/sheets'
-import { freeBusy } from './google/calendar'
+const readExceptions = async (masterId?: string): Promise<Record<string, any>> => ({})
+const readWeekly = async (masterId?: string): Promise<Record<string, any>> => ({})
+const freeBusy = async (start: string, end: string, masterId?: string): Promise<{start: string, end: string}[]> => []
 
 const TZ = 'Europe/Warsaw'
 

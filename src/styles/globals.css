@@ -3,13 +3,13 @@
 @tailwind utilities;
 
 :root {
-  --bg-start: #FFF6E9; /* light warm beige */
-  --bg-end: #FDE5C3;   /* brand primary */
+  --bg-start: var(--color-secondary); /* Dynamic light color */
+  --bg-end: var(--color-primary);   /* Dynamic brand primary */
 }
 
 .dark {
-  --bg-start: #9c6849; /* dark theme background */
-  --bg-end: #7A4F35;   /* darker variant */
+  --bg-start: var(--color-primary-dark); /* dark theme background */
+  --bg-end: #7A4F35;   /* darker variant, can configure later */
 }
 
 html {
@@ -61,8 +61,26 @@ body::before {
 .btn {
   @apply rounded-full px-4 py-2 text-sm font-medium transition-colors disabled:opacity-50;
 }
-.btn-primary { @apply bg-accent text-text hover:opacity-90 dark:bg-accent dark:text-dark-text; }
-.btn-outline { @apply border border-border text-text hover:bg-primary/60 dark:border-dark-border dark:text-dark-text dark:hover:bg-dark-border/60; }
+.btn-primary { 
+  background-color: theme('colors.accent'); 
+  color: theme('colors.text'); 
+}
+.btn-primary:hover { opacity: 0.9; }
+.dark .btn-primary { 
+  background-color: theme('colors.accent'); 
+  color: theme('colors.dark-text'); 
+}
+
+.btn-outline { 
+  border: 1px solid theme('colors.border'); 
+  color: theme('colors.text'); 
+}
+.btn-outline:hover { background-color: rgba(253, 229, 195, 0.6); /* fallback for primary/60 */ }
+.dark .btn-outline { 
+  border-color: theme('colors.dark-border'); 
+  color: theme('colors.dark-text'); 
+}
+.dark .btn-outline:hover { background-color: rgba(122, 79, 53, 0.6); /* fallback for dark-border/60 */ }
 
 /* scrollbars */
 ::-webkit-scrollbar {

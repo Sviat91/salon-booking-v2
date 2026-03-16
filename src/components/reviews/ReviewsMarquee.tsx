@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
-import { ReviewImage } from '@/lib/google/drive'
+import { ReviewImage } from '@/lib/reviews'
 
 interface ReviewCard extends ReviewImage {
   yOffset: number
@@ -29,7 +29,8 @@ export default function ReviewsMarquee({ initialReviews }: ReviewsMarqueeProps) 
 
     // Add random visual properties and calculate dimensions
     const processed = shuffled.map(img => {
-      const aspectRatio = (img.width && img.height) ? img.width / img.height : 0.8
+      // Since we don't have aspect ratio for mocked files right now, assume 0.8
+      const aspectRatio = 0.8
       const width = TARGET_HEIGHT * aspectRatio
 
       return {

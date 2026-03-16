@@ -7,7 +7,7 @@ import ThemeToggle from '@/components/ThemeToggle'
 import LanguageToggle from '@/components/LanguageToggle'
 import Image from 'next/image'
 import { MASTER_IDS } from '@/config/masters'
-import { ReviewImage } from '@/lib/google/drive'
+import { ReviewImage } from '@/lib/reviews'
 
 interface HomeClientProps {
   initialReviews: ReviewImage[]

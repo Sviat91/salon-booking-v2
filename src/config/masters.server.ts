@@ -21,30 +21,14 @@ export interface ServerMasterConfig {
  * Get calendar ID for a master
  */
 export function getMasterCalendarId(masterId: MasterId): string {
-  switch (masterId) {
-    case 'olga':
-      return config.GOOGLE_CALENDAR_ID
-    case 'yuliia':
-      return config.GOOGLE_CALENDAR_ID_YULIIA
-    default:
-      // Fallback to Olga
-      return config.GOOGLE_CALENDAR_ID
-  }
+  return ''
 }
 
 /**
  * Get sheet ID for a master
  */
 export function getMasterSheetId(masterId: MasterId): string {
-  switch (masterId) {
-    case 'olga':
-      return config.GOOGLE_SHEET_ID
-    case 'yuliia':
-      return config.GOOGLE_SHEET_ID_YULIIA
-    default:
-      // Fallback to Olga
-      return config.GOOGLE_SHEET_ID
-  }
+  return ''
 }
 
 /**
@@ -64,18 +48,12 @@ export function getServerMasterConfig(masterId: MasterId): ServerMasterConfig {
  * Get calendar ID from string with validation
  */
 export function getMasterCalendarIdSafe(masterIdString: string | null | undefined): string {
-  if (!masterIdString || !isValidMasterId(masterIdString)) {
-    return config.GOOGLE_CALENDAR_ID // Fallback to Olga
-  }
-  return getMasterCalendarId(masterIdString)
+  return ''
 }
 
 /**
  * Get sheet ID from string with validation
  */
 export function getMasterSheetIdSafe(masterIdString: string | null | undefined): string {
-  if (!masterIdString || !isValidMasterId(masterIdString)) {
-    return config.GOOGLE_SHEET_ID // Fallback to Olga
-  }
-  return getMasterSheetId(masterIdString)
+  return ''
 }

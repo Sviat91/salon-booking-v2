@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { listReviewImages } from '@/lib/google/drive'
+import { listReviewImages } from '@/lib/reviews'
 import { Redis } from '@upstash/redis'
 import { config } from '@/lib/env'
 import { logger } from '@/lib/logger'

@@ -9,7 +9,8 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        primary: '#FDE5C3',
+        primary: 'var(--color-primary)',
+        secondary: 'var(--color-secondary)',
         accent: '#FFBBBD',
         text: '#2B2B2B',
         muted: '#6B6B6B',
@@ -17,7 +18,7 @@ const config: Config = {
         success: '#21A67A',
         error: '#D84E4E',
         // Темная тема
-        'dark-bg': '#9c6849',
+        'dark-bg': 'var(--color-primary-dark)',
         'dark-text': '#FFFFFF',
         'dark-muted': '#D0D0D0',
         'dark-border': '#7A4F35',
