@@ -9,7 +9,11 @@
     "error": "Błąd",
     "success": "Sukces",
     "noData": "Brak danych",
-    "currency": "zł"
+    "currency": "zł",
+    "home": "Strona główna"
+  },
+  "admin": {
+    "panel": "Panel Administracyjny"
   },
   "master": {
     "selectTitle": "Wybierz swojego specjalistę",

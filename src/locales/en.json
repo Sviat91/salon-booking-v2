@@ -9,7 +9,11 @@
     "error": "Error",
     "success": "Success",
     "noData": "No data",
-    "currency": "zł"
+    "currency": "zł",
+    "home": "Home"
+  },
+  "admin": {
+    "panel": "Admin Panel"
   },
   "master": {
     "selectTitle": "Choose your specialist",

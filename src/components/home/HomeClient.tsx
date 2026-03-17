@@ -6,6 +6,7 @@ import ReviewsMarquee from '@/components/reviews/ReviewsMarquee'
 import ThemeToggle from '@/components/ThemeToggle'
 import LanguageToggle from '@/components/LanguageToggle'
 import Image from 'next/image'
+import Link from 'next/link'
 import { MASTER_IDS } from '@/config/masters'
 import { ReviewImage } from '@/lib/reviews'
 
@@ -16,21 +17,33 @@ interface HomeClientProps {
 export default function HomeClient({ initialReviews }: HomeClientProps) {
   const queryClient = useQueryClient()
 
-  // Prefetch procedures for BOTH masters while user is viewing selection
-  useEffect(() => {
-    MASTER_IDS.forEach((masterId) => {
-      queryClient.prefetchQuery({
-        queryKey: ['procedures', masterId],
-        queryFn: () => fetch(`/api/procedures?masterId=${masterId}`).then(r => r.json()),
-        staleTime: 60 * 60 * 1000, // 1 hour
-      })
-    })
-  }, [queryClient])
+  // Prefetching for procedures will be implemented dynamically later through Prisma
 
   return (
     <main className="flex flex-col relative pb-4">
-      {/* Theme and Language toggles */}
+      {/* Theme, Language and Login toggles */}
       <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
+        <Link 
+          href="/admin" 
+          className="p-2 hover:bg-black/5 dark:hover:bg-white/10 rounded-full transition-colors duration-300"
+          title="Login"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="text-foreground/80 hover:text-foreground"
+          >
+            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
+        </Link>
         <LanguageToggle />
         <ThemeToggle />
       </div>

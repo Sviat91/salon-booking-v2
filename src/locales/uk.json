@@ -9,7 +9,11 @@
     "error": "Помилка",
     "success": "Успішно",
     "noData": "Немає даних",
-    "currency": "zł"
+    "currency": "zł",
+    "home": "Головна"
+  },
+  "admin": {
+    "panel": "Панель керування"
   },
   "master": {
     "selectTitle": "Оберіть свого спеціаліста",

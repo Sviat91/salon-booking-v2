@@ -2,6 +2,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useRef } from 'react'
 import { LayoutGroup } from 'framer-motion'
+import { SessionProvider } from 'next-auth/react'
 import { MasterProvider } from '@/contexts/MasterContext'
 import { LanguageProvider } from '@/contexts/LanguageContext'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
@@ -25,15 +26,17 @@ export default function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <ErrorBoundary>
-      <QueryClientProvider client={clientRef.current}>
-        <LanguageProvider>
-          <MasterProvider>
-            <LayoutGroup>
-              {children}
-            </LayoutGroup>
-          </MasterProvider>
-        </LanguageProvider>
-      </QueryClientProvider>
+      <SessionProvider>
+        <QueryClientProvider client={clientRef.current}>
+          <LanguageProvider>
+            <MasterProvider>
+              <LayoutGroup>
+                {children}
+              </LayoutGroup>
+            </MasterProvider>
+          </LanguageProvider>
+        </QueryClientProvider>
+      </SessionProvider>
     </ErrorBoundary>
   )
 }

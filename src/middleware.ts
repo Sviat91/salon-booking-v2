@@ -1,44 +1,43 @@
-import { NextResponse } from "next/server"
-import type { NextRequest } from "next/server"
 import NextAuth from "next-auth"
 import authConfig from "./auth.config"
 
+// Initialize NextAuth strictly with the Edge-compatible config
 const { auth } = NextAuth(authConfig)
-export async function middleware(request: NextRequest) {
-  const session = await auth()
-  const { pathname } = request.nextUrl
+
+export default auth((req) => {
+  const { nextUrl } = req
+  const isLoggedIn = !!req.auth
+  const pathname = nextUrl.pathname
 
   // Protect /admin routes
   if (pathname.startsWith("/admin")) {
-    if (!session) {
-      return NextResponse.redirect(new URL("/login", request.url))
+    if (!isLoggedIn) {
+      return Response.redirect(new URL("/auth/login", nextUrl))
     }
 
-    const role = session.user?.role
+    const role = req.auth?.user?.role
 
     // Master wants to access superadmin area (/admin but not /admin/master)
     if (role === "MASTER" && pathname === "/admin") {
-      return NextResponse.redirect(new URL("/admin/master", request.url))
+      return Response.redirect(new URL("/admin/master", nextUrl))
     }
 
     // Client trying to access admin
     if (role === "CLIENT") {
-      return NextResponse.redirect(new URL("/", request.url))
+      return Response.redirect(new URL("/", nextUrl))
     }
   }
 
   // Go to admin after login if logged in
-  if (pathname.startsWith("/login") && session) {
-    if (session.user?.role === "SUPERADMIN") {
-      return NextResponse.redirect(new URL("/admin", request.url))
-    } else if (session.user?.role === "MASTER") {
-      return NextResponse.redirect(new URL("/admin/master", request.url))
+  if (pathname.startsWith("/auth/login") && isLoggedIn) {
+    if (req.auth?.user?.role === "SUPERADMIN") {
+      return Response.redirect(new URL("/admin", nextUrl))
+    } else if (req.auth?.user?.role === "MASTER") {
+      return Response.redirect(new URL("/admin/master", nextUrl))
     }
   }
-
-  return NextResponse.next()
-}
+})
 
 export const config = {
-  matcher: ["/admin/:path*", "/login"],
+  matcher: ["/admin/:path*", "/auth/login"],
 }

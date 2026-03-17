@@ -109,8 +109,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       </head>
       <body className={inter.className}>
         <Providers>
-          <div className="min-h-screen flex flex-col bg-background text-foreground">
-            <Header />
+          <div className="min-h-screen flex flex-col text-foreground">
             <div className="flex-1 w-full mx-auto">
               {children}
             </div>

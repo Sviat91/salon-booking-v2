@@ -1,4 +1,4 @@
-@tailwind base;
+﻿@tailwind base;
 @tailwind components;
 @tailwind utilities;
 
@@ -156,7 +156,7 @@ body::before {
   margin: 0 !important;
 }
 
-/* Адаптация для мобильных устройств */
+/* đÉđ┤đ░đ┐Đéđ░ĐćđŞĐĆ đ┤đ╗ĐĆ đ╝đżđ▒đŞđ╗ĐîđŻĐőĐů ĐâĐüĐéĐÇđżđ╣ĐüĐéđ▓ */
 @media (max-width: 640px) {
   .rdp {
     --rdp-cell-size: 36px;
@@ -185,7 +185,7 @@ body::before {
   table-layout: fixed !important;
 }
 
-/* Центрирование таблицы на мобильных устройствах */
+/* đŽđÁđŻĐéĐÇđŞĐÇđżđ▓đ░đŻđŞđÁ Đéđ░đ▒đ╗đŞĐćĐő đŻđ░ đ╝đżđ▒đŞđ╗ĐîđŻĐőĐů ĐâĐüĐéĐÇđżđ╣ĐüĐéđ▓đ░Đů */
 @media (max-width: 640px) {
   .rdp-month {
     display: flex !important;
@@ -403,7 +403,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     border-color: var(--border);
   }
   body {
-    /* Shadcn background removed to prioritize dynamic tenant bg-end */
+    background-color: var(--background);
     color: var(--foreground);
   }
 }
