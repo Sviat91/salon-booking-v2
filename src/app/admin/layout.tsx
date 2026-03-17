@@ -1,13 +1,16 @@
 import { ReactNode } from "react"
-import Header from "@/components/layout/Header"
+import AdminSidebar from "@/components/admin/AdminSidebar"
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="min-h-screen flex flex-col bg-background text-foreground">
-      <Header />
-      <div className="flex-1 w-full mx-auto p-4 sm:p-8">
-        {children}
-      </div>
+    // admin-layout: solid bg covers the public site radial gradient
+    <div className="admin-layout flex h-screen overflow-hidden bg-background text-foreground">
+      <AdminSidebar />
+      <main className="flex-1 overflow-y-auto bg-background">
+        <div className="mx-auto max-w-5xl px-6 py-8">
+          {children}
+        </div>
+      </main>
     </div>
   )
 }
