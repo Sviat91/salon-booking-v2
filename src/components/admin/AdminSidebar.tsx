@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { useSession, signOut } from "next-auth/react"
 import {
@@ -10,6 +11,7 @@ import {
   Settings,
   LogOut,
   ChevronRight,
+  ArrowLeft,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { ThemeToggle } from "@/components/ui/theme-toggle"
@@ -38,7 +40,12 @@ const navItems = [
   },
 ]
 
-export default function AdminSidebar() {
+interface AdminSidebarProps {
+  brandName: string
+  logoUrl: string | null
+}
+
+export default function AdminSidebar({ brandName, logoUrl }: AdminSidebarProps) {
   const pathname = usePathname()
   const { data: session } = useSession()
 
@@ -50,13 +57,27 @@ export default function AdminSidebar() {
   return (
     <aside className="flex h-full w-60 flex-col border-r border-border bg-card">
       {/* Brand */}
-      <div className="flex h-16 items-center gap-2 border-b border-border px-5">
-        <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary">
-          <Scissors className="h-3.5 w-3.5 text-primary-foreground" />
-        </div>
-        <span className="font-semibold tracking-tight text-foreground">
-          Admin Panel
-        </span>
+      <div className="flex h-16 items-center gap-2 border-b border-border px-4">
+        {logoUrl ? (
+          <Link href="/" className="flex items-center gap-2 min-w-0">
+            <Image
+              src={logoUrl}
+              alt={brandName}
+              width={120}
+              height={36}
+              className="h-9 w-auto object-contain"
+            />
+          </Link>
+        ) : (
+          <Link href="/" className="flex items-center gap-2 min-w-0">
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary">
+              <Scissors className="h-3.5 w-3.5 text-primary-foreground" />
+            </div>
+            <span className="truncate font-semibold tracking-tight text-foreground text-sm">
+              {brandName}
+            </span>
+          </Link>
+        )}
       </div>
 
       {/* Nav */}
@@ -91,6 +112,17 @@ export default function AdminSidebar() {
             )
           })}
         </ul>
+
+        {/* Back to site */}
+        <div className="mt-4 border-t border-border pt-4">
+          <Link
+            href="/"
+            className="group flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          >
+            <ArrowLeft className="h-4 w-4 shrink-0 transition-colors group-hover:text-foreground" />
+            Back to site
+          </Link>
+        </div>
       </nav>
 
       {/* User + controls */}

@@ -13,9 +13,23 @@ import {
 import ServiceForm from "./ServiceForm"
 import { deleteService } from "./actions"
 
-type Service = { id: string; name: string; duration: number; price: number }
+type Service = {
+  id: string
+  name: string
+  duration: number
+  price: number
+  masterServices?: { masterProfileId: string; priceOverride: number | null }[]
+}
 
-export default function ServicesClient({ services }: { services: Service[] }) {
+type MasterOption = { masterProfileId: string; name: string }
+
+export default function ServicesClient({
+  services,
+  masters,
+}: {
+  services: Service[]
+  masters: MasterOption[]
+}) {
   const [editTarget, setEditTarget] = useState<Service | null>(null)
   const [addOpen, setAddOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
@@ -53,7 +67,7 @@ export default function ServicesClient({ services }: { services: Service[] }) {
               <SheetTitle>Add Service</SheetTitle>
             </SheetHeader>
             <div className="px-4 pb-4">
-              <ServiceForm onSuccess={() => setAddOpen(false)} />
+              <ServiceForm masters={masters} onSuccess={() => setAddOpen(false)} />
             </div>
           </SheetContent>
         </Sheet>
@@ -128,6 +142,7 @@ export default function ServicesClient({ services }: { services: Service[] }) {
                             {editTarget && (
                               <ServiceForm
                                 service={editTarget}
+                                masters={masters}
                                 onSuccess={() => {
                                   setEditOpen(false)
                                   setEditTarget(null)

@@ -57,17 +57,20 @@ body::before {
   color: var(--color-dark-text);
 }
 
-/* Admin panel: suppress the public-site radial gradient */
-.admin-layout {
-  position: relative;
-  z-index: 0;
+/* ── Admin panel ──────────────────────────────────────────────────────────────
+ * Hide the public-site radial gradient and solid body background.
+ * Use :has() so this only activates when an admin page is rendered.
+ * The admin-layout div itself carries bg-background (solid color).
+ * ──────────────────────────────────────────────────────────────────────────── */
+body:has(.admin-layout) {
+  background-color: var(--background) !important;
 }
-.admin-layout::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  background: var(--background);
+body:has(.admin-layout)::before {
+  display: none !important;
+}
+.admin-layout {
+  /* Ensure the full viewport is covered with the solid background */
+  background-color: var(--background);
 }
 
 /* buttons */
@@ -339,79 +342,106 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 @layer base {
-  /* Light mode — warm salon palette (cream, brown, blush) */
+  /*
+   * Tailwind CSS variables bridged to dynamic tenant CSS variables.
+   * Tenant vars (--color-primary, --color-text, etc.) are injected by
+   * the root layout's <style> tag from the DB on every request.
+   * This way, when settings are changed, BOTH the public site and the
+   * admin panel automatically reflect the new colors.
+   */
   :root {
-    --background: oklch(0.99 0.006 80);       /* warm off-white ~#FFF6E9 */
-    --foreground: oklch(0.18 0.02 50);         /* warm near-black ~#2B2B2B */
-    --card: oklch(1 0 0);                      /* pure white cards */
-    --card-foreground: oklch(0.18 0.02 50);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.18 0.02 50);
-    --primary: oklch(0.40 0.07 50);            /* warm brown ~#6B4423 */
-    --primary-foreground: oklch(0.99 0 0);     /* near-white text on brown */
-    --secondary: oklch(0.97 0.008 75);         /* warm light cream */
-    --secondary-foreground: oklch(0.25 0.03 50);
-    --muted: oklch(0.96 0.01 72);              /* warm muted cream */
-    --muted-foreground: oklch(0.46 0.01 50);   /* warm gray ~#6B6B6B */
-    --accent: oklch(0.91 0.04 18);             /* blush/peach ~#FFBBBD */
-    --accent-foreground: oklch(0.25 0.03 50);
+    /* Backgrounds — use tenant secondary/primary colors */
+    --background:         var(--color-secondary, #FFF6E9);
+    --foreground:         var(--color-text, #2B2B2B);
+    --card:               #ffffff;
+    --card-foreground:    var(--color-text, #2B2B2B);
+    --popover:            #ffffff;
+    --popover-foreground: var(--color-text, #2B2B2B);
+
+    /* Primary = warm brown (used for buttons, active nav, etc.)
+       We use a fixed warm brown because the tenant's primaryColor is
+       a light cream (background tint), not a button color. */
+    --primary:            #6B4423;
+    --primary-foreground: #ffffff;
+
+    /* Secondary & muted follow tenant colors */
+    --secondary:           var(--color-primary, #FDE5C3);
+    --secondary-foreground:var(--color-text, #2B2B2B);
+    --muted:               var(--color-primary, #FDE5C3);
+    --muted-foreground:    var(--color-muted, #6B6B6B);
+
+    /* Accent follows tenant accent */
+    --accent:              var(--color-accent, #FFBBBD);
+    --accent-foreground:   var(--color-text, #2B2B2B);
+
+    /* Borders & inputs follow tenant border color */
+    --border:  var(--color-border, #E9E2D6);
+    --input:   var(--color-border, #E9E2D6);
+    --ring:    #6B4423;
+
+    /* Destructive — fixed */
     --destructive: oklch(0.55 0.22 27);
-    --border: oklch(0.91 0.01 75);             /* warm border ~#E9E2D6 */
-    --input: oklch(0.91 0.01 75);
-    --ring: oklch(0.40 0.07 50);               /* matches primary */
+
     --radius: 0.625rem;
+
     /* Charts */
     --chart-1: oklch(0.60 0.10 50);
     --chart-2: oklch(0.50 0.08 30);
     --chart-3: oklch(0.70 0.07 75);
     --chart-4: oklch(0.80 0.06 55);
     --chart-5: oklch(0.65 0.09 18);
-    /* Sidebar */
-    --sidebar: oklch(0.98 0.007 80);
-    --sidebar-foreground: oklch(0.18 0.02 50);
-    --sidebar-primary: oklch(0.40 0.07 50);
-    --sidebar-primary-foreground: oklch(0.99 0 0);
-    --sidebar-accent: oklch(0.96 0.01 72);
-    --sidebar-accent-foreground: oklch(0.25 0.03 50);
-    --sidebar-border: oklch(0.91 0.01 75);
-    --sidebar-ring: oklch(0.40 0.07 50);
+
+    /* Sidebar follows same logic */
+    --sidebar:                    var(--color-secondary, #FFF6E9);
+    --sidebar-foreground:         var(--color-text, #2B2B2B);
+    --sidebar-primary:            #6B4423;
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent:             var(--color-primary, #FDE5C3);
+    --sidebar-accent-foreground:  var(--color-text, #2B2B2B);
+    --sidebar-border:             var(--color-border, #E9E2D6);
+    --sidebar-ring:               #6B4423;
   }
 
-  /* Dark mode — deep warm brown palette */
+  /* Dark mode — use tenant dark-theme vars */
   .dark {
-    --background: oklch(0.14 0.025 45);        /* very dark warm brown */
-    --foreground: oklch(0.97 0.005 75);         /* warm off-white */
-    --card: oklch(0.19 0.03 48);                /* dark warm card */
-    --card-foreground: oklch(0.97 0.005 75);
-    --popover: oklch(0.19 0.03 48);
-    --popover-foreground: oklch(0.97 0.005 75);
-    --primary: oklch(0.88 0.04 78);             /* warm cream ~#FDE5C3 */
-    --primary-foreground: oklch(0.22 0.04 48);  /* dark brown text on cream */
-    --secondary: oklch(0.24 0.03 48);
-    --secondary-foreground: oklch(0.97 0.005 75);
-    --muted: oklch(0.24 0.03 48);
-    --muted-foreground: oklch(0.65 0.015 55);
-    --accent: oklch(0.28 0.04 48);
-    --accent-foreground: oklch(0.97 0.005 75);
+    --background:         var(--color-dark-bg, #9c6849);
+    --foreground:         var(--color-dark-text, #FFFFFF);
+    --card:               var(--color-dark-card, #2A2A2A);
+    --card-foreground:    var(--color-dark-text, #FFFFFF);
+    --popover:            var(--color-dark-card, #2A2A2A);
+    --popover-foreground: var(--color-dark-text, #FFFFFF);
+
+    /* In dark mode, primary = light cream for contrast on dark bg */
+    --primary:            var(--color-primary, #FDE5C3);
+    --primary-foreground: var(--color-dark-bg, #9c6849);
+
+    --secondary:           var(--color-dark-card, #2A2A2A);
+    --secondary-foreground:var(--color-dark-text, #FFFFFF);
+    --muted:               var(--color-dark-card, #2A2A2A);
+    --muted-foreground:    var(--color-dark-muted, #D0D0D0);
+    --accent:              var(--color-dark-card, #2A2A2A);
+    --accent-foreground:   var(--color-dark-text, #FFFFFF);
+
+    --border:  var(--color-dark-border, #7A4F35);
+    --input:   var(--color-dark-border, #7A4F35);
+    --ring:    var(--color-dark-muted, #D0D0D0);
+
     --destructive: oklch(0.65 0.18 22);
-    --border: oklch(0.30 0.04 50);              /* warm dark border */
-    --input: oklch(0.26 0.03 50);
-    --ring: oklch(0.65 0.05 55);
-    /* Charts */
+
     --chart-1: oklch(0.70 0.10 50);
     --chart-2: oklch(0.60 0.08 30);
     --chart-3: oklch(0.75 0.07 75);
     --chart-4: oklch(0.82 0.06 55);
     --chart-5: oklch(0.68 0.09 18);
-    /* Sidebar */
-    --sidebar: oklch(0.19 0.03 48);
-    --sidebar-foreground: oklch(0.97 0.005 75);
-    --sidebar-primary: oklch(0.88 0.04 78);
-    --sidebar-primary-foreground: oklch(0.22 0.04 48);
-    --sidebar-accent: oklch(0.24 0.03 48);
-    --sidebar-accent-foreground: oklch(0.97 0.005 75);
-    --sidebar-border: oklch(0.30 0.04 50);
-    --sidebar-ring: oklch(0.65 0.05 55);
+
+    --sidebar:                    var(--color-dark-card, #2A2A2A);
+    --sidebar-foreground:         var(--color-dark-text, #FFFFFF);
+    --sidebar-primary:            var(--color-primary, #FDE5C3);
+    --sidebar-primary-foreground: var(--color-dark-bg, #9c6849);
+    --sidebar-accent:             var(--color-dark-border, #7A4F35);
+    --sidebar-accent-foreground:  var(--color-dark-text, #FFFFFF);
+    --sidebar-border:             var(--color-dark-border, #7A4F35);
+    --sidebar-ring:               var(--color-dark-muted, #D0D0D0);
   }
 }
 

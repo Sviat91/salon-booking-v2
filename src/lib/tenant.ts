@@ -16,6 +16,7 @@ const DEFAULT_CONFIG = {
   darkBorderColor: "#7A4F35",
   darkCardColor: "#2A2A2A",
   logoUrl: null,
+  faviconUrl: null,
 }
 
 export async function getTenantConfig() {

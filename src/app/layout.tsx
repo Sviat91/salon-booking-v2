@@ -4,57 +4,48 @@ import type { ReactNode } from 'react'
 import { Inter } from 'next/font/google'
 import Providers from './providers'
 import Footer from '../components/Footer'
+import { getTenantConfig } from '@/lib/tenant'
+import { cn } from "@/lib/utils"
+import Header from "@/components/layout/Header"
 
 const inter = Inter({ subsets: ['latin'] })
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://somique.beauty'
-const metadataTitle = 'Somique Beauty'
-const metadataDescription = 'Zarezerwuj wizytę w Somique Beauty. Szybka i wygodna rezerwacja online.'
 
-export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
-  title: metadataTitle,
-  description: metadataDescription,
-  keywords: ['masaż twarzy', 'beauty', 'kosmetologia', 'rezerwacja online', 'somique beauty', 'spa', 'relaks'],
-  icons: {
-    icon: '/logo.png',
-    shortcut: '/logo.png',
-    apple: '/logo.png',
-  },
-  openGraph: {
-    type: 'website',
-    siteName: 'Somique Beauty',
-    url: '/',
-    title: metadataTitle,
-    description: metadataDescription,
-    locale: 'pl_PL',
-    images: [
-      {
-        url: '/prev.png',
-        width: 1200,
-        height: 630,
-        alt: 'Somique Beauty',
-        type: 'image/png',
-      }
-    ],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: metadataTitle,
-    description: metadataDescription,
-    images: [
-      {
-        url: '/prev.png',
-        alt: 'Somique Beauty',
-      }
-    ],
-  },
+// Dynamic metadata — reads brand name and favicon from TenantConfig
+export async function generateMetadata(): Promise<Metadata> {
+  const config = await getTenantConfig()
+  const title = config.brandName || 'Somique Beauty'
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const faviconUrl = (config as any).faviconUrl || '/logo.png'
+
+  return {
+    metadataBase: new URL(siteUrl),
+    title,
+    description: 'Zarezerwuj wizytę. Szybka i wygodna rezerwacja online.',
+    keywords: ['masaż twarzy', 'beauty', 'kosmetologia', 'rezerwacja online', 'spa', 'relaks'],
+    icons: {
+      icon:     faviconUrl,
+      shortcut: faviconUrl,
+      apple:    faviconUrl,
+    },
+    openGraph: {
+      type: 'website',
+      siteName: title,
+      url: '/',
+      title,
+      description: 'Zarezerwuj wizytę. Szybka i wygodna rezerwacja online.',
+      locale: 'pl_PL',
+      images: [{ url: '/prev.png', width: 1200, height: 630, alt: title, type: 'image/png' }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description: 'Zarezerwuj wizytę. Szybka i wygodna rezerwacja online.',
+      images: [{ url: '/prev.png', alt: title }],
+    },
+  }
 }
-
-
-import { getTenantConfig } from '@/lib/tenant'
-import { cn } from "@/lib/utils";
-import Header from "@/components/layout/Header";
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const config = await getTenantConfig()

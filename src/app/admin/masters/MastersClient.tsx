@@ -1,7 +1,8 @@
 "use client"
 
 import { useState, useCallback, useTransition } from "react"
-import { Plus, Pencil, Trash2, Mail } from "lucide-react"
+import Image from "next/image"
+import { Plus, Pencil, Trash2, Mail, Eye, EyeOff, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   Sheet,
@@ -17,7 +18,7 @@ type Master = {
   id: string
   name: string | null
   email: string | null
-  masterProfile: { bio: string | null } | null
+  masterProfile: { bio: string | null; avatarUrl: string | null; showOnHomepage: boolean } | null
 }
 
 export default function MastersClient({ masters }: { masters: Master[] }) {
@@ -82,13 +83,35 @@ export default function MastersClient({ masters }: { masters: Master[] }) {
               {/* Avatar + name */}
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary font-semibold text-sm">
-                    {(master.name ?? "?")[0].toUpperCase()}
+                  {/* Avatar */}
+                  <div className="relative h-10 w-10 rounded-full overflow-hidden border border-border bg-muted shrink-0 flex items-center justify-center">
+                    {master.masterProfile?.avatarUrl ? (
+                      <Image
+                        src={master.masterProfile.avatarUrl}
+                        alt={master.name ?? ""}
+                        fill
+                        className="object-cover"
+                      />
+                    ) : (
+                      <User className="h-5 w-5 text-muted-foreground" />
+                    )}
                   </div>
                   <div>
-                    <p className="font-medium text-sm leading-tight">
-                      {master.name ?? "—"}
-                    </p>
+                    <div className="flex items-center gap-1.5">
+                      <p className="font-medium text-sm leading-tight">
+                        {master.name ?? "—"}
+                      </p>
+                      {/* Homepage visibility badge */}
+                      {master.masterProfile?.showOnHomepage ? (
+                        <span className="flex items-center gap-0.5 rounded-full bg-green-500/10 px-1.5 py-0.5 text-[10px] font-medium text-green-600 dark:text-green-400">
+                          <Eye className="h-2.5 w-2.5" />Visible
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-0.5 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                          <EyeOff className="h-2.5 w-2.5" />Hidden
+                        </span>
+                      )}
+                    </div>
                     <p className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
                       <Mail className="h-3 w-3" />
                       {master.email}

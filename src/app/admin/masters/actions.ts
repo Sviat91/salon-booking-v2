@@ -5,15 +5,22 @@ import { z } from "zod"
 import bcrypt from "bcryptjs"
 import prisma from "@/lib/prisma"
 
+// Avatar/logo paths are relative: "/uploads/filename.jpg" — not absolute URLs
+const pathOrEmpty = z.string().optional().default("")
+
 const CreateMasterSchema = z.object({
-  name: z.string().min(1, "Name is required").max(100),
-  email: z.string().email("Invalid email"),
-  bio: z.string().max(500).optional(),
+  name:          z.string().min(1, "Name is required").max(100),
+  email:         z.string().email("Invalid email"),
+  bio:           z.string().max(500).optional(),
+  avatarUrl:     pathOrEmpty,
+  showOnHomepage:z.coerce.boolean().default(true),
 })
 
 const UpdateMasterSchema = z.object({
-  name: z.string().min(1, "Name is required").max(100),
-  bio: z.string().max(500).optional(),
+  name:          z.string().min(1, "Name is required").max(100),
+  bio:           z.string().max(500).optional(),
+  avatarUrl:     pathOrEmpty,
+  showOnHomepage:z.coerce.boolean().default(true),
 })
 
 export type MasterFormState = {
@@ -23,7 +30,6 @@ export type MasterFormState = {
   generatedPassword?: string
 }
 
-/** Generate a readable random password */
 function generatePassword(): string {
   const chars = "ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789"
   return Array.from({ length: 10 }, () =>
@@ -36,9 +42,11 @@ export async function createMaster(
   formData: FormData
 ): Promise<MasterFormState> {
   const raw = {
-    name: formData.get("name"),
-    email: formData.get("email"),
-    bio: formData.get("bio") || undefined,
+    name:           formData.get("name"),
+    email:          formData.get("email"),
+    bio:            formData.get("bio") || undefined,
+    avatarUrl:      formData.get("avatarUrl") || "",
+    showOnHomepage: formData.get("showOnHomepage") === "on" || formData.get("showOnHomepage") === "true",
   }
 
   const parsed = CreateMasterSchema.safeParse(raw)
@@ -46,10 +54,7 @@ export async function createMaster(
     return { fieldErrors: parsed.error.flatten().fieldErrors }
   }
 
-  // Check email uniqueness
-  const existing = await prisma.user.findUnique({
-    where: { email: parsed.data.email },
-  })
+  const existing = await prisma.user.findUnique({ where: { email: parsed.data.email } })
   if (existing) {
     return { fieldErrors: { email: ["This email is already registered"] } }
   }
@@ -60,18 +65,22 @@ export async function createMaster(
   try {
     await prisma.user.create({
       data: {
-        name: parsed.data.name,
+        name:  parsed.data.name,
         email: parsed.data.email,
         password: hashedPassword,
         role: "MASTER",
         masterProfile: {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           create: {
-            bio: parsed.data.bio ?? null,
-          },
+            bio:           parsed.data.bio ?? null,
+            avatarUrl:     parsed.data.avatarUrl || null,
+            showOnHomepage:parsed.data.showOnHomepage,
+          } as any,
         },
       },
     })
     revalidatePath("/admin/masters")
+    revalidatePath("/")
     return { success: true, generatedPassword: plainPassword }
   } catch {
     return { error: "Failed to create master. Please try again." }
@@ -84,8 +93,10 @@ export async function updateMaster(
   formData: FormData
 ): Promise<MasterFormState> {
   const raw = {
-    name: formData.get("name"),
-    bio: formData.get("bio") || undefined,
+    name:           formData.get("name"),
+    bio:            formData.get("bio") || undefined,
+    avatarUrl:      formData.get("avatarUrl") || "",
+    showOnHomepage: formData.get("showOnHomepage") === "on" || formData.get("showOnHomepage") === "true",
   }
 
   const parsed = UpdateMasterSchema.safeParse(raw)
@@ -100,13 +111,24 @@ export async function updateMaster(
         name: parsed.data.name,
         masterProfile: {
           upsert: {
-            create: { bio: parsed.data.bio ?? null },
-            update: { bio: parsed.data.bio ?? null },
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            create: {
+              bio:           parsed.data.bio ?? null,
+              avatarUrl:     parsed.data.avatarUrl || null,
+              showOnHomepage:parsed.data.showOnHomepage,
+            } as any,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            update: {
+              bio:           parsed.data.bio ?? null,
+              avatarUrl:     parsed.data.avatarUrl || null,
+              showOnHomepage:parsed.data.showOnHomepage,
+            } as any,
           },
         },
       },
     })
     revalidatePath("/admin/masters")
+    revalidatePath("/")
     return { success: true }
   } catch {
     return { error: "Failed to update master. Please try again." }
@@ -116,4 +138,5 @@ export async function updateMaster(
 export async function deleteMaster(id: string): Promise<void> {
   await prisma.user.delete({ where: { id } })
   revalidatePath("/admin/masters")
+  revalidatePath("/")
 }
