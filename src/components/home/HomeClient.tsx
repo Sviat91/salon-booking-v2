@@ -1,5 +1,4 @@
 "use client"
-import { useEffect } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import MasterSelector from '@/components/MasterSelector'
 import ReviewsMarquee from '@/components/reviews/ReviewsMarquee'
@@ -7,21 +6,55 @@ import ThemeToggle from '@/components/ThemeToggle'
 import LanguageToggle from '@/components/LanguageToggle'
 import Image from 'next/image'
 import Link from 'next/link'
-import { MASTER_IDS } from '@/config/masters'
 import { ReviewImage } from '@/lib/reviews'
+
+type LogoConfig = {
+  logoUrl?: string | null
+  darkLogoUrl?: string | null
+  logoPositionX?: number
+  logoPositionY?: number
+  logoWidth?: number
+  logoHeight?: number
+  logoPages?: string
+  brandName?: string
+}
 
 interface HomeClientProps {
   initialReviews: ReviewImage[]
+  config: LogoConfig
 }
 
-export default function HomeClient({ initialReviews }: HomeClientProps) {
-  const queryClient = useQueryClient()
+function shouldShowLogo(logoPages: string | undefined, page: string): boolean {
+  try {
+    const pages = JSON.parse(logoPages || "[]")
+    return pages.includes(page)
+  } catch {
+    return false
+  }
+}
 
-  // Prefetching for procedures will be implemented dynamically later through Prisma
+export default function HomeClient({ initialReviews, config }: HomeClientProps) {
+  useQueryClient()
+
+  const showLogo = shouldShowLogo(config.logoPages, "home")
+  const logoSrc = config.logoUrl || "/head_logo.png"
+  const darkLogoSrc = config.darkLogoUrl || config.logoUrl || "/head_logo_night.png"
+  const brandName = config.brandName || "Logo"
+
+  const posX = config.logoPositionX ?? 0
+  const posY = config.logoPositionY ?? 0
+  const width = config.logoWidth ?? 200
+  const height = config.logoHeight ?? 80
+
+  const logoStyle = {
+    position: "absolute" as const,
+    left: `${posX}%`,
+    top: `${posY}%`,
+    transform: "translate(-50%, -50%)",
+  }
 
   return (
-    <main className="flex flex-col relative pb-4">
-      {/* Theme, Language and Login toggles */}
+    <main className="flex flex-col relative pb-4 min-h-screen">
       <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
         <Link 
           href="/admin" 
@@ -48,56 +81,94 @@ export default function HomeClient({ initialReviews }: HomeClientProps) {
         <ThemeToggle />
       </div>
       
-      {/* Desktop Logo - top left */}
-      <div className="absolute left-4 top-4 z-10 hidden lg:block">
-        {/* Light theme */}
-        <Image
-          src="/head_logo.png"
-          alt="Logo Somique Beauty"
-          width={242}
-          height={97}
-          className="h-auto dark:hidden"
-          priority
-        />
-        {/* Dark theme */}
-        <Image
-          src="/head_logo_night.png"
-          alt="Logo Somique Beauty"
-          width={242}
-          height={97}
-          className="h-auto hidden dark:block"
-          priority
-        />
-      </div>
+      {showLogo && (config.logoUrl || config.darkLogoUrl) && (
+        <div className="hidden lg:block z-10" style={logoStyle}>
+          <Image
+            src={logoSrc}
+            alt={brandName}
+            width={width}
+            height={height}
+            className="h-auto dark:hidden"
+            priority
+          />
+          <Image
+            src={darkLogoSrc}
+            alt={brandName}
+            width={width}
+            height={height}
+            className="h-auto hidden dark:block"
+            priority
+          />
+        </div>
+      )}
 
-      {/* Mobile Logo - centered */}
+      {showLogo && !(config.logoUrl || config.darkLogoUrl) && (
+        <div className="absolute left-4 top-4 z-10 hidden lg:block">
+          <Image
+            src="/head_logo.png"
+            alt="Logo"
+            width={242}
+            height={97}
+            className="h-auto dark:hidden"
+            priority
+          />
+          <Image
+            src="/head_logo_night.png"
+            alt="Logo"
+            width={242}
+            height={97}
+            className="h-auto hidden dark:block"
+            priority
+          />
+        </div>
+      )}
+
       <div className="block lg:hidden pt-6 pb-2 px-4 text-center">
-        {/* Light theme */}
-        <Image
-          src="/head_logo.png"
-          alt="Logo Somique Beauty"
-          width={200}
-          height={80}
-          className="h-auto max-w-[160px] sm:max-w-[180px] mx-auto dark:hidden"
-          priority
-        />
-        {/* Dark theme */}
-        <Image
-          src="/head_logo_night.png"
-          alt="Logo Somique Beauty"
-          width={200}
-          height={80}
-          className="h-auto max-w-[160px] sm:max-w-[180px] mx-auto hidden dark:block"
-          priority
-        />
+        {config.logoUrl ? (
+          <>
+            <Image
+              src={logoSrc}
+              alt={brandName}
+              width={160}
+              height={64}
+              className="h-auto max-w-[160px] sm:max-w-[180px] mx-auto dark:hidden"
+              priority
+            />
+            <Image
+              src={darkLogoSrc}
+              alt={brandName}
+              width={160}
+              height={64}
+              className="h-auto max-w-[160px] sm:max-w-[180px] mx-auto hidden dark:block"
+              priority
+            />
+          </>
+        ) : (
+          <>
+            <Image
+              src="/head_logo.png"
+              alt="Logo"
+              width={200}
+              height={80}
+              className="h-auto max-w-[160px] sm:max-w-[180px] mx-auto dark:hidden"
+              priority
+            />
+            <Image
+              src="/head_logo_night.png"
+              alt="Logo"
+              width={200}
+              height={80}
+              className="h-auto max-w-[160px] sm:max-w-[180px] mx-auto hidden dark:block"
+              priority
+            />
+          </>
+        )}
       </div>
 
-      {/* Master Selector */}
       <div className="flex justify-center px-4 pt-8 lg:pt-24">
         <MasterSelector />
       </div>
 
-      {/* Reviews Marquee - Desktop Only */}
       <div className="hidden lg:block mt-auto pt-12 w-full">
         <ReviewsMarquee initialReviews={initialReviews} />
       </div>

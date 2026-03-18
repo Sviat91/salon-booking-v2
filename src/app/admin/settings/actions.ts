@@ -8,10 +8,14 @@ const hexColor = z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Invalid hex color")
 
 const SettingsSchema = z.object({
   brandName:      z.string().min(1, "Brand name is required").max(80),
-  // logoUrl/faviconUrl are relative paths ("/uploads/..."), not full URLs
   logoUrl:        z.string().optional().default(""),
   faviconUrl:     z.string().optional().default(""),
-  // Light theme
+  darkLogoUrl:    z.string().optional().default(""),
+  logoPositionX:  z.coerce.number().min(0).max(100).default(0),
+  logoPositionY:  z.coerce.number().min(0).max(100).default(0),
+  logoWidth:      z.coerce.number().min(50).max(500).default(200),
+  logoHeight:     z.coerce.number().min(20).max(200).default(80),
+  logoPages:      z.string().optional().default('["home","booking"]'),
   primaryColor:   hexColor,
   secondaryColor: hexColor,
   accentColor:    hexColor,
@@ -19,7 +23,6 @@ const SettingsSchema = z.object({
   mutedColor:     hexColor,
   borderColor:    hexColor,
   cardColor:      hexColor,
-  // Dark theme
   darkBgColor:     hexColor,
   darkPrimaryColor: hexColor,
   darkAccentColor: hexColor,
@@ -42,6 +45,12 @@ export async function saveSettings(
     brandName:        formData.get("brandName"),
     logoUrl:          formData.get("logoUrl") || "",
     faviconUrl:       formData.get("faviconUrl") || "",
+    darkLogoUrl:      formData.get("darkLogoUrl") || "",
+    logoPositionX:    formData.get("logoPositionX") || 0,
+    logoPositionY:    formData.get("logoPositionY") || 0,
+    logoWidth:        formData.get("logoWidth") || 200,
+    logoHeight:       formData.get("logoHeight") || 80,
+    logoPages:        formData.get("logoPages") || '["home","booking"]',
     primaryColor:     formData.get("primaryColor"),
     secondaryColor:   formData.get("secondaryColor"),
     accentColor:      formData.get("accentColor"),
@@ -65,8 +74,9 @@ export async function saveSettings(
 
   const data = {
     ...parsed.data,
-    logoUrl:    parsed.data.logoUrl    || null,
-    faviconUrl: parsed.data.faviconUrl || null,
+    logoUrl:     parsed.data.logoUrl     || null,
+    faviconUrl:  parsed.data.faviconUrl  || null,
+    darkLogoUrl: parsed.data.darkLogoUrl || null,
   }
 
   try {

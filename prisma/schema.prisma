@@ -132,6 +132,13 @@ model TenantConfig {
   
   logoUrl         String?
   faviconUrl      String?
+  
+  darkLogoUrl     String?
+  logoPositionX   Float    @default(0)
+  logoPositionY   Float    @default(0)
+  logoWidth       Int      @default(200)
+  logoHeight      Int      @default(80)
+  logoPages       String   @default("[\"home\",\"booking\"]")
 
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt

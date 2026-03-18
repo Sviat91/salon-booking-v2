@@ -19,6 +19,7 @@ import BookingManagement, { BookingManagementRef } from '../../components/bookin
 import ThemeToggle from '../../components/ThemeToggle'
 import LanguageToggle from '../../components/LanguageToggle'
 import BackButton from '../../components/BackButton'
+import LogoDisplay from '../../components/LogoDisplay'
 
 interface PageProps {
   params: {
@@ -238,30 +239,12 @@ export default function Page({ params }: PageProps) {
   return (
     <main className="px-3 py-4 sm:p-6 relative flex-1 flex flex-col justify-center w-full max-w-full box-border overflow-x-hidden">
       <BackButton />
-      {/* Theme and Language toggles */}
       <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
         <LanguageToggle />
         <ThemeToggle />
       </div>
 
-      <div className="absolute left-4 top-4 z-10 hidden lg:block" onClick={closeBookingManagement}>
-        {/* Светлая тема */}
-        <Image
-          src="/head_logo.png"
-          alt="Logo Somique Beauty"
-          width={242}  // +~10%
-          height={97}
-          className="h-auto cursor-pointer dark:hidden"
-        />
-        {/* Темная тема */}
-        <Image
-          src="/head_logo_night.png"
-          alt="Logo Somique Beauty"
-          width={242}  // +~10%
-          height={97}
-          className="h-auto cursor-pointer hidden dark:block"
-        />
-      </div>
+      <LogoDisplay page="booking" />
       {/* основной центрированный контейнер */}
       <div className="mx-auto w-full max-w-5xl px-0">
         <BrandHeader onLogoClick={closeBookingManagement} />

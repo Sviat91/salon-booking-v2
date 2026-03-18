@@ -8,11 +8,18 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { saveSettings, type SettingsFormState } from "./actions"
+import LogoEditor from "./LogoEditor"
 
 type TenantConfig = {
   brandName:       string
   logoUrl:         string | null
   faviconUrl:      string | null
+  darkLogoUrl:     string | null
+  logoPositionX:   number
+  logoPositionY:   number
+  logoWidth:       number
+  logoHeight:      number
+  logoPages:       string
   primaryColor:    string
   secondaryColor:  string
   accentColor:     string
@@ -170,17 +177,22 @@ function SubmitButton() {
 export default function SettingsForm({ config }: { config: TenantConfig }) {
   const [state, formAction] = useFormState(saveSettings, initialState)
 
-  // Logo state
-  const [logoPreview,   setLogoPreview]   = useState<string | null>(config.logoUrl)
-  const [logoUrl,       setLogoUrl]       = useState<string>(config.logoUrl ?? "")
+  const [logoUrl, setLogoUrl] = useState<string>(config.logoUrl ?? "")
+  const [darkLogoUrl, setDarkLogoUrl] = useState<string>(config.darkLogoUrl ?? "")
+  const [logoPositionX, setLogoPositionX] = useState(config.logoPositionX)
+  const [logoPositionY, setLogoPositionY] = useState(config.logoPositionY)
+  const [logoWidth, setLogoWidth] = useState(config.logoWidth)
+  const [logoHeight, setLogoHeight] = useState(config.logoHeight)
+  const [logoPages, setLogoPages] = useState(config.logoPages)
   const [logoUploading, setLogoUploading] = useState(false)
-  const [logoError,     setLogoError]     = useState<string | null>(null)
+  const [darkLogoUploading, setDarkLogoUploading] = useState(false)
+  const [logoError, setLogoError] = useState<string | null>(null)
+  const [darkLogoError, setDarkLogoError] = useState<string | null>(null)
 
-  // Favicon state
-  const [faviconPreview,   setFaviconPreview]   = useState<string | null>(config.faviconUrl)
-  const [faviconUrl,       setFaviconUrl]       = useState<string>(config.faviconUrl ?? "")
+  const [faviconPreview, setFaviconPreview] = useState<string | null>(config.faviconUrl)
+  const [faviconUrl, setFaviconUrl] = useState<string>(config.faviconUrl ?? "")
   const [faviconUploading, setFaviconUploading] = useState(false)
-  const [faviconError,     setFaviconError]     = useState<string | null>(null)
+  const [faviconError, setFaviconError] = useState<string | null>(null)
 
   async function uploadFile(
     e: React.ChangeEvent<HTMLInputElement>,
@@ -211,14 +223,12 @@ export default function SettingsForm({ config }: { config: TenantConfig }) {
   return (
     <form action={formAction} className="flex flex-col gap-10">
 
-      {/* ── Brand ────────────────────────────────────────────────── */}
       <section className="flex flex-col gap-4">
         <div>
           <h2 className="text-base font-semibold">Brand</h2>
           <p className="text-xs text-muted-foreground mt-0.5">Salon name and visual identity</p>
         </div>
 
-        {/* Salon name */}
         <div className="grid gap-1.5 max-w-sm">
           <Label htmlFor="brandName">Salon Name</Label>
           <Input
@@ -232,20 +242,31 @@ export default function SettingsForm({ config }: { config: TenantConfig }) {
           </p>
         </div>
 
-        {/* Logo */}
-        <ImageUploadField
-          label="Logo"
-          hint="Recommended: PNG with transparent background. Max 4 MB. Clicking the logo always leads to the homepage."
-          preview={logoPreview}
-          fieldName="logoUrl"
-          fieldValue={logoUrl}
-          onUpload={(e) => uploadFile(e, setLogoPreview, setLogoUrl, setLogoUploading, setLogoError)}
-          onRemove={() => { setLogoPreview(null); setLogoUrl("") }}
-          uploading={logoUploading}
-          uploadError={logoError}
+        <LogoEditor
+          config={{
+            logoUrl,
+            darkLogoUrl,
+            logoPositionX,
+            logoPositionY,
+            logoWidth,
+            logoHeight,
+            logoPages,
+          }}
+          onLogoUpload={(url) => setLogoUrl(url)}
+          onDarkLogoUpload={(url) => setDarkLogoUrl(url)}
+          onPositionChange={(x, y) => { setLogoPositionX(x); setLogoPositionY(y) }}
+          onSizeChange={(w, h) => { setLogoWidth(w); setLogoHeight(h) }}
+          onPagesChange={(pages) => setLogoPages(pages)}
+          onRemoveLogo={() => setLogoUrl("")}
+          onRemoveDarkLogo={() => setDarkLogoUrl("")}
+          logoUploading={logoUploading}
+          darkLogoUploading={darkLogoUploading}
+          logoError={logoError}
+          darkLogoError={darkLogoError}
+          onLogoUploadStart={() => { setLogoUploading(true); setLogoError(null) }}
+          onDarkLogoUploadStart={() => { setDarkLogoUploading(true); setDarkLogoError(null) }}
         />
 
-        {/* Favicon */}
         <ImageUploadField
           label="Favicon"
           hint="Small icon shown in the browser tab. Recommended: PNG 32×32 or SVG. Max 4 MB."

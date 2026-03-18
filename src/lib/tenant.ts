@@ -21,6 +21,12 @@ const DEFAULT_CONFIG = {
   darkBorderColor: "#7A4F35",
   logoUrl: null,
   faviconUrl: null,
+  darkLogoUrl: null,
+  logoPositionX: 0,
+  logoPositionY: 0,
+  logoWidth: 200,
+  logoHeight: 80,
+  logoPages: '["home","booking"]',
 }
 
 export async function getTenantConfig() {
