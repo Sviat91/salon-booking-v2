@@ -32,4 +32,11 @@ pnpm-debug.log*
 PLAN.MD
 TASK.md
 
+# TypeScript build cache
+*.tsbuildinfo
+
+# SQLite databases
+*.db
+*.db-journal
+
 /src/generated/prisma
