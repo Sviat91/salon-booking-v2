@@ -117,15 +117,18 @@ model TenantConfig {
   textColor       String   @default("#2B2B2B")
   mutedColor      String   @default("#6B6B6B")
   borderColor     String   @default("#E9E2D6")
+  cardColor       String   @default("#FFFFFF")
   successColor    String   @default("#21A67A")
   errorColor      String   @default("#D84E4E")
   
   // Dark mode colors
   darkBgColor     String   @default("#9c6849")
+  darkPrimaryColor String  @default("#FDE5C3")
+  darkAccentColor String   @default("#FFBBBD")
+  darkCardColor   String   @default("#2A2A2A")
   darkTextColor   String   @default("#FFFFFF")
   darkMutedColor  String   @default("#D0D0D0")
   darkBorderColor String   @default("#7A4F35")
-  darkCardColor   String   @default("#2A2A2A")
   
   logoUrl         String?
   faviconUrl      String?

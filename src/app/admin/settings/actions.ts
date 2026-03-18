@@ -18,12 +18,15 @@ const SettingsSchema = z.object({
   textColor:      hexColor,
   mutedColor:     hexColor,
   borderColor:    hexColor,
+  cardColor:      hexColor,
   // Dark theme
-  darkBgColor:    hexColor,
-  darkTextColor:  hexColor,
-  darkMutedColor: hexColor,
-  darkBorderColor:hexColor,
-  darkCardColor:  hexColor,
+  darkBgColor:     hexColor,
+  darkPrimaryColor: hexColor,
+  darkAccentColor: hexColor,
+  darkCardColor:   hexColor,
+  darkTextColor:   hexColor,
+  darkMutedColor:  hexColor,
+  darkBorderColor: hexColor,
 })
 
 export type SettingsFormState = {
@@ -36,20 +39,23 @@ export async function saveSettings(
   formData: FormData
 ): Promise<SettingsFormState> {
   const raw = {
-    brandName:       formData.get("brandName"),
-    logoUrl:         formData.get("logoUrl") || "",
-    faviconUrl:      formData.get("faviconUrl") || "",
-    primaryColor:    formData.get("primaryColor"),
-    secondaryColor:  formData.get("secondaryColor"),
-    accentColor:     formData.get("accentColor"),
-    textColor:       formData.get("textColor"),
-    mutedColor:      formData.get("mutedColor"),
-    borderColor:     formData.get("borderColor"),
-    darkBgColor:     formData.get("darkBgColor"),
-    darkTextColor:   formData.get("darkTextColor"),
-    darkMutedColor:  formData.get("darkMutedColor"),
-    darkBorderColor: formData.get("darkBorderColor"),
-    darkCardColor:   formData.get("darkCardColor"),
+    brandName:        formData.get("brandName"),
+    logoUrl:          formData.get("logoUrl") || "",
+    faviconUrl:       formData.get("faviconUrl") || "",
+    primaryColor:     formData.get("primaryColor"),
+    secondaryColor:   formData.get("secondaryColor"),
+    accentColor:      formData.get("accentColor"),
+    textColor:        formData.get("textColor"),
+    mutedColor:       formData.get("mutedColor"),
+    borderColor:      formData.get("borderColor"),
+    cardColor:        formData.get("cardColor"),
+    darkBgColor:      formData.get("darkBgColor"),
+    darkPrimaryColor: formData.get("darkPrimaryColor"),
+    darkAccentColor:  formData.get("darkAccentColor"),
+    darkCardColor:    formData.get("darkCardColor"),
+    darkTextColor:    formData.get("darkTextColor"),
+    darkMutedColor:   formData.get("darkMutedColor"),
+    darkBorderColor:  formData.get("darkBorderColor"),
   }
 
   const parsed = SettingsSchema.safeParse(raw)
@@ -70,8 +76,10 @@ export async function saveSettings(
     } else {
       await prisma.tenantConfig.create({ data })
     }
+    // Revalidate all paths that use tenant config
+    revalidatePath("/", "layout")
+    revalidatePath("/admin", "layout")
     revalidatePath("/admin/settings")
-    revalidatePath("/", "layout") // refresh global CSS vars across all pages
     return { success: true }
   } catch {
     return { error: "Failed to save settings. Please try again." }

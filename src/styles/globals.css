@@ -3,13 +3,13 @@
 @tailwind utilities;
 
 :root {
-  --bg-start: var(--color-secondary); /* Dynamic light color */
-  --bg-end: var(--color-primary);   /* Dynamic brand primary */
+  --bg-start: var(--color-primary); /* Accent tint at top-left */
+  --bg-end: var(--color-secondary); /* Main page background */
 }
 
 .dark {
-  --bg-start: var(--color-primary-dark); /* dark theme background */
-  --bg-end: #7A4F35;   /* darker variant, can configure later */
+  --bg-start: var(--color-dark-primary, var(--color-primary));
+  --bg-end: var(--color-dark-bg);
 }
 
 html {
@@ -36,25 +36,42 @@ body::before {
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  background: radial-gradient(1600px 1100px at 20% 0%, var(--bg-start), var(--bg-end));
+  background: radial-gradient(1600px 1100px at 20% 0%, var(--bg-start), var(--bg-end)) !important;
   background-repeat: no-repeat;
   background-size: cover;
 }
 
 @media (max-width: 1024px) {
   body::before {
-    background: radial-gradient(1400px 1400px at 50% -10%, var(--bg-start), var(--bg-end));
+    background: radial-gradient(1400px 1400px at 50% -10%, var(--bg-start), var(--bg-end)) !important;
   }
 }
 
 @media (max-width: 640px) {
   body::before {
-    background: radial-gradient(1200px 1600px at 50% -20%, var(--bg-start), var(--bg-end));
+    background: radial-gradient(1200px 1600px at 50% -20%, var(--bg-start), var(--bg-end)) !important;
   }
 }
 
 .dark body {
   color: var(--color-dark-text);
+  background-color: var(--color-dark-bg);
+}
+
+.dark body::before {
+  background: radial-gradient(1600px 1100px at 20% 0%, var(--color-dark-primary, var(--color-primary)), var(--color-dark-bg));
+}
+
+@media (max-width: 1024px) {
+  .dark body::before {
+    background: radial-gradient(1400px 1400px at 50% -10%, var(--color-dark-primary, var(--color-primary)), var(--color-dark-bg));
+  }
+}
+
+@media (max-width: 640px) {
+  .dark body::before {
+    background: radial-gradient(1200px 1600px at 50% -20%, var(--color-dark-primary, var(--color-primary)), var(--color-dark-bg));
+  }
 }
 
 /* ── Admin panel ──────────────────────────────────────────────────────────────
@@ -83,7 +100,7 @@ body:has(.admin-layout)::before {
 }
 .btn-primary:hover { opacity: 0.9; }
 .dark .btn-primary { 
-  background-color: var(--color-accent); 
+  background-color: var(--color-dark-accent, var(--color-accent)); 
   color: var(--color-dark-text); 
 }
 
@@ -167,7 +184,7 @@ body:has(.admin-layout)::before {
 /* React Day Picker custom overrides */
 .rdp {
   --rdp-cell-size: 40px;
-  --rdp-accent-color: #FDE5C3;
+  --rdp-accent-color: var(--color-accent);
   --rdp-background-color: white;
   margin: 0 !important;
 }
@@ -353,16 +370,14 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     /* Backgrounds — use tenant secondary/primary colors */
     --background:         var(--color-secondary, #FFF6E9);
     --foreground:         var(--color-text, #2B2B2B);
-    --card:               #ffffff;
+    --card:               var(--color-card, #FFFFFF);
     --card-foreground:    var(--color-text, #2B2B2B);
-    --popover:            #ffffff;
+    --popover:            var(--color-card, #FFFFFF);
     --popover-foreground: var(--color-text, #2B2B2B);
 
-    /* Primary = warm brown (used for buttons, active nav, etc.)
-       We use a fixed warm brown because the tenant's primaryColor is
-       a light cream (background tint), not a button color. */
-    --primary:            #6B4423;
-    --primary-foreground: #ffffff;
+    /* Primary = tenant accent color (buttons, active nav, etc.) */
+    --primary:            var(--color-accent);
+    --primary-foreground: var(--color-text);
 
     /* Secondary & muted follow tenant colors */
     --secondary:           var(--color-primary, #FDE5C3);
@@ -377,7 +392,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     /* Borders & inputs follow tenant border color */
     --border:  var(--color-border, #E9E2D6);
     --input:   var(--color-border, #E9E2D6);
-    --ring:    #6B4423;
+    --ring:    var(--color-accent, #FFBBBD);
 
     /* Destructive — fixed */
     --destructive: oklch(0.55 0.22 27);
@@ -394,12 +409,12 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     /* Sidebar follows same logic */
     --sidebar:                    var(--color-secondary, #FFF6E9);
     --sidebar-foreground:         var(--color-text, #2B2B2B);
-    --sidebar-primary:            #6B4423;
-    --sidebar-primary-foreground: #ffffff;
+    --sidebar-primary:            var(--color-accent, #FFBBBD);
+    --sidebar-primary-foreground: var(--color-text, #2B2B2B);
     --sidebar-accent:             var(--color-primary, #FDE5C3);
     --sidebar-accent-foreground:  var(--color-text, #2B2B2B);
     --sidebar-border:             var(--color-border, #E9E2D6);
-    --sidebar-ring:               #6B4423;
+    --sidebar-ring:               var(--color-accent, #FFBBBD);
   }
 
   /* Dark mode — use tenant dark-theme vars */
@@ -411,15 +426,15 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     --popover:            var(--color-dark-card, #2A2A2A);
     --popover-foreground: var(--color-dark-text, #FFFFFF);
 
-    /* In dark mode, primary = light cream for contrast on dark bg */
-    --primary:            var(--color-primary, #FDE5C3);
-    --primary-foreground: var(--color-dark-bg, #9c6849);
+    /* In dark mode, primary = tenant dark accent */
+    --primary:            var(--color-dark-accent, var(--color-accent));
+    --primary-foreground: var(--color-dark-text, #FFFFFF);
 
-    --secondary:           var(--color-dark-card, #2A2A2A);
+    --secondary:           var(--color-dark-primary, var(--color-primary));
     --secondary-foreground:var(--color-dark-text, #FFFFFF);
-    --muted:               var(--color-dark-card, #2A2A2A);
+    --muted:               var(--color-dark-primary, var(--color-primary));
     --muted-foreground:    var(--color-dark-muted, #D0D0D0);
-    --accent:              var(--color-dark-card, #2A2A2A);
+    --accent:              var(--color-dark-accent, var(--color-accent));
     --accent-foreground:   var(--color-dark-text, #FFFFFF);
 
     --border:  var(--color-dark-border, #7A4F35);
@@ -436,8 +451,8 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
     --sidebar:                    var(--color-dark-card, #2A2A2A);
     --sidebar-foreground:         var(--color-dark-text, #FFFFFF);
-    --sidebar-primary:            var(--color-primary, #FDE5C3);
-    --sidebar-primary-foreground: var(--color-dark-bg, #9c6849);
+    --sidebar-primary:            var(--color-dark-accent, var(--color-accent));
+    --sidebar-primary-foreground: var(--color-dark-text, #FFFFFF);
     --sidebar-accent:             var(--color-dark-border, #7A4F35);
     --sidebar-accent-foreground:  var(--color-dark-text, #FFFFFF);
     --sidebar-border:             var(--color-dark-border, #7A4F35);
@@ -453,4 +468,15 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     /* Shadcn background removed to prioritize dynamic tenant bg-end */
     color: var(--foreground);
   }
+}
+
+/* Custom utility classes for legacy component support */
+@layer utilities {
+  .text-text { color: var(--color-text); }
+  .text-muted { color: var(--color-muted); }
+  .text-dark-text { color: var(--color-dark-text); }
+  .text-dark-muted { color: var(--color-dark-muted); }
+  .bg-dark-card { background-color: var(--color-dark-card); }
+  .border-dark-border { border-color: var(--color-dark-border); }
+  .placeholder-dark-muted::placeholder { color: var(--color-dark-muted); }
 }

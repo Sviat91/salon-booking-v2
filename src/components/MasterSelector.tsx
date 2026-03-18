@@ -63,10 +63,10 @@ export default function MasterSelector() {
         transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.6, ease: "easeOut" }}
         className="text-center mb-6"
       >
-        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-text dark:text-dark-text mb-2">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-2">
           {t('master.selectTitle')}
         </h1>
-        <p className="text-base sm:text-lg text-muted dark:text-dark-muted">
+        <p className="text-base sm:text-lg text-muted-foreground">
           {t('master.selectSubtitle', 'Zarezerwuj wizytę u wybranego specjalisty')}
         </p>
       </motion.div>
@@ -115,7 +115,7 @@ export default function MasterSelector() {
                 />
               ) : (
                 // Placeholder when no photo
-                <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5 text-primary text-6xl font-bold">
+                <div className="flex h-full w-full items-center justify-center bg-muted text-foreground text-6xl font-bold">
                   {master.name[0]?.toUpperCase()}
                 </div>
               )}
@@ -166,7 +166,7 @@ export default function MasterSelector() {
         animate={{ opacity: 1 }}
         exit={prefersReducedMotion ? {} : { opacity: 0 }}
         transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.6, ease: "easeOut", delay: 0 }}
-        className="mt-4 text-xs sm:text-sm text-muted dark:text-dark-muted text-center max-w-md px-4"
+        className="mt-4 text-xs sm:text-sm text-muted-foreground text-center max-w-md px-4"
       >
         {t('master.choiceRemembered', 'Twój wybór zostanie zapamiętany dla wygodniejszego korzystania z systemu rezerwacji')}
       </motion.p>

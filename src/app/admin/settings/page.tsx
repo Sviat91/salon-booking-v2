@@ -3,9 +3,14 @@ import SettingsForm from "./SettingsForm"
 
 export default async function SettingsPage() {
   const config = await getTenantConfig()
-  // Ensure faviconUrl is available (added via db push, may be missing from old cached types)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const fullConfig = { ...config, faviconUrl: (config as any).faviconUrl ?? null }
+  // Provide defaults for any missing fields (schema evolution)
+  const c = config as Record<string, unknown>
+  const fullConfig = {
+    ...config,
+    cardColor: c.cardColor as string || "#FFFFFF",
+    darkPrimaryColor: c.darkPrimaryColor as string || config.primaryColor,
+    darkAccentColor: c.darkAccentColor as string || config.accentColor,
+  }
 
   return (
     <div className="flex flex-col gap-6">

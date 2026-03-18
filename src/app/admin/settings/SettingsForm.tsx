@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState } from "react"
 import { useFormState, useFormStatus } from "react-dom"
 import Image from "next/image"
 import { Upload, X, ImageIcon } from "lucide-react"
@@ -19,11 +19,14 @@ type TenantConfig = {
   textColor:       string
   mutedColor:      string
   borderColor:     string
+  cardColor:       string
   darkBgColor:     string
+  darkPrimaryColor: string
+  darkAccentColor: string
+  darkCardColor:   string
   darkTextColor:   string
   darkMutedColor:  string
   darkBorderColor: string
-  darkCardColor:   string
 }
 
 const initialState: SettingsFormState = {}
@@ -31,16 +34,19 @@ const initialState: SettingsFormState = {}
 // Light theme color fields — plain English labels
 const lightColorFields: { name: keyof TenantConfig; label: string; description: string }[] = [
   { name: "secondaryColor", label: "Page Background",  description: "Main background color of pages" },
-  { name: "primaryColor",   label: "Background Tint",  description: "Warm tint used for cards and accents" },
-  { name: "accentColor",    label: "Accent / Highlight","description": "Buttons and highlighted elements" },
-  { name: "textColor",      label: "Body Text",         description: "Main text color" },
-  { name: "mutedColor",     label: "Muted Text",        description: "Subtitles, placeholders" },
-  { name: "borderColor",    label: "Borders",           description: "Color of dividers and outlines" },
+  { name: "primaryColor",   label: "Secondary Tint",   description: "Accent backgrounds, hover states" },
+  { name: "cardColor",      label: "Card Background",  description: "Background for cards and panels" },
+  { name: "accentColor",    label: "Primary Button",   description: "Buttons and highlighted elements" },
+  { name: "textColor",      label: "Body Text",        description: "Main text color" },
+  { name: "mutedColor",     label: "Muted Text",       description: "Subtitles, placeholders" },
+  { name: "borderColor",    label: "Borders",          description: "Color of dividers and outlines" },
 ]
 
 const darkColorFields: { name: keyof TenantConfig; label: string; description: string }[] = [
   { name: "darkBgColor",     label: "Dark Background",      description: "Main background in dark theme" },
+  { name: "darkPrimaryColor", label: "Dark Secondary Tint", description: "Accent backgrounds, hover states" },
   { name: "darkCardColor",   label: "Dark Card",            description: "Card / panel background" },
+  { name: "darkAccentColor", label: "Dark Primary Button",  description: "Buttons and highlighted elements" },
   { name: "darkTextColor",   label: "Dark Text",            description: "Main text on dark background" },
   { name: "darkMutedColor",  label: "Dark Muted Text",      description: "Subtitles on dark background" },
   { name: "darkBorderColor", label: "Dark Borders",         description: "Dividers in dark theme" },
@@ -55,31 +61,29 @@ function ColorRow({
   field: { name: string; label: string; description: string }
   defaultValue: string
 }) {
-  const inputRef = useRef<HTMLInputElement>(null)
-  const pickerRef = useRef<HTMLInputElement>(null)
+  const [color, setColor] = useState(defaultValue)
 
   return (
     <div className="grid gap-1.5">
       <Label htmlFor={field.name}>{field.label}</Label>
       <div className="flex gap-2 items-center">
         <input
-          ref={pickerRef}
           type="color"
-          defaultValue={defaultValue}
+          value={color}
           className="h-8 w-10 cursor-pointer rounded border border-input bg-background p-0.5 shrink-0"
-          onChange={(e) => { if (inputRef.current) inputRef.current.value = e.target.value }}
+          onChange={(e) => setColor(e.target.value)}
         />
         <Input
-          ref={inputRef}
           id={field.name}
           name={field.name}
-          defaultValue={defaultValue}
+          value={color}
           pattern="^#[0-9A-Fa-f]{6}$"
           placeholder="#000000"
           className="font-mono text-sm"
           onChange={(e) => {
-            if (pickerRef.current && /^#[0-9A-Fa-f]{6}$/.test(e.target.value)) {
-              pickerRef.current.value = e.target.value
+            const val = e.target.value
+            if (/^#[0-9A-Fa-f]{6}$/.test(val)) {
+              setColor(val)
             }
           }}
         />

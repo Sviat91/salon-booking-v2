@@ -6,7 +6,8 @@ import Providers from './providers'
 import Footer from '../components/Footer'
 import { getTenantConfig } from '@/lib/tenant'
 import { cn } from "@/lib/utils"
-import Header from "@/components/layout/Header"
+
+export const dynamic = 'force-dynamic'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -79,16 +80,18 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
               --color-text: ${config.textColor};
               --color-muted: ${config.mutedColor};
               --color-border: ${config.borderColor};
+              --color-card: ${(config as Record<string, unknown>).cardColor || '#FFFFFF'};
               --color-success: ${config.successColor};
               --color-error: ${config.errorColor};
               
               /* Dark mode colors */
               --color-dark-bg: ${config.darkBgColor};
+              --color-dark-primary: ${(config as Record<string, unknown>).darkPrimaryColor || config.primaryColor};
+              --color-dark-accent: ${(config as Record<string, unknown>).darkAccentColor || config.accentColor};
               --color-dark-text: ${config.darkTextColor};
               --color-dark-muted: ${config.darkMutedColor};
               --color-dark-border: ${config.darkBorderColor};
               --color-dark-card: ${config.darkCardColor};
-              --color-primary-dark: ${config.darkBgColor}; /* Fallback for legacy ref */
             }
           `
         }} />

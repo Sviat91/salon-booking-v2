@@ -1,3 +1,4 @@
+import { unstable_noStore as noStore } from "next/cache"
 import prisma from "@/lib/prisma"
 
 const DEFAULT_CONFIG = {
@@ -8,18 +9,22 @@ const DEFAULT_CONFIG = {
   textColor: "#2B2B2B",
   mutedColor: "#6B6B6B",
   borderColor: "#E9E2D6",
+  cardColor: "#FFFFFF",
   successColor: "#21A67A",
   errorColor: "#D84E4E",
   darkBgColor: "#9c6849",
+  darkPrimaryColor: "#FDE5C3",
+  darkAccentColor: "#FFBBBD",
+  darkCardColor: "#2A2A2A",
   darkTextColor: "#FFFFFF",
   darkMutedColor: "#D0D0D0",
   darkBorderColor: "#7A4F35",
-  darkCardColor: "#2A2A2A",
   logoUrl: null,
   faviconUrl: null,
 }
 
 export async function getTenantConfig() {
+  noStore() // Disable caching to always get fresh config
   try {
     const config = await prisma.tenantConfig.findFirst()
     if (config) {
@@ -33,7 +38,7 @@ export async function getTenantConfig() {
     
     return newConfig
 
-  } catch (error) {
+  } catch {
     // Fallback if DB is unavailable during certain build steps
     return DEFAULT_CONFIG
   }
