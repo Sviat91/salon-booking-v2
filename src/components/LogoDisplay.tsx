@@ -55,7 +55,6 @@ export default function LogoDisplay({ page }: { page: "home" | "booking" | "mast
           position: "absolute",
           left: `${config.logoPositionX}%`,
           top: `${config.logoPositionY}%`,
-          transform: "translate(-50%, -50%)",
         }}
       >
         <Image

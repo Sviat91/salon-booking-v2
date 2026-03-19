@@ -15,6 +15,7 @@ export default async function SettingsPage() {
     logoWidth: c.logoWidth as number ?? 200,
     logoHeight: c.logoHeight as number ?? 80,
     logoPages: c.logoPages as string || '["home","booking"]',
+    logoLayer: c.logoLayer as string || 'above',
   }
 
   return (

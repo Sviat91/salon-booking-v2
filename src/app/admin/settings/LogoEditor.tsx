@@ -3,7 +3,6 @@
 import { useState, useRef, useCallback, useEffect } from "react"
 import Image from "next/image"
 import { Upload, X, ImageIcon, Move, Maximize2, Minimize2 } from "lucide-react"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 
@@ -15,6 +14,7 @@ type LogoConfig = {
   logoWidth: number
   logoHeight: number
   logoPages: string
+  logoLayer: string
 }
 
 type LogoEditorProps = {
@@ -24,6 +24,7 @@ type LogoEditorProps = {
   onPositionChange: (x: number, y: number) => void
   onSizeChange: (width: number, height: number) => void
   onPagesChange: (pages: string) => void
+  onLayerChange: (layer: string) => void
   onRemoveLogo: () => void
   onRemoveDarkLogo: () => void
   logoUploading: boolean
@@ -59,137 +60,119 @@ async function uploadImage(
   }
 }
 
-function PagePreviewMiniature({
+// --- Iframe-based real homepage preview ---
+// The iframe renders the actual homepage at full resolution (1440×900),
+// then CSS transform: scale() shrinks it to fit the preview container.
+// A transparent overlay sits on top for drag interaction.
+// The logo is positioned on the overlay to match real page coordinates.
+
+const IFRAME_WIDTH = 1440
+const IFRAME_HEIGHT = 900
+
+function HomepagePreview({
   logoUrl,
   posX,
   posY,
-  width,
-  height,
-}: {
-  logoUrl: string | null
-  posX: number
-  posY: number
-  width: number
-  height: number
-}) {
-  const scale = 0.15
-  const scaledWidth = Math.round(width * scale)
-  const scaledHeight = Math.round(height * scale)
-
-  return (
-    <div className="relative w-full h-full bg-secondary/50 overflow-hidden rounded">
-      <div className="absolute top-[8%] right-[8%] flex gap-1">
-        <div className="w-3 h-3 rounded-full bg-muted-foreground/30" />
-        <div className="w-3 h-3 rounded-full bg-muted-foreground/30" />
-      </div>
-      
-      <div className="absolute left-1/2 top-[40%] -translate-x-1/2 flex flex-col items-center gap-2">
-        <div className="w-12 h-12 rounded-full bg-muted-foreground/20 border border-muted-foreground/30" />
-        <div className="w-32 h-3 rounded bg-muted-foreground/20" />
-      </div>
-
-      <div className="absolute bottom-[15%] left-1/2 -translate-x-1/2 w-[60%]">
-        <div className="h-6 rounded-lg bg-muted-foreground/15 border border-muted-foreground/20" />
-      </div>
-
-      {logoUrl && (
-        <div
-          className="absolute pointer-events-none"
-          style={{
-            left: `${posX}%`,
-            top: `${posY}%`,
-            transform: "translate(-50%, -50%)",
-          }}
-        >
-          <Image
-            src={logoUrl}
-            alt="Logo"
-            width={scaledWidth}
-            height={scaledHeight}
-            className="object-contain"
-          />
-        </div>
-      )}
-    </div>
-  )
-}
-
-function PagePreviewFull({
-  logoUrl,
-  posX,
-  posY,
-  width,
-  height,
+  logoWidth,
+  logoHeight,
+  logoLayer,
   onDragStart,
   previewRef,
+  containerHeight,
 }: {
   logoUrl: string | null
   posX: number
   posY: number
-  width: number
-  height: number
+  logoWidth: number
+  logoHeight: number
+  logoLayer?: string
   onDragStart: (e: React.MouseEvent | React.TouchEvent) => void
   previewRef: React.RefObject<HTMLDivElement>
+  containerHeight: number // px height of the visible container
 }) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [scale, setScale] = useState(0.25)
+
+  // Compute scale based on container width
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+    const observer = new ResizeObserver((entries) => {
+      const width = entries[0]?.contentRect.width ?? 400
+      setScale(width / IFRAME_WIDTH)
+    })
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
+  const scaledLogoW = Math.round(logoWidth * scale)
+  const scaledLogoH = Math.round(logoHeight * scale)
+  const visibleHeight = IFRAME_HEIGHT * scale
+
   return (
     <div
-      ref={previewRef}
-      className="relative w-full h-full bg-secondary/50 overflow-hidden cursor-crosshair"
-      onMouseDown={onDragStart}
-      onTouchStart={onDragStart}
+      ref={containerRef}
+      className="relative w-full overflow-hidden rounded-lg border border-border"
+      style={{ height: containerHeight || visibleHeight }}
     >
-      <div className="absolute top-4 right-4 flex gap-2">
-        <div className="w-8 h-8 rounded-full bg-muted-foreground/20" />
-        <div className="w-8 h-8 rounded-full bg-muted-foreground/20" />
-        <div className="w-8 h-8 rounded-full bg-muted-foreground/20" />
-      </div>
+      {/* Real homepage in iframe — scaled down */}
+      <iframe
+        src="/?preview=1"
+        title="Homepage preview"
+        className="origin-top-left pointer-events-none"
+        style={{
+          width: IFRAME_WIDTH,
+          height: IFRAME_HEIGHT,
+          transform: `scale(${scale})`,
+          transformOrigin: "top left",
+          border: "none",
+        }}
+        tabIndex={-1}
+      />
 
-      <div className="absolute left-1/2 top-[35%] -translate-x-1/2 flex flex-col items-center gap-3">
-        <div className="w-20 h-20 rounded-full bg-muted-foreground/20 border-2 border-muted-foreground/30" />
-        <div className="w-48 h-4 rounded bg-muted-foreground/20" />
-      </div>
-
-      <div className="absolute bottom-[20%] left-1/2 -translate-x-1/2 w-[80%] max-w-sm">
-        <div className="h-16 rounded-lg bg-muted-foreground/15 border border-muted-foreground/20 flex items-center justify-center">
-          <span className="text-muted-foreground/40 text-sm">Master Selector</span>
-        </div>
-      </div>
-
-      {logoUrl ? (
-        <div
-          className="absolute"
-          style={{
-            left: `${posX}%`,
-            top: `${posY}%`,
-            transform: "translate(-50%, -50%)",
-          }}
-        >
-          <Image
-            src={logoUrl}
-            alt="Logo position"
-            width={width}
-            height={height}
-            className="object-contain"
-          />
-        </div>
-      ) : (
-        <div
-          className="absolute flex items-center justify-center"
-          style={{
-            left: `${posX}%`,
-            top: `${posY}%`,
-            transform: "translate(-50%, -50%)",
-          }}
-        >
-          <div className="h-12 w-20 rounded border-2 border-dashed border-muted-foreground/30 flex items-center justify-center gap-1 px-2">
-            <Move className="h-4 w-4 text-muted-foreground/50" />
-            <span className="text-xs text-muted-foreground/50">Logo</span>
+      {/* Transparent overlay for drag interaction */}
+      <div
+        ref={previewRef}
+        className="absolute inset-0 cursor-crosshair z-10"
+        onMouseDown={onDragStart}
+        onTouchStart={onDragStart}
+      >
+        {/* Logo overlay — positioned to match real page coordinates */}
+        {logoUrl ? (
+          <div
+            className={`absolute pointer-events-none transition-opacity ${logoLayer === 'below' ? 'opacity-40' : 'opacity-100'}`}
+            style={{
+              left: `${posX}%`,
+              top: `${posY}%`,
+            }}
+          >
+            <Image
+              src={logoUrl}
+              alt="Logo position"
+              width={scaledLogoW}
+              height={scaledLogoH}
+              className="object-contain"
+            />
           </div>
-        </div>
-      )}
+        ) : (
+          <div
+            className={`absolute pointer-events-none transition-opacity ${logoLayer === 'below' ? 'opacity-40' : 'opacity-100'}`}
+            style={{
+              left: `${posX}%`,
+              top: `${posY}%`,
+            }}
+          >
+            <div className="h-8 w-14 rounded border-2 border-dashed border-primary/50 flex items-center justify-center gap-0.5 bg-primary/10">
+              <Move className="h-3 w-3 text-primary/60" />
+              <span className="text-[9px] text-primary/60">Logo</span>
+            </div>
+          </div>
+        )}
 
-      <div className="absolute bottom-2 left-2 text-xs text-muted-foreground bg-background/90 px-2 py-1 rounded border">
-        Position: X {posX}% / Y {posY}%
+        {/* Position badge */}
+        <div className="absolute bottom-1 left-1 text-[10px] text-white bg-black/60 px-1.5 py-0.5 rounded">
+          X {posX}% / Y {posY}%
+        </div>
       </div>
     </div>
   )
@@ -210,6 +193,7 @@ export default function LogoEditor({
   darkLogoError,
   onLogoUploadStart,
   onDarkLogoUploadStart,
+  onLayerChange,
 }: LogoEditorProps) {
   const [isDragging, setIsDragging] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
@@ -243,8 +227,9 @@ export default function LogoEditor({
       const clientX = "touches" in e ? e.touches[0].clientX : e.clientX
       const clientY = "touches" in e ? e.touches[0].clientY : e.clientY
 
-      const x = Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100))
-      const y = Math.max(0, Math.min(100, ((clientY - rect.top) / rect.height) * 100))
+      // Calculate percentage position within the preview area
+      const x = Math.max(0, Math.min(90, ((clientX - rect.left) / rect.width) * 100))
+      const y = Math.max(0, Math.min(90, ((clientY - rect.top) / rect.height) * 100))
 
       onPositionChange(Math.round(x), Math.round(y))
     },
@@ -285,23 +270,54 @@ export default function LogoEditor({
               <h3 className="font-semibold">Logo Position Editor</h3>
               <p className="text-xs text-muted-foreground">Click or drag to position the logo</p>
             </div>
-            <button
-              type="button"
-              onClick={() => setIsFullscreen(false)}
-              className="p-2 hover:bg-muted rounded-lg transition-colors"
-            >
-              <Minimize2 className="h-5 w-5" />
-            </button>
+            <div className="flex items-center gap-4">
+              {/* Layer switch in fullscreen */}
+              <div className="flex bg-muted rounded-lg p-0.5">
+                <button
+                  type="button"
+                  onClick={() => onLayerChange("above")}
+                  className={`px-2 py-1.5 text-xs font-medium rounded-md transition-colors ${config.logoLayer !== "below" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                >
+                  Above
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onLayerChange("below")}
+                  className={`px-2 py-1.5 text-xs font-medium rounded-md transition-colors ${config.logoLayer === "below" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                >
+                  Below
+                </button>
+              </div>
+              {/* Size controls in fullscreen */}
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground">Size:</span>
+                <input
+                  type="range" min={50} max={400} value={config.logoWidth}
+                  onChange={(e) => onSizeChange(parseInt(e.target.value), config.logoHeight)}
+                  className="w-24 h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
+                />
+                <span className="text-xs font-mono w-10">{config.logoWidth}px</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsFullscreen(false)}
+                className="p-2 hover:bg-muted rounded-lg transition-colors"
+              >
+                <Minimize2 className="h-5 w-5" />
+              </button>
+            </div>
           </div>
           <div className="flex-1 p-4">
-            <PagePreviewFull
+            <HomepagePreview
               logoUrl={config.logoUrl}
               posX={config.logoPositionX}
               posY={config.logoPositionY}
-              width={config.logoWidth}
-              height={config.logoHeight}
+              logoWidth={config.logoWidth}
+              logoHeight={config.logoHeight}
+              logoLayer={config.logoLayer}
               onDragStart={handleDragStart}
               previewRef={previewRef}
+              containerHeight={0}
             />
           </div>
         </div>
@@ -411,38 +427,53 @@ export default function LogoEditor({
 
             <div className="grid gap-3">
               <Label>Logo Size</Label>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-1.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">Width</span>
-                    <span className="text-xs font-mono">{config.logoWidth}px</span>
-                  </div>
-                  <input
-                    type="range"
-                    min={50}
-                    max={400}
-                    value={config.logoWidth}
-                    onChange={(e) => onSizeChange(parseInt(e.target.value), config.logoHeight)}
-                    className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
-                  />
+              <div className="grid gap-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">Size</span>
+                  <span className="text-xs font-mono">{config.logoWidth}px</span>
                 </div>
-                <div className="grid gap-1.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">Height</span>
-                    <span className="text-xs font-mono">{config.logoHeight}px</span>
-                  </div>
-                  <input
-                    type="range"
-                    min={20}
-                    max={150}
-                    value={config.logoHeight}
-                    onChange={(e) => onSizeChange(config.logoWidth, parseInt(e.target.value))}
-                    className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
-                  />
-                </div>
+                <input
+                  type="range"
+                  min={50}
+                  max={400}
+                  value={config.logoWidth}
+                  onChange={(e) => onSizeChange(parseInt(e.target.value), config.logoHeight)}
+                  className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
+                />
               </div>
               <input type="hidden" name="logoWidth" value={config.logoWidth} />
               <input type="hidden" name="logoHeight" value={config.logoHeight} />
+            </div>
+
+            <div className="grid gap-2">
+              <Label>Overlap Setting (Z-Index)</Label>
+              <div className="flex flex-col gap-2">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="logoLayer"
+                    value="above"
+                    checked={config.logoLayer === "above" || !config.logoLayer}
+                    onChange={(e) => onLayerChange(e.target.value)}
+                    className="accent-primary"
+                  />
+                  <span className="text-sm">Show Above Content (Default)</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="logoLayer"
+                    value="below"
+                    checked={config.logoLayer === "below"}
+                    onChange={(e) => onLayerChange(e.target.value)}
+                    className="accent-primary"
+                  />
+                  <span className="text-sm">Show Below Content</span>
+                </label>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                In the preview box, "Below Content" logos are shown slightly transparent for easier editing.
+              </p>
             </div>
 
             <div className="grid gap-2">
@@ -477,24 +508,17 @@ export default function LogoEditor({
               </button>
             </div>
 
-            <div
-              ref={previewRef}
-              className="relative h-64 w-full rounded-lg border border-border overflow-hidden cursor-crosshair"
-              onMouseDown={handleDragStart}
-              onTouchStart={handleDragStart}
-            >
-              <PagePreviewMiniature
-                logoUrl={config.logoUrl}
-                posX={config.logoPositionX}
-                posY={config.logoPositionY}
-                width={config.logoWidth}
-                height={config.logoHeight}
-              />
-            </div>
-
-            <div className="text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded">
-              Position: X {config.logoPositionX}% / Y {config.logoPositionY}%
-            </div>
+            <HomepagePreview
+              logoUrl={config.logoUrl}
+              posX={config.logoPositionX}
+              posY={config.logoPositionY}
+              logoWidth={config.logoWidth}
+              logoHeight={config.logoHeight}
+              logoLayer={config.logoLayer}
+              onDragStart={handleDragStart}
+              previewRef={previewRef}
+              containerHeight={256}
+            />
 
             <input type="hidden" name="logoPositionX" value={config.logoPositionX} />
             <input type="hidden" name="logoPositionY" value={config.logoPositionY} />

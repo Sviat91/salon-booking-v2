@@ -54,7 +54,7 @@ export default function MasterSelector() {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center w-full max-w-4xl">
+    <div className="flex flex-col items-center justify-center w-full max-w-4xl relative z-10">
       {/* Title */}
       <motion.div
         initial={prefersReducedMotion ? {} : { opacity: 0, y: -20 }}

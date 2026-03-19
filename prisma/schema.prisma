@@ -139,6 +139,7 @@ model TenantConfig {
   logoWidth       Int      @default(200)
   logoHeight      Int      @default(80)
   logoPages       String   @default("[\"home\",\"booking\"]")
+  logoLayer       String   @default("above") // "above" = on top of content, "below" = behind content
 
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt

@@ -20,6 +20,7 @@ type TenantConfig = {
   logoWidth:       number
   logoHeight:      number
   logoPages:       string
+  logoLayer:       string
   primaryColor:    string
   secondaryColor:  string
   accentColor:     string
@@ -184,6 +185,7 @@ export default function SettingsForm({ config }: { config: TenantConfig }) {
   const [logoWidth, setLogoWidth] = useState(config.logoWidth)
   const [logoHeight, setLogoHeight] = useState(config.logoHeight)
   const [logoPages, setLogoPages] = useState(config.logoPages)
+  const [logoLayer, setLogoLayer] = useState(config.logoLayer ?? "above")
   const [logoUploading, setLogoUploading] = useState(false)
   const [darkLogoUploading, setDarkLogoUploading] = useState(false)
   const [logoError, setLogoError] = useState<string | null>(null)
@@ -251,12 +253,14 @@ export default function SettingsForm({ config }: { config: TenantConfig }) {
             logoWidth,
             logoHeight,
             logoPages,
+            logoLayer,
           }}
           onLogoUpload={(url) => setLogoUrl(url)}
           onDarkLogoUpload={(url) => setDarkLogoUrl(url)}
           onPositionChange={(x, y) => { setLogoPositionX(x); setLogoPositionY(y) }}
           onSizeChange={(w, h) => { setLogoWidth(w); setLogoHeight(h) }}
           onPagesChange={(pages) => setLogoPages(pages)}
+          onLayerChange={(layer) => setLogoLayer(layer)}
           onRemoveLogo={() => setLogoUrl("")}
           onRemoveDarkLogo={() => setDarkLogoUrl("")}
           logoUploading={logoUploading}

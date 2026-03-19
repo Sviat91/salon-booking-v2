@@ -16,12 +16,14 @@ type LogoConfig = {
   logoWidth?: number
   logoHeight?: number
   logoPages?: string
+  logoLayer?: string
   brandName?: string
 }
 
 interface HomeClientProps {
   initialReviews: ReviewImage[]
   config: LogoConfig
+  isPreview?: boolean
 }
 
 function shouldShowLogo(logoPages: string | undefined, page: string): boolean {
@@ -33,10 +35,10 @@ function shouldShowLogo(logoPages: string | undefined, page: string): boolean {
   }
 }
 
-export default function HomeClient({ initialReviews, config }: HomeClientProps) {
+export default function HomeClient({ initialReviews, config, isPreview }: HomeClientProps) {
   useQueryClient()
 
-  const showLogo = shouldShowLogo(config.logoPages, "home")
+  const showLogo = shouldShowLogo(config.logoPages, "home") && !isPreview
   const logoSrc = config.logoUrl || "/head_logo.png"
   const darkLogoSrc = config.darkLogoUrl || config.logoUrl || "/head_logo_night.png"
   const brandName = config.brandName || "Logo"
@@ -50,7 +52,7 @@ export default function HomeClient({ initialReviews, config }: HomeClientProps) 
     position: "absolute" as const,
     left: `${posX}%`,
     top: `${posY}%`,
-    transform: "translate(-50%, -50%)",
+    zIndex: config.logoLayer === "below" ? 0 : 30,
   }
 
   return (
