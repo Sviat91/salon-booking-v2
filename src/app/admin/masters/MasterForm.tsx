@@ -7,12 +7,13 @@ import { Copy, Check, Upload, X, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { createMaster, updateMaster, type MasterFormState } from "./actions"
+import { createMaster, updateMaster, resetMasterPassword, type MasterFormState } from "./actions"
 
 type Master = {
   id: string
   name: string | null
   email: string | null
+  plainPassword: string | null
   masterProfile: { bio: string | null; avatarUrl: string | null; showOnHomepage: boolean } | null
 }
 
@@ -47,6 +48,30 @@ export default function MasterForm({ master, onSuccess }: MasterFormProps) {
   )
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
+
+  const [resetPasswordState, setResetPasswordState] = useState<{ password?: string, success?: boolean, error?: string, copied?: boolean }>({})
+  const [isResetting, setIsResetting] = useState(false)
+  const [customPassword, setCustomPassword] = useState(master?.plainPassword || "")
+
+  async function handleResetPassword() {
+    if (!master) return
+    setIsResetting(true)
+    setResetPasswordState({})
+    const res = await resetMasterPassword(master.id, customPassword || undefined)
+    if (res.success) {
+      setResetPasswordState({ success: true, password: res.newPassword })
+      setCustomPassword("")
+    } else {
+      setResetPasswordState({ error: res.error })
+    }
+    setIsResetting(false)
+  }
+
+  function handleGenerateCustom() {
+    const chars = "ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789"
+    const generated = Array.from({ length: 10 }, () => chars[Math.floor(Math.random() * chars.length)]).join("")
+    setCustomPassword(generated)
+  }
 
   useEffect(() => {
     if (state.success && master) onSuccess()
@@ -108,7 +133,8 @@ export default function MasterForm({ master, onSuccess }: MasterFormProps) {
   }
 
   return (
-    <form action={formAction} className="flex flex-col gap-4">
+    <div className="flex flex-col gap-8">
+      <form action={formAction} className="flex flex-col gap-4">
 
       {/* Avatar upload */}
       <div className="grid gap-1.5">
@@ -219,5 +245,64 @@ export default function MasterForm({ master, onSuccess }: MasterFormProps) {
 
       <SubmitButton label={master ? "Save Changes" : "Create Master"} />
     </form>
+
+    {master && (
+      <div className="flex flex-col gap-4 pt-6 border-t border-border">
+        <div>
+          <h3 className="text-lg font-semibold">Access Recovery</h3>
+          <p className="text-sm text-muted-foreground">Replace the master's password if lost.</p>
+        </div>
+        
+        <div className="grid gap-2 max-w-sm">
+          <Label htmlFor="newPassword">Current / New Password</Label>
+          <div className="flex gap-2">
+            <Input 
+              id="newPassword" 
+              value={customPassword} 
+              onChange={(e) => setCustomPassword(e.target.value)} 
+              placeholder="Enter password or generate" 
+            />
+            <Button type="button" variant="outline" onClick={handleGenerateCustom}>
+              Generate
+            </Button>
+          </div>
+          <Button 
+            type="button" 
+            onClick={handleResetPassword} 
+            disabled={isResetting || (!customPassword && !resetPasswordState.success) || (customPassword === master?.plainPassword)}
+            className="mt-2 w-full sm:w-auto"
+            variant="secondary"
+          >
+            {isResetting ? "Saving..." : (customPassword && customPassword !== master?.plainPassword ? "Save New Password" : "Auto-Generate & Save")}
+          </Button>
+          
+          {resetPasswordState.success && (
+            <div className="mt-4 rounded-lg border border-green-500/30 bg-green-500/10 p-4">
+              <p className="text-sm font-medium text-green-700 dark:text-green-400">
+                Password successfully updated!
+              </p>
+              <div className="mt-2 flex gap-2">
+                <Input readOnly value={resetPasswordState.password} className="font-mono bg-background" />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="shrink-0"
+                  onClick={() => {
+                    navigator.clipboard.writeText(resetPasswordState.password!)
+                    setResetPasswordState(prev => ({ ...prev, copied: true }))
+                    setTimeout(() => setResetPasswordState(prev => ({ ...prev, copied: false })), 2000)
+                  }}
+                >
+                  {resetPasswordState.copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+                </Button>
+              </div>
+            </div>
+          )}
+          {resetPasswordState.error && <p className="text-sm text-destructive">{resetPasswordState.error}</p>}
+        </div>
+      </div>
+    )}
+  </div>
   )
 }

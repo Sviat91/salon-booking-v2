@@ -18,6 +18,7 @@ type Master = {
   id: string
   name: string | null
   email: string | null
+  plainPassword: string | null
   masterProfile: { bio: string | null; avatarUrl: string | null; showOnHomepage: boolean } | null
 }
 

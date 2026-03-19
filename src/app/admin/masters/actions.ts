@@ -68,6 +68,7 @@ export async function createMaster(
         name:  parsed.data.name,
         email: parsed.data.email,
         password: hashedPassword,
+        plainPassword: plainPassword,
         role: "MASTER",
         masterProfile: {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -139,4 +140,23 @@ export async function deleteMaster(id: string): Promise<void> {
   await prisma.user.delete({ where: { id } })
   revalidatePath("/admin/masters")
   revalidatePath("/")
+}
+
+export async function resetMasterPassword(
+  id: string,
+  newPassword?: string
+): Promise<{ success: boolean; newPassword?: string; error?: string }> {
+  try {
+    const passwordToSet = newPassword || generatePassword()
+    const hashedPassword = await bcrypt.hash(passwordToSet, 10)
+
+    await prisma.user.update({
+      where: { id },
+      data: { password: hashedPassword, plainPassword: passwordToSet },
+    })
+
+    return { success: true, newPassword: passwordToSet }
+  } catch {
+    return { success: false, error: "Failed to reset password. Please try again." }
+  }
 }

@@ -6,6 +6,7 @@ type MasterWithProfile = {
   id: string
   name: string | null
   email: string | null
+  plainPassword: string | null
   masterProfile: {
     bio: string | null
     avatarUrl: string | null
@@ -22,6 +23,7 @@ export default async function MastersPage() {
       id: true,
       name: true,
       email: true,
+      plainPassword: true,
       masterProfile: {
         select: { bio: true, avatarUrl: true, showOnHomepage: true },
       },
