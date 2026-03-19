@@ -1,9 +1,10 @@
 "use client"
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { flushSync } from 'react-dom'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { getAllMasters, type MasterId } from '@/config/masters'
 import { useMaster } from '@/contexts/MasterContext'
@@ -22,8 +23,29 @@ export default function MasterSelector() {
   const { t } = useTranslation()
   const { setMaster } = useMaster()
   const prefersReducedMotion = useReducedMotion()
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
 
   const [dbMasters, setDbMasters] = useState<DbMaster[] | null>(null)
+  const [canScrollLeft, setCanScrollLeft] = useState(false)
+  const [canScrollRight, setCanScrollRight] = useState(false)
+
+  const checkScroll = () => {
+    if (scrollContainerRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current
+      setCanScrollLeft(scrollLeft > 0)
+      setCanScrollRight(Math.ceil(scrollLeft + clientWidth) < scrollWidth - 1)
+    }
+  }
+
+  useEffect(() => {
+    const el = scrollContainerRef.current
+    if (el) {
+      // Check on mount and resize
+      checkScroll()
+      window.addEventListener('resize', checkScroll)
+      return () => window.removeEventListener('resize', checkScroll)
+    }
+  }, [dbMasters])
 
   useEffect(() => {
     fetch('/api/masters')
@@ -53,6 +75,18 @@ export default function MasterSelector() {
     router.push(`/${master.id}`)
   }
 
+  const scrollLeft = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollBy({ left: -240, behavior: 'smooth' })
+    }
+  }
+
+  const scrollRight = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollBy({ left: 240, behavior: 'smooth' })
+    }
+  }
+
   return (
     <div className="flex flex-col items-center justify-center w-full max-w-4xl relative z-10">
       {/* Title */}
@@ -72,8 +106,24 @@ export default function MasterSelector() {
       </motion.div>
 
       {/* Master Cards */}
-      <div className="flex flex-col portrait:flex-col landscape:flex-row gap-5 w-full max-w-3xl justify-center items-center">
-        {masters.map((master, index) => (
+      <div className="relative w-full group/slider flex items-center justify-center mt-4">
+        {canScrollLeft && (
+          <button 
+            type="button"
+            onClick={scrollLeft} 
+            aria-label="Scroll left"
+            className="hidden lg:flex absolute -left-12 xl:-left-16 z-20 w-14 h-14 bg-background/60 hover:bg-secondary backdrop-blur-md rounded-full shadow-md items-center justify-center text-foreground transition-all duration-300 opacity-0 group-hover/slider:opacity-100 hover:scale-105"
+          >
+            <ChevronLeft className="w-7 h-7" />
+          </button>
+        )}
+
+        <div 
+          ref={scrollContainerRef}
+          onScroll={checkScroll}
+          className="flex gap-4 sm:gap-6 w-full overflow-x-auto snap-x snap-mandatory px-4 pb-8 pt-4 before:m-auto after:m-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+        >
+          {masters.map((master, index) => (
           <motion.button
             key={master.id}
             initial={prefersReducedMotion ? {} : { opacity: 0, scale: 0.8 }}
@@ -91,7 +141,7 @@ export default function MasterSelector() {
             whileTap={prefersReducedMotion ? {} : { scale: 0.95 }}
             onClick={() => handleMasterSelect(master)}
             aria-label={t('master.bookWith', { name: master.name })}
-            className="group relative w-full max-w-[260px] aspect-square rounded-3xl overflow-hidden shadow-2xl focus:outline-none focus:ring-4 focus:ring-accent/50 transition-all duration-300"
+            className="group relative shrink-0 w-[160px] h-[160px] sm:w-[200px] sm:h-[200px] snap-center rounded-3xl overflow-hidden focus:outline-none hover:ring-4 hover:ring-secondary/50 transition-all duration-300"
           >
             {/* Master Photo */}
             <motion.div
@@ -130,17 +180,17 @@ export default function MasterSelector() {
 
             {/* Master Name */}
             <motion.div
-              className="absolute bottom-0 left-0 right-0 px-3 pb-1 text-center"
+              className="absolute bottom-0 left-0 right-0 px-2 pb-2 text-center"
               exit={{ opacity: 0, y: 20 }}
               transition={{ duration: 0.5, ease: "easeOut" }}
             >
-              <h2 className="text-3xl sm:text-4xl font-bold text-white/80 mb-1 transform group-hover:translate-y-[-4px] transition-transform duration-300">
+              <h2 className="text-xl sm:text-2xl font-bold text-white/90 mb-0.5 leading-tight line-clamp-2 transform group-hover:translate-y-[-2px] transition-transform duration-300">
                 {master.name}
               </h2>
-              <div className="flex items-center justify-center gap-2 text-white/90 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <span className="text-sm font-medium">{t('master.bookVisit', 'Zarezerwuj wizytę')}</span>
+              <div className="flex items-center justify-center gap-1.5 text-white/90 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <span className="text-xs sm:text-sm font-medium">{t('master.bookVisit', 'Zarezerwuj wizytę')}</span>
                 <svg
-                  className="w-5 h-5 transform group-hover:translate-x-1 transition-transform duration-300"
+                  className="w-4 h-4 sm:w-5 sm:h-5 transform group-hover:translate-x-1 transition-transform duration-300"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -158,6 +208,18 @@ export default function MasterSelector() {
             />
           </motion.button>
         ))}
+        </div>
+
+        {canScrollRight && (
+          <button 
+            type="button"
+            onClick={scrollRight} 
+            aria-label="Scroll right"
+            className="hidden lg:flex absolute -right-12 xl:-right-16 z-20 w-14 h-14 bg-background/60 hover:bg-secondary backdrop-blur-md rounded-full shadow-md items-center justify-center text-foreground transition-all duration-300 opacity-0 group-hover/slider:opacity-100 hover:scale-105"
+          >
+            <ChevronRight className="w-7 h-7" />
+          </button>
+        )}
       </div>
 
       {/* Subtle hint text */}
