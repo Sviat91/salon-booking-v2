@@ -29,6 +29,8 @@ model User {
   appointmentsAsClient Appointment[] @relation("ClientAppointments")
   appointmentsAsMaster Appointment[] @relation("MasterAppointments")
   schedules            Schedule[]    @relation("MasterSchedules")
+  dateOverrides        DateOverride[] @relation("MasterDateOverrides")
+  createdServices      Service[]     @relation("MasterCreatedServices")
 }
 
 model MasterProfile {
@@ -51,6 +53,9 @@ model Service {
   name        String
   duration    Int      // Duration in minutes
   price       Float    // Default price (can be overridden per master)
+
+  masterId    String?  // Null = created by Admin, filled = created by Master
+  master      User?    @relation("MasterCreatedServices", fields: [masterId], references: [id], onDelete: Cascade)
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -79,9 +84,8 @@ model Schedule {
   id          String   @id @default(cuid())
   masterId    String
   dayOfWeek   Int      // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
-  startTime   String   // "09:00" format
-  endTime     String   // "18:00" format
   isDayOff    Boolean  @default(false)
+  intervals   String   @default("[{\"start\":\"09:00\",\"end\":\"18:00\"}]") // JSON array
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -107,6 +111,22 @@ model Appointment {
   client      User     @relation("ClientAppointments", fields: [clientId], references: [id], onDelete: Cascade)
   master      User     @relation("MasterAppointments", fields: [masterId], references: [id], onDelete: Cascade)
   service     Service  @relation(fields: [serviceId], references: [id])
+}
+
+// Replaces DayOff model. Represents specific date overrides (day-off or custom intervals).
+model DateOverride {
+  id          String   @id @default(cuid())
+  masterId    String
+  date        DateTime // specific date of the override
+  isDayOff    Boolean  @default(false)
+  intervals   String   @default("[]") // JSON array of custom intervals if not day off
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  master      User     @relation("MasterDateOverrides", fields: [masterId], references: [id], onDelete: Cascade)
+
+  @@unique([masterId, date])
 }
 
 model TenantConfig {

@@ -1,67 +1,91 @@
-"use client"
-import { useSession } from "next-auth/react"
-import { CalendarCheck, Clock, User } from "lucide-react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { redirect } from "next/navigation"
+import { auth } from "@/auth"
+import prisma from "@/lib/prisma"
+import { startOfDay, endOfDay, addDays } from "date-fns"
+import AppointmentsList from "./AppointmentsList"
 
-export default function MasterDashboardPage() {
-  const { data: session } = useSession()
+export default async function MasterDashboardPage() {
+  const session = await auth()
+  
+  if (!session?.user?.id || session.user.role !== "MASTER") {
+    redirect("/auth/login")
+  }
+
+  const masterId = session.user.id
+  const today = new Date()
+
+  const todayAppointments = await prisma.appointment.findMany({
+    where: {
+      masterId,
+      date: {
+        gte: startOfDay(today),
+        lte: endOfDay(today),
+      },
+    },
+    include: {
+      service: true,
+      client: true,
+    },
+    orderBy: { startTime: "asc" },
+  })
+
+  const startOfWeekDate = startOfDay(today)
+  const endOfWeekDate = endOfDay(addDays(today, 7))
+
+  const [weekCount, totalClients] = await Promise.all([
+    prisma.appointment.count({
+      where: {
+        masterId,
+        date: { gte: startOfWeekDate, lte: endOfWeekDate },
+        status: { notIn: ["CANCELLED_BY_CLIENT", "CANCELLED_BY_MASTER"] },
+      },
+    }),
+    prisma.appointment.groupBy({
+      by: ["clientId"],
+      where: { masterId },
+    }).then(res => res.length)
+  ])
 
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">
-          Master Dashboard
-        </h1>
-        <p className="text-muted-foreground mt-2">
-          Welcome back, {session?.user?.name ?? session?.user?.email}
-        </p>
+        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+        <p className="text-muted-foreground mt-2">Welcome back to your workspace</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Today&apos;s Appointments</CardTitle>
-            <CalendarCheck className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">0</div>
-            <p className="text-xs text-muted-foreground">No appointments today</p>
-          </CardContent>
-        </Card>
+        <div className="rounded-xl border bg-card text-card-foreground shadow-sm p-6">
+          <div className="flex flex-row items-center justify-between space-y-0 relative">
+            <h3 className="tracking-tight text-sm font-medium">Appointments Today</h3>
+          </div>
+          <div className="mt-4">
+            <div className="text-2xl font-bold">{todayAppointments.length}</div>
+          </div>
+        </div>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Upcoming</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">0</div>
-            <p className="text-xs text-muted-foreground">This week</p>
-          </CardContent>
-        </Card>
+        <div className="rounded-xl border bg-card text-card-foreground shadow-sm p-6">
+          <div className="flex flex-row items-center justify-between space-y-0 relative">
+            <h3 className="tracking-tight text-sm font-medium">Upcoming (7 days)</h3>
+          </div>
+          <div className="mt-4">
+            <div className="text-2xl font-bold">{weekCount}</div>
+          </div>
+        </div>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Clients</CardTitle>
-            <User className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">0</div>
-            <p className="text-xs text-muted-foreground">All time</p>
-          </CardContent>
-        </Card>
+        <div className="rounded-xl border bg-card text-card-foreground shadow-sm p-6">
+          <div className="flex flex-row items-center justify-between space-y-0 relative">
+            <h3 className="tracking-tight text-sm font-medium">Total Clients</h3>
+          </div>
+          <div className="mt-4">
+            <div className="text-2xl font-bold">{totalClients}</div>
+          </div>
+        </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>My Schedule</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            No appointments scheduled. This section will show your upcoming bookings.
-          </p>
-        </CardContent>
-      </Card>
+      <div>
+        <h2 className="text-xl font-bold tracking-tight mb-4">Today's Appointments</h2>
+        <AppointmentsList appointments={todayAppointments} />
+      </div>
     </div>
   )
 }

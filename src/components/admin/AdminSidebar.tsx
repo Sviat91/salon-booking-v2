@@ -12,11 +12,12 @@ import {
   LogOut,
   ChevronRight,
   ArrowLeft,
+  CalendarDays,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { ThemeToggle } from "@/components/ui/theme-toggle"
 
-const navItems = [
+const superadminNavItems = [
   {
     label: "Dashboard",
     href: "/admin",
@@ -40,6 +41,25 @@ const navItems = [
   },
 ]
 
+const masterNavItems = [
+  {
+    label: "Dashboard",
+    href: "/admin/master",
+    icon: LayoutDashboard,
+    exact: true,
+  },
+  {
+    label: "Services",
+    href: "/admin/master/services",
+    icon: Scissors,
+  },
+  {
+    label: "Schedule",
+    href: "/admin/master/schedule",
+    icon: CalendarDays,
+  },
+]
+
 interface AdminSidebarProps {
   brandName: string
   logoUrl: string | null
@@ -49,7 +69,9 @@ export default function AdminSidebar({ brandName, logoUrl }: AdminSidebarProps) 
   const pathname = usePathname()
   const { data: session } = useSession()
 
-  function isActive(item: (typeof navItems)[number]) {
+  const navItems = session?.user?.role === "MASTER" ? masterNavItems : superadminNavItems
+
+  function isActive(item: { href: string; exact?: boolean }) {
     if (item.exact) return pathname === item.href
     return pathname.startsWith(item.href)
   }
