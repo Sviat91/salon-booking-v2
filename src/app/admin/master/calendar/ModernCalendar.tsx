@@ -38,6 +38,7 @@ export default function ModernCalendar({ masterId }: { masterId: string }) {
   // Appointment Booking State
   const [bookingDate, setBookingDate] = useState<Date | null>(null)
   const [viewingAppointment, setViewingAppointment] = useState<Appointment | null>(null)
+  const [editingAppointment, setEditingAppointment] = useState<{ appt: Appointment, mode: "edit" | "copy" } | null>(null)
   
   // Grid Hours
   const startHour = 8
@@ -151,7 +152,7 @@ export default function ModernCalendar({ masterId }: { masterId: string }) {
 
   return (
     <div className="flex flex-col h-full w-full bg-background overflow-hidden relative">
-      <div className="h-16 border-b flex items-center justify-between px-4 shrink-0 bg-background z-10 transition-colors">
+      <div className="min-h-[4rem] py-2 border-b flex flex-wrap gap-y-3 gap-x-4 items-center justify-between px-4 shrink-0 bg-background z-10 transition-colors">
         <div className="flex items-center gap-4">
           <Button variant="outline" size="sm" onClick={() => navigate("today")}>Today</Button>
           <div className="flex items-center gap-1">
@@ -162,7 +163,7 @@ export default function ModernCalendar({ masterId }: { masterId: string }) {
           {loading && <div className="h-4 w-4 rounded-full border-2 border-primary border-t-transparent animate-spin ml-2"></div>}
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           {view !== "Month" && (
             <div className="relative">
               <select
@@ -262,11 +263,13 @@ export default function ModernCalendar({ masterId }: { masterId: string }) {
         <BulkSettingsModal onClose={() => setShowBulkModal(false)} onSave={saveBulkOverrides} />
       )}
 
-      {bookingDate && (
+      {(bookingDate || editingAppointment) && (
         <AppointmentModal 
-          date={bookingDate} 
-          onClose={() => setBookingDate(null)} 
-          onSuccess={() => { setBookingDate(null); fetchData(); }} 
+          date={bookingDate || undefined} 
+          initialAppointment={editingAppointment?.appt}
+          mode={editingAppointment?.mode}
+          onClose={() => { setBookingDate(null); setEditingAppointment(null); }} 
+          onSuccess={() => { setBookingDate(null); setEditingAppointment(null); fetchData(); }} 
         />
       )}
 
@@ -274,8 +277,14 @@ export default function ModernCalendar({ masterId }: { masterId: string }) {
         <ViewAppointmentModal
           appointment={viewingAppointment}
           onClose={() => setViewingAppointment(null)}
-          onEdit={() => alert("Edit appointments feature coming soon")}
-          onDuplicate={() => alert("Duplicate feature coming soon")}
+          onEdit={() => {
+            setEditingAppointment({ appt: viewingAppointment, mode: "edit" })
+            setViewingAppointment(null)
+          }}
+          onDuplicate={() => {
+            setEditingAppointment({ appt: viewingAppointment, mode: "copy" })
+            setViewingAppointment(null)
+          }}
           onDelete={async (id) => {
              const res = await fetch(`/api/master/appointments/${id}`, { method: 'DELETE' })
              if(!res.ok) throw new Error("Delete failed")

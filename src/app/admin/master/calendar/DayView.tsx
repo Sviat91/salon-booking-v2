@@ -123,7 +123,7 @@ export default function DayView({ currentDate, appointments, templates, override
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto relative custom-scrollbar flex bg-muted/40" ref={containerRef}>
+      <div className="flex-1 overflow-y-auto relative custom-scrollbar flex bg-background" ref={containerRef}>
         <div className="w-16 shrink-0 border-r border-border bg-card relative z-10">
           {HOURS.slice(startHour, endHour).map(hour => (
             <div 
@@ -167,7 +167,7 @@ export default function DayView({ currentDate, appointments, templates, override
             return (
               <div 
                 key={idx} 
-                className="absolute w-full bg-background pointer-events-none z-0 border-l-[4px] border-primary shadow-sm" 
+                className="absolute w-full bg-green-500/10 pointer-events-none z-0 border-l-[4px] border-green-500 shadow-sm" 
                 style={{ top: `${Math.max(0, top)}px`, height: `${Math.min(height, containerHeight - Math.max(0, top))}px` }} 
               />
             )

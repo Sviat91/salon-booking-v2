@@ -7,7 +7,9 @@ import { X, Calendar as CalIcon, User, Search, MapPin, Plus, Trash2 } from "luci
 import { DatePickerDropdown } from "@/components/DatePickerDropdown"
 
 interface AppointmentModalProps {
-  date: Date
+  date?: Date
+  initialAppointment?: any
+  mode?: "edit" | "copy"
   onClose: () => void
   onSuccess: () => void
 }
@@ -16,28 +18,38 @@ type Service = { id: string; name: string; duration: number }
 type Client = { id: string; name: string | null; phone: string | null }
 type Entry = { id: string; date: string; startTime: string; duration: number }
 
-export default function AppointmentModal({ date, onClose, onSuccess }: AppointmentModalProps) {
+export default function AppointmentModal({ date, initialAppointment, mode, onClose, onSuccess }: AppointmentModalProps) {
   const [loading, setLoading] = useState(false)
   const [fetching, setFetching] = useState(true)
   
   const [services, setServices] = useState<Service[]>([])
   const [clients, setClients] = useState<Client[]>([])
 
-  const [serviceId, setServiceId] = useState<string>("custom")
+  const [serviceId, setServiceId] = useState<string>(initialAppointment ? (initialAppointment.service?.id || "custom") : "custom")
   const [customServiceName, setCustomServiceName] = useState("")
   
-  const [clientId, setClientId] = useState<string>("custom")
+  const [clientId, setClientId] = useState<string>(initialAppointment ? (initialAppointment.client?.id || "custom") : "custom")
   const [customClientName, setCustomClientName] = useState("")
   const [customClientPhone, setCustomClientPhone] = useState("")
   
   const [notes, setNotes] = useState("")
 
-  const [entries, setEntries] = useState<Entry[]>([{
-    id: Math.random().toString(),
-    date: format(date, "yyyy-MM-dd"),
-    startTime: "10:00",
-    duration: 60
-  }])
+  const [entries, setEntries] = useState<Entry[]>(() => {
+    if (initialAppointment) {
+      return [{
+        id: Math.random().toString(),
+        date: initialAppointment.date.split("T")[0],
+        startTime: initialAppointment.startTime,
+        duration: initialAppointment.service?.duration || 60
+      }]
+    }
+    return [{
+      id: Math.random().toString(),
+      date: format(date || new Date(), "yyyy-MM-dd"),
+      startTime: "10:00",
+      duration: 60
+    }]
+  })
 
   useEffect(() => {
     async function init() {
@@ -74,8 +86,11 @@ export default function AppointmentModal({ date, onClose, onSuccess }: Appointme
         notes
       }
 
-      const res = await fetch("/api/master/appointments", {
-        method: "POST",
+      const url = mode === "edit" && initialAppointment ? `/api/master/appointments/${initialAppointment.id}` : "/api/master/appointments"
+      const method = mode === "edit" ? "PUT" : "POST"
+
+      const res = await fetch(url, {
+        method: method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       })
@@ -94,7 +109,7 @@ export default function AppointmentModal({ date, onClose, onSuccess }: Appointme
   const addEntry = () => {
     setEntries([...entries, {
       id: Math.random().toString(),
-      date: format(date, "yyyy-MM-dd"),
+      date: format(date || new Date(), "yyyy-MM-dd"),
       startTime: "10:00",
       duration: entries[0]?.duration || 60
     }])
@@ -239,9 +254,11 @@ export default function AppointmentModal({ date, onClose, onSuccess }: Appointme
                   <h3 className="font-semibold text-lg flex items-center gap-2">
                     <CalIcon className="h-4 w-4 text-primary" /> Schedule & Time
                   </h3>
-                  <Button variant="outline" size="sm" onClick={addEntry} className="h-8 gap-1">
-                    <Plus className="w-3.5 h-3.5" /> Add Date (Series)
-                  </Button>
+                  {mode !== "edit" && (
+                    <Button variant="outline" size="sm" onClick={addEntry} className="h-8 gap-1">
+                      <Plus className="w-3.5 h-3.5" /> Add Date (Series)
+                    </Button>
+                  )}
                 </div>
                 
                 <div className="space-y-3">
@@ -315,7 +332,7 @@ export default function AppointmentModal({ date, onClose, onSuccess }: Appointme
         <div className="p-5 border-t border-border bg-muted/20 flex justify-end items-center rounded-b-xl shrink-0 gap-3 sticky bottom-0 z-20">
            <Button variant="outline" onClick={onClose} disabled={loading}>Cancel</Button>
            <Button onClick={handleSave} disabled={loading || fetching || !isValid()}>
-             {loading ? "Saving..." : entries.length > 1 ? `Create ${entries.length} Appointments` : "Create Appointment"}
+             {loading ? "Saving..." : mode === "edit" ? "Save Changes" : entries.length > 1 ? `Create ${entries.length} Appointments` : "Create Appointment"}
            </Button>
         </div>
 

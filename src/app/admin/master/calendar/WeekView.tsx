@@ -154,7 +154,7 @@ export default function WeekView({ currentDate, appointments, templates, overrid
           ))}
         </div>
 
-        <div className="flex-1 grid grid-cols-7 relative bg-muted/30" style={{ height: `${containerHeight}px` }}>
+        <div className="flex-1 grid grid-cols-7 relative bg-background" style={{ height: `${containerHeight}px` }}>
           {Array.from({ length: totalHours * Math.floor(60 / step) }).map((_, i) => {
             const currentMin = i * step
             const top = currentMin * PIXELS_PER_MINUTE
@@ -190,7 +190,7 @@ export default function WeekView({ currentDate, appointments, templates, overrid
                   return (
                     <div 
                       key={idx} 
-                      className="absolute w-[calc(100%-2px)] bg-background pointer-events-none shadow-sm border-l-4 border-primary/50" 
+                      className="absolute w-[calc(100%-2px)] bg-green-500/10 pointer-events-none shadow-sm border-l-4 border-green-500" 
                       style={{ left: "1px", top: `${Math.max(0, top)}px`, height: `${Math.min(height, containerHeight - Math.max(0, top))}px` }} 
                     />
                   )
