@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { format } from "date-fns"
 import { Button } from "@/components/ui/button"
 import { X, Calendar as CalIcon, User, Search, MapPin, Plus, Trash2 } from "lucide-react"
+import { DatePickerDropdown } from "@/components/DatePickerDropdown"
 
 interface AppointmentModalProps {
   date: Date
@@ -48,10 +49,7 @@ export default function AppointmentModal({ date, onClose, onSuccess }: Appointme
         const srvData = await srvRes.json()
         const cliData = await cliRes.json()
         
-        const allServices = [
-          ...(srvData.adminServices || []),
-          ...(srvData.masterServices || [])
-        ]
+        const allServices = srvData.services || []
         setServices(allServices)
         setClients(cliData.clients || [])
       } catch (err) {
@@ -130,23 +128,24 @@ export default function AppointmentModal({ date, onClose, onSuccess }: Appointme
   }
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4 animate-in fade-in">
-      <div className="bg-background rounded-xl shadow-xl w-full max-w-3xl flex flex-col max-h-[90vh]">
-        
-        <div className="flex justify-between items-center p-5 border-b border-border bg-card rounded-t-xl shrink-0">
-          <div className="flex gap-4 items-center">
-            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-              <CalIcon className="h-5 w-5" />
+    <div className="fixed inset-0 z-[60] bg-black/50 overflow-y-auto p-4 animate-in fade-in">
+      <div className="min-h-full flex items-center justify-center py-8">
+        <div className="bg-background rounded-xl shadow-xl w-full max-w-3xl flex flex-col relative overflow-visible">
+          
+          <div className="flex justify-between items-center p-5 border-b border-border bg-card rounded-t-xl shrink-0 z-10">
+            <div className="flex gap-4 items-center">
+              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                <CalIcon className="h-5 w-5" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold leading-tight">New Booking</h2>
+                <p className="text-sm text-muted-foreground font-medium">Create a single or series booking</p>
+              </div>
             </div>
-            <div>
-              <h2 className="text-xl font-bold leading-tight">New Booking</h2>
-              <p className="text-sm text-muted-foreground font-medium">Create a single or series booking</p>
-            </div>
+            <Button variant="ghost" size="icon" onClick={onClose}><X className="h-5 w-5" /></Button>
           </div>
-          <Button variant="ghost" size="icon" onClick={onClose}><X className="h-5 w-5" /></Button>
-        </div>
 
-        <div className="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-8">
+          <div className="p-6 space-y-8">
           {fetching ? (
             <div className="flex items-center justify-center p-12">
                <div className="h-6 w-6 rounded-full border-2 border-primary border-t-transparent animate-spin" />
@@ -247,33 +246,37 @@ export default function AppointmentModal({ date, onClose, onSuccess }: Appointme
                 
                 <div className="space-y-3">
                   {entries.map((ent, idx) => (
-                    <div key={ent.id} className="flex flex-wrap sm:flex-nowrap items-center gap-3 bg-muted/30 p-3 rounded-lg border border-border">
-                      <div className="space-y-1 w-full sm:w-[150px] shrink-0">
+                    <div key={ent.id} className="flex flex-wrap sm:flex-nowrap items-center gap-3 bg-muted/30 p-4 rounded-lg border border-border">
+                      <div className="space-y-1 w-full sm:flex-1 shrink-0">
                         <label className="text-xs font-medium text-muted-foreground">Date</label>
-                        <input 
-                          type="date" 
-                          value={ent.date}
-                          onChange={e => updateEntry(ent.id, 'date', e.target.value)}
-                          className="w-full h-9 rounded-md border border-input bg-background px-2 py-1 text-sm focus-visible:ring-2 focus-visible:ring-primary outline-none"
+                        <DatePickerDropdown 
+                          date={ent.date} 
+                          onChange={(val) => updateEntry(ent.id, 'date', val)} 
                         />
                       </div>
-                      <div className="space-y-1 w-full sm:w-[120px] shrink-0">
+                      <div className="space-y-1 w-full sm:flex-1 shrink-0">
                         <label className="text-xs font-medium text-muted-foreground">Start Time</label>
-                        <input 
-                          type="time" 
+                        <select 
                           value={ent.startTime}
                           onChange={e => updateEntry(ent.id, 'startTime', e.target.value)}
-                          className="w-full h-9 rounded-md border border-input bg-background px-2 py-1 text-sm focus-visible:ring-2 focus-visible:ring-primary outline-none"
-                        />
+                          className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-primary outline-none"
+                        >
+                          {Array.from({ length: 24 * 4 }).map((_, i) => {
+                            const h = Math.floor(i / 4)
+                            const m = (i % 4) * 15
+                            const val = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`
+                            return <option key={val} value={val}>{val}</option>
+                          })}
+                        </select>
                       </div>
-                      <div className="space-y-1 w-full sm:w-[120px] shrink-0">
+                      <div className="space-y-1 w-full sm:flex-1 shrink-0">
                         <label className="text-xs font-medium text-muted-foreground">Duration (min)</label>
                         <input 
                           type="number" 
                           value={ent.duration}
                           min={5}
                           onChange={e => updateEntry(ent.id, 'duration', Number(e.target.value))}
-                          className="w-full h-9 rounded-md border border-input bg-background px-2 py-1 text-sm focus-visible:ring-2 focus-visible:ring-primary outline-none"
+                          className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-primary outline-none"
                         />
                       </div>
                       
@@ -309,13 +312,15 @@ export default function AppointmentModal({ date, onClose, onSuccess }: Appointme
           )}
         </div>
 
-        <div className="p-5 border-t border-border bg-muted/20 flex justify-end items-center rounded-b-xl shrink-0 gap-3">
-           <Button variant="outline" onClick={onClose}>Cancel</Button>
+        <div className="p-5 border-t border-border bg-muted/20 flex justify-end items-center rounded-b-xl shrink-0 gap-3 sticky bottom-0 z-20">
+           <Button variant="outline" onClick={onClose} disabled={loading}>Cancel</Button>
            <Button onClick={handleSave} disabled={loading || fetching || !isValid()}>
              {loading ? "Saving..." : entries.length > 1 ? `Create ${entries.length} Appointments` : "Create Appointment"}
            </Button>
         </div>
+
       </div>
+    </div>
     </div>
   )
 }

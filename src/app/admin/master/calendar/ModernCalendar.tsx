@@ -10,6 +10,7 @@ import WeekView from "./WeekView"
 import DayView from "./DayView"
 import BulkSettingsModal from "./BulkSettingsModal"
 import AppointmentModal from "./AppointmentModal"
+import ViewAppointmentModal from "./ViewAppointmentModal"
 
 export type ViewType = "Month" | "Week" | "Day"
 
@@ -36,6 +37,7 @@ export default function ModernCalendar({ masterId }: { masterId: string }) {
   
   // Appointment Booking State
   const [bookingDate, setBookingDate] = useState<Date | null>(null)
+  const [viewingAppointment, setViewingAppointment] = useState<Appointment | null>(null)
   
   // Grid Hours
   const startHour = 8
@@ -219,7 +221,8 @@ export default function ModernCalendar({ masterId }: { masterId: string }) {
             templates={templates} 
             overrides={overrides}
             isEditMode={isEditMode}
-            onDayClick={(d) => { setBookingDate(d); setView("Day"); setCurrentDate(d); }}
+            onDayClick={(d) => { setView("Day"); setCurrentDate(d); }}
+            onAppointmentClick={(a) => setViewingAppointment(a)}
             onDataChange={fetchData}
           />
         )}
@@ -233,7 +236,8 @@ export default function ModernCalendar({ masterId }: { masterId: string }) {
             startHour={startHour}
             endHour={endHour}
             isEditMode={isEditMode}
-            onDayClick={(d) => { setBookingDate(d); setView("Day"); setCurrentDate(d); }}
+            onDayClick={(d) => { setView("Day"); setCurrentDate(d); }}
+            onAppointmentClick={(a) => setViewingAppointment(a)}
             onDataChange={fetchData}
           />
         )}
@@ -248,6 +252,7 @@ export default function ModernCalendar({ masterId }: { masterId: string }) {
             endHour={endHour}
             isEditMode={isEditMode}
             onAddClick={(d) => setBookingDate(d)}
+            onAppointmentClick={(a) => setViewingAppointment(a)}
             onDataChange={fetchData}
           />
         )}
@@ -262,6 +267,21 @@ export default function ModernCalendar({ masterId }: { masterId: string }) {
           date={bookingDate} 
           onClose={() => setBookingDate(null)} 
           onSuccess={() => { setBookingDate(null); fetchData(); }} 
+        />
+      )}
+
+      {viewingAppointment && (
+        <ViewAppointmentModal
+          appointment={viewingAppointment}
+          onClose={() => setViewingAppointment(null)}
+          onEdit={() => alert("Edit appointments feature coming soon")}
+          onDuplicate={() => alert("Duplicate feature coming soon")}
+          onDelete={async (id) => {
+             const res = await fetch(`/api/master/appointments/${id}`, { method: 'DELETE' })
+             if(!res.ok) throw new Error("Delete failed")
+             setViewingAppointment(null)
+             fetchData()
+          }}
         />
       )}
     </div>

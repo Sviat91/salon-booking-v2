@@ -15,12 +15,13 @@ interface WeekViewProps {
   endHour: number
   isEditMode: boolean
   onDayClick: (d: Date) => void
+  onAppointmentClick: (a: Appointment) => void
   onDataChange: () => void
 }
 
 const HOURS = Array.from({ length: 24 }).map((_, i) => i)
 
-export default function WeekView({ currentDate, appointments, templates, overrides, step, startHour, endHour, isEditMode, onDayClick, onDataChange }: WeekViewProps) {
+export default function WeekView({ currentDate, appointments, templates, overrides, step, startHour, endHour, isEditMode, onDayClick, onAppointmentClick, onDataChange }: WeekViewProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const totalHours = endHour - startHour
   const PIXELS_PER_MINUTE = 1.5 
@@ -153,14 +154,19 @@ export default function WeekView({ currentDate, appointments, templates, overrid
           ))}
         </div>
 
-        <div className="flex-1 grid grid-cols-7 relative bg-muted/5" style={{ height: `${containerHeight}px` }}>
-          {HOURS.slice(startHour, endHour).map(hour => (
-            <div 
-              key={hour} 
-              className="absolute w-full border-t border-border/60 pointer-events-none"
-              style={{ top: `${(hour - startHour) * 60 * PIXELS_PER_MINUTE}px` }}
-            />
-          ))}
+        <div className="flex-1 grid grid-cols-7 relative bg-muted/30" style={{ height: `${containerHeight}px` }}>
+          {Array.from({ length: totalHours * Math.floor(60 / step) }).map((_, i) => {
+            const currentMin = i * step
+            const top = currentMin * PIXELS_PER_MINUTE
+            const isHourLine = currentMin % 60 === 0
+            return (
+              <div 
+                key={i} 
+                className={`absolute w-full border-t pointer-events-none z-[5] ${isHourLine ? 'border-border/60' : 'border-border/20 border-dashed'}`}
+                style={{ top: `${top}px` }}
+              />
+            )
+          })}
 
           {days.map((day, i) => {
             const dateStr = format(day, "yyyy-MM-dd")
@@ -184,8 +190,8 @@ export default function WeekView({ currentDate, appointments, templates, overrid
                   return (
                     <div 
                       key={idx} 
-                      className="absolute w-full bg-card border-x border-primary/20 pointer-events-none shadow-sm" 
-                      style={{ top: `${Math.max(0, top)}px`, height: `${Math.min(height, containerHeight - Math.max(0, top))}px` }} 
+                      className="absolute w-[calc(100%-2px)] bg-background pointer-events-none shadow-sm border-l-4 border-primary/50" 
+                      style={{ left: "1px", top: `${Math.max(0, top)}px`, height: `${Math.min(height, containerHeight - Math.max(0, top))}px` }} 
                     />
                   )
                 })}
@@ -225,6 +231,7 @@ export default function WeekView({ currentDate, appointments, templates, overrid
                   return (
                     <div 
                       key={a.id} 
+                      onClick={(e) => { e.stopPropagation(); onAppointmentClick(a); }}
                       className="absolute w-[calc(100%-4px)] left-[2px] rounded-md bg-primary text-primary-foreground p-1 shadow-sm text-xs overflow-hidden hover:z-20 hover:shadow-md hover:ring-2 ring-primary/50 transition-all cursor-pointer group z-10"
                       style={{ top: `${top}px`, height: `${height}px` }}
                     >

@@ -12,12 +12,13 @@ interface MonthViewProps {
   overrides: Override[]
   isEditMode: boolean
   onDayClick: (d: Date) => void
+  onAppointmentClick: (a: Appointment) => void
   onDataChange: () => void
 }
 
 const DAYS_OF_WEEK = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
-export default function MonthView({ currentDate, appointments, templates, overrides, isEditMode, onDayClick, onDataChange }: MonthViewProps) {
+export default function MonthView({ currentDate, appointments, templates, overrides, isEditMode, onDayClick, onAppointmentClick, onDataChange }: MonthViewProps) {
   const monthStart = startOfMonth(currentDate)
   const monthEnd = endOfMonth(monthStart)
   const startDate = startOfWeek(monthStart, { weekStartsOn: 1 })
@@ -131,7 +132,11 @@ export default function MonthView({ currentDate, appointments, templates, overri
               {!isEditMode && (
                 <div className="flex-1 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
                   {dayAppts.map(a => (
-                    <div key={a.id} className="text-[11px] truncate px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors">
+                    <div 
+                      key={a.id} 
+                      onClick={(e) => { e.stopPropagation(); onAppointmentClick(a); }}
+                      className="text-[11px] truncate px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors cursor-pointer"
+                    >
                       {a.startTime} {a.client.name || 'Client'}
                     </div>
                   ))}

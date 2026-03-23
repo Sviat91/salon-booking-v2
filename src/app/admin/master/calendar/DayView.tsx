@@ -15,12 +15,13 @@ interface DayViewProps {
   endHour: number
   isEditMode: boolean
   onAddClick: (d: Date) => void
+  onAppointmentClick: (a: Appointment) => void
   onDataChange: () => void
 }
 
 const HOURS = Array.from({ length: 24 }).map((_, i) => i)
 
-export default function DayView({ currentDate, appointments, templates, overrides, step, startHour, endHour, isEditMode, onAddClick, onDataChange }: DayViewProps) {
+export default function DayView({ currentDate, appointments, templates, overrides, step, startHour, endHour, isEditMode, onAddClick, onAppointmentClick, onDataChange }: DayViewProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const totalHours = endHour - startHour
   const PIXELS_PER_MINUTE = 2 
@@ -110,10 +111,19 @@ export default function DayView({ currentDate, appointments, templates, override
               </div>
             </div>
           )}
+
+          {!isEditMode && !isPastDay && !status.isDayOff && (
+            <button 
+              onClick={() => onAddClick(currentDate)}
+              className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md font-semibold text-sm hover:bg-primary/90 transition-colors shadow-sm ml-auto"
+            >
+              <Plus className="w-4 h-4" /> New Booking
+            </button>
+          )}
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto relative custom-scrollbar flex bg-muted/5" ref={containerRef}>
+      <div className="flex-1 overflow-y-auto relative custom-scrollbar flex bg-muted/40" ref={containerRef}>
         <div className="w-16 shrink-0 border-r border-border bg-card relative z-10">
           {HOURS.slice(startHour, endHour).map(hour => (
             <div 
@@ -127,13 +137,18 @@ export default function DayView({ currentDate, appointments, templates, override
         </div>
 
         <div className="flex-1 relative" style={{ height: `${containerHeight}px` }}>
-          {HOURS.slice(startHour, endHour).map(hour => (
-            <div 
-              key={hour} 
-              className="absolute w-full border-t border-border/60 pointer-events-none"
-              style={{ top: `${(hour - startHour) * 60 * PIXELS_PER_MINUTE}px` }}
-            />
-          ))}
+          {Array.from({ length: totalHours * Math.floor(60 / step) }).map((_, i) => {
+            const currentMin = i * step
+            const top = currentMin * PIXELS_PER_MINUTE
+            const isHourLine = currentMin % 60 === 0
+            return (
+              <div 
+                key={i} 
+                className={`absolute w-full border-t pointer-events-none z-[5] ${isHourLine ? 'border-border/60' : 'border-border/20 border-dashed'}`}
+                style={{ top: `${top}px` }}
+              />
+            )
+          })}
 
           {status.isDayOff && (
             <div className="absolute inset-0 flex items-center justify-center bg-muted/40 z-0">
@@ -152,15 +167,11 @@ export default function DayView({ currentDate, appointments, templates, override
             return (
               <div 
                 key={idx} 
-                className="absolute w-full bg-card opacity-50 pointer-events-none z-0 border-l-[4px] border-primary" 
+                className="absolute w-full bg-background pointer-events-none z-0 border-l-[4px] border-primary shadow-sm" 
                 style={{ top: `${Math.max(0, top)}px`, height: `${Math.min(height, containerHeight - Math.max(0, top))}px` }} 
               />
             )
           })}
-
-          {!isEditMode && !isPastDay && !status.isDayOff && (
-            <div className="absolute inset-0 z-[1] cursor-pointer hover:bg-primary/5 transition-colors" onClick={() => onAddClick(currentDate)} />
-          )}
 
           {isPastDay && (
             <div className="absolute inset-0 bg-background/50 z-[5] pointer-events-none" />
@@ -191,6 +202,7 @@ export default function DayView({ currentDate, appointments, templates, override
             return (
               <div 
                 key={a.id} 
+                onClick={(e) => { e.stopPropagation(); onAppointmentClick(a); }}
                 className="absolute w-[calc(100%-20px)] left-2 rounded-lg bg-primary/10 text-card-foreground p-3 shadow-md border-l-4 border-primary overflow-hidden hover:z-20 hover:shadow-lg transition-all cursor-pointer z-10 flex gap-4 backdrop-blur-sm"
                 style={{ top: `${top}px`, height: `${height}px` }}
               >
