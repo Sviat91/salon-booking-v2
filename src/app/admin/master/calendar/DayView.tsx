@@ -124,7 +124,7 @@ export default function DayView({ currentDate, appointments, templates, override
       </div>
 
       <div className="flex-1 overflow-y-auto relative custom-scrollbar flex bg-background" ref={containerRef}>
-        <div className="w-16 shrink-0 border-r border-border bg-card relative z-10">
+        <div className="w-16 shrink-0 border-r border-border bg-card relative z-10" style={{ height: `${containerHeight}px` }}>
           {HOURS.slice(startHour, endHour).map(hour => (
             <div 
               key={hour} 
@@ -193,20 +193,35 @@ export default function DayView({ currentDate, appointments, templates, override
             }
           })()}
 
-          {dayAppts.map(a => {
+          {dayAppts.map((a, i) => {
             const s = parseTime(a.startTime)
             const e = parseTime(a.endTime)
             const top = (s - startHour * 60) * PIXELS_PER_MINUTE
             const height = (e - s) * PIXELS_PER_MINUTE
 
+            const overlaps = dayAppts.slice(0, i).filter(prev => {
+              const ps = parseTime(prev.startTime)
+              const pe = parseTime(prev.endTime)
+              return Math.max(s, ps) < Math.min(e, pe)
+            })
+            const overlapCount = overlaps.length
+            const zIndex = 10 + overlapCount
+            const leftOffset = overlapCount * 12
+            const bgClass = overlapCount > 0 ? "bg-background/95 border-r border-y border-border shadow-lg" : "bg-primary/10"
+
             return (
               <div 
                 key={a.id} 
                 onClick={(e) => { e.stopPropagation(); onAppointmentClick(a); }}
-                className="absolute w-[calc(100%-20px)] left-2 rounded-lg bg-primary/10 text-card-foreground p-3 shadow-md border-l-4 border-primary overflow-hidden hover:z-20 hover:shadow-lg transition-all cursor-pointer z-10 flex gap-4 backdrop-blur-sm"
-                style={{ top: `${top}px`, height: `${height}px` }}
+                className={`absolute w-[calc(100%-30px)] rounded-lg text-card-foreground p-3 shadow-md border-l-4 overflow-hidden hover:z-30 hover:shadow-xl transition-all cursor-pointer flex gap-4 backdrop-blur-sm ${bgClass} ${a.status === "COMPLETED" ? 'border-green-500' : 'border-primary'}`}
+                style={{ top: `${top}px`, height: `${height}px`, left: `calc(8px + ${leftOffset}px)`, zIndex }}
               >
-                <div className="flex flex-col gap-1 w-[150px] shrink-0 border-r border-primary/20 pr-4">
+                {overlapCount > 0 && (
+                  <div className="absolute top-1 right-1 text-[10px] font-bold bg-primary text-primary-foreground px-1.5 py-0.5 rounded shadow-sm">
+                    +{overlapCount}
+                  </div>
+                )}
+                <div className="flex flex-col gap-1 w-[150px] shrink-0 border-r border-foreground/10 pr-4">
                   <div className="font-bold text-lg">{a.startTime}</div>
                   <div className="text-sm text-muted-foreground">{a.endTime}</div>
                   <div className="mt-auto text-xs font-semibold text-primary/80 uppercase tracking-wider">{a.status}</div>

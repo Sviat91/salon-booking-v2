@@ -104,6 +104,7 @@ model Appointment {
   startTime   String   // "10:00" format
   endTime     String   // "11:00" format
   status      String   @default("PENDING")
+  notes       String?
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

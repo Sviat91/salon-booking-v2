@@ -112,8 +112,7 @@ export default function MonthView({ currentDate, appointments, templates, overri
               }}
               className={`border-b border-r border-border p-1.5 flex flex-col transition-colors relative
                 ${!isEditMode && !isPastDay ? "cursor-pointer hover:bg-muted/10" : ""}
-                ${!isCurrentMonth ? "bg-muted/30 opacity-50" : "bg-card"}
-                ${status.isDayOff && isCurrentMonth ? "bg-red-50/10 dark:bg-red-950/20" : ""}
+                ${!isCurrentMonth ? "bg-muted/30 opacity-50" : status.isDayOff ? "bg-red-50/10 dark:bg-red-950/20" : status.intervals.length > 0 ? "bg-green-500/5 hover:bg-green-500/10" : "bg-card"}
                 ${isPastDay && isCurrentMonth ? "opacity-60 pointer-events-none" : ""}
               `}
             >

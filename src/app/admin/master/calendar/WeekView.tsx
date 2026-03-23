@@ -222,20 +222,35 @@ export default function WeekView({ currentDate, appointments, templates, overrid
                   </>
                 )}
 
-                {dayAppts.map(a => {
+                {dayAppts.map((a, i) => {
                   const s = parseTime(a.startTime)
                   const e = parseTime(a.endTime)
                   const top = (s - startHour * 60) * PIXELS_PER_MINUTE
                   const height = (e - s) * PIXELS_PER_MINUTE
 
+                  const overlaps = dayAppts.slice(0, i).filter(prev => {
+                    const ps = parseTime(prev.startTime)
+                    const pe = parseTime(prev.endTime)
+                    return Math.max(s, ps) < Math.min(e, pe)
+                  })
+                  const overlapCount = overlaps.length
+                  const zIndex = 10 + overlapCount
+                  const leftOffset = overlapCount * 6
+                  const bgClass = overlapCount > 0 ? "bg-background/95 text-foreground border border-border shadow-md" : "bg-primary text-primary-foreground"
+
                   return (
                     <div 
                       key={a.id} 
                       onClick={(e) => { e.stopPropagation(); onAppointmentClick(a); }}
-                      className="absolute w-[calc(100%-4px)] left-[2px] rounded-md bg-primary text-primary-foreground p-1 shadow-sm text-xs overflow-hidden hover:z-20 hover:shadow-md hover:ring-2 ring-primary/50 transition-all cursor-pointer group z-10"
-                      style={{ top: `${top}px`, height: `${height}px` }}
+                      className={`absolute w-[calc(100%-8px)] rounded-md p-1 text-xs overflow-hidden hover:z-30 hover:shadow-md hover:ring-2 ring-primary/50 transition-all cursor-pointer group ${bgClass}`}
+                      style={{ top: `${top}px`, height: `${height}px`, left: `calc(4px + ${leftOffset}px)`, zIndex }}
                     >
-                      <div className="font-semibold leading-tight truncate">{a.client.name || 'Client'}</div>
+                      {overlapCount > 0 && (
+                        <div className="absolute top-0.5 right-0.5 text-[8px] font-bold bg-primary text-primary-foreground px-1 py-0.5 rounded shadow-sm">
+                          +{overlapCount}
+                        </div>
+                      )}
+                      <div className="font-semibold leading-tight truncate pr-4">{a.client.name || 'Client'}</div>
                       <div className="opacity-90 leading-tight truncate mt-0.5">{a.service.name}</div>
                       <div className="opacity-75 leading-tight text-[10px] mt-0.5 flex items-center gap-1">
                         <Clock className="w-3 h-3 shrink-0" />

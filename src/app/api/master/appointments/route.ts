@@ -133,10 +133,6 @@ export async function POST(req: NextRequest) {
       const endM = endMins % 60
       const endTime = `${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')}`
 
-      // Optional: Store notes in DB. Since Appointment schema doesn't have 'notes', 
-      // we might need to skip or just append to something. Currently schema has no notes field.
-      // We will just ignore notes for now until schema is updated.
-
       const appt = await prisma.appointment.create({
         data: {
           clientId: finalClientId,
@@ -145,7 +141,8 @@ export async function POST(req: NextRequest) {
           date: new Date(date),
           startTime,
           endTime,
-          status: "CONFIRMED" // created by master directly
+          notes: parsed.notes || null,
+          status: "CONFIRMED"
         }
       })
       createdAppointments.push(appt)
