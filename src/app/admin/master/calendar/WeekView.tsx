@@ -261,7 +261,7 @@ export default function WeekView({ currentDate, appointments, templates, overrid
       </div>
 
       <div className="flex-1 overflow-y-auto relative custom-scrollbar flex" ref={containerRef}>
-        <div className="w-16 shrink-0 border-r border-border bg-card relative z-10">
+        <div className="w-16 shrink-0 border-r border-border bg-card relative z-10" style={{ height: `${containerHeight}px` }}>
           {HOURS.slice(startHour, endHour).map(hour => (
             <div 
               key={hour} 
