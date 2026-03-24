@@ -1,9 +1,11 @@
 import { redirect } from "next/navigation"
 import { auth } from "@/auth"
+import { getTenantConfig } from "@/lib/tenant"
 import ModernCalendar from "../calendar/ModernCalendar"
 
 export default async function MasterSchedulePage() {
   const session = await auth()
+  const config = await getTenantConfig()
   
   if (!session?.user?.id || session.user.role !== "MASTER") {
     redirect("/auth/login")
@@ -17,7 +19,10 @@ export default async function MasterSchedulePage() {
       </div>
       
       <div className="flex-1 bg-card border rounded-xl shadow-sm overflow-hidden flex flex-col relative min-h-[500px]">
-        <ModernCalendar masterId={session.user.id} />
+        <ModernCalendar 
+          masterId={session.user.id} 
+          availableSlotColor={(config as any).availableSlotColor as string || "#22c55e"} 
+        />
       </div>
     </div>
   )

@@ -14,6 +14,7 @@ const CreateMasterSchema = z.object({
   bio:           z.string().max(500).optional(),
   avatarUrl:     pathOrEmpty,
   showOnHomepage:z.coerce.boolean().default(true),
+  color:         z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Invalid hex").default("#166534"),
 })
 
 const UpdateMasterSchema = z.object({
@@ -21,6 +22,7 @@ const UpdateMasterSchema = z.object({
   bio:           z.string().max(500).optional(),
   avatarUrl:     pathOrEmpty,
   showOnHomepage:z.coerce.boolean().default(true),
+  color:         z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Invalid hex").default("#166534"),
 })
 
 export type MasterFormState = {
@@ -47,6 +49,7 @@ export async function createMaster(
     bio:            formData.get("bio") || undefined,
     avatarUrl:      formData.get("avatarUrl") || "",
     showOnHomepage: formData.get("showOnHomepage") === "on" || formData.get("showOnHomepage") === "true",
+    color:          formData.get("color") || "#166534",
   }
 
   const parsed = CreateMasterSchema.safeParse(raw)
@@ -76,6 +79,7 @@ export async function createMaster(
             bio:           parsed.data.bio ?? null,
             avatarUrl:     parsed.data.avatarUrl || null,
             showOnHomepage:parsed.data.showOnHomepage,
+            color:         parsed.data.color,
           } as any,
         },
       },
@@ -98,6 +102,7 @@ export async function updateMaster(
     bio:            formData.get("bio") || undefined,
     avatarUrl:      formData.get("avatarUrl") || "",
     showOnHomepage: formData.get("showOnHomepage") === "on" || formData.get("showOnHomepage") === "true",
+    color:          formData.get("color") || "#166534",
   }
 
   const parsed = UpdateMasterSchema.safeParse(raw)
@@ -117,12 +122,14 @@ export async function updateMaster(
               bio:           parsed.data.bio ?? null,
               avatarUrl:     parsed.data.avatarUrl || null,
               showOnHomepage:parsed.data.showOnHomepage,
+              color:         parsed.data.color,
             } as any,
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             update: {
               bio:           parsed.data.bio ?? null,
               avatarUrl:     parsed.data.avatarUrl || null,
               showOnHomepage:parsed.data.showOnHomepage,
+              color:         parsed.data.color,
             } as any,
           },
         },

@@ -15,6 +15,7 @@ interface DayViewProps {
   startHour: number
   endHour: number
   isEditMode: boolean
+  availableSlotColor: string
   onAddClick: (d: Date) => void
   onAppointmentClick: (a: Appointment) => void
   onDataChange: () => void
@@ -54,7 +55,7 @@ function groupOverlappingAppointments(appointments: Appointment[]): Appointment[
   return groups
 }
 
-export default function DayView({ currentDate, appointments, templates, overrides, step, startHour, endHour, isEditMode, onAddClick, onAppointmentClick, onDataChange }: DayViewProps) {
+export default function DayView({ currentDate, appointments, templates, overrides, step, startHour, endHour, isEditMode, availableSlotColor, onAddClick, onAppointmentClick, onDataChange }: DayViewProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const totalHours = endHour - startHour
   const PIXELS_PER_MINUTE = 2 
@@ -249,8 +250,8 @@ export default function DayView({ currentDate, appointments, templates, override
             return (
               <div 
                 key={idx} 
-                className="absolute w-full bg-green-500/10 pointer-events-none z-0 border-l-[4px] border-green-500 shadow-sm" 
-                style={{ top: `${Math.max(0, top)}px`, height: `${Math.min(height, containerHeight - Math.max(0, top))}px` }} 
+                className="absolute w-full pointer-events-none z-0 border-l-[4px] shadow-sm" 
+                style={{ top: `${Math.max(0, top)}px`, height: `${Math.min(height, containerHeight - Math.max(0, top))}px`, backgroundColor: availableSlotColor + '1A', borderLeftColor: availableSlotColor }} 
               />
             )
           })}
@@ -292,22 +293,22 @@ export default function DayView({ currentDate, appointments, templates, override
                 <div 
                   key={a.id} 
                   onClick={(e) => { e.stopPropagation(); onAppointmentClick(a); }}
-                  className="absolute w-[calc(100%-30px)] rounded-lg text-card-foreground p-3 shadow-md border-l-4 overflow-hidden hover:z-30 hover:shadow-xl transition-all cursor-pointer flex gap-4 backdrop-blur-sm bg-primary/10 border-primary"
-                  style={{ top: `${top}px`, minHeight: `${Math.max(height, 60)}px`, left: "8px", zIndex: 10 }}
+                  className="absolute w-[calc(100%-30px)] rounded-lg text-white p-3 shadow-md border-l-4 overflow-hidden hover:z-30 hover:shadow-xl transition-all cursor-pointer flex gap-4 backdrop-blur-sm"
+                  style={{ top: `${top}px`, minHeight: `${Math.max(height, 60)}px`, left: "8px", zIndex: 10, backgroundColor: (a.master?.masterProfile?.color || "#166534") + "CC", borderLeftColor: a.master?.masterProfile?.color || "#166534" }}
                 >
                   <div className="flex flex-col gap-1 w-[150px] shrink-0 border-r border-foreground/10 pr-4">
                     <div className="font-bold text-lg">{a.startTime}</div>
-                    <div className="text-sm text-muted-foreground">{a.endTime}</div>
-                    <div className="mt-auto text-xs font-semibold text-primary/80 uppercase tracking-wider">{a.status}</div>
+                    <div className="text-sm opacity-70">{a.endTime}</div>
+                    <div className="mt-auto text-xs font-semibold text-white/80 uppercase tracking-wider">{a.status}</div>
                   </div>
                   
                   <div className="flex-1 flex flex-col gap-2 min-w-0">
                     <h3 className="font-semibold text-base truncate flex items-center gap-2">
-                      <User className="w-4 h-4 text-muted-foreground" />
+                      <User className="w-4 h-4 opacity-70" />
                       {a.client.name || 'Unknown Client'}
                     </h3>
                     
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-4 text-sm opacity-90">
                       <div className="flex items-center gap-1.5 min-w-0">
                         <Scissors className="w-3.5 h-3.5 shrink-0" />
                         <span className="truncate">{a.service.name}</span>
@@ -368,8 +369,8 @@ export default function DayView({ currentDate, appointments, templates, override
                   </div>
                 ) : (
                   <div 
-                    className="bg-primary/90 text-primary-foreground rounded-lg p-3 shadow-md"
-                    style={{ minHeight: `${Math.max(height, 60)}px` }}
+                    className="backdrop-blur-sm text-white rounded-lg p-3 shadow-md"
+                    style={{ minHeight: `${Math.max(height, 60)}px`, backgroundColor: (group[0].master?.masterProfile?.color || "#166534") + "CC", borderColor: group[0].master?.masterProfile?.color || "#166534", borderWidth: '1px' }}
                   >
                     <div className="flex items-center gap-2 mb-2">
                       <Users className="w-4 h-4" />

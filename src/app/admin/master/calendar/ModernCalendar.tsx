@@ -24,11 +24,12 @@ export type Appointment = {
   notes: string | null
   service: { id: string, name: string, duration: number, price: number }
   client: { id: string, name: string | null, phone: string | null, email: string | null }
+  master?: { masterProfile?: { color?: string | null } }
 }
 export type Template = { dayOfWeek: number; isDayOff: boolean; intervals: Interval[] }
 export type Override = { date: string; isDayOff: boolean; intervals: Interval[] }
 
-export default function ModernCalendar({ masterId: _masterId }: { masterId: string }) {
+export default function ModernCalendar({ masterId: _masterId, availableSlotColor = "#22c55e" }: { masterId: string, availableSlotColor?: string }) {
   const [isMounted, setIsMounted] = useState(false)
   const [view, setView] = useState<ViewType>("Week")
   const [currentDate, setCurrentDate] = useState(new Date())
@@ -223,6 +224,7 @@ export default function ModernCalendar({ masterId: _masterId }: { masterId: stri
             templates={templates} 
             overrides={overrides}
             isEditMode={isEditMode}
+            availableSlotColor={availableSlotColor}
             onDayClick={(d) => { setView("Day"); setCurrentDate(d); }}
             onAppointmentClick={(a) => setViewingAppointment(a)}
             onDataChange={fetchData}
@@ -238,6 +240,7 @@ export default function ModernCalendar({ masterId: _masterId }: { masterId: stri
             startHour={startHour}
             endHour={endHour}
             isEditMode={isEditMode}
+            availableSlotColor={availableSlotColor}
             onDayClick={(d) => { setView("Day"); setCurrentDate(d); }}
             onAppointmentClick={(a) => setViewingAppointment(a)}
             onDataChange={fetchData}
@@ -253,6 +256,7 @@ export default function ModernCalendar({ masterId: _masterId }: { masterId: stri
             startHour={startHour}
             endHour={endHour}
             isEditMode={isEditMode}
+            availableSlotColor={availableSlotColor}
             onAddClick={(d) => setBookingDate(d)}
             onAppointmentClick={(a) => setViewingAppointment(a)}
             onDataChange={fetchData}

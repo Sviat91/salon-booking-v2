@@ -35,6 +35,7 @@ type TenantConfig = {
   darkTextColor:   string
   darkMutedColor:  string
   darkBorderColor: string
+  availableSlotColor: string
 }
 
 const initialState: SettingsFormState = {}
@@ -282,6 +283,22 @@ export default function SettingsForm({ config }: { config: TenantConfig }) {
           uploading={faviconUploading}
           uploadError={faviconError}
         />
+      </section>
+
+      {/* ── Calendar Settings ────────────────────────────────────────── */}
+      <section className="flex flex-col gap-4">
+        <div>
+          <h2 className="text-base font-semibold">Calendar Settings</h2>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Colors used in the booking calendar
+          </p>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <ColorRow 
+            field={{ name: "availableSlotColor", label: "Available Slot", description: "Color for open working intervals" }} 
+            defaultValue={config.availableSlotColor} 
+          />
+        </div>
       </section>
 
       {/* ── Light theme ──────────────────────────────────────────── */}

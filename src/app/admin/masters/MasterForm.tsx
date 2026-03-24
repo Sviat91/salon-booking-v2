@@ -14,7 +14,7 @@ type Master = {
   name: string | null
   email: string | null
   plainPassword: string | null
-  masterProfile: { bio: string | null; avatarUrl: string | null; showOnHomepage: boolean } | null
+  masterProfile: { bio: string | null; avatarUrl: string | null; showOnHomepage: boolean; color: string | null } | null
 }
 
 interface MasterFormProps {
@@ -74,7 +74,8 @@ export default function MasterForm({ master, onSuccess }: MasterFormProps) {
   }
 
   useEffect(() => {
-    if (state.success && master) onSuccess()
+    // For Create: close modal. For Edit: Keep open!
+    if (state.success && !master) onSuccess()
   }, [state.success, master, onSuccess])
 
   async function handleAvatarUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -222,6 +223,21 @@ export default function MasterForm({ master, onSuccess }: MasterFormProps) {
         />
       </div>
 
+      {/* Color */}
+      <div className="grid gap-1.5">
+        <Label htmlFor="color">Appointment Color</Label>
+        <div className="flex gap-2 items-center">
+          <input
+            type="color"
+            id="color"
+            name="color"
+            defaultValue={master?.masterProfile?.color ?? "#166534"}
+            className="h-8 w-10 cursor-pointer rounded border border-input bg-background p-0.5 shrink-0"
+          />
+          <span className="text-xs text-muted-foreground">Color for master's bookings in the calendar</span>
+        </div>
+      </div>
+
       {/* Show on homepage */}
       <div className="flex items-center gap-3 rounded-md border border-border bg-muted/30 px-3 py-2.5">
         <input
@@ -242,6 +258,7 @@ export default function MasterForm({ master, onSuccess }: MasterFormProps) {
       </div>
 
       {state.error && <p className="text-sm text-destructive">{state.error}</p>}
+      {state.success && master && <div className="rounded border border-green-500/30 bg-green-500/10 p-2 text-center text-xs font-medium text-green-600 dark:text-green-400">Settings saved successfully!</div>}
 
       <SubmitButton label={master ? "Save Changes" : "Create Master"} />
     </form>

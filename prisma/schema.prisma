@@ -40,6 +40,7 @@ model MasterProfile {
   bio             String?
   specialties     String?  // Stored as JSON string or comma-separated
   showOnHomepage  Boolean  @default(true)
+  color           String?  @default("#166534")
 
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -142,7 +143,9 @@ model TenantConfig {
   cardColor       String   @default("#FFFFFF")
   successColor    String   @default("#21A67A")
   errorColor      String   @default("#D84E4E")
-  
+  // Calendar colors
+  availableSlotColor String   @default("#22c55e")
+
   // Dark mode colors
   darkBgColor     String   @default("#9c6849")
   darkPrimaryColor String  @default("#FDE5C3")

@@ -54,6 +54,7 @@ export async function GET(req: NextRequest) {
         notes: true,
         service: { select: { id: true, name: true, duration: true, price: true } },
         client: { select: { id: true, name: true, phone: true, email: true } },
+        master: { select: { masterProfile: { select: { color: true } } } },
       },
       orderBy: [{ date: "asc" }, { startTime: "asc" }],
     })

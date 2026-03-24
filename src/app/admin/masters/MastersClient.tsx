@@ -19,7 +19,7 @@ type Master = {
   name: string | null
   email: string | null
   plainPassword: string | null
-  masterProfile: { bio: string | null; avatarUrl: string | null; showOnHomepage: boolean } | null
+  masterProfile: { bio: string | null; avatarUrl: string | null; showOnHomepage: boolean; color: string | null } | null
 }
 
 export default function MastersClient({ masters }: { masters: Master[] }) {
@@ -112,6 +112,12 @@ export default function MastersClient({ masters }: { masters: Master[] }) {
                           <EyeOff className="h-2.5 w-2.5" />Hidden
                         </span>
                       )}
+                      {/* Color indicator */}
+                      <div 
+                        className="w-3.5 h-3.5 ml-1 rounded shadow-sm border border-border shrink-0" 
+                        style={{ backgroundColor: master.masterProfile?.color || "#166534" }} 
+                        title="Appointment Color"
+                      />
                     </div>
                     <p className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
                       <Mail className="h-3 w-3" />

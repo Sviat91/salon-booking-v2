@@ -12,6 +12,7 @@ interface MonthViewProps {
   templates: Template[]
   overrides: Override[]
   isEditMode: boolean
+  availableSlotColor: string
   onDayClick: (d: Date) => void
   onAppointmentClick: (a: Appointment) => void
   onDataChange: () => void
@@ -24,7 +25,7 @@ interface ExpandedState {
   dateStr: string | null
 }
 
-export default function MonthView({ currentDate, appointments, templates, overrides, isEditMode, onDayClick, onAppointmentClick, onDataChange }: MonthViewProps) {
+export default function MonthView({ currentDate, appointments, templates, overrides, isEditMode, availableSlotColor, onDayClick, onAppointmentClick, onDataChange }: MonthViewProps) {
   const monthStart = startOfMonth(currentDate)
   const monthEnd = endOfMonth(monthStart)
   const startDate = startOfWeek(monthStart, { weekStartsOn: 1 })
@@ -138,9 +139,10 @@ export default function MonthView({ currentDate, appointments, templates, overri
               }}
               className={`border-b border-r border-border p-1 flex flex-col transition-colors relative
                 ${!isEditMode && !isPastDay ? "cursor-pointer hover:bg-muted/10" : ""}
-                ${!isCurrentMonth ? "bg-muted/30 opacity-50" : status.isDayOff ? "bg-red-50/10 dark:bg-red-950/20" : shiftsCount > 0 || apptsCount > 0 ? "bg-green-500/5 hover:bg-green-500/10" : "bg-card"}
+                ${!isCurrentMonth ? "bg-muted/30 opacity-50" : status.isDayOff ? "bg-red-50/10 dark:bg-red-950/20" : (shiftsCount > 0 || apptsCount > 0) ? "" : "bg-card"}
                 ${isPastDay && isCurrentMonth ? "opacity-60 pointer-events-none" : ""}
               `}
+              style={{ backgroundColor: (!isPastDay && !status.isDayOff && shiftsCount > 0) ? availableSlotColor + '1A' : undefined }}
             >
               {isSaving && <div className="absolute inset-0 bg-background/50 z-10 animate-pulse pointer-events-none" />}
 
@@ -161,7 +163,8 @@ export default function MonthView({ currentDate, appointments, templates, overri
                         <div 
                           key={a.id} 
                           onClick={(e) => { e.stopPropagation(); onAppointmentClick(a); setExpanded({ type: null, dateStr: null }); }}
-                          className="text-xs px-2 py-1.5 rounded bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors cursor-pointer flex items-center gap-2"
+                          className="text-xs px-2 py-1.5 rounded text-white transition-colors cursor-pointer flex items-center gap-2 shadow-sm"
+                          style={{ backgroundColor: (a.master?.masterProfile?.color || "#166534") + "CC", borderColor: a.master?.masterProfile?.color || "#166534", borderWidth: '1px' }}
                         >
                           <Clock className="w-3 h-3 shrink-0" />
                           <span className="font-medium">{a.startTime}</span>
@@ -174,11 +177,14 @@ export default function MonthView({ currentDate, appointments, templates, overri
                       onClick={(e) => { e.stopPropagation(); toggleExpand('appointments', dateStr); }}
                       className="w-full text-left transition-all duration-200"
                     >
-                      <div className="flex items-center gap-1 px-1.5 py-1 rounded bg-primary/10 border border-primary/20 hover:bg-primary/20 transition-colors">
-                        <span className="text-[11px] truncate font-medium text-primary">
+                      <div 
+                        className="flex items-center gap-1 px-1.5 py-1 rounded transition-colors shadow-sm"
+                        style={{ backgroundColor: (dayAppts[0]?.master?.masterProfile?.color || "#166534") + "CC", borderColor: dayAppts[0]?.master?.masterProfile?.color || "#166534", borderWidth: '1px' }}
+                      >
+                        <span className="text-[11px] truncate font-medium text-white">
                           {apptsCount} {apptsCount === 1 ? 'booking' : 'bookings'}
                         </span>
-                        <ChevronDown className="w-3 h-3 text-primary shrink-0" />
+                        <ChevronDown className="w-3 h-3 text-white/80 shrink-0" />
                       </div>
                     </button>
                   )}

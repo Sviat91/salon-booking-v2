@@ -15,6 +15,7 @@ interface WeekViewProps {
   startHour: number
   endHour: number
   isEditMode: boolean
+  availableSlotColor: string
   onDayClick: (d: Date) => void
   onAppointmentClick: (a: Appointment) => void
   onDataChange: () => void
@@ -63,7 +64,7 @@ interface EditingDayState {
   dateStr: string | null
 }
 
-export default function WeekView({ currentDate, appointments, templates, overrides, step, startHour, endHour, isEditMode, onDayClick, onAppointmentClick, onDataChange }: WeekViewProps) {
+export default function WeekView({ currentDate, appointments, templates, overrides, step, startHour, endHour, isEditMode, availableSlotColor, onDayClick, onAppointmentClick, onDataChange }: WeekViewProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const totalHours = endHour - startHour
   const PIXELS_PER_MINUTE = 1.5 
@@ -355,8 +356,8 @@ export default function WeekView({ currentDate, appointments, templates, overrid
                       <div 
                         key={a.id} 
                         onClick={(e) => { e.stopPropagation(); onAppointmentClick(a); }}
-                        className="absolute w-[calc(100%-8px)] rounded-md p-1 text-xs overflow-hidden hover:z-30 hover:shadow-md hover:ring-2 ring-primary/50 transition-all cursor-pointer bg-primary text-primary-foreground"
-                        style={{ top: `${top}px`, minHeight: `${Math.max(height, 24)}px`, left: "4px", zIndex: 10 }}
+                        className="absolute w-[calc(100%-8px)] rounded-md p-1 text-xs overflow-hidden hover:z-30 hover:shadow-md hover:ring-2 ring-green-500/50 transition-all cursor-pointer backdrop-blur-sm text-white"
+                        style={{ top: `${top}px`, minHeight: `${Math.max(height, 24)}px`, left: "4px", zIndex: 10, backgroundColor: (a.master?.masterProfile?.color || "#166534") + "CC", borderColor: (a.master?.masterProfile?.color || "#166534") + "80", borderWidth: '1px' }}
                       >
                         <div className="font-semibold leading-tight truncate">{a.client.name || 'Client'}</div>
                         <div className="opacity-90 leading-tight truncate mt-0.5">{a.service.name}</div>
@@ -393,7 +394,10 @@ export default function WeekView({ currentDate, appointments, templates, overrid
                           ))}
                         </div>
                       ) : (
-                        <div className="bg-primary/90 text-primary-foreground rounded-md p-1.5 shadow-md">
+                        <div 
+                          className="backdrop-blur-sm text-white rounded-md p-1.5 shadow-md"
+                          style={{ backgroundColor: (group[0].master?.masterProfile?.color || "#166534") + "CC", borderColor: (group[0].master?.masterProfile?.color || "#166534") + "80", borderWidth: '1px' }}
+                        >
                           <div className="flex items-center gap-1.5">
                             <Users className="w-3.5 h-3.5" />
                             <span className="font-semibold text-sm">{group.length}</span>

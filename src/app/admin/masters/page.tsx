@@ -11,6 +11,7 @@ type MasterWithProfile = {
     bio: string | null
     avatarUrl: string | null
     showOnHomepage: boolean
+    color: string | null
   } | null
 }
 
@@ -25,7 +26,7 @@ export default async function MastersPage() {
       email: true,
       plainPassword: true,
       masterProfile: {
-        select: { bio: true, avatarUrl: true, showOnHomepage: true },
+        select: { bio: true, avatarUrl: true, showOnHomepage: true, color: true },
       },
     },
   }) as MasterWithProfile[]
