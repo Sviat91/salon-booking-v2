@@ -3,8 +3,9 @@
 import { useState, useEffect } from "react"
 import { format } from "date-fns"
 import { Button } from "@/components/ui/button"
-import { X, Calendar as CalIcon, User, Search, MapPin, Plus, Trash2 } from "lucide-react"
+import { X, Calendar as CalIcon, User, MapPin, Plus, Trash2 } from "lucide-react"
 import { DatePickerDropdown } from "@/components/DatePickerDropdown"
+import { TimePickerDropdown } from "@/components/TimePickerDropdown"
 
 interface AppointmentModalProps {
   date?: Date
@@ -32,7 +33,7 @@ export default function AppointmentModal({ date, initialAppointment, mode, onClo
   const [customClientName, setCustomClientName] = useState("")
   const [customClientPhone, setCustomClientPhone] = useState("")
   
-  const [notes, setNotes] = useState("")
+  const [notes, setNotes] = useState(initialAppointment?.notes || "")
 
   const [entries, setEntries] = useState<Entry[]>(() => {
     if (initialAppointment) {
@@ -262,7 +263,7 @@ export default function AppointmentModal({ date, initialAppointment, mode, onClo
                 </div>
                 
                 <div className="space-y-3">
-                  {entries.map((ent, idx) => (
+                  {entries.map((ent) => (
                     <div key={ent.id} className="flex flex-wrap sm:flex-nowrap items-center gap-3 bg-muted/30 p-4 rounded-lg border border-border">
                       <div className="space-y-1 w-full sm:flex-1 shrink-0">
                         <label className="text-xs font-medium text-muted-foreground">Date</label>
@@ -273,18 +274,11 @@ export default function AppointmentModal({ date, initialAppointment, mode, onClo
                       </div>
                       <div className="space-y-1 w-full sm:flex-1 shrink-0">
                         <label className="text-xs font-medium text-muted-foreground">Start Time</label>
-                        <select 
+                        <TimePickerDropdown 
                           value={ent.startTime}
-                          onChange={e => updateEntry(ent.id, 'startTime', e.target.value)}
-                          className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-primary outline-none"
-                        >
-                          {Array.from({ length: 24 * 4 }).map((_, i) => {
-                            const h = Math.floor(i / 4)
-                            const m = (i % 4) * 15
-                            const val = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`
-                            return <option key={val} value={val}>{val}</option>
-                          })}
-                        </select>
+                          onChange={(val) => updateEntry(ent.id, 'startTime', val)}
+                          step={15}
+                        />
                       </div>
                       <div className="space-y-1 w-full sm:flex-1 shrink-0">
                         <label className="text-xs font-medium text-muted-foreground">Duration (min)</label>

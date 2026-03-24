@@ -45,7 +45,13 @@ export async function GET(req: NextRequest) {
         masterId: session.user.id,
         ...(Object.keys(dateFilter).length > 0 ? { date: dateFilter } : {}),
       },
-      include: {
+      select: {
+        id: true,
+        date: true,
+        startTime: true,
+        endTime: true,
+        status: true,
+        notes: true,
         service: { select: { id: true, name: true, duration: true, price: true } },
         client: { select: { id: true, name: true, phone: true, email: true } },
       },

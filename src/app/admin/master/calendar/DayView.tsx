@@ -1,9 +1,10 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { useRef, useState, useEffect } from "react"
 import { format, isToday } from "date-fns"
 import type { Appointment, Template, Override, Interval } from "./ModernCalendar"
-import { Clock, Phone, Scissors, User, Plus, PowerOff, X } from "lucide-react"
+import { Clock, Phone, Scissors, User, Plus, PowerOff, X, ChevronDown, Users } from "lucide-react"
+import { TimePickerDropdown } from "@/components/TimePickerDropdown"
 
 interface DayViewProps {
   currentDate: Date
@@ -21,12 +22,57 @@ interface DayViewProps {
 
 const HOURS = Array.from({ length: 24 }).map((_, i) => i)
 
+function groupOverlappingAppointments(appointments: Appointment[]): Appointment[][] {
+  if (appointments.length === 0) return []
+  
+  const sorted = [...appointments].sort((a, b) => {
+    const aStart = parseInt(a.startTime.split(':')[0]) * 60 + parseInt(a.startTime.split(':')[1])
+    const bStart = parseInt(b.startTime.split(':')[0]) * 60 + parseInt(b.startTime.split(':')[1])
+    return aStart - bStart
+  })
+  
+  const groups: Appointment[][] = []
+  let currentGroup: Appointment[] = [sorted[0]]
+  let groupEnd = parseInt(sorted[0].endTime.split(':')[0]) * 60 + parseInt(sorted[0].endTime.split(':')[1])
+  
+  for (let i = 1; i < sorted.length; i++) {
+    const appt = sorted[i]
+    const apptStart = parseInt(appt.startTime.split(':')[0]) * 60 + parseInt(appt.startTime.split(':')[1])
+    
+    if (apptStart < groupEnd) {
+      currentGroup.push(appt)
+      const apptEnd = parseInt(appt.endTime.split(':')[0]) * 60 + parseInt(appt.endTime.split(':')[1])
+      groupEnd = Math.max(groupEnd, apptEnd)
+    } else {
+      groups.push(currentGroup)
+      currentGroup = [appt]
+      groupEnd = parseInt(appt.endTime.split(':')[0]) * 60 + parseInt(appt.endTime.split(':')[1])
+    }
+  }
+  groups.push(currentGroup)
+  
+  return groups
+}
+
 export default function DayView({ currentDate, appointments, templates, overrides, step, startHour, endHour, isEditMode, onAddClick, onAppointmentClick, onDataChange }: DayViewProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const totalHours = endHour - startHour
   const PIXELS_PER_MINUTE = 2 
   const containerHeight = totalHours * 60 * PIXELS_PER_MINUTE
   const [savingDate, setSavingDate] = useState<string | null>(null)
+  const [expandedGroup, setExpandedGroup] = useState<number | null>(null)
+  const [isEditingSchedule, setIsEditingSchedule] = useState(false)
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setExpandedGroup(null)
+        setIsEditingSchedule(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
 
   const dateStr = format(currentDate, "yyyy-MM-dd")
   const jsDayOfWeek = currentDate.getDay()
@@ -73,8 +119,10 @@ export default function DayView({ currentDate, appointments, templates, override
     updateServer(currentDate, status.isDayOff, newIntervals)
   }
 
+  const groups = groupOverlappingAppointments(dayAppts)
+
   return (
-    <div className="flex flex-col h-full overflow-hidden bg-background">
+    <div className="flex flex-col h-full overflow-hidden bg-background" ref={containerRef}>
       <div className="flex border-b border-border shrink-0 bg-card pr-2">
         <div className="w-16 shrink-0 border-r border-border" /> 
         <div className="flex-1 py-3 px-4 flex justify-between items-center relative">
@@ -90,25 +138,82 @@ export default function DayView({ currentDate, appointments, templates, override
           </div>
 
           {isEditMode && !isPastDay && (
-            <div className="flex items-center gap-4 bg-muted/40 p-2 rounded-lg border border-border/50 shadow-inner">
-              {!status.isDayOff && status.intervals.map((inv, idx) => (
-                <div key={idx} className="flex items-center gap-1 bg-background border rounded px-1.5 py-1">
-                  <input type="time" value={inv.start} onChange={e => updateShift(idx, 'start', e.target.value)} className="bg-transparent text-sm outline-none" />
-                  <span className="text-muted-foreground mx-1">-</span>
-                  <input type="time" value={inv.end} onChange={e => updateShift(idx, 'end', e.target.value)} className="bg-transparent text-sm outline-none" />
-                  <button className="text-destructive ml-2 hover:bg-destructive/10 p-0.5 rounded" onClick={() => removeShift(idx)}><X className="w-4 h-4" /></button>
+            <div className="relative ml-auto">
+              <button 
+                onClick={() => setIsEditingSchedule(!isEditingSchedule)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-md font-semibold text-sm transition-colors shadow-sm ml-auto border ${
+                  status.isDayOff 
+                    ? 'bg-red-100 text-red-600 border-red-200 dark:bg-red-900/40 dark:text-red-400 dark:border-red-900/50' 
+                    : status.intervals.length > 0
+                      ? 'bg-green-500/10 text-green-700 border-green-500/20 dark:text-green-400 dark:border-green-500/30 hover:bg-green-500/20'
+                      : 'bg-muted border-border hover:bg-muted/80'
+                }`}
+              >
+                {status.isDayOff ? 'Day Off' : status.intervals.length > 0 ? `${status.intervals.length} Shift${status.intervals.length > 1 ? 's' : ''}` : 'Set Schedule'}
+              </button>
+
+              {isEditingSchedule && (
+                <div className="absolute top-[110%] right-0 bg-card border border-border rounded-xl shadow-2xl p-4 space-y-3 animate-in fade-in-0 zoom-in-95 duration-200 z-50 w-[280px] cursor-default" onClick={(e) => e.stopPropagation()}>
+                  <div className="text-sm font-semibold text-muted-foreground flex items-center justify-between">
+                    {format(currentDate, "EEEE, MMM d")}
+                    <button onClick={() => setIsEditingSchedule(false)} className="text-muted-foreground hover:text-foreground">
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                  
+                  {status.intervals.length > 0 && (
+                    <div className="space-y-4">
+                      {status.intervals.map((inv, idx) => (
+                        <div key={idx} className="flex items-center justify-between gap-2 p-1 border rounded-lg bg-muted/20">
+                          <div className="flex-1 flex flex-col items-center gap-2">
+                            <TimePickerDropdown 
+                              value={inv.start}
+                              onChange={val => updateShift(idx, 'start', val)}
+                              step={30}
+                              startHour={6}
+                              endHour={22}
+                            />
+                            <TimePickerDropdown 
+                              value={inv.end}
+                              onChange={val => updateShift(idx, 'end', val)}
+                              step={30}
+                              startHour={6}
+                              endHour={22}
+                            />
+                          </div>
+                          <button 
+                            className="text-destructive p-2 hover:bg-destructive/10 rounded-md shrink-0 h-full ml-1" 
+                            onClick={() => removeShift(idx)}
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  
+                  <div className="flex gap-2 pt-3 border-t border-border/50">
+                    <button 
+                      onClick={() => { toggleOff(); setIsEditingSchedule(false); }}
+                      className={`flex-1 flex items-center justify-center py-2 gap-1 text-xs rounded-md font-medium transition-colors ${
+                        status.isDayOff 
+                          ? 'bg-primary/20 text-primary hover:bg-primary/30' 
+                          : 'bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900/40 dark:text-red-400 dark:hover:bg-red-900/60'
+                      }`}
+                    >
+                      <PowerOff className="w-3.5 h-3.5" /> {status.isDayOff ? 'Set Working' : 'Day Off'}
+                    </button>
+                    {!status.isDayOff && (
+                      <button 
+                        onClick={() => addShift()}
+                        className="flex-1 flex items-center justify-center py-2 gap-1 text-xs bg-primary text-primary-foreground rounded-md hover:bg-primary/90 font-medium transition-colors"
+                      >
+                        <Plus className="w-3.5 h-3.5" /> Add Shift
+                      </button>
+                    )}
+                  </div>
                 </div>
-              ))}
-              <div className="flex gap-2 border-l border-border/50 pl-4">
-                <button onClick={toggleOff} className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded font-medium ${status.isDayOff ? 'bg-primary/20 text-primary' : 'bg-red-100 text-red-600'}`}>
-                  <PowerOff className="w-4 h-4" /> {status.isDayOff ? 'Work' : 'Day Off'}
-                </button>
-                {!status.isDayOff && (
-                  <button onClick={addShift} className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-background border rounded hover:bg-muted font-medium">
-                    <Plus className="w-4 h-4" /> Shift
-                  </button>
-                )}
-              </div>
+              )}
             </div>
           )}
 
@@ -193,59 +298,114 @@ export default function DayView({ currentDate, appointments, templates, override
             }
           })()}
 
-          {dayAppts.map((a, i) => {
-            const s = parseTime(a.startTime)
-            const e = parseTime(a.endTime)
-            const top = (s - startHour * 60) * PIXELS_PER_MINUTE
-            const height = (e - s) * PIXELS_PER_MINUTE
+          {groups.map((group, groupIdx) => {
+            if (group.length === 0) return null
+            
+            const firstAppt = group[0]
+            const groupStart = parseTime(firstAppt.startTime)
+            const groupEnd = Math.max(...group.map(a => parseTime(a.endTime)))
+            const top = (groupStart - startHour * 60) * PIXELS_PER_MINUTE
+            const height = (groupEnd - groupStart) * PIXELS_PER_MINUTE
+            
+            const isExpanded = expandedGroup === groupIdx
 
-            const overlaps = dayAppts.slice(0, i).filter(prev => {
-              const ps = parseTime(prev.startTime)
-              const pe = parseTime(prev.endTime)
-              return Math.max(s, ps) < Math.min(e, pe)
-            })
-            const overlapCount = overlaps.length
-            const zIndex = 10 + overlapCount
-            const leftOffset = overlapCount * 12
-            const bgClass = overlapCount > 0 ? "bg-background/95 border-r border-y border-border shadow-lg" : "bg-primary/10"
+            if (group.length === 1) {
+              const a = group[0]
+              return (
+                <div 
+                  key={a.id} 
+                  onClick={(e) => { e.stopPropagation(); onAppointmentClick(a); }}
+                  className="absolute w-[calc(100%-30px)] rounded-lg text-card-foreground p-3 shadow-md border-l-4 overflow-hidden hover:z-30 hover:shadow-xl transition-all cursor-pointer flex gap-4 backdrop-blur-sm bg-primary/10 border-primary"
+                  style={{ top: `${top}px`, minHeight: `${Math.max(height, 60)}px`, left: "8px", zIndex: 10 }}
+                >
+                  <div className="flex flex-col gap-1 w-[150px] shrink-0 border-r border-foreground/10 pr-4">
+                    <div className="font-bold text-lg">{a.startTime}</div>
+                    <div className="text-sm text-muted-foreground">{a.endTime}</div>
+                    <div className="mt-auto text-xs font-semibold text-primary/80 uppercase tracking-wider">{a.status}</div>
+                  </div>
+                  
+                  <div className="flex-1 flex flex-col gap-2 min-w-0">
+                    <h3 className="font-semibold text-base truncate flex items-center gap-2">
+                      <User className="w-4 h-4 text-muted-foreground" />
+                      {a.client.name || 'Unknown Client'}
+                    </h3>
+                    
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <Scissors className="w-3.5 h-3.5 shrink-0" />
+                        <span className="truncate">{a.service.name}</span>
+                      </div>
+                      {a.client.phone && (
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <Phone className="w-3.5 h-3.5" />
+                          {a.client.phone}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )
+            }
 
             return (
               <div 
-                key={a.id} 
-                onClick={(e) => { e.stopPropagation(); onAppointmentClick(a); }}
-                className={`absolute w-[calc(100%-30px)] rounded-lg text-card-foreground p-3 shadow-md border-l-4 overflow-hidden hover:z-30 hover:shadow-xl transition-all cursor-pointer flex gap-4 backdrop-blur-sm ${bgClass} ${a.status === "COMPLETED" ? 'border-green-500' : 'border-primary'}`}
-                style={{ top: `${top}px`, height: `${height}px`, left: `calc(8px + ${leftOffset}px)`, zIndex }}
+                key={`group-${groupIdx}`}
+                onClick={(e) => { e.stopPropagation(); setExpandedGroup(isExpanded ? null : groupIdx); }}
+                className={`absolute rounded-lg transition-all cursor-pointer ${isExpanded ? 'z-30' : 'z-10'}`}
+                style={{ top: `${top}px`, left: "8px", width: "calc(100% - 30px)" }}
               >
-                {overlapCount > 0 && (
-                  <div className="absolute top-1 right-1 text-[10px] font-bold bg-primary text-primary-foreground px-1.5 py-0.5 rounded shadow-sm">
-                    +{overlapCount}
+                {isExpanded ? (
+                  <div className="bg-card border border-border rounded-lg shadow-xl overflow-hidden animate-in fade-in-0 zoom-in-95 duration-200">
+                    {group.map(a => (
+                      <div 
+                        key={a.id}
+                        onClick={(e) => { e.stopPropagation(); onAppointmentClick(a); }}
+                        className="p-3 border-b last:border-b-0 border-border hover:bg-muted/50 transition-colors cursor-pointer flex gap-4"
+                      >
+                        <div className="flex flex-col gap-1 w-[100px] shrink-0">
+                          <div className="font-bold text-lg">{a.startTime}</div>
+                          <div className="text-sm text-muted-foreground">{a.endTime}</div>
+                        </div>
+                        
+                        <div className="flex-1 flex flex-col gap-2 min-w-0">
+                          <h3 className="font-semibold text-base truncate flex items-center gap-2">
+                            <User className="w-4 h-4 text-muted-foreground" />
+                            {a.client.name || 'Unknown Client'}
+                          </h3>
+                          
+                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                            <div className="flex items-center gap-1.5 min-w-0">
+                              <Scissors className="w-3.5 h-3.5 shrink-0" />
+                              <span className="truncate">{a.service.name}</span>
+                            </div>
+                            {a.client.phone && (
+                              <div className="flex items-center gap-1.5 shrink-0">
+                                <Phone className="w-3.5 h-3.5" />
+                                {a.client.phone}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div 
+                    className="bg-primary/90 text-primary-foreground rounded-lg p-3 shadow-md"
+                    style={{ minHeight: `${Math.max(height, 60)}px` }}
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <Users className="w-4 h-4" />
+                      <span className="font-semibold text-lg">{group.length}</span>
+                      <span className="text-sm opacity-90">bookings at this time</span>
+                      <ChevronDown className="w-4 h-4 ml-auto" />
+                    </div>
+                    <div className="text-xs opacity-75 flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
+                      {firstAppt.startTime} - {group[group.length - 1].endTime}
+                    </div>
                   </div>
                 )}
-                <div className="flex flex-col gap-1 w-[150px] shrink-0 border-r border-foreground/10 pr-4">
-                  <div className="font-bold text-lg">{a.startTime}</div>
-                  <div className="text-sm text-muted-foreground">{a.endTime}</div>
-                  <div className="mt-auto text-xs font-semibold text-primary/80 uppercase tracking-wider">{a.status}</div>
-                </div>
-                
-                <div className="flex-1 flex flex-col gap-2 min-w-0">
-                  <h3 className="font-semibold text-base truncate flex items-center gap-2">
-                    <User className="w-4 h-4 text-muted-foreground" />
-                    {a.client.name || 'Unknown Client'}
-                  </h3>
-                  
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    <div className="flex items-center gap-1.5 min-w-0">
-                      <Scissors className="w-3.5 h-3.5 shrink-0" />
-                      <span className="truncate">{a.service.name}</span>
-                    </div>
-                    {a.client.phone && (
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        <Phone className="w-3.5 h-3.5" />
-                        {a.client.phone}
-                      </div>
-                    )}
-                  </div>
-                </div>
               </div>
             )
           })}

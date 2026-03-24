@@ -1,9 +1,10 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useMemo, useState, useRef, useEffect } from "react"
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, isSameMonth, isToday } from "date-fns"
 import type { Appointment, Template, Override, Interval } from "./ModernCalendar"
-import { Plus, PowerOff, X } from "lucide-react"
+import { Plus, PowerOff, X, ChevronDown, Clock } from "lucide-react"
+import { TimePickerDropdown } from "@/components/TimePickerDropdown"
 
 interface MonthViewProps {
   currentDate: Date
@@ -18,6 +19,11 @@ interface MonthViewProps {
 
 const DAYS_OF_WEEK = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
+interface ExpandedState {
+  type: 'shifts' | 'appointments' | null
+  dateStr: string | null
+}
+
 export default function MonthView({ currentDate, appointments, templates, overrides, isEditMode, onDayClick, onAppointmentClick, onDataChange }: MonthViewProps) {
   const monthStart = startOfMonth(currentDate)
   const monthEnd = endOfMonth(monthStart)
@@ -25,6 +31,18 @@ export default function MonthView({ currentDate, appointments, templates, overri
   const endDate = endOfWeek(monthEnd, { weekStartsOn: 1 })
 
   const [savingDate, setSavingDate] = useState<string | null>(null)
+  const [expanded, setExpanded] = useState<ExpandedState>({ type: null, dateStr: null })
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setExpanded({ type: null, dateStr: null })
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
 
   const days = useMemo(() => {
     const d = []
@@ -61,20 +79,16 @@ export default function MonthView({ currentDate, appointments, templates, overri
     }
   }
 
-  const toggleOff = (e: React.MouseEvent, day: Date, status: {isDayOff: boolean, intervals: Interval[]}) => {
-    e.stopPropagation()
+  const toggleOff = (day: Date, status: {isDayOff: boolean, intervals: Interval[]}) => {
     updateServer(day, !status.isDayOff, !status.isDayOff ? [] : [{ start: "09:00", end: "18:00" }])
   }
 
-  const addShift = (e: React.MouseEvent, day: Date, status: {isDayOff: boolean, intervals: Interval[]}) => {
-    e.stopPropagation()
+  const addShift = (day: Date, status: {isDayOff: boolean, intervals: Interval[]}) => {
     updateServer(day, false, [...status.intervals, { start: "12:00", end: "13:00" }])
   }
 
-  const removeShift = (e: React.MouseEvent, day: Date, status: {isDayOff: boolean, intervals: Interval[]}, idx: number) => {
-    e.stopPropagation()
+  const removeShift = (day: Date, status: {isDayOff: boolean, intervals: Interval[]}, idx: number) => {
     const newIntervals = status.intervals.filter((_, i) => i !== idx)
-    // If no shifts are left, mark as day off? Or leave empty intervals? Let's leave empty.
     updateServer(day, status.isDayOff, newIntervals)
   }
 
@@ -84,8 +98,16 @@ export default function MonthView({ currentDate, appointments, templates, overri
     updateServer(day, status.isDayOff, newIntervals)
   }
 
+  const toggleExpand = (type: 'shifts' | 'appointments', dateStr: string) => {
+    if (expanded.type === type && expanded.dateStr === dateStr) {
+      setExpanded({ type: null, dateStr: null })
+    } else {
+      setExpanded({ type, dateStr })
+    }
+  }
+
   return (
-    <div className="flex flex-col h-full overflow-hidden">
+    <div className="flex flex-col h-full overflow-hidden" ref={containerRef}>
       <div className="grid grid-cols-7 border-b border-border shrink-0 bg-muted/20">
         {DAYS_OF_WEEK.map(d => (
           <div key={d} className="py-2 text-center text-xs font-semibold text-muted-foreground border-r last:border-r-0">
@@ -103,16 +125,20 @@ export default function MonthView({ currentDate, appointments, templates, overri
           const status = getDayStatus(day)
           const dayAppts = appointments.filter(a => a.date.startsWith(dateStr))
           const isSaving = savingDate === dateStr
+          
+          const isExpanded = expanded.dateStr === dateStr
+          const shiftsCount = status.intervals.length
+          const apptsCount = dayAppts.length
 
           return (
             <div 
               key={i} 
               onClick={() => {
-                if (!isEditMode && !isPastDay) onDayClick(day)
+                if (!isEditMode && !isPastDay && apptsCount === 0) onDayClick(day)
               }}
-              className={`border-b border-r border-border p-1.5 flex flex-col transition-colors relative
+              className={`border-b border-r border-border p-1 flex flex-col transition-colors relative
                 ${!isEditMode && !isPastDay ? "cursor-pointer hover:bg-muted/10" : ""}
-                ${!isCurrentMonth ? "bg-muted/30 opacity-50" : status.isDayOff ? "bg-red-50/10 dark:bg-red-950/20" : status.intervals.length > 0 ? "bg-green-500/5 hover:bg-green-500/10" : "bg-card"}
+                ${!isCurrentMonth ? "bg-muted/30 opacity-50" : status.isDayOff ? "bg-red-50/10 dark:bg-red-950/20" : shiftsCount > 0 || apptsCount > 0 ? "bg-green-500/5 hover:bg-green-500/10" : "bg-card"}
                 ${isPastDay && isCurrentMonth ? "opacity-60 pointer-events-none" : ""}
               `}
             >
@@ -127,63 +153,127 @@ export default function MonthView({ currentDate, appointments, templates, overri
                 )}
               </div>
 
-              {/* Show appointments if not editing */}
-              {!isEditMode && (
-                <div className="flex-1 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
-                  {dayAppts.map(a => (
-                    <div 
-                      key={a.id} 
-                      onClick={(e) => { e.stopPropagation(); onAppointmentClick(a); }}
-                      className="text-[11px] truncate px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors cursor-pointer"
-                    >
-                      {a.startTime} {a.client.name || 'Client'}
+              {!isEditMode && apptsCount > 0 && (
+                <div className="flex-1 relative">
+                  {isExpanded && expanded.type === 'appointments' ? (
+                    <div className="absolute left-0 right-0 top-0 bg-card border border-border rounded-lg shadow-xl p-2 space-y-1.5 animate-in fade-in-0 zoom-in-95 duration-200 z-40" onClick={(e) => e.stopPropagation()}>
+                      {dayAppts.map(a => (
+                        <div 
+                          key={a.id} 
+                          onClick={(e) => { e.stopPropagation(); onAppointmentClick(a); setExpanded({ type: null, dateStr: null }); }}
+                          className="text-xs px-2 py-1.5 rounded bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors cursor-pointer flex items-center gap-2"
+                        >
+                          <Clock className="w-3 h-3 shrink-0" />
+                          <span className="font-medium">{a.startTime}</span>
+                          <span className="truncate">{a.client.name || 'Client'}</span>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  ) : (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); toggleExpand('appointments', dateStr); }}
+                      className="w-full text-left transition-all duration-200"
+                    >
+                      <div className="flex items-center gap-1 px-1.5 py-1 rounded bg-primary/10 border border-primary/20 hover:bg-primary/20 transition-colors">
+                        <span className="text-[11px] truncate font-medium text-primary">
+                          {apptsCount} {apptsCount === 1 ? 'booking' : 'bookings'}
+                        </span>
+                        <ChevronDown className="w-3 h-3 text-primary shrink-0" />
+                      </div>
+                    </button>
+                  )}
                 </div>
               )}
 
-              {/* Show Editor if editing and not past day */}
-              {isEditMode && !isPastDay && (
-                <div className="mt-auto space-y-1.5 p-1 bg-muted/40 rounded-md border border-border/50 shadow-inner">
-                  {!status.isDayOff && status.intervals.map((inv, idx) => (
-                    <div key={idx} className="flex items-center gap-1 text-[10px]">
-                      <input 
-                        type="time" 
-                        value={inv.start} 
-                        onChange={e => updateShift(day, status, idx, 'start', e.target.value)}
-                        className="w-full bg-background border px-0.5 py-0.5 rounded outline-none" 
-                      />
-                      <span className="text-muted-foreground">-</span>
-                      <input 
-                        type="time" 
-                        value={inv.end} 
-                        onChange={e => updateShift(day, status, idx, 'end', e.target.value)}
-                        className="w-full bg-background border px-0.5 py-0.5 rounded outline-none" 
-                      />
-                      <button 
-                        className="text-destructive p-0.5 hover:bg-destructive/10 rounded" 
-                        onClick={e => removeShift(e, day, status, idx)}>
-                        <X className="w-3 h-3" />
-                      </button>
+              {isEditMode && !isPastDay && !status.isDayOff && shiftsCount > 0 && (
+                <div className="flex-1 relative mt-1">
+                  {isExpanded && expanded.type === 'shifts' ? (
+                    <div className="absolute top-0 left-0 bg-card border border-border rounded-xl shadow-2xl p-3 space-y-2 animate-in fade-in-0 zoom-in-95 duration-200 z-50 w-[240px]" onClick={(e) => e.stopPropagation()}>
+                      <div className="text-xs font-semibold text-muted-foreground mb-2 flex items-center justify-between">
+                        {format(day, "EEE, MMM d")}
+                        <button onClick={(e) => { e.stopPropagation(); setExpanded({ type: null, dateStr: null }); }} className="text-muted-foreground hover:text-foreground">
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                      {status.intervals.map((inv, idx) => (
+                        <div key={idx} className="flex items-center gap-2">
+                          <TimePickerDropdown 
+                            value={inv.start}
+                            onChange={val => updateShift(day, status, idx, 'start', val)}
+                            step={30}
+                            startHour={6}
+                            endHour={22}
+                          />
+                          <span className="text-muted-foreground text-sm">-</span>
+                          <TimePickerDropdown 
+                            value={inv.end}
+                            onChange={val => updateShift(day, status, idx, 'end', val)}
+                            step={30}
+                            startHour={6}
+                            endHour={22}
+                          />
+                          <button 
+                            className="text-destructive p-1 hover:bg-destructive/10 rounded shrink-0" 
+                            onClick={e => { e.stopPropagation(); removeShift(day, status, idx); }}
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                      <div className="flex gap-2 pt-2 mt-2 border-t border-border/50">
+                        <button 
+                          onClick={e => { e.stopPropagation(); toggleOff(day, status); setExpanded({ type: null, dateStr: null }); }}
+                          className="flex-1 flex items-center justify-center py-2 gap-1 text-xs rounded font-medium transition-colors bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900/40 dark:text-red-400"
+                        >
+                          <PowerOff className="w-3.5 h-3.5" /> Day Off
+                        </button>
+                        <button 
+                          onClick={e => { e.stopPropagation(); addShift(day, status); }}
+                          className="flex-1 flex items-center justify-center py-2 gap-1 text-xs bg-primary text-primary-foreground rounded hover:bg-primary/90 font-medium transition-colors"
+                        >
+                          <Plus className="w-3.5 h-3.5" /> Add Shift
+                        </button>
+                      </div>
                     </div>
-                  ))}
-
-                  <div className="flex gap-1 pt-1 mt-1 border-t border-border/50">
-                    <button 
-                      onClick={e => toggleOff(e, day, status)}
-                      className={`flex-1 flex items-center justify-center py-1 gap-1 text-[10px] rounded font-medium transition-colors ${status.isDayOff ? 'bg-primary/20 text-primary hover:bg-primary/30' : 'bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900/40 dark:text-red-400'}`}
+                  ) : (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); toggleExpand('shifts', dateStr); }}
+                      className="w-full text-left transition-all duration-200"
                     >
-                      <PowerOff className="w-3 h-3" /> {status.isDayOff ? 'Work' : 'Off'}
+                      <div className="flex items-center gap-1 px-1.5 py-1 rounded bg-green-500/10 border border-green-500/30 hover:bg-green-500/20 transition-colors">
+                        <span className="text-[11px] truncate font-medium text-green-600 dark:text-green-400">
+                          {shiftsCount} {shiftsCount === 1 ? 'shift' : 'shifts'}
+                        </span>
+                        <ChevronDown className="w-3 h-3 text-green-600 dark:text-green-400 shrink-0" />
+                      </div>
                     </button>
-                    {!status.isDayOff && (
-                      <button 
-                        onClick={e => addShift(e, day, status)}
-                        className="flex-1 flex items-center justify-center py-1 gap-1 text-[10px] bg-background border rounded hover:bg-muted font-medium transition-colors"
-                      >
-                        <Plus className="w-3 h-3" /> Shift
-                      </button>
-                    )}
-                  </div>
+                  )}
+                </div>
+              )}
+
+              {isEditMode && !isPastDay && status.isDayOff && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); toggleOff(day, status); }}
+                  className="mt-1 text-[10px] px-2 py-1 rounded bg-primary/20 text-primary hover:bg-primary/30 transition-colors font-medium"
+                >
+                  Set Working
+                </button>
+              )}
+
+              {isEditMode && !isPastDay && !status.isDayOff && shiftsCount === 0 && (
+                <div className="flex gap-1 mt-1">
+                  <button 
+                    onClick={e => { e.stopPropagation(); toggleOff(day, status); }}
+                    className="flex-1 flex items-center justify-center py-1 gap-1 text-[10px] rounded font-medium transition-colors bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900/40 dark:text-red-400"
+                  >
+                    <PowerOff className="w-3 h-3" /> Off
+                  </button>
+                  <button 
+                    onClick={e => { e.stopPropagation(); addShift(day, status); }}
+                    className="flex-1 flex items-center justify-center py-1 gap-1 text-[10px] bg-background border rounded hover:bg-muted font-medium transition-colors"
+                  >
+                    <Plus className="w-3 h-3" /> Shift
+                  </button>
                 </div>
               )}
             </div>

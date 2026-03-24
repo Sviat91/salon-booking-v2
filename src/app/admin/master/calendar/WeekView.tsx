@@ -1,9 +1,10 @@
 "use client"
 
-import { useMemo, useRef, useState } from "react"
+import { useMemo, useRef, useState, useEffect } from "react"
 import { format, startOfWeek, endOfWeek, addDays, isToday } from "date-fns"
 import type { Appointment, Template, Override, Interval } from "./ModernCalendar"
-import { Clock, Plus, PowerOff, X } from "lucide-react"
+import { Clock, Plus, PowerOff, X, ChevronDown, Users } from "lucide-react"
+import { TimePickerDropdown } from "@/components/TimePickerDropdown"
 
 interface WeekViewProps {
   currentDate: Date
@@ -21,6 +22,47 @@ interface WeekViewProps {
 
 const HOURS = Array.from({ length: 24 }).map((_, i) => i)
 
+function groupOverlappingAppointments(appointments: Appointment[]): Appointment[][] {
+  if (appointments.length === 0) return []
+  
+  const sorted = [...appointments].sort((a, b) => {
+    const aStart = parseInt(a.startTime.split(':')[0]) * 60 + parseInt(a.startTime.split(':')[1])
+    const bStart = parseInt(b.startTime.split(':')[0]) * 60 + parseInt(b.startTime.split(':')[1])
+    return aStart - bStart
+  })
+  
+  const groups: Appointment[][] = []
+  let currentGroup: Appointment[] = [sorted[0]]
+  let groupEnd = parseInt(sorted[0].endTime.split(':')[0]) * 60 + parseInt(sorted[0].endTime.split(':')[1])
+  
+  for (let i = 1; i < sorted.length; i++) {
+    const appt = sorted[i]
+    const apptStart = parseInt(appt.startTime.split(':')[0]) * 60 + parseInt(appt.startTime.split(':')[1])
+    
+    if (apptStart < groupEnd) {
+      currentGroup.push(appt)
+      const apptEnd = parseInt(appt.endTime.split(':')[0]) * 60 + parseInt(appt.endTime.split(':')[1])
+      groupEnd = Math.max(groupEnd, apptEnd)
+    } else {
+      groups.push(currentGroup)
+      currentGroup = [appt]
+      groupEnd = parseInt(appt.endTime.split(':')[0]) * 60 + parseInt(appt.endTime.split(':')[1])
+    }
+  }
+  groups.push(currentGroup)
+  
+  return groups
+}
+
+interface ExpandedState {
+  dateStr: string | null
+  groupIdx: number | null
+}
+
+interface EditingDayState {
+  dateStr: string | null
+}
+
 export default function WeekView({ currentDate, appointments, templates, overrides, step, startHour, endHour, isEditMode, onDayClick, onAppointmentClick, onDataChange }: WeekViewProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const totalHours = endHour - startHour
@@ -31,6 +73,19 @@ export default function WeekView({ currentDate, appointments, templates, overrid
   const endDate = endOfWeek(currentDate, { weekStartsOn: 1 })
 
   const [savingDate, setSavingDate] = useState<string | null>(null)
+  const [expanded, setExpanded] = useState<ExpandedState>({ dateStr: null, groupIdx: null })
+  const [editingDay, setEditingDay] = useState<EditingDayState>({ dateStr: null })
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setExpanded({ dateStr: null, groupIdx: null })
+        setEditingDay({ dateStr: null })
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
 
   const days = useMemo(() => {
     const d = []
@@ -91,8 +146,16 @@ export default function WeekView({ currentDate, appointments, templates, overrid
     updateServer(day, status.isDayOff, newIntervals)
   }
 
+  const toggleExpand = (dateStr: string, groupIdx: number) => {
+    if (expanded.dateStr === dateStr && expanded.groupIdx === groupIdx) {
+      setExpanded({ dateStr: null, groupIdx: null })
+    } else {
+      setExpanded({ dateStr, groupIdx })
+    }
+  }
+
   return (
-    <div className="flex flex-col h-full overflow-hidden bg-background">
+    <div className="flex flex-col h-full overflow-hidden bg-background" ref={containerRef}>
       <div className="flex border-b border-border shrink-0 bg-card pr-2">
         <div className="w-16 shrink-0 border-r border-border" /> 
         <div className="flex-1 grid grid-cols-7">
@@ -114,22 +177,76 @@ export default function WeekView({ currentDate, appointments, templates, overrid
                 </span>
 
                 {isEditMode && !isPastDay && (
-                  <div className="mt-2 w-full space-y-1">
-                    {!status.isDayOff && status.intervals.map((inv, idx) => (
-                      <div key={idx} className="flex items-center gap-0.5 text-[9px] bg-muted/50 rounded px-1 py-0.5">
-                        <input type="time" value={inv.start} onChange={e => updateShift(day, status, idx, 'start', e.target.value)} className="w-[45%] bg-transparent outline-none" />
-                        <span>-</span>
-                        <input type="time" value={inv.end} onChange={e => updateShift(day, status, idx, 'end', e.target.value)} className="w-[45%] bg-transparent outline-none" />
-                        <button className="text-destructive ms-auto" onClick={() => removeShift(day, status, idx)}><X className="w-3 h-3" /></button>
+                  <button
+                    onClick={() => setEditingDay({ dateStr })}
+                    className={`mt-2 w-full text-[10px] px-2 py-1 rounded font-medium transition-colors ${
+                      status.isDayOff 
+                        ? 'bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-400' 
+                        : status.intervals.length > 0
+                          ? 'bg-green-500/20 text-green-600 dark:text-green-400'
+                          : 'bg-muted hover:bg-muted/80'
+                    }`}
+                  >
+                    {status.isDayOff ? 'Day Off' : status.intervals.length > 0 ? `${status.intervals.length} shift${status.intervals.length > 1 ? 's' : ''}` : 'Edit'}
+                  </button>
+                )}
+
+                {editingDay.dateStr === dateStr && isEditMode && !isPastDay && (
+                  <div className="absolute top-[105%] left-1/2 -translate-x-1/2 bg-card border border-border rounded-xl shadow-2xl p-4 space-y-3 animate-in fade-in-0 zoom-in-95 duration-200 z-50 w-[260px] cursor-default" onClick={(e) => e.stopPropagation()}>
+                    <div className="text-sm font-semibold text-muted-foreground flex items-center justify-between">
+                      {format(day, "EEEE, MMM d")}
+                      <button onClick={() => setEditingDay({ dateStr: null })} className="text-muted-foreground hover:text-foreground">
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                    
+                    {status.intervals.length > 0 && (
+                      <div className="space-y-2">
+                        {status.intervals.map((inv, idx) => (
+                          <div key={idx} className="flex items-center gap-2">
+                            <TimePickerDropdown 
+                              value={inv.start}
+                              onChange={val => updateShift(day, status, idx, 'start', val)}
+                              step={30}
+                              startHour={6}
+                              endHour={22}
+                            />
+                            <span className="text-muted-foreground">-</span>
+                            <TimePickerDropdown 
+                              value={inv.end}
+                              onChange={val => updateShift(day, status, idx, 'end', val)}
+                              step={30}
+                              startHour={6}
+                              endHour={22}
+                            />
+                            <button 
+                              className="text-destructive p-1 hover:bg-destructive/10 rounded shrink-0" 
+                              onClick={() => removeShift(day, status, idx)}
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                    <div className="flex gap-1">
-                      <button onClick={() => toggleOff(day, status)} className={`flex-1 flex justify-center py-1 text-[9px] rounded font-medium ${status.isDayOff ? 'bg-primary/20 text-primary' : 'bg-red-100 text-red-600 dark:bg-red-900/40'}`}>
-                        <PowerOff className="w-3 h-3" />
+                    )}
+                    
+                    <div className="flex gap-2 pt-2 border-t border-border/50">
+                      <button 
+                        onClick={() => { toggleOff(day, status); }}
+                        className={`flex-1 flex items-center justify-center py-2 gap-1 text-xs rounded font-medium transition-colors ${
+                          status.isDayOff 
+                            ? 'bg-primary/20 text-primary' 
+                            : 'bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900/40 dark:text-red-400'
+                        }`}
+                      >
+                        <PowerOff className="w-3.5 h-3.5" /> {status.isDayOff ? 'Working' : 'Day Off'}
                       </button>
                       {!status.isDayOff && (
-                        <button onClick={() => addShift(day, status)} className="flex-1 flex justify-center py-1 text-[9px] bg-muted rounded hover:bg-muted/80 font-medium">
-                          <Plus className="w-3 h-3" />
+                        <button 
+                          onClick={() => addShift(day, status)}
+                          className="flex-1 flex items-center justify-center py-2 gap-1 text-xs bg-primary text-primary-foreground rounded hover:bg-primary/90 font-medium transition-colors"
+                        >
+                          <Plus className="w-3.5 h-3.5" /> Add Shift
                         </button>
                       )}
                     </div>
@@ -177,10 +294,11 @@ export default function WeekView({ currentDate, appointments, templates, overrid
             const currentHourMinutes = new Date().getHours() * 60 + new Date().getMinutes()
             const currentPixels = (currentHourMinutes - startHour * 60) * PIXELS_PER_MINUTE
 
+            const groups = groupOverlappingAppointments(dayAppts)
+
             return (
               <div key={i} className={`relative border-r last:border-r-0 border-border/80 ${status.isDayOff ? 'bg-muted/40' : 'bg-transparent'}`}>
                 
-                {/* Working intervals highlighted background */}
                 {!status.isDayOff && status.intervals.map((inv, idx) => {
                   const s = parseTime(inv.start)
                   const e = parseTime(inv.end)
@@ -196,19 +314,16 @@ export default function WeekView({ currentDate, appointments, templates, overrid
                   )
                 })}
 
-                {/* Grid Overlay to allow clicking for booking */}
                 {!isEditMode && !isPastDay && !status.isDayOff && (
                   <div className="absolute inset-0 z-[1] cursor-pointer hover:bg-primary/5 transition-colors" onClick={() => onDayClick(day)} />
                 )}
 
-                {/* Day Off Overhead */}
                 {status.isDayOff && (
                   <div className="absolute inset-0 flex items-center justify-center flex-col opacity-30 select-none text-muted-foreground z-[1]">
                     <span className="text-sm font-semibold uppercase tracking-widest rotate-[-90deg]">Day Off</span>
                   </div>
                 )}
 
-                {/* Dimming and Now line */}
                 {isPastDay && (
                   <div className="absolute inset-0 bg-background/50 z-[5] pointer-events-none" />
                 )}
@@ -222,40 +337,75 @@ export default function WeekView({ currentDate, appointments, templates, overrid
                   </>
                 )}
 
-                {dayAppts.map((a, i) => {
-                  const s = parseTime(a.startTime)
-                  const e = parseTime(a.endTime)
-                  const top = (s - startHour * 60) * PIXELS_PER_MINUTE
-                  const height = (e - s) * PIXELS_PER_MINUTE
+                {!isEditMode && groups.map((group, groupIdx) => {
+                  if (group.length === 0) return null
+                  
+                  const firstAppt = group[0]
+                  const lastAppt = group[group.length - 1]
+                  const groupStart = parseTime(firstAppt.startTime)
+                  const groupEnd = Math.max(...group.map(a => parseTime(a.endTime)))
+                  const top = (groupStart - startHour * 60) * PIXELS_PER_MINUTE
+                  const height = (groupEnd - groupStart) * PIXELS_PER_MINUTE
+                  
+                  const isExpanded = expanded.dateStr === dateStr && expanded.groupIdx === groupIdx
 
-                  const overlaps = dayAppts.slice(0, i).filter(prev => {
-                    const ps = parseTime(prev.startTime)
-                    const pe = parseTime(prev.endTime)
-                    return Math.max(s, ps) < Math.min(e, pe)
-                  })
-                  const overlapCount = overlaps.length
-                  const zIndex = 10 + overlapCount
-                  const leftOffset = overlapCount * 6
-                  const bgClass = overlapCount > 0 ? "bg-background/95 text-foreground border border-border shadow-md" : "bg-primary text-primary-foreground"
+                  if (group.length === 1) {
+                    const a = group[0]
+                    return (
+                      <div 
+                        key={a.id} 
+                        onClick={(e) => { e.stopPropagation(); onAppointmentClick(a); }}
+                        className="absolute w-[calc(100%-8px)] rounded-md p-1 text-xs overflow-hidden hover:z-30 hover:shadow-md hover:ring-2 ring-primary/50 transition-all cursor-pointer bg-primary text-primary-foreground"
+                        style={{ top: `${top}px`, minHeight: `${Math.max(height, 24)}px`, left: "4px", zIndex: 10 }}
+                      >
+                        <div className="font-semibold leading-tight truncate">{a.client.name || 'Client'}</div>
+                        <div className="opacity-90 leading-tight truncate mt-0.5">{a.service.name}</div>
+                        <div className="opacity-75 leading-tight text-[10px] mt-0.5 flex items-center gap-1">
+                          <Clock className="w-3 h-3 shrink-0" />
+                          {a.startTime}
+                        </div>
+                      </div>
+                    )
+                  }
 
                   return (
                     <div 
-                      key={a.id} 
-                      onClick={(e) => { e.stopPropagation(); onAppointmentClick(a); }}
-                      className={`absolute w-[calc(100%-8px)] rounded-md p-1 text-xs overflow-hidden hover:z-30 hover:shadow-md hover:ring-2 ring-primary/50 transition-all cursor-pointer group ${bgClass}`}
-                      style={{ top: `${top}px`, height: `${height}px`, left: `calc(4px + ${leftOffset}px)`, zIndex }}
+                      key={`group-${groupIdx}`}
+                      onClick={(e) => { e.stopPropagation(); toggleExpand(dateStr, groupIdx); }}
+                      className={`absolute rounded-md transition-all cursor-pointer ${isExpanded ? 'z-30' : 'z-10'}`}
+                      style={{ top: `${top}px`, left: "4px", width: "calc(100% - 8px)" }}
                     >
-                      {overlapCount > 0 && (
-                        <div className="absolute top-0.5 right-0.5 text-[8px] font-bold bg-primary text-primary-foreground px-1 py-0.5 rounded shadow-sm">
-                          +{overlapCount}
+                      {isExpanded ? (
+                        <div className="bg-card border border-border rounded-lg shadow-xl overflow-hidden animate-in fade-in-0 zoom-in-95 duration-200">
+                          {group.map(a => (
+                            <div 
+                              key={a.id}
+                              onClick={(e) => { e.stopPropagation(); onAppointmentClick(a); }}
+                              className="p-2 border-b last:border-b-0 border-border hover:bg-muted/50 transition-colors cursor-pointer"
+                            >
+                              <div className="flex items-center gap-2">
+                                <Clock className="w-3 h-3 text-muted-foreground shrink-0" />
+                                <span className="font-medium text-sm">{a.startTime}</span>
+                                <span className="text-sm truncate">{a.client.name || 'Client'}</span>
+                              </div>
+                              <div className="text-xs text-muted-foreground mt-0.5 ml-5 truncate">{a.service.name}</div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="bg-primary/90 text-primary-foreground rounded-md p-1.5 shadow-md">
+                          <div className="flex items-center gap-1.5">
+                            <Users className="w-3.5 h-3.5" />
+                            <span className="font-semibold text-sm">{group.length}</span>
+                            <span className="text-xs opacity-90">bookings</span>
+                            <ChevronDown className="w-3 h-3 ml-auto" />
+                          </div>
+                          <div className="text-[10px] opacity-75 mt-0.5 flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            {firstAppt.startTime} - {lastAppt.endTime}
+                          </div>
                         </div>
                       )}
-                      <div className="font-semibold leading-tight truncate pr-4">{a.client.name || 'Client'}</div>
-                      <div className="opacity-90 leading-tight truncate mt-0.5">{a.service.name}</div>
-                      <div className="opacity-75 leading-tight text-[10px] mt-0.5 flex items-center gap-1">
-                        <Clock className="w-3 h-3 shrink-0" />
-                        {a.startTime}
-                      </div>
                     </div>
                   )
                 })}

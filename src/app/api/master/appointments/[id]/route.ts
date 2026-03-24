@@ -179,6 +179,7 @@ export async function PUT(
         endTime,
         serviceId: finalServiceId,
         clientId: finalClientId,
+        notes: notes || null,
       }
     })
 

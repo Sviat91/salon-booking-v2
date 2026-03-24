@@ -1,8 +1,8 @@
 "use client"
 
 import { useState, useEffect, useMemo } from "react"
-import { format, addMonths, subMonths, addWeeks, subWeeks, addDays, subDays, startOfMonth, endOfMonth, startOfWeek, endOfWeek } from "date-fns"
-import { ChevronLeft, ChevronRight, Edit3, Save, Calendar, Plus } from "lucide-react"
+import { format, addMonths, addWeeks, addDays, startOfMonth, endOfMonth, startOfWeek, endOfWeek } from "date-fns"
+import { ChevronLeft, ChevronRight, Edit3, Save, Calendar } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 import MonthView from "./MonthView"
@@ -21,13 +21,14 @@ export type Appointment = {
   startTime: string
   endTime: string
   status: string
+  notes: string | null
   service: { id: string, name: string, duration: number, price: number }
   client: { id: string, name: string | null, phone: string | null, email: string | null }
 }
 export type Template = { dayOfWeek: number; isDayOff: boolean; intervals: Interval[] }
 export type Override = { date: string; isDayOff: boolean; intervals: Interval[] }
 
-export default function ModernCalendar({ masterId }: { masterId: string }) {
+export default function ModernCalendar({ masterId: _masterId }: { masterId: string }) {
   const [isMounted, setIsMounted] = useState(false)
   const [view, setView] = useState<ViewType>("Week")
   const [currentDate, setCurrentDate] = useState(new Date())

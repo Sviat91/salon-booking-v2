@@ -1,6 +1,6 @@
 "use client"
 
-import { X, Calendar, Clock, User, Phone, Scissors, Trash2, Copy, Edit3 } from "lucide-react"
+import { X, Calendar, Clock, User, Phone, Scissors, Trash2, Copy, Edit3, FileText } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { format, parseISO } from "date-fns"
 import type { Appointment } from "./ModernCalendar"
@@ -22,7 +22,7 @@ export default function ViewAppointmentModal({ appointment, onClose, onDelete, o
     setIsDeleting(true)
     try {
       await onDelete(appointment.id)
-    } catch (err) {
+    } catch {
       alert("Failed to delete appointment")
       setIsDeleting(false)
     }
@@ -87,6 +87,13 @@ export default function ViewAppointmentModal({ appointment, onClose, onDelete, o
             </div>
             <p className="text-sm text-muted-foreground mt-1">{appointment.service.duration} minutes</p>
           </div>
+
+          {appointment.notes && (
+            <div className="bg-muted/20 rounded-lg p-4 border border-border">
+              <p className="text-xs text-muted-foreground font-medium mb-1.5 flex items-center gap-1.5"><FileText className="w-3.5 h-3.5"/> Notes</p>
+              <p className="text-sm whitespace-pre-wrap">{appointment.notes}</p>
+            </div>
+          )}
 
         </div>
 
