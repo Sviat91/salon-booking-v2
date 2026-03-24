@@ -274,7 +274,11 @@ export default function ModernCalendar({
       </div>
 
       {showBulkModal && (
-        <BulkSettingsModal onClose={() => setShowBulkModal(false)} onSave={saveBulkOverrides} />
+        <BulkSettingsModal 
+          onClose={() => setShowBulkModal(false)} 
+          onSave={saveBulkOverrides} 
+          templates={templates}
+        />
       )}
 
       {(bookingDate || editingAppointment) && (

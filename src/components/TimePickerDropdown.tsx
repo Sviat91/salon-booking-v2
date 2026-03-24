@@ -20,7 +20,9 @@ export function TimePickerDropdown({
 }: TimePickerDropdownProps) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
+  const btnRef = useRef<HTMLButtonElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
+  const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({})
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -30,6 +32,35 @@ export function TimePickerDropdown({
     }
     if (open) document.addEventListener("mousedown", handleClickOutside)
     return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [open])
+
+  // Position the dropdown using fixed coordinates from the button
+  useEffect(() => {
+    if (open && btnRef.current) {
+      const rect = btnRef.current.getBoundingClientRect()
+      const dropdownHeight = 200
+      const spaceBelow = window.innerHeight - rect.bottom - 8
+      
+      if (spaceBelow >= dropdownHeight) {
+        // Open below
+        setDropdownStyle({
+          position: 'fixed',
+          top: `${rect.bottom + 4}px`,
+          left: `${rect.left}px`,
+          width: `${Math.max(rect.width, 140)}px`,
+          zIndex: 9999,
+        })
+      } else {
+        // Open above
+        setDropdownStyle({
+          position: 'fixed',
+          bottom: `${window.innerHeight - rect.top + 4}px`,
+          left: `${rect.left}px`,
+          width: `${Math.max(rect.width, 140)}px`,
+          zIndex: 9999,
+        })
+      }
+    }
   }, [open])
 
   useEffect(() => {
@@ -51,6 +82,7 @@ export function TimePickerDropdown({
   return (
     <div className="relative" ref={ref}>
       <button 
+        ref={btnRef}
         type="button" 
         onClick={() => setOpen(!open)}
         className="w-full h-10 px-3 py-2 border border-input bg-background rounded-md text-sm text-left flex items-center justify-between focus-visible:ring-2 focus-visible:ring-primary outline-none"
@@ -60,7 +92,10 @@ export function TimePickerDropdown({
       </button>
 
       {open && (
-        <div className="absolute top-12 left-0 z-50 bg-card border border-border shadow-xl rounded-lg w-[140px] overflow-hidden">
+        <div 
+          style={dropdownStyle} 
+          className="bg-card border border-border shadow-xl rounded-lg overflow-hidden"
+        >
           <div 
             ref={listRef}
             className="max-h-[200px] overflow-y-auto"
