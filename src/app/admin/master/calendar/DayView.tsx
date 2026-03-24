@@ -138,82 +138,59 @@ export default function DayView({ currentDate, appointments, templates, override
           </div>
 
           {isEditMode && !isPastDay && (
-            <div className="relative ml-auto">
-              <button 
-                onClick={() => setIsEditingSchedule(!isEditingSchedule)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-md font-semibold text-sm transition-colors shadow-sm ml-auto border ${
-                  status.isDayOff 
-                    ? 'bg-red-100 text-red-600 border-red-200 dark:bg-red-900/40 dark:text-red-400 dark:border-red-900/50' 
-                    : status.intervals.length > 0
-                      ? 'bg-green-500/10 text-green-700 border-green-500/20 dark:text-green-400 dark:border-green-500/30 hover:bg-green-500/20'
-                      : 'bg-muted border-border hover:bg-muted/80'
-                }`}
-              >
-                {status.isDayOff ? 'Day Off' : status.intervals.length > 0 ? `${status.intervals.length} Shift${status.intervals.length > 1 ? 's' : ''}` : 'Set Schedule'}
-              </button>
-
-              {isEditingSchedule && (
-                <div className="absolute top-[110%] right-0 bg-card border border-border rounded-xl shadow-2xl p-4 space-y-3 animate-in fade-in-0 zoom-in-95 duration-200 z-50 w-[280px] cursor-default" onClick={(e) => e.stopPropagation()}>
-                  <div className="text-sm font-semibold text-muted-foreground flex items-center justify-between">
-                    {format(currentDate, "EEEE, MMM d")}
-                    <button onClick={() => setIsEditingSchedule(false)} className="text-muted-foreground hover:text-foreground">
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-                  
-                  {status.intervals.length > 0 && (
-                    <div className="space-y-4">
-                      {status.intervals.map((inv, idx) => (
-                        <div key={idx} className="flex items-center justify-between gap-2 p-1 border rounded-lg bg-muted/20">
-                          <div className="flex-1 flex flex-col items-center gap-2">
-                            <TimePickerDropdown 
-                              value={inv.start}
-                              onChange={val => updateShift(idx, 'start', val)}
-                              step={30}
-                              startHour={6}
-                              endHour={22}
-                            />
-                            <TimePickerDropdown 
-                              value={inv.end}
-                              onChange={val => updateShift(idx, 'end', val)}
-                              step={30}
-                              startHour={6}
-                              endHour={22}
-                            />
-                          </div>
-                          <button 
-                            className="text-destructive p-2 hover:bg-destructive/10 rounded-md shrink-0 h-full ml-1" 
-                            onClick={() => removeShift(idx)}
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  
-                  <div className="flex gap-2 pt-3 border-t border-border/50">
-                    <button 
-                      onClick={() => { toggleOff(); setIsEditingSchedule(false); }}
-                      className={`flex-1 flex items-center justify-center py-2 gap-1 text-xs rounded-md font-medium transition-colors ${
-                        status.isDayOff 
-                          ? 'bg-primary/20 text-primary hover:bg-primary/30' 
-                          : 'bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900/40 dark:text-red-400 dark:hover:bg-red-900/60'
-                      }`}
-                    >
-                      <PowerOff className="w-3.5 h-3.5" /> {status.isDayOff ? 'Set Working' : 'Day Off'}
-                    </button>
-                    {!status.isDayOff && (
+            <div className="flex flex-wrap items-center gap-4 bg-muted/40 p-2 rounded-lg border border-border/50 shadow-inner ml-auto mr-4">
+              {status.isDayOff ? (
+                <div className="text-sm font-medium text-red-500 dark:text-red-400 flex items-center gap-2 px-2">
+                  <PowerOff className="w-4 h-4" /> Day Off
+                </div>
+              ) : (
+                <div className="flex flex-wrap items-center gap-3">
+                  {status.intervals.map((inv, idx) => (
+                    <div key={idx} className="flex items-center gap-1.5 bg-background p-1 rounded border shadow-sm">
+                      <TimePickerDropdown 
+                        value={inv.start}
+                        onChange={val => updateShift(idx, 'start', val)}
+                        step={30}
+                        startHour={6}
+                        endHour={22}
+                      />
+                      <span className="text-muted-foreground font-medium">-</span>
+                      <TimePickerDropdown 
+                        value={inv.end}
+                        onChange={val => updateShift(idx, 'end', val)}
+                        step={30}
+                        startHour={6}
+                        endHour={22}
+                      />
                       <button 
-                        onClick={() => addShift()}
-                        className="flex-1 flex items-center justify-center py-2 gap-1 text-xs bg-primary text-primary-foreground rounded-md hover:bg-primary/90 font-medium transition-colors"
+                        className="text-destructive hover:bg-destructive/10 p-1.5 rounded transition-colors shrink-0" 
+                        onClick={() => removeShift(idx)}
                       >
-                        <Plus className="w-3.5 h-3.5" /> Add Shift
+                        <X className="w-3.5 h-3.5" />
                       </button>
-                    )}
-                  </div>
+                    </div>
+                  ))}
                 </div>
               )}
+              
+              <div className="flex items-center gap-2 border-l border-border/50 pl-4 h-full">
+                <button 
+                  onClick={toggleOff} 
+                  className={`flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-md font-medium transition-colors ${
+                    status.isDayOff ? 'bg-primary/20 text-primary hover:bg-primary/30' : 'bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900/40 dark:text-red-400'
+                  }`}
+                >
+                  <PowerOff className="w-3.5 h-3.5" /> {status.isDayOff ? 'Work' : 'Day Off'}
+                </button>
+                {!status.isDayOff && (
+                  <button 
+                    onClick={addShift} 
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-background border rounded-md hover:bg-muted font-medium transition-colors shadow-sm"
+                  >
+                    <Plus className="w-3.5 h-3.5" /> Add Shift
+                  </button>
+                )}
+              </div>
             </div>
           )}
 
