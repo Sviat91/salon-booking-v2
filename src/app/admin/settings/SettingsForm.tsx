@@ -37,6 +37,8 @@ type TenantConfig = {
   darkBorderColor: string
   availableSlotColor: string
   dayOffColor:     string
+  workingHourStart: number
+  workingHourEnd:   number
 }
 
 const initialState: SettingsFormState = {}
@@ -303,6 +305,28 @@ export default function SettingsForm({ config }: { config: TenantConfig }) {
             field={{ name: "dayOffColor", label: "Day Off", description: "Color highlighting non-working days" }} 
             defaultValue={config.dayOffColor} 
           />
+        </div>
+      </section>
+
+      {/* ── Business Hours ────────────────────────────────────────── */}
+      <section className="flex flex-col gap-4">
+        <div>
+          <h2 className="text-base font-semibold">Business Hours</h2>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Global salon opening and closing hours
+          </p>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-1.5">
+            <Label htmlFor="workingHourStart">Open Hour (Start)</Label>
+            <Input id="workingHourStart" name="workingHourStart" type="number" min="0" max="23" defaultValue={config.workingHourStart} />
+            <p className="text-xs text-muted-foreground">Salon opens (e.g. 8 for 8:00 AM)</p>
+          </div>
+          <div className="grid gap-1.5">
+            <Label htmlFor="workingHourEnd">Close Hour (End)</Label>
+            <Input id="workingHourEnd" name="workingHourEnd" type="number" min="1" max="24" defaultValue={config.workingHourEnd} />
+            <p className="text-xs text-muted-foreground">Salon closes (e.g. 21 for 9:00 PM)</p>
+          </div>
         </div>
       </section>
 

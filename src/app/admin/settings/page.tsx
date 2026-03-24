@@ -16,6 +16,10 @@ export default async function SettingsPage() {
     logoHeight: c.logoHeight as number ?? 80,
     logoPages: c.logoPages as string || '["home","booking"]',
     logoLayer: c.logoLayer as string || 'above',
+    availableSlotColor: c.availableSlotColor as string || "#22c55e",
+    dayOffColor: c.dayOffColor as string || "#ef4444",
+    workingHourStart: c.workingHourStart as number ?? 8,
+    workingHourEnd: c.workingHourEnd as number ?? 21,
   }
 
   return (

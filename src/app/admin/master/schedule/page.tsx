@@ -23,6 +23,8 @@ export default async function MasterSchedulePage() {
           masterId={session.user.id} 
           availableSlotColor={(config as any).availableSlotColor as string || "#22c55e"} 
           dayOffColor={(config as any).dayOffColor as string || "#ef4444"} 
+          workingHourStart={(config as any).workingHourStart as number ?? 8}
+          workingHourEnd={(config as any).workingHourEnd as number ?? 21}
         />
       </div>
     </div>

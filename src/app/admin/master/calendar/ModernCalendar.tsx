@@ -29,7 +29,13 @@ export type Appointment = {
 export type Template = { dayOfWeek: number; isDayOff: boolean; intervals: Interval[] }
 export type Override = { date: string; isDayOff: boolean; intervals: Interval[] }
 
-export default function ModernCalendar({ masterId: _masterId, availableSlotColor = "#22c55e", dayOffColor = "#ef4444" }: { masterId: string, availableSlotColor?: string, dayOffColor?: string }) {
+export default function ModernCalendar({ 
+  masterId: _masterId, 
+  availableSlotColor = "#22c55e", 
+  dayOffColor = "#ef4444",
+  workingHourStart = 8,
+  workingHourEnd = 21
+}: { masterId: string, availableSlotColor?: string, dayOffColor?: string, workingHourStart?: number, workingHourEnd?: number }) {
   const [isMounted, setIsMounted] = useState(false)
   const [view, setView] = useState<ViewType>("Week")
   const [currentDate, setCurrentDate] = useState(new Date())
@@ -43,8 +49,8 @@ export default function ModernCalendar({ masterId: _masterId, availableSlotColor
   const [editingAppointment, setEditingAppointment] = useState<{ appt: Appointment, mode: "edit" | "copy" } | null>(null)
   
   // Grid Hours
-  const startHour = 8
-  const endHour = 21
+  const startHour = workingHourStart
+  const endHour = workingHourEnd
 
   // Data
   const [loading, setLoading] = useState(false)

@@ -260,166 +260,181 @@ export default function WeekView({ currentDate, appointments, templates, overrid
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto relative custom-scrollbar flex" ref={containerRef}>
-        <div className="w-16 shrink-0 border-r border-border bg-card relative z-10" style={{ height: `${containerHeight}px` }}>
-          {HOURS.slice(startHour, endHour).map(hour => (
-            <div 
-              key={hour} 
-              className="px-2 text-right text-xs text-muted-foreground font-medium relative -top-3"
-              style={{ height: `${60 * PIXELS_PER_MINUTE}px`, top: `${(hour - startHour) * 60 * PIXELS_PER_MINUTE - 10}px`, position: 'absolute', width: '100%' }}
-            >
-              {hour.toString().padStart(2, "0")}:00
-            </div>
-          ))}
-        </div>
+      {/* Scrollable grid area */}
+      <div className="flex-1 overflow-y-auto relative custom-scrollbar bg-background" ref={containerRef}>
+        {/* Single inner block whose height = grid + top/bottom padding (20px each) */}
+        <div className="flex" style={{ height: `${containerHeight + 40}px` }}>
 
-        <div className="flex-1 grid grid-cols-7 relative bg-background" style={{ height: `${containerHeight}px` }}>
-          {Array.from({ length: totalHours * Math.floor(60 / step) }).map((_, i) => {
-            const currentMin = i * step
-            const top = currentMin * PIXELS_PER_MINUTE
-            const isHourLine = currentMin % 60 === 0
-            return (
-              <div 
-                key={i} 
-                className={`absolute w-full border-t pointer-events-none z-[5] ${isHourLine ? 'border-border/60' : 'border-border/20 border-dashed'}`}
-                style={{ top: `${top}px` }}
-              />
-            )
-          })}
-
-          {days.map((day, i) => {
-            const dateStr = format(day, "yyyy-MM-dd")
-            const status = getDayStatus(day)
-            const dayAppts = appointments.filter(a => a.date.startsWith(dateStr))
-            const isPastDay = day < new Date(new Date().setHours(0,0,0,0))
-            const isTodayDay = isToday(day)
-            const currentHourMinutes = new Date().getHours() * 60 + new Date().getMinutes()
-            const currentPixels = (currentHourMinutes - startHour * 60) * PIXELS_PER_MINUTE
-
-            const groups = groupOverlappingAppointments(dayAppts)
-
-            return (
-              <div key={i} className={`relative border-r last:border-r-0 border-border/80 ${status.isDayOff ? 'bg-muted/40' : 'bg-transparent'}`}>
-                
-                {!status.isDayOff && status.intervals.map((inv, idx) => {
-                  const s = parseTime(inv.start)
-                  const e = parseTime(inv.end)
-                  const top = (s - startHour * 60) * PIXELS_PER_MINUTE
-                  const height = (e - s) * PIXELS_PER_MINUTE
-                  if (top + height < 0 || top > containerHeight) return null
-                  return (
-                    <div 
-                      key={idx} 
-                      className="absolute w-[calc(100%-2px)] bg-green-500/10 pointer-events-none shadow-sm border-l-4 border-green-500" 
-                      style={{ left: "1px", top: `${Math.max(0, top)}px`, height: `${Math.min(height, containerHeight - Math.max(0, top))}px` }} 
-                    />
-                  )
-                })}
-
-                {!isEditMode && !isPastDay && !status.isDayOff && (
-                  <div className="absolute inset-0 z-[1] cursor-pointer hover:bg-primary/5 transition-colors" onClick={() => onDayClick(day)} />
-                )}
-
-                {status.isDayOff && (
-                  <>
-                    <div className="absolute inset-0 z-[0] pointer-events-none" style={{ backgroundColor: dayOffColor + '40' }} />
-                    <div className="absolute inset-0 flex items-center justify-center flex-col opacity-80 select-none z-[1]" style={{ color: dayOffColor }}>
-                      <span className="text-sm font-semibold uppercase tracking-widest rotate-[-90deg]">Day Off</span>
-                    </div>
-                  </>
-                )}
-
-                {isPastDay && (
-                  <div className="absolute inset-0 bg-background/50 z-[5] pointer-events-none" />
-                )}
-                {isTodayDay && currentPixels > 0 && currentPixels < containerHeight && (
-                  <>
-                    <div className="absolute top-0 w-full bg-background/50 z-[5] pointer-events-none" style={{ height: `${currentPixels}px` }} />
-                    <div className="absolute w-full z-20 pointer-events-none" style={{ top: `${currentPixels}px` }}>
-                      <div className="h-2 w-2 bg-red-500 rounded-full absolute -left-1 -top-1" />
-                      <div className="w-full border-t-[2px] border-red-500" />
-                    </div>
-                  </>
-                )}
-
-                {!isEditMode && groups.map((group, groupIdx) => {
-                  if (group.length === 0) return null
-                  
-                  const firstAppt = group[0]
-                  const lastAppt = group[group.length - 1]
-                  const groupStart = parseTime(firstAppt.startTime)
-                  const groupEnd = Math.max(...group.map(a => parseTime(a.endTime)))
-                  const top = (groupStart - startHour * 60) * PIXELS_PER_MINUTE
-                  const height = (groupEnd - groupStart) * PIXELS_PER_MINUTE
-                  
-                  const isExpanded = expanded.dateStr === dateStr && expanded.groupIdx === groupIdx
-
-                  if (group.length === 1) {
-                    const a = group[0]
-                    return (
-                      <div 
-                        key={a.id} 
-                        onClick={(e) => { e.stopPropagation(); onAppointmentClick(a); }}
-                        className="absolute w-[calc(100%-8px)] rounded-md p-1 text-xs overflow-hidden hover:z-30 hover:shadow-md hover:ring-2 ring-green-500/50 transition-all cursor-pointer backdrop-blur-sm text-white"
-                        style={{ top: `${top}px`, minHeight: `${Math.max(height, 24)}px`, left: "4px", zIndex: 10, backgroundColor: (a.master?.masterProfile?.color || "#166534") + "CC", borderColor: (a.master?.masterProfile?.color || "#166534") + "80", borderWidth: '1px' }}
-                      >
-                        <div className="font-semibold leading-tight truncate">{a.client.name || 'Client'}</div>
-                        <div className="opacity-90 leading-tight truncate mt-0.5">{a.service.name}</div>
-                        <div className="opacity-75 leading-tight text-[10px] mt-0.5 flex items-center gap-1">
-                          <Clock className="w-3 h-3 shrink-0" />
-                          {a.startTime}
-                        </div>
-                      </div>
-                    )
-                  }
-
-                  return (
-                    <div 
-                      key={`group-${groupIdx}`}
-                      onClick={(e) => { e.stopPropagation(); toggleExpand(dateStr, groupIdx); }}
-                      className={`absolute rounded-md transition-all cursor-pointer ${isExpanded ? 'z-30' : 'z-10'}`}
-                      style={{ top: `${top}px`, left: "4px", width: "calc(100% - 8px)" }}
-                    >
-                      {isExpanded ? (
-                        <div className="bg-card border border-border rounded-lg shadow-xl overflow-hidden animate-in fade-in-0 zoom-in-95 duration-200">
-                          {group.map(a => (
-                            <div 
-                              key={a.id}
-                              onClick={(e) => { e.stopPropagation(); onAppointmentClick(a); }}
-                              className="p-2 border-b last:border-b-0 border-border hover:bg-muted/50 transition-colors cursor-pointer"
-                            >
-                              <div className="flex items-center gap-2">
-                                <Clock className="w-3 h-3 text-muted-foreground shrink-0" />
-                                <span className="font-medium text-sm">{a.startTime}</span>
-                                <span className="text-sm truncate">{a.client.name || 'Client'}</span>
-                              </div>
-                              <div className="text-xs text-muted-foreground mt-0.5 ml-5 truncate">{a.service.name}</div>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div 
-                          className="backdrop-blur-sm text-white rounded-md p-1.5 shadow-md"
-                          style={{ backgroundColor: (group[0].master?.masterProfile?.color || "#166534") + "CC", borderColor: (group[0].master?.masterProfile?.color || "#166534") + "80", borderWidth: '1px' }}
-                        >
-                          <div className="flex items-center gap-1.5">
-                            <Users className="w-3.5 h-3.5" />
-                            <span className="font-semibold text-sm">{group.length}</span>
-                            <span className="text-xs opacity-90">bookings</span>
-                            <ChevronDown className="w-3 h-3 ml-auto" />
-                          </div>
-                          <div className="text-[10px] opacity-75 mt-0.5 flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            {firstAppt.startTime} - {lastAppt.endTime}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )
-                })}
+          {/* ── Hours column ── */}
+          <div className="w-16 shrink-0 border-r border-border bg-card relative z-10">
+            {HOURS.slice(startHour, endHour + 1).map(hour => (
+              <div
+                key={hour}
+                className="absolute px-2 text-right text-xs text-muted-foreground font-medium w-full"
+                style={{ top: `${(hour - startHour) * 60 * PIXELS_PER_MINUTE + 12}px` }}
+              >
+                {hour.toString().padStart(2, "0")}:00
               </div>
-            )
-          })}
+            ))}
+          </div>
+
+          {/* ── Grid columns ── */}
+          <div className="flex-1 relative">
+            {/* Inner wrapper sized exactly to the grid — no more, no less */}
+            <div
+              className="absolute left-0 right-0 grid grid-cols-7"
+              style={{ top: '20px', height: `${containerHeight}px` }}
+            >
+              {/* Horizontal time-lines */}
+              {Array.from({ length: totalHours * Math.floor(60 / step) + 1 }).map((_, i) => {
+                const currentMin = i * step
+                const top = currentMin * PIXELS_PER_MINUTE
+                const isHourLine = currentMin % 60 === 0
+                return (
+                  <div
+                    key={`line-${i}`}
+                    className={`absolute w-full border-t pointer-events-none z-[5] ${isHourLine ? 'border-border/60' : 'border-border/20 border-dashed'}`}
+                    style={{ top: `${top}px` }}
+                  />
+                )
+              })}
+
+              {/* Day columns */}
+              {days.map((day, i) => {
+                const dateStr = format(day, "yyyy-MM-dd")
+                const status = getDayStatus(day)
+                const dayAppts = appointments.filter(a => a.date.startsWith(dateStr))
+                const isPastDay = day < new Date(new Date().setHours(0,0,0,0))
+                const isTodayDay = isToday(day)
+                const currentHourMinutes = new Date().getHours() * 60 + new Date().getMinutes()
+                const currentPixels = (currentHourMinutes - startHour * 60) * PIXELS_PER_MINUTE
+
+                const groups = groupOverlappingAppointments(dayAppts)
+
+                return (
+                  <div key={i} className={`relative border-r last:border-r-0 border-border/80 ${status.isDayOff ? 'bg-muted/40' : 'bg-transparent'}`}>
+                    
+                    {!status.isDayOff && status.intervals.map((inv, idx) => {
+                      const s = parseTime(inv.start)
+                      const e = parseTime(inv.end)
+                      const top = (s - startHour * 60) * PIXELS_PER_MINUTE
+                      const height = (e - s) * PIXELS_PER_MINUTE
+                      if (top + height < 0 || top > containerHeight) return null
+                      return (
+                        <div 
+                          key={idx} 
+                          className="absolute w-[calc(100%-2px)] bg-green-500/10 pointer-events-none shadow-sm border-l-4 border-green-500" 
+                          style={{ left: "1px", top: `${Math.max(0, top)}px`, height: `${Math.min(height, containerHeight - Math.max(0, top))}px` }} 
+                        />
+                      )
+                    })}
+
+                    {!isEditMode && !isPastDay && !status.isDayOff && (
+                      <div className="absolute inset-0 z-[1] cursor-pointer hover:bg-primary/5 transition-colors" onClick={() => onDayClick(day)} />
+                    )}
+
+                    {status.isDayOff && (
+                      <>
+                        <div className="absolute inset-0 z-[0] pointer-events-none" style={{ backgroundColor: dayOffColor + '40' }} />
+                        <div className="absolute inset-0 flex items-center justify-center flex-col opacity-80 select-none z-[1]" style={{ color: dayOffColor }}>
+                          <span className="text-sm font-semibold uppercase tracking-widest rotate-[-90deg]">Day Off</span>
+                        </div>
+                      </>
+                    )}
+
+                    {isPastDay && (
+                      <div className="absolute inset-0 bg-background/50 z-[5] pointer-events-none" />
+                    )}
+                    {isTodayDay && currentPixels > 0 && currentPixels < containerHeight && (
+                      <>
+                        <div className="absolute w-full bg-background/50 z-[5] pointer-events-none" style={{ top: 0, height: `${currentPixels}px` }} />
+                        <div className="absolute w-full z-20 pointer-events-none" style={{ top: `${currentPixels}px` }}>
+                          <div className="h-2 w-2 bg-red-500 rounded-full absolute -left-1 -top-1" />
+                          <div className="w-full border-t-[2px] border-red-500" />
+                        </div>
+                      </>
+                    )}
+
+                    {!isEditMode && groups.map((group, groupIdx) => {
+                      if (group.length === 0) return null
+                      
+                      const firstAppt = group[0]
+                      const lastAppt = group[group.length - 1]
+                      const groupStart = parseTime(firstAppt.startTime)
+                      const groupEnd = Math.max(...group.map(a => parseTime(a.endTime)))
+                      const top = (groupStart - startHour * 60) * PIXELS_PER_MINUTE
+                      const height = (groupEnd - groupStart) * PIXELS_PER_MINUTE
+                      
+                      const isExpanded = expanded.dateStr === dateStr && expanded.groupIdx === groupIdx
+
+                      if (group.length === 1) {
+                        const a = group[0]
+                        return (
+                          <div 
+                            key={a.id} 
+                            onClick={(e) => { e.stopPropagation(); onAppointmentClick(a); }}
+                            className="absolute w-[calc(100%-8px)] rounded-md p-1 text-xs overflow-hidden hover:z-30 hover:shadow-md hover:ring-2 ring-green-500/50 transition-all cursor-pointer backdrop-blur-sm text-white"
+                            style={{ top: `${top}px`, minHeight: `${Math.max(height, 24)}px`, left: "4px", zIndex: 10, backgroundColor: (a.master?.masterProfile?.color || "#166534") + "CC", borderColor: (a.master?.masterProfile?.color || "#166534") + "80", borderWidth: '1px' }}
+                          >
+                            <div className="font-semibold leading-tight truncate">{a.client.name || 'Client'}</div>
+                            <div className="opacity-90 leading-tight truncate mt-0.5">{a.service.name}</div>
+                            <div className="opacity-75 leading-tight text-[10px] mt-0.5 flex items-center gap-1">
+                              <Clock className="w-3 h-3 shrink-0" />
+                              {a.startTime}
+                            </div>
+                          </div>
+                        )
+                      }
+
+                      return (
+                        <div 
+                          key={`group-${groupIdx}`}
+                          onClick={(e) => { e.stopPropagation(); toggleExpand(dateStr, groupIdx); }}
+                          className={`absolute rounded-md transition-all cursor-pointer ${isExpanded ? 'z-30' : 'z-10'}`}
+                          style={{ top: `${top}px`, left: "4px", width: "calc(100% - 8px)" }}
+                        >
+                          {isExpanded ? (
+                            <div className="bg-card border border-border rounded-lg shadow-xl overflow-hidden animate-in fade-in-0 zoom-in-95 duration-200">
+                              {group.map(a => (
+                                <div 
+                                  key={a.id}
+                                  onClick={(e) => { e.stopPropagation(); onAppointmentClick(a); }}
+                                  className="p-2 border-b last:border-b-0 border-border hover:bg-muted/50 transition-colors cursor-pointer"
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <Clock className="w-3 h-3 text-muted-foreground shrink-0" />
+                                    <span className="font-medium text-sm">{a.startTime}</span>
+                                    <span className="text-sm truncate">{a.client.name || 'Client'}</span>
+                                  </div>
+                                  <div className="text-xs text-muted-foreground mt-0.5 ml-5 truncate">{a.service.name}</div>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <div 
+                              className="backdrop-blur-sm text-white rounded-md p-1.5 shadow-md"
+                              style={{ backgroundColor: (group[0].master?.masterProfile?.color || "#166534") + "CC", borderColor: (group[0].master?.masterProfile?.color || "#166534") + "80", borderWidth: '1px' }}
+                            >
+                              <div className="flex items-center gap-1.5">
+                                <Users className="w-3.5 h-3.5" />
+                                <span className="font-semibold text-sm">{group.length}</span>
+                                <span className="text-xs opacity-90">bookings</span>
+                                <ChevronDown className="w-3 h-3 ml-auto" />
+                              </div>
+                              <div className="text-[10px] opacity-75 mt-0.5 flex items-center gap-1">
+                                <Clock className="w-3 h-3" />
+                                {firstAppt.startTime} - {lastAppt.endTime}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                )
+              })}
+            </div>
+          </div>
         </div>
       </div>
     </div>
