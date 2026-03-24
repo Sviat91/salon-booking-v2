@@ -16,6 +16,7 @@ interface WeekViewProps {
   endHour: number
   isEditMode: boolean
   availableSlotColor: string
+  dayOffColor: string
   onDayClick: (d: Date) => void
   onAppointmentClick: (a: Appointment) => void
   onDataChange: () => void
@@ -64,7 +65,7 @@ interface EditingDayState {
   dateStr: string | null
 }
 
-export default function WeekView({ currentDate, appointments, templates, overrides, step, startHour, endHour, isEditMode, availableSlotColor, onDayClick, onAppointmentClick, onDataChange }: WeekViewProps) {
+export default function WeekView({ currentDate, appointments, templates, overrides, step, startHour, endHour, isEditMode, availableSlotColor, dayOffColor, onDayClick, onAppointmentClick, onDataChange }: WeekViewProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const totalHours = endHour - startHour
   const PIXELS_PER_MINUTE = 1.5 
@@ -320,9 +321,12 @@ export default function WeekView({ currentDate, appointments, templates, overrid
                 )}
 
                 {status.isDayOff && (
-                  <div className="absolute inset-0 flex items-center justify-center flex-col opacity-30 select-none text-muted-foreground z-[1]">
-                    <span className="text-sm font-semibold uppercase tracking-widest rotate-[-90deg]">Day Off</span>
-                  </div>
+                  <>
+                    <div className="absolute inset-0 z-[0] pointer-events-none" style={{ backgroundColor: dayOffColor + '40' }} />
+                    <div className="absolute inset-0 flex items-center justify-center flex-col opacity-80 select-none z-[1]" style={{ color: dayOffColor }}>
+                      <span className="text-sm font-semibold uppercase tracking-widest rotate-[-90deg]">Day Off</span>
+                    </div>
+                  </>
                 )}
 
                 {isPastDay && (

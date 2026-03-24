@@ -16,6 +16,7 @@ interface DayViewProps {
   endHour: number
   isEditMode: boolean
   availableSlotColor: string
+  dayOffColor: string
   onAddClick: (d: Date) => void
   onAppointmentClick: (a: Appointment) => void
   onDataChange: () => void
@@ -55,7 +56,7 @@ function groupOverlappingAppointments(appointments: Appointment[]): Appointment[
   return groups
 }
 
-export default function DayView({ currentDate, appointments, templates, overrides, step, startHour, endHour, isEditMode, availableSlotColor, onAddClick, onAppointmentClick, onDataChange }: DayViewProps) {
+export default function DayView({ currentDate, appointments, templates, overrides, step, startHour, endHour, isEditMode, availableSlotColor, dayOffColor, onAddClick, onAppointmentClick, onDataChange }: DayViewProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const totalHours = endHour - startHour
   const PIXELS_PER_MINUTE = 2 
@@ -234,8 +235,8 @@ export default function DayView({ currentDate, appointments, templates, override
           })}
 
           {status.isDayOff && (
-            <div className="absolute inset-0 flex items-center justify-center bg-muted/40 z-0">
-              <span className="text-2xl font-bold text-muted-foreground opacity-30 select-none uppercase tracking-widest">
+            <div className="absolute inset-0 flex items-center justify-center z-0" style={{ backgroundColor: dayOffColor + '40' }}>
+              <span className="text-2xl font-bold opacity-80 select-none uppercase tracking-widest" style={{ color: dayOffColor }}>
                 Day Off
               </span>
             </div>

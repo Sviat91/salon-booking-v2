@@ -145,6 +145,7 @@ model TenantConfig {
   errorColor      String   @default("#D84E4E")
   // Calendar colors
   availableSlotColor String   @default("#22c55e")
+  dayOffColor        String   @default("#ef4444")
 
   // Dark mode colors
   darkBgColor     String   @default("#9c6849")

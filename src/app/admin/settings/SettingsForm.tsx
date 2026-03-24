@@ -36,6 +36,7 @@ type TenantConfig = {
   darkMutedColor:  string
   darkBorderColor: string
   availableSlotColor: string
+  dayOffColor:     string
 }
 
 const initialState: SettingsFormState = {}
@@ -297,6 +298,10 @@ export default function SettingsForm({ config }: { config: TenantConfig }) {
           <ColorRow 
             field={{ name: "availableSlotColor", label: "Available Slot", description: "Color for open working intervals" }} 
             defaultValue={config.availableSlotColor} 
+          />
+          <ColorRow 
+            field={{ name: "dayOffColor", label: "Day Off", description: "Color highlighting non-working days" }} 
+            defaultValue={config.dayOffColor} 
           />
         </div>
       </section>

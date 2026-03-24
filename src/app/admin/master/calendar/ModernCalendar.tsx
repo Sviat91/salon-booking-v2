@@ -29,7 +29,7 @@ export type Appointment = {
 export type Template = { dayOfWeek: number; isDayOff: boolean; intervals: Interval[] }
 export type Override = { date: string; isDayOff: boolean; intervals: Interval[] }
 
-export default function ModernCalendar({ masterId: _masterId, availableSlotColor = "#22c55e" }: { masterId: string, availableSlotColor?: string }) {
+export default function ModernCalendar({ masterId: _masterId, availableSlotColor = "#22c55e", dayOffColor = "#ef4444" }: { masterId: string, availableSlotColor?: string, dayOffColor?: string }) {
   const [isMounted, setIsMounted] = useState(false)
   const [view, setView] = useState<ViewType>("Week")
   const [currentDate, setCurrentDate] = useState(new Date())
@@ -225,6 +225,7 @@ export default function ModernCalendar({ masterId: _masterId, availableSlotColor
             overrides={overrides}
             isEditMode={isEditMode}
             availableSlotColor={availableSlotColor}
+            dayOffColor={dayOffColor}
             onDayClick={(d) => { setView("Day"); setCurrentDate(d); }}
             onAppointmentClick={(a) => setViewingAppointment(a)}
             onDataChange={fetchData}
@@ -241,6 +242,7 @@ export default function ModernCalendar({ masterId: _masterId, availableSlotColor
             endHour={endHour}
             isEditMode={isEditMode}
             availableSlotColor={availableSlotColor}
+            dayOffColor={dayOffColor}
             onDayClick={(d) => { setView("Day"); setCurrentDate(d); }}
             onAppointmentClick={(a) => setViewingAppointment(a)}
             onDataChange={fetchData}
@@ -257,6 +259,7 @@ export default function ModernCalendar({ masterId: _masterId, availableSlotColor
             endHour={endHour}
             isEditMode={isEditMode}
             availableSlotColor={availableSlotColor}
+            dayOffColor={dayOffColor}
             onAddClick={(d) => setBookingDate(d)}
             onAppointmentClick={(a) => setViewingAppointment(a)}
             onDataChange={fetchData}

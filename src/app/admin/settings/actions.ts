@@ -32,6 +32,7 @@ const SettingsSchema = z.object({
   darkMutedColor:  hexColor,
   darkBorderColor: hexColor,
   availableSlotColor: hexColor,
+  dayOffColor:     hexColor,
 })
 
 export type SettingsFormState = {
@@ -69,6 +70,7 @@ export async function saveSettings(
     darkMutedColor:   formData.get("darkMutedColor"),
     darkBorderColor:  formData.get("darkBorderColor"),
     availableSlotColor: formData.get("availableSlotColor"),
+    dayOffColor:      formData.get("dayOffColor"),
   }
 
   const parsed = SettingsSchema.safeParse(raw)

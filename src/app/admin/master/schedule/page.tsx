@@ -22,6 +22,7 @@ export default async function MasterSchedulePage() {
         <ModernCalendar 
           masterId={session.user.id} 
           availableSlotColor={(config as any).availableSlotColor as string || "#22c55e"} 
+          dayOffColor={(config as any).dayOffColor as string || "#ef4444"} 
         />
       </div>
     </div>

@@ -13,6 +13,7 @@ interface MonthViewProps {
   overrides: Override[]
   isEditMode: boolean
   availableSlotColor: string
+  dayOffColor: string
   onDayClick: (d: Date) => void
   onAppointmentClick: (a: Appointment) => void
   onDataChange: () => void
@@ -25,7 +26,7 @@ interface ExpandedState {
   dateStr: string | null
 }
 
-export default function MonthView({ currentDate, appointments, templates, overrides, isEditMode, availableSlotColor, onDayClick, onAppointmentClick, onDataChange }: MonthViewProps) {
+export default function MonthView({ currentDate, appointments, templates, overrides, isEditMode, availableSlotColor, dayOffColor, onDayClick, onAppointmentClick, onDataChange }: MonthViewProps) {
   const monthStart = startOfMonth(currentDate)
   const monthEnd = endOfMonth(monthStart)
   const startDate = startOfWeek(monthStart, { weekStartsOn: 1 })
@@ -139,10 +140,10 @@ export default function MonthView({ currentDate, appointments, templates, overri
               }}
               className={`border-b border-r border-border p-1 flex flex-col transition-colors relative
                 ${!isEditMode && !isPastDay ? "cursor-pointer hover:bg-muted/10" : ""}
-                ${!isCurrentMonth ? "bg-muted/30 opacity-50" : status.isDayOff ? "bg-red-50/10 dark:bg-red-950/20" : (shiftsCount > 0 || apptsCount > 0) ? "" : "bg-card"}
+                ${!isCurrentMonth ? "bg-muted/30 opacity-50" : (shiftsCount > 0 || apptsCount > 0) ? "" : "bg-card"}
                 ${isPastDay && isCurrentMonth ? "opacity-60 pointer-events-none" : ""}
               `}
-              style={{ backgroundColor: (!isPastDay && !status.isDayOff && shiftsCount > 0) ? availableSlotColor + '1A' : undefined }}
+              style={{ backgroundColor: status.isDayOff && isCurrentMonth ? dayOffColor + '40' : (!isPastDay && !status.isDayOff && shiftsCount > 0) ? availableSlotColor + '1A' : undefined }}
             >
               {isSaving && <div className="absolute inset-0 bg-background/50 z-10 animate-pulse pointer-events-none" />}
 
