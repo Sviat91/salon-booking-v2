@@ -5,7 +5,6 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
-import { isValidMasterId, type MasterId } from '@/config/masters'
 import { useMaster } from '@/contexts/MasterContext'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
 import BrandHeader from '../../components/BrandHeader'
@@ -33,27 +32,33 @@ export default function Page({ params }: PageProps) {
   const { setMaster, selectedMasterId } = useMaster()
   const prefersReducedMotion = useReducedMotion()
   
-  // Validate masterId from URL  
-  const masterId = params.masterId as MasterId
+  // Validate masterId from URL — check DB dynamically
+  const masterId = params.masterId
+  const [isValidMaster, setIsValidMaster] = useState<boolean | null>(null)
   
   useEffect(() => {
-    if (!isValidMasterId(masterId)) {
-      // Invalid master ID, redirect to home
-      router.push('/')
-      return
-    }
-    
-    // Only set master if URL param differs from current selection
-    // This prevents unnecessary state updates
-    if (masterId !== selectedMasterId) {
-      setMaster(masterId)
-    }
+    // Validate via DB: check if this masterId exists as a MASTER user
+    fetch('/api/masters')
+      .then(r => r.json())
+      .then(data => {
+        const masters = data.masters || []
+        const found = masters.some((m: { id: string }) => m.id === masterId)
+        setIsValidMaster(found)
+        if (!found) {
+          router.push('/')
+          return
+        }
+        // Set master in context if valid
+        if (masterId !== selectedMasterId) {
+          setMaster(masterId)
+        }
+      })
+      .catch(() => {
+        setIsValidMaster(false)
+        router.push('/')
+      })
   }, [masterId, selectedMasterId, setMaster, router])
   
-  // Don't render until master is validated
-  if (!isValidMasterId(params.masterId)) {
-    return null
-  }
   const queryClient = useQueryClient()
   const [procId, setProcId] = useState<string | undefined>(undefined)
   const [date, setDate] = useState<Date | undefined>(undefined)
@@ -87,6 +92,7 @@ export default function Page({ params }: PageProps) {
   const mobileBookingRef = useRef<HTMLDivElement>(null)
   const bookingManagementRef = useRef<BookingManagementRef>(null)
   const bookingManagementCardRef = useRef<HTMLDivElement>(null)
+
 
   // Функция плавного скролла - только на мобильных устройствах
   const scrollToElement = (ref: React.RefObject<HTMLDivElement>, offset = 0) => {
@@ -234,6 +240,11 @@ export default function Page({ params }: PageProps) {
     setShowBookingSuccess(true)
     // Сбрасываем календарь и процедуру
     resetToInitialState()
+  }
+
+  // Don't render until master is validated (guard AFTER all hooks)
+  if (isValidMaster === null || isValidMaster === false) {
+    return null
   }
 
   return (

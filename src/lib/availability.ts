@@ -1,41 +1,109 @@
 import { format, addDays } from 'date-fns'
 import { toZonedTime, fromZonedTime, formatInTimeZone } from 'date-fns-tz'
-const readExceptions = async (masterId?: string): Promise<Record<string, any>> => ({})
-const readWeekly = async (masterId?: string): Promise<Record<string, any>> => ({})
-const freeBusy = async (start: string, end: string, masterId?: string): Promise<{start: string, end: string}[]> => []
+import prisma from './prisma'
 
 const TZ = 'Europe/Warsaw'
 
 type Range = { start: number; end: number } // minutes in day
-const normalizeCategory = (value?: string | null) => {
-  const s = String(value ?? '').trim().toLowerCase()
-  if (!s || s === 'all') return 'all'
-  if (s.startsWith('osteo')) return 'osteo'
-  if (s.startsWith('cosmet')) return 'cosmet'
-  if (s.startsWith('mass')) return 'massage'
-  return s
+
+/**
+ * Read weekly schedule template from DB for a master.
+ * Returns a map: { 0: { isDayOff, intervals: [{start:"09:00", end:"18:00"}] }, ... }
+ * dayOfWeek: 0=Sunday, 1=Monday, ..., 6=Saturday
+ */
+async function readWeeklyFromDb(masterId: string): Promise<Map<number, { isDayOff: boolean; intervals: { start: string; end: string }[] }>> {
+  const schedules = await prisma.schedule.findMany({
+    where: { masterId },
+  })
+
+  const map = new Map<number, { isDayOff: boolean; intervals: { start: string; end: string }[] }>()
+  for (const s of schedules) {
+    let intervals: { start: string; end: string }[] = []
+    try {
+      intervals = JSON.parse(s.intervals)
+    } catch { /* use empty */ }
+    map.set(s.dayOfWeek, { isDayOff: s.isDayOff, intervals })
+  }
+  return map
 }
 
+/**
+ * Read date-specific overrides (custom hours or day-off) from DB.
+ * Returns a map keyed by "YYYY-MM-DD".
+ */
+async function readOverridesFromDb(
+  masterId: string,
+  from: Date,
+  until: Date
+): Promise<Map<string, { isDayOff: boolean; intervals: { start: string; end: string }[] }>> {
+  const overrides = await prisma.dateOverride.findMany({
+    where: {
+      masterId,
+      date: { gte: from, lte: until },
+    },
+  })
+
+  const map = new Map<string, { isDayOff: boolean; intervals: { start: string; end: string }[] }>()
+  for (const o of overrides) {
+    const dateKey = format(o.date, 'yyyy-MM-dd')
+    let intervals: { start: string; end: string }[] = []
+    try {
+      intervals = JSON.parse(o.intervals)
+    } catch { /* use empty */ }
+    map.set(dateKey, { isDayOff: o.isDayOff, intervals })
+  }
+  return map
+}
+
+/**
+ * Fetch busy (booked) time ranges from Appointments table.
+ * Returns array of { start: minutesInDay, end: minutesInDay } for each active appointment.
+ */
+async function fetchBusyRanges(
+  masterId: string,
+  dateISO: string
+): Promise<Range[]> {
+  const dayStart = new Date(dateISO + 'T00:00:00')
+  const dayEnd = new Date(dateISO + 'T23:59:59')
+
+  const appointments = await prisma.appointment.findMany({
+    where: {
+      masterId,
+      date: { gte: dayStart, lte: dayEnd },
+      status: { not: 'CANCELLED' },
+    },
+    select: { startTime: true, endTime: true },
+  })
+
+  return appointments
+    .map((a) => {
+      const start = t2m(a.startTime)
+      const end = t2m(a.endTime)
+      return { start, end }
+    })
+    .filter((r) => Number.isFinite(r.start) && Number.isFinite(r.end) && r.end > r.start)
+}
+
+// ────────────────────────────────────────────
+// Utility helpers
+// ────────────────────────────────────────────
+
+/** Convert "HH:MM" to minutes since midnight */
 const t2m = (t: string) => {
   const s = String(t || '').trim()
-  // Support both HH:MM and HH.MM
   const m = s.match(/^(\d{1,2})[.:](\d{2})$/)
   if (!m) return NaN
-  const h = Number(m[1])
-  const mm = Number(m[2])
-  return h * 60 + mm
+  return Number(m[1]) * 60 + Number(m[2])
 }
-const parseRanges = (s: string): Range[] =>
-  String(s || '')
-    .replace(/\u00A0/g, ' ')
-    .split(',')
-    .map(x => x.trim())
-    .filter(Boolean)
-    .map(x => x.split(/–|-/).map(y => y.trim()))
-    .filter(p => p.length === 2)
-    .map(([a, b]) => ({ start: t2m(a), end: t2m(b) }))
-    .filter(r => Number.isFinite(r.start) && Number.isFinite(r.end) && r.end > r.start)
 
+/** Convert intervals array to Range[] (minutes) */
+function intervalsToRanges(intervals: { start: string; end: string }[]): Range[] {
+  return intervals
+    .map(({ start, end }) => ({ start: t2m(start), end: t2m(end) }))
+    .filter((r) => Number.isFinite(r.start) && Number.isFinite(r.end) && r.end > r.start)
+}
+
+/** Subtract busy ranges from open ranges */
 function minusBusy(open: Range[], busy: Range[]): Range[] {
   const res: Range[] = []
   const mergedBusy = [...busy].sort((a, b) => a.start - b.start)
@@ -52,75 +120,92 @@ function minusBusy(open: Range[], busy: Range[]): Range[] {
   return res
 }
 
-function isoDate(d: Date) { return format(d, 'yyyy-MM-dd') }
+function isoDate(d: Date) {
+  return format(d, 'yyyy-MM-dd')
+}
 
-export async function getAvailableDays(fromISO: string, untilISO: string, minDuration: number, opts?: { debug?: boolean; masterId?: string; procedureCategory?: string | null }) {
+/**
+ * JS Date.getDay() returns 0=Sunday, same as Schedule.dayOfWeek in DB.
+ */
+function jsDayOfWeek(d: Date): number {
+  return d.getDay()
+}
+
+// ────────────────────────────────────────────
+// Public API
+// ────────────────────────────────────────────
+
+/**
+ * Get available days in a date range for a master.
+ * For each day returns { date, hasWindow } — whether there is at least one
+ * free slot of `minDuration` minutes.
+ */
+export async function getAvailableDays(
+  fromISO: string,
+  untilISO: string,
+  minDuration: number,
+  opts?: { debug?: boolean; masterId?: string }
+) {
   const masterId = opts?.masterId
-  const hasProcedureCategory = opts ? Object.prototype.hasOwnProperty.call(opts, 'procedureCategory') : false
-  const procedureCategory = normalizeCategory(opts?.procedureCategory)
-  const weekly = await readWeekly(masterId)
-  const exceptions = await readExceptions(masterId)
-
-  // Fetch busy in chunks (max 30 days per request) to avoid API range limits
-  const busy: { start: string; end: string }[] = []
-  const from = new Date(fromISO + 'T00:00:00Z')
-  const until = new Date(untilISO + 'T23:59:59Z')
-  for (let start = new Date(from); start <= until; ) {
-    const chunkStart = new Date(start)
-    const chunkEnd = new Date(Math.min(until.getTime(), start.getTime() + 29 * 24 * 3600 * 1000))
-    const part = await freeBusy(chunkStart.toISOString(), chunkEnd.toISOString(), masterId)
-    busy.push(...part)
-    // next day after chunkEnd
-    const next = new Date(chunkEnd); next.setUTCDate(next.getUTCDate() + 1); next.setUTCHours(0,0,0,0)
-    start = next
+  if (!masterId) {
+    return { days: [] }
   }
 
-  // bucket busy by date in Warsaw TZ
-  const busyByDate = new Map<string, Range[]>()
-  for (const b of busy) {
-    const s = toZonedTime(new Date(b.start), TZ)
-    const e = toZonedTime(new Date(b.end), TZ)
-    const day = isoDate(s)
-    const start = s.getHours() * 60 + s.getMinutes()
-    const end = e.getHours() * 60 + e.getMinutes()
-    const arr = busyByDate.get(day) ?? []
-    arr.push({ start, end })
-    busyByDate.set(day, arr)
-  }
+  const from = new Date(fromISO + 'T00:00:00')
+  const until = new Date(untilISO + 'T23:59:59')
 
-  // iterate days and decide availability
+  const weekly = await readWeeklyFromDb(masterId)
+  const overrides = await readOverridesFromDb(masterId, from, until)
+
   const days: { date: string; hasWindow: boolean }[] = []
   let cursor = new Date(fromISO + 'T00:00:00')
   const endDate = new Date(untilISO + 'T00:00:00')
+
   while (cursor <= endDate) {
     const date = isoDate(cursor)
-    const weekday = cursor.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase()
-    // derive open ranges
-    let hours = weekly[weekday]?.hours || ''
-    let isDayOff = weekly[weekday]?.isDayOff || false
-    if (exceptions[date]) {
-      const ex = exceptions[date]
-      if (ex.hours) hours = ex.hours
-      isDayOff = ex.isDayOff
+    const dow = jsDayOfWeek(cursor)
+
+    // Determine open intervals for this day
+    let isDayOff = false
+    let openRanges: Range[] = []
+
+    // Check override first (specific date takes priority)
+    const override = overrides.get(date)
+    if (override) {
+      isDayOff = override.isDayOff
+      if (!isDayOff && override.intervals.length > 0) {
+        openRanges = intervalsToRanges(override.intervals)
+      }
+    } else {
+      // Fall back to weekly template
+      const template = weekly.get(dow)
+      if (template) {
+        isDayOff = template.isDayOff
+        if (!isDayOff) {
+          openRanges = intervalsToRanges(template.intervals)
+        }
+      } else {
+        // No schedule defined for this day → treat as day off
+        isDayOff = true
+      }
     }
-    const dayCategory = normalizeCategory(exceptions[date]?.category)
-    const categoryAllowed = dayCategory === 'all' || !hasProcedureCategory || procedureCategory === dayCategory
+
     let hasWindow = false
-    if (!isDayOff && hours && categoryAllowed) {
-      const open = parseRanges(hours)
-      const dayBusy = busyByDate.get(date) ?? []
-      const free = minusBusy(open, dayBusy)
-      hasWindow = free.some(r => r.end - r.start >= minDuration)
+    if (!isDayOff && openRanges.length > 0) {
+      const busyRanges = await fetchBusyRanges(masterId, date)
+      const free = minusBusy(openRanges, busyRanges)
+      hasWindow = free.some((r) => r.end - r.start >= minDuration)
     }
+
     days.push({ date, hasWindow })
     cursor = addDays(cursor, 1)
   }
+
   const result: any = { days }
   if (opts?.debug) {
     result.debug = {
-      weeklyKeys: Object.keys(weekly).length,
-      exceptionsCount: Object.keys(exceptions).length,
-      busyCount: busy.length,
+      weeklyKeys: weekly.size,
+      overridesCount: overrides.size,
       minDuration,
       fromISO,
       untilISO,
@@ -129,51 +214,57 @@ export async function getAvailableDays(fromISO: string, untilISO: string, minDur
   return result
 }
 
-// Generate concrete slots for a specific date in Europe/Warsaw
-export async function getDaySlots(dateISO: string, minDuration: number, stepMin: number = 15, masterId?: string, procedureCategory?: string | null) {
-  const weekly = await readWeekly(masterId)
-  const exceptions = await readExceptions(masterId)
-  const hasProcedureCategory = arguments.length >= 5
-  const procCategory = normalizeCategory(procedureCategory)
-
-  // Determine working hours for the specific date
-  const base = new Date(dateISO + 'T00:00:00')
-  const weekday = base.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase()
-  let hours = weekly[weekday]?.hours || ''
-  let isDayOff = weekly[weekday]?.isDayOff || false
-  const dayCategory = normalizeCategory(exceptions[dateISO]?.category)
-  if (exceptions[dateISO]) {
-    const ex = exceptions[dateISO]
-    if (ex.hours) hours = ex.hours
-    isDayOff = ex.isDayOff
+/**
+ * Generate concrete time slots for a specific date.
+ * Returns { slots: [{ startISO, endISO }] }.
+ */
+export async function getDaySlots(
+  dateISO: string,
+  minDuration: number,
+  stepMin: number = 15,
+  masterId?: string
+) {
+  if (!masterId) {
+    return { slots: [] as { startISO: string; endISO: string }[] }
   }
-  const categoryAllowed = dayCategory === 'all' || !hasProcedureCategory || procCategory === dayCategory
-  if (isDayOff || !hours || !categoryAllowed) return { slots: [] as { startISO: string; endISO: string }[] }
 
-  const open = parseRanges(hours)
-  if (!open.length) return { slots: [] as { startISO: string; endISO: string }[] }
+  const weekly = await readWeeklyFromDb(masterId)
+  const dateObj = new Date(dateISO + 'T00:00:00')
+  const dow = jsDayOfWeek(dateObj)
 
-  // Query busy periods only for this day (in UTC, but interpreted with TZ on the API side)
-  const dayStartUtc = fromZonedTime(dateISO + 'T00:00:00', TZ).toISOString()
-  const dayEndUtc = fromZonedTime(dateISO + 'T23:59:59', TZ).toISOString()
-  const busy = await freeBusy(dayStartUtc, dayEndUtc, masterId)
+  // Get overrides for this specific day
+  const overrides = await readOverridesFromDb(masterId, dateObj, dateObj)
+  const override = overrides.get(dateISO)
 
-  // Convert busy intervals to minutes of the local day and clamp to [0..1440]
-  const clamp = (x: number, a: number, b: number) => Math.max(a, Math.min(b, x))
-  const busyRanges: Range[] = busy.map(b => {
-    const s = toZonedTime(new Date(b.start), TZ)
-    const e = toZonedTime(new Date(b.end), TZ)
-    let start = s.getHours() * 60 + s.getMinutes()
-    let end = e.getHours() * 60 + e.getMinutes()
-    start = clamp(start, 0, 24 * 60)
-    end = clamp(end, 0, 24 * 60)
-    return { start, end }
-  }).filter(r => r.end > r.start)
+  let isDayOff = false
+  let openRanges: Range[] = []
 
-  const free = minusBusy(open, busyRanges)
+  if (override) {
+    isDayOff = override.isDayOff
+    if (!isDayOff && override.intervals.length > 0) {
+      openRanges = intervalsToRanges(override.intervals)
+    }
+  } else {
+    const template = weekly.get(dow)
+    if (template) {
+      isDayOff = template.isDayOff
+      if (!isDayOff) {
+        openRanges = intervalsToRanges(template.intervals)
+      }
+    } else {
+      isDayOff = true
+    }
+  }
 
-  // If the requested date is today (in Warsaw), hide past slots:
-  // allow only starts from the next full hour.
+  if (isDayOff || openRanges.length === 0) {
+    return { slots: [] as { startISO: string; endISO: string }[] }
+  }
+
+  // Fetch busy appointments for this day
+  const busyRanges = await fetchBusyRanges(masterId, dateISO)
+  const free = minusBusy(openRanges, busyRanges)
+
+  // If the requested date is today (in Warsaw), hide past slots
   let minStartMin = 0
   const nowLocal = toZonedTime(new Date(), TZ)
   const todayISO = isoDate(nowLocal)

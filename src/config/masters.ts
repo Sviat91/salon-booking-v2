@@ -41,10 +41,32 @@ export const MASTER_IDS: readonly MasterId[] = ['olga', 'yuliia'] as const
 export const DEFAULT_MASTER_ID: MasterId = 'olga'
 
 /**
- * Check if a string is a valid master ID
+ * Check if a string is a valid master ID (matches hardcoded config).
+ * For DB-based validation, use isValidMasterIdAsync.
  */
 export function isValidMasterId(id: string): id is MasterId {
   return MASTER_IDS.includes(id as MasterId)
+}
+
+/**
+ * Check if a string is a valid master ID by querying the DB.
+ * Accepts both hardcoded IDs and dynamically created master User IDs.
+ */
+export async function isValidMasterIdAsync(id: string): Promise<boolean> {
+  // Check hardcoded first (fast path)
+  if (MASTER_IDS.includes(id as MasterId)) return true
+  
+  // Check DB for dynamic masters
+  try {
+    const { default: prisma } = await import('@/lib/prisma')
+    const master = await prisma.user.findFirst({
+      where: { id, role: 'MASTER' },
+      select: { id: true },
+    })
+    return !!master
+  } catch {
+    return false
+  }
 }
 
 /**

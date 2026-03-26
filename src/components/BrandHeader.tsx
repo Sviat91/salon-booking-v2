@@ -18,7 +18,7 @@ export default function BrandHeader({ onLogoClick }: BrandHeaderProps) {
   return (
     <header className="flex flex-col items-center gap-3 py-4 lg:py-6">
       <motion.div
-        layoutId={prefersReducedMotion ? undefined : `master-photo-${selectedMaster.id}`}
+        layoutId={prefersReducedMotion ? undefined : `master-photo-${selectedMaster?.id ?? 'unknown'}`}
         className={`h-20 w-20 rounded-full overflow-hidden ring-2 ring-accent/70 shadow-sm bg-white${
           logoClickable ? ' cursor-pointer' : ''
         }`}
@@ -31,8 +31,8 @@ export default function BrandHeader({ onLogoClick }: BrandHeaderProps) {
         }}
       >
         <Image 
-          src={selectedMaster.avatar} 
-          alt={`${selectedMaster.name} - Beauty Master`} 
+          src={selectedMaster?.avatar || '/head_logo.png'} 
+          alt={`${selectedMaster?.name || 'Master'} - Beauty Master`} 
           width={80} 
           height={80} 
           className="h-20 w-20 object-cover" 

@@ -1,6 +1,4 @@
-// Mocks for Phase 3 to allow compilation until Phase 6 refactoring
-const parseBookingData = (calendarEvent: any): any => ({});
-const readProcedures = async (masterId?: string): Promise<any[]> => [];
+import prisma from './prisma'
 import { getDaySlots } from './availability'
 import { getLogger } from './logger'
 import { normalizePhoneDigitsOnly } from './utils/phone-normalization'
@@ -40,14 +38,13 @@ export interface UserAccessCriteria {
 }
 
 /**
- * Verify user has access to modify this booking
- * Uses normalized comparison for names and phones
+ * Verify user has access to modify this booking.
+ * Works with DB appointment data (client name, phone, email).
  */
 export function verifyBookingAccess(
-  calendarEvent: any,
+  bookingData: { firstName?: string; lastName?: string; name?: string; phone?: string; email?: string } | null,
   userCriteria: UserAccessCriteria
 ): boolean {
-  const bookingData = parseBookingData(calendarEvent)
   if (!bookingData) return false
 
   // Normalize user input
@@ -56,24 +53,30 @@ export function verifyBookingAccess(
   const userPhone = normalizePhone(userCriteria.phone)
   const userEmail = userCriteria.email ? userCriteria.email.toLowerCase().trim() : ''
 
-  // Normalize booking data
-  const bookingFirstName = normalizeString(bookingData.firstName)
-  const bookingLastName = normalizeString(bookingData.lastName)
-  const bookingPhone = normalizePhone(bookingData.phone)
+  // Normalize booking data — support both firstName/lastName and combined name
+  let bookingFirstName = ''
+  let bookingLastName = ''
+  if (bookingData.firstName) {
+    bookingFirstName = normalizeString(bookingData.firstName)
+    bookingLastName = normalizeString(bookingData.lastName || '')
+  } else if (bookingData.name) {
+    const parts = bookingData.name.trim().split(/\s+/)
+    bookingFirstName = normalizeString(parts[0] || '')
+    bookingLastName = normalizeString(parts.slice(1).join(' '))
+  }
+  const bookingPhone = normalizePhone(bookingData.phone || '')
   const bookingEmail = bookingData.email ? bookingData.email.toLowerCase().trim() : ''
 
-  // Check name and phone match
+  // Check name match
   const firstNameMatch = bookingFirstName === userFirstName
-  const lastNameMatch = bookingLastName === userLastName
+  const lastNameMatch = !userLastName || !bookingLastName || bookingLastName === userLastName
   
   // Phone matching - support partial matches for international numbers
   let phoneMatch = false
   if (userPhone.length >= 6 && bookingPhone.length >= 6) {
-    // For longer phones, check if one contains the significant part of the other
     phoneMatch = bookingPhone.includes(userPhone.slice(-9)) || 
                  userPhone.includes(bookingPhone.slice(-9))
   } else {
-    // For shorter phones, exact match required
     phoneMatch = userPhone === bookingPhone
   }
 
@@ -81,7 +84,6 @@ export function verifyBookingAccess(
     return false
   }
 
-  // If email provided in both booking and user input, they must match
   if (bookingEmail && userEmail && bookingEmail !== userEmail) {
     return false
   }
@@ -219,21 +221,12 @@ export async function getAvailableSlotsForRebooking(options: {
     
     try {
       // Use existing getDaySlots function to get available slots for this day
-      // This respects the master's schedule from Google Sheets (weekly + exceptions)
-      const dayResult = options.procedureCategory !== undefined
-        ? await getDaySlots(
-            dateISO,
-            procedureDurationMin,
-            15,
-            options.masterId,
-            options.procedureCategory
-          )
-        : await getDaySlots(
+      const dayResult = await getDaySlots(
             dateISO,
             procedureDurationMin,
             15,
             options.masterId
-          ) // 15min step
+          )
       const daySlots = dayResult.slots || []
       
       // Convert to TimeSlot format and filter out excluded booking
@@ -277,21 +270,24 @@ export async function getAvailableSlotsForRebooking(options: {
 }
 
 /**
- * Get procedure duration by ID
+ * Get procedure duration by ID from the DB.
  */
-export async function getProcedureDuration(procedureId?: string, masterId?: string): Promise<number> {
+export async function getProcedureDuration(procedureId?: string): Promise<number> {
   try {
-    const procedures = await readProcedures(masterId)
-    
     if (procedureId) {
-      const procedure = procedures.find(p => p.id === procedureId)
-      return procedure?.duration_min || 60 // Default 60 minutes
+      const service = await prisma.service.findUnique({
+        where: { id: procedureId },
+        select: { duration: true },
+      })
+      return service?.duration || 60
     }
     
-    // If no specific procedure, use minimum duration of active procedures
-    const activeProcedures = procedures.filter(p => p.is_active)
-    if (activeProcedures.length > 0) {
-      return Math.min(...activeProcedures.map(p => p.duration_min || 60))
+    // If no specific procedure, use minimum duration across all services
+    const services = await prisma.service.findMany({
+      select: { duration: true },
+    })
+    if (services.length > 0) {
+      return Math.min(...services.map((s: { duration: number }) => s.duration || 60))
     }
     
     return 60 // Fallback default

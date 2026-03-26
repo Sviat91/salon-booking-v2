@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation'
 import { flushSync } from 'react-dom'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { getAllMasters, type MasterId } from '@/config/masters'
 import { useMaster } from '@/contexts/MasterContext'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
 
@@ -55,23 +54,14 @@ export default function MasterSelector() {
           setDbMasters(data.masters)
         }
       })
-      .catch(() => { /* fall back to hardcoded */ })
+      .catch(() => { /* handle error or do nothing */ })
   }, [])
 
-  // Use DB masters when available, fall back to hardcoded config
-  const hardcodedMasters = getAllMasters()
-  const masters: DbMaster[] = dbMasters ?? hardcodedMasters.map((m) => ({
-    id: m.id,
-    name: m.name,
-    avatar: m.avatar,
-    bio: null,
-  }))
+  // Use DB masters only
+  const masters: DbMaster[] = dbMasters ?? []
 
   const handleMasterSelect = (master: DbMaster) => {
-    const isHardcoded = hardcodedMasters.some((hm) => hm.id === master.id)
-    if (isHardcoded) {
-      flushSync(() => { setMaster(master.id as MasterId) })
-    }
+    flushSync(() => { setMaster(master.id) })
     router.push(`/${master.id}`)
   }
 

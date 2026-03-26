@@ -51,7 +51,7 @@ export default function ContactMasterPanel({ onBack, onSuccess }: ContactMasterP
           phone: phone.trim(),
           email: email.trim() || undefined,
           message: message.trim(),
-          masterId: selectedMaster.id,
+          masterId: selectedMaster?.id ?? '',
         }),
       })
       
@@ -83,7 +83,7 @@ export default function ContactMasterPanel({ onBack, onSuccess }: ContactMasterP
           {t('management.contactMasterBtn')}
         </h3>
         <p className="text-sm text-neutral-600 dark:text-dark-muted mt-1">
-          {t('management.masterName', { name: selectedMaster.name })}
+          {t('management.masterName', { name: selectedMaster?.name || 'Master' })}
         </p>
       </div>
       

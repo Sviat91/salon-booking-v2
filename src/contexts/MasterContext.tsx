@@ -1,30 +1,32 @@
 "use client"
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode, useRef } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { 
-  Master, 
-  MasterId, 
-  DEFAULT_MASTER_ID, 
-  getMasterByIdSafe,
-  isValidMasterId,
-  MASTERS 
-} from '@/config/masters'
 import { clientLog } from '@/lib/client-logger'
 
 const STORAGE_KEY = 'selected-master'
 
 /**
+ * Master info — minimal data stored in context.
+ * Works with both hardcoded and DB-generated master IDs.
+ */
+export interface MasterInfo {
+  id: string
+  name: string
+  avatar: string | null
+}
+
+/**
  * Master Context type definition
  */
 interface MasterContextType {
-  /** Currently selected master */
-  selectedMaster: Master
   /** Currently selected master ID */
-  selectedMasterId: MasterId
+  selectedMasterId: string
+  /** Currently selected master info (if available) */
+  selectedMaster: MasterInfo | null
   /** Change the selected master */
-  setMaster: (masterId: MasterId) => void
+  setMaster: (masterId: string) => void
   /** Check if a specific master is selected */
-  isMasterSelected: (masterId: MasterId) => boolean
+  isMasterSelected: (masterId: string) => boolean
   /** Reset to default master */
   resetMaster: () => void
 }
@@ -34,13 +36,13 @@ const MasterContext = createContext<MasterContextType | undefined>(undefined)
 /**
  * Read master ID from localStorage
  */
-function getStoredMasterId(): MasterId | null {
+function getStoredMasterId(): string | null {
   if (typeof window === 'undefined') return null
   
   try {
     const stored = localStorage.getItem(STORAGE_KEY)
-    if (stored && isValidMasterId(stored)) {
-      return stored as MasterId
+    if (stored && stored.length > 0) {
+      return stored
     }
   } catch (error) {
     clientLog.warn('Failed to read master from localStorage:', error)
@@ -52,7 +54,7 @@ function getStoredMasterId(): MasterId | null {
 /**
  * Save master ID to localStorage
  */
-function setStoredMasterId(masterId: MasterId): void {
+function setStoredMasterId(masterId: string): void {
   if (typeof window === 'undefined') return
   
   try {
@@ -64,78 +66,96 @@ function setStoredMasterId(masterId: MasterId): void {
 
 /**
  * Master Context Provider
- * Manages selected master state with localStorage persistence
+ * Manages selected master state with localStorage persistence.
+ * Supports arbitrary master IDs (both hardcoded and DB-generated cuids).
  */
 export const MasterProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const queryClient = useQueryClient()
   
-  // Initialize state from localStorage or default
-  const [selectedMasterId, setSelectedMasterId] = useState<MasterId>(() => {
-    return getStoredMasterId() ?? DEFAULT_MASTER_ID
+  // Initialize state from localStorage or empty
+  const [selectedMasterId, setSelectedMasterId] = useState<string>(() => {
+    return getStoredMasterId() ?? ''
   })
-  const selectedMasterIdRef = useRef<MasterId>(selectedMasterId)
+  const selectedMasterIdRef = useRef<string>(selectedMasterId)
+
+  // Cache master info fetched from API
+  const [masterInfo, setMasterInfo] = useState<MasterInfo | null>(null)
   
   useEffect(() => {
     selectedMasterIdRef.current = selectedMasterId
   }, [selectedMasterId])
 
-  const selectedMaster = MASTERS[selectedMasterId]
+  // Fetch master info when masterId changes
+  useEffect(() => {
+    if (!selectedMasterId) {
+      setMasterInfo(null)
+      return
+    }
+    
+    // Try to get master info from /api/masters cache
+    fetch('/api/masters')
+      .then(r => r.json())
+      .then(data => {
+        const masters = data.masters || []
+        const found = masters.find((m: MasterInfo) => m.id === selectedMasterId)
+        if (found) {
+          setMasterInfo({
+            id: found.id,
+            name: found.name || 'Master',
+            avatar: found.avatar || null,
+          })
+        }
+      })
+      .catch(() => {
+        // Silently fail — info will be null
+      })
+  }, [selectedMasterId])
 
   /**
    * Change the selected master
-   * - Saves to localStorage
-   * - NO query invalidation needed: each master has separate cache entries with masterId in query keys
    */
-  const setMaster = useCallback((masterId: MasterId) => {
-    if (!isValidMasterId(masterId)) {
-      clientLog.error('Invalid master ID:', masterId)
+  const setMaster = useCallback((masterId: string) => {
+    if (!masterId) {
+      clientLog.error('Empty master ID')
       return
     }
 
-    // Skip if already selected (prevents unnecessary re-renders and animations)
+    // Skip if already selected
     if (masterId === selectedMasterIdRef.current) {
-      clientLog.info('Master already selected:', masterId)
       return
     }
 
     clientLog.info('Changing master to:', masterId)
     
-    // Update ref immediately so downstream hooks see the new value even before React flushes state
     selectedMasterIdRef.current = masterId
-
-    // Update state
     setSelectedMasterId(masterId)
-    
-    // Save to localStorage
     setStoredMasterId(masterId)
-    
-    // NO invalidateQueries: Each master has separate cache with masterId in query keys
-    // Data was prefetched on landing page, so it's instantly available
-    
-    clientLog.info('Master changed successfully. Using cached data for:', masterId)
   }, [])
 
   /**
    * Check if a specific master is currently selected
    */
-  const isMasterSelected = useCallback((masterId: MasterId) => {
+  const isMasterSelected = useCallback((masterId: string) => {
     return selectedMasterId === masterId
   }, [selectedMasterId])
 
   /**
-   * Reset to default master
+   * Reset to default master — clears selection
    */
   const resetMaster = useCallback(() => {
-    setMaster(DEFAULT_MASTER_ID)
-  }, [setMaster])
+    setSelectedMasterId('')
+    setMasterInfo(null)
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(STORAGE_KEY)
+    }
+  }, [])
 
-  // Sync with localStorage on mount (for cases when localStorage changes in another tab)
+  // Sync with localStorage on mount
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === STORAGE_KEY && e.newValue && isValidMasterId(e.newValue)) {
-        const newId = e.newValue as MasterId
-        selectedMasterIdRef.current = newId
-        setSelectedMasterId(newId)
+      if (e.key === STORAGE_KEY && e.newValue) {
+        selectedMasterIdRef.current = e.newValue
+        setSelectedMasterId(e.newValue)
       }
     }
 
@@ -144,7 +164,7 @@ export const MasterProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   }, [])
 
   const value: MasterContextType = {
-    selectedMaster,
+    selectedMaster: masterInfo,
     selectedMasterId,
     setMaster,
     isMasterSelected,
@@ -167,9 +187,9 @@ export function useMaster(): MasterContextType {
 }
 
 /**
- * Hook to get only the selected master (convenience hook)
+ * Hook to get only the selected master info (convenience hook)
  */
-export function useSelectedMaster(): Master {
+export function useSelectedMaster(): MasterInfo | null {
   const { selectedMaster } = useMaster()
   return selectedMaster
 }
@@ -177,7 +197,7 @@ export function useSelectedMaster(): Master {
 /**
  * Hook to get only the selected master ID (convenience hook)
  */
-export function useSelectedMasterId(): MasterId {
+export function useSelectedMasterId(): string {
   const { selectedMasterId } = useMaster()
   return selectedMasterId
 }
