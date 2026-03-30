@@ -56,7 +56,6 @@ export default function ProcedureSelect({ valueId, onChange }: { valueId?: strin
 
   return (
     <div className="relative lg:-m-4 lg:p-4" onClick={handleCardClick}>
-      <label className="block text-sm text-muted dark:text-dark-muted">{t('booking.service')}</label>
       <button
         type="button"
         onClick={() => setOpen(o => !o)}

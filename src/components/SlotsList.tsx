@@ -42,11 +42,11 @@ export default function SlotsList({ date, procedureId, selected, onPick }: { dat
       {!procedureId && <div className="text-sm text-neutral-500 dark:text-dark-muted">{t('slots.selectServiceFirst', 'Najpierw wybierz usługę')}</div>}
       {procedureId && !dateISO && <div className="text-sm text-neutral-500 dark:text-dark-muted">{t('booking.selectDate')}</div>}
       <div className={`relative overflow-x-hidden transition-[max-height,opacity] duration-300 ease-out ${panelState}`}>
-        <div className={`relative rounded-2xl border border-neutral-200 bg-white/80 p-4 dark:bg-dark-card/80 dark:border-dark-border ${ready ? 'max-h-[24rem]' : ''}`}>
+        <div className={`relative rounded-2xl border border-border bg-card text-card-foreground p-4 dark:border-dark-border ${ready ? 'max-h-[24rem]' : ''}`}>
           {ready && (
             <>
               {isFetching && (
-                <div className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-2xl bg-white/80 backdrop-blur-sm dark:bg-dark-card/80">
+                <div className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-2xl bg-card/80 backdrop-blur-sm">
                   <div className="h-9 w-9 animate-spin rounded-full border-2 border-neutral-300 border-t-neutral-500" />
                   <p className="mt-3 text-sm font-medium text-neutral-600 dark:text-dark-text">{t('slots.searching', 'Wyszukujemy wolne godziny…')}</p>
                 </div>

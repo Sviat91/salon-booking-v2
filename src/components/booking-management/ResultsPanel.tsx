@@ -69,7 +69,7 @@ export default function ResultsPanel({
           ℹ️ {t('management.onlineBookingsNote')}
         </div>
       </div>
-      <div className="rounded-2xl border border-neutral-200 bg-white/80 p-4 dark:bg-dark-card/80 dark:border-dark-border">
+      <div className="rounded-2xl border border-border bg-card text-card-foreground p-4 dark:border-dark-border">
         <div className="space-y-3">
           {results.map((booking) => {
             const isSelected = booking.eventId === selectedBookingId
@@ -89,7 +89,7 @@ export default function ResultsPanel({
                 className={`relative cursor-pointer rounded-xl border transition-all duration-200 ${
                   isSelected
                     ? 'border-primary bg-primary/10 dark:border-accent dark:bg-accent/10'
-                    : 'border-border bg-white/50 hover:bg-primary/5 dark:border-dark-border dark:bg-dark-card/50 dark:hover:bg-dark-border/30'
+                    : 'border-border bg-transparent text-foreground hover:bg-muted dark:border-dark-border dark:hover:bg-dark-border/30'
                 }`}
                 onClick={() => onSelect(isSelected ? null : booking)}
               >

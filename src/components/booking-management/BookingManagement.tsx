@@ -196,11 +196,10 @@ const BookingManagement = forwardRef<BookingManagementRef, BookingManagementProp
     const fallbackProcedure = deriveProcedureForBooking(state.selectedBooking)
 
     return (
-      <Card>
-        <div className="space-y-3">
+      <Card title={t('booking.manageBooking')} className="!px-2 !py-3 sm:!px-4 sm:!py-4">
+        <div className="space-y-3 mt-2">
           {!state.isOpen ? (
             <>
-              <label className="block text-sm text-muted dark:text-dark-muted">{t('booking.manageBooking')}</label>
               <button
                 type="button"
                 onClick={handleToggle}
@@ -210,8 +209,7 @@ const BookingManagement = forwardRef<BookingManagementRef, BookingManagementProp
               </button>
             </>
           ) : (
-            <div className="flex items-center justify-between">
-              <label className="text-sm text-muted dark:text-dark-muted">{t('booking.manageBooking')}</label>
+            <div className="flex items-center justify-end">
               <button
                 type="button"
                 onClick={handleToggle}
@@ -226,7 +224,7 @@ const BookingManagement = forwardRef<BookingManagementRef, BookingManagementProp
               state.isOpen ? 'opacity-100 mt-2' : 'max-h-0 opacity-0 overflow-hidden'
             }`}
           >
-            <div className={`rounded-xl border border-border bg-white/90 p-4 dark:border-dark-border dark:bg-dark-card/90 w-full max-w-full box-border overflow-x-hidden ${state.isOpen ? 'max-h-[35rem] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent' : ''}`}>
+            <div className={`rounded-xl border border-border bg-card text-card-foreground p-4 dark:border-dark-border w-full max-w-full box-border overflow-x-hidden ${state.isOpen ? 'max-h-[35rem] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent' : ''}`}>
               <PanelRenderer
                 state={state.state}
                 form={state.form}

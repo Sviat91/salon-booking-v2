@@ -189,7 +189,7 @@ export default function PhoneInput({
     <div className="relative w-full max-w-full box-border" ref={dropdownRef}>
       <div className="flex w-full max-w-full">
         {/* Country selector */}
-        <div className="flex items-center gap-2 px-3 py-2 rounded-l-xl border border-r-0 border-border bg-white/80 dark:bg-dark-card/80 dark:border-dark-border hover:bg-white dark:hover:bg-dark-card transition-all duration-200">
+        <div className="flex items-center gap-2 px-3 py-2 rounded-l-xl border border-r-0 border-border bg-transparent text-foreground dark:border-dark-border transition-all duration-200">
           <span className="text-lg">{isCustomMode ? '🌍' : selectedCountry?.flag}</span>
           
           {isCustomMode ? (
@@ -236,8 +236,8 @@ export default function PhoneInput({
           disabled={disabled}
           className={`
             flex-1 min-w-0 px-3 py-2 rounded-r-xl border border-border 
-            bg-white/80 dark:bg-dark-card/80 dark:border-dark-border 
-            dark:text-dark-text dark:placeholder-dark-muted
+            bg-transparent text-foreground dark:border-dark-border 
+            dark:placeholder-dark-muted
             focus:outline-none focus:ring-2 focus:ring-primary/20
             transition-all duration-200 box-border
             ${disabled ? 'opacity-50 cursor-not-allowed' : ''}

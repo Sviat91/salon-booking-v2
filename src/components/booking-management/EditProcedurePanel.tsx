@@ -90,7 +90,7 @@ export default function EditProcedurePanel({
           <button
             type="button"
             onClick={() => setIsOpen(o => !o)}
-            className="relative w-full rounded-xl border border-border bg-white/80 px-3 py-2.5 text-left focus:outline-none focus:ring-2 focus:ring-primary dark:bg-dark-card/80 dark:border-dark-border dark:text-dark-text"
+            className="relative w-full rounded-xl border border-border bg-transparent text-foreground px-3 py-2.5 text-left focus:outline-none focus:ring-2 focus:ring-primary dark:border-dark-border"
           >
             {selectedProcedure ? (
               <span className="block whitespace-normal break-words text-sm">
@@ -110,7 +110,7 @@ export default function EditProcedurePanel({
           </button>
           
           <div
-            className={`overflow-hidden transition-all duration-200 ease-out ${isOpen ? 'max-h-60 opacity-100 mt-2' : 'max-h-0 opacity-0'} bg-white/90 border border-border rounded-xl dark:bg-dark-card/90 dark:border-dark-border`}
+            className={`overflow-hidden transition-all duration-200 ease-out ${isOpen ? 'max-h-60 opacity-100 mt-2' : 'max-h-0 opacity-0'} bg-card text-card-foreground border border-border rounded-xl dark:border-dark-border`}
           >
             <ul className="max-h-60 overflow-auto p-1">
               {procedures.map((procedure) => {

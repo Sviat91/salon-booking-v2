@@ -239,7 +239,7 @@ export default function BookingForm({
       <div className="space-y-2">
         <div>
           <input 
-            className={`w-full rounded-xl border ${nameError ? 'border-red-500' : 'border-border'} bg-white/80 px-3 py-2 dark:bg-dark-card/80 dark:border-dark-border dark:text-dark-text dark:placeholder-dark-muted`}
+            className={`w-full rounded-xl border ${nameError ? 'border-red-500' : 'border-border'} bg-transparent px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary dark:border-dark-border dark:placeholder-dark-muted`}
             placeholder={t('form.name')} 
             value={name} 
             onChange={e => { setName(e.target.value); if (nameError) setNameError(null); }}
@@ -267,7 +267,7 @@ export default function BookingForm({
         </div>
         <div>
           <input 
-            className={`w-full rounded-xl border ${emailError ? 'border-red-500' : 'border-border'} bg-white/80 px-3 py-2 dark:bg-dark-card/80 dark:border-dark-border dark:text-dark-text dark:placeholder-dark-muted`}
+            className={`w-full rounded-xl border ${emailError ? 'border-red-500' : 'border-border'} bg-transparent px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary dark:border-dark-border dark:placeholder-dark-muted`}
             placeholder={t('form.emailOptional')} 
             value={email} 
             onChange={e => { setEmail(e.target.value); if (emailError) setEmailError(null); }}
