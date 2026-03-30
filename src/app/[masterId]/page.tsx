@@ -260,7 +260,7 @@ export default function Page({ params }: PageProps) {
       <div className="mx-auto w-full max-w-5xl px-0">
         <BrandHeader onLogoClick={closeBookingManagement} />
         <motion.div 
-          className="mt-8 space-y-6 lg:grid lg:grid-cols-[auto,auto] lg:items-start lg:justify-center lg:gap-6 lg:space-y-0"
+          className="mt-8 space-y-6 lg:grid lg:grid-cols-[1fr_minmax(0,22rem)] lg:items-start lg:justify-center lg:gap-6 lg:space-y-0"
           initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={prefersReducedMotion ? { duration: 0 } : { 

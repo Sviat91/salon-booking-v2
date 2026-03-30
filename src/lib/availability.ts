@@ -230,10 +230,11 @@ export async function getDaySlots(
 
   const weekly = await readWeeklyFromDb(masterId)
   const dateObj = new Date(dateISO + 'T00:00:00')
+  const untilObj = new Date(dateISO + 'T23:59:59')
   const dow = jsDayOfWeek(dateObj)
 
-  // Get overrides for this specific day
-  const overrides = await readOverridesFromDb(masterId, dateObj, dateObj)
+  // Get overrides for this specific full day bounds, not a single exact timestamp which can miss because of local-UTC offsets
+  const overrides = await readOverridesFromDb(masterId, dateObj, untilObj)
   const override = overrides.get(dateISO)
 
   let isDayOff = false
