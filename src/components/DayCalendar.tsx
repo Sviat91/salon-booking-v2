@@ -237,7 +237,7 @@ export default function DayCalendar({ procedureId, onChange }: { procedureId?: s
       </div>
       {isLoadingDays && (
         <div
-          className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-2xl bg-white/80 backdrop-blur-sm dark:bg-dark-card/80"
+          className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-2xl bg-card/80 backdrop-blur-sm"
           onClick={(event) => event.stopPropagation()}
         >
           <div className="h-10 w-10 animate-spin rounded-full border-2 border-neutral-300 border-t-neutral-500 dark:border-dark-muted dark:border-t-dark-text" />
