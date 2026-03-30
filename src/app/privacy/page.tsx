@@ -10,7 +10,7 @@ export default function PrivacyPage() {
   const { t } = useTranslation();
   const language = useCurrentLanguage();
   return (
-    <main className="min-h-screen relative">
+    <main className="flex-1 relative">
       <BackButton />
       {/* Theme and Language toggles - same position as main page */}
       <div className="absolute top-4 right-4 z-20 flex items-center gap-2">

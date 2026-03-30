@@ -2,7 +2,7 @@
 import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
-import { useSelectedMaster } from '@/contexts/MasterContext'
+import { useSelectedMaster, useSelectedMasterId } from '@/contexts/MasterContext'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
 
 interface BrandHeaderProps {
@@ -12,13 +12,18 @@ interface BrandHeaderProps {
 export default function BrandHeader({ onLogoClick }: BrandHeaderProps) {
   const { t } = useTranslation()
   const selectedMaster = useSelectedMaster()
+  const selectedMasterId = useSelectedMasterId()
   const logoClickable = typeof onLogoClick === 'function'
   const prefersReducedMotion = useReducedMotion()
   
+  // Use selectedMasterId directly for the layoutId instead of selectedMaster?.id
+  // because selectedMaster is updated asynchronously and would break the Framer Motion cross-route flight animation
+  const masterPhotoId = selectedMaster?.id || selectedMasterId || 'unknown'
+
   return (
     <header className="flex flex-col items-center gap-3 py-4 lg:py-6">
       <motion.div
-        layoutId={prefersReducedMotion ? undefined : `master-photo-${selectedMaster?.id ?? 'unknown'}`}
+        layoutId={prefersReducedMotion ? undefined : `master-photo-${masterPhotoId}`}
         className={`h-20 w-20 rounded-full overflow-hidden ring-2 ring-accent/70 shadow-sm bg-white${
           logoClickable ? ' cursor-pointer' : ''
         }`}

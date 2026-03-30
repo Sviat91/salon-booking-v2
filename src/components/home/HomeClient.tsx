@@ -56,7 +56,7 @@ export default function HomeClient({ initialReviews, config, isPreview }: HomeCl
   }
 
   return (
-    <main className="flex flex-col relative pb-4 min-h-screen">
+    <main className="flex-1 flex flex-col relative pb-4">
       <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
         <Link 
           href="/admin" 

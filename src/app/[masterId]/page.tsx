@@ -248,7 +248,7 @@ export default function Page({ params }: PageProps) {
   }
 
   return (
-    <main className="px-3 py-4 sm:p-6 relative flex-1 flex flex-col justify-center w-full max-w-full box-border overflow-x-hidden">
+    <main className="px-3 py-4 sm:p-6 relative flex-1 flex flex-col w-full max-w-full box-border overflow-x-hidden">
       <BackButton />
       <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
         <LanguageToggle />
