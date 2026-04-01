@@ -34,7 +34,8 @@ export default function Page({ params }: PageProps) {
   
   // Validate masterId from URL — check DB dynamically
   const masterId = params.masterId
-  const [isValidMaster, setIsValidMaster] = useState<boolean | null>(null)
+  // Start true optimistically so Framer Motion can cross-route animate layoutIds instantly 
+  const [isValidMaster, setIsValidMaster] = useState<boolean>(true)
   
   useEffect(() => {
     // Validate via DB: check if this masterId exists as a MASTER user
@@ -43,8 +44,8 @@ export default function Page({ params }: PageProps) {
       .then(data => {
         const masters = data.masters || []
         const found = masters.some((m: { id: string }) => m.id === masterId)
-        setIsValidMaster(found)
         if (!found) {
+          setIsValidMaster(false)
           router.push('/')
           return
         }
@@ -242,8 +243,8 @@ export default function Page({ params }: PageProps) {
     resetToInitialState()
   }
 
-  // Don't render until master is validated (guard AFTER all hooks)
-  if (isValidMaster === null || isValidMaster === false) {
+  // Don't render if explicitly failed validation
+  if (isValidMaster === false) {
     return null
   }
 
