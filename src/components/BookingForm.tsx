@@ -52,7 +52,6 @@ export default function BookingForm({
   const { data: proceduresData } = useQuery<ProceduresResponse>({
     queryKey: ['procedures', masterId],
     queryFn: () => fetch(`/api/procedures?masterId=${masterId}`).then(r => r.json() as Promise<ProceduresResponse>),
-    staleTime: 60 * 60 * 1000, // 1 hour - procedures rarely change
   })
 
   const selectedProcedure = useMemo(() => {

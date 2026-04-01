@@ -20,6 +20,7 @@ export async function POST(req: NextRequest) {
     body = bookingApiSchema.parse(raw)
   } catch (err) {
     if (err instanceof z.ZodError) {
+      console.error("[Booking API] Validation error:", err.errors)
       return NextResponse.json(
         { error: "Invalid booking data", code: "VALIDATION_ERROR", details: err.errors[0]?.message },
         { status: 400 }
@@ -38,10 +39,25 @@ export async function POST(req: NextRequest) {
   const startDate = new Date(startISO)
   const endDate = new Date(endISO)
 
-  // Extract date and time components
-  const dateOnly = startISO.slice(0, 10) // "YYYY-MM-DD"
-  const startTime = `${String(startDate.getHours()).padStart(2, '0')}:${String(startDate.getMinutes()).padStart(2, '0')}`
-  const endTime = `${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}`
+  // Extract date and time components explicitly in Warsaw timezone
+  const wTimeFormatter = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Europe/Warsaw',
+    hour12: false,
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+  const wDateFormatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Europe/Warsaw',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  })
+
+  // Returns "YYYY-MM-DD" safely
+  const dateOnly = wDateFormatter.format(startDate)
+  // Returns "HH:mm" safely regardless of Node.js server timezone
+  const startTime = wTimeFormatter.format(startDate)
+  const endTime = wTimeFormatter.format(endDate)
 
   try {
     // 1. Check for time conflict — no overlapping appointments for this master

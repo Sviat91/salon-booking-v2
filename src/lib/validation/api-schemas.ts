@@ -20,17 +20,17 @@ import { z } from 'zod'
 export const bookingApiSchema = z.object({
   startISO: z.string().min(16, 'Invalid start time format'),
   endISO: z.string().min(16, 'Invalid end time format'),
-  procedureId: z.string().optional(),
-  masterId: z.string().optional(),
+  procedureId: z.string().nullish(),
+  masterId: z.string().nullish(),
   name: z.string().min(2, 'Name must be at least 2 characters').max(100, 'Name is too long'),
   phone: z.string().min(5, 'Phone number is too short').max(20, 'Phone number is too long'),
-  email: z.string().email('Invalid email format').optional().or(z.literal('')),
-  turnstileToken: z.string().optional(),
+  email: z.string().email('Invalid email format').optional().or(z.literal('')).nullish(),
+  turnstileToken: z.string().nullish(),
   consents: z.object({
     dataProcessing: z.boolean(),
     terms: z.boolean(),
     notifications: z.boolean(),
-  }).optional(),
+  }).nullish(),
 })
 
 export type BookingApiInput = z.infer<typeof bookingApiSchema>

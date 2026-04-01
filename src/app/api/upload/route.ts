@@ -8,9 +8,8 @@ const ALLOWED_TYPES = ["image/png", "image/jpeg", "image/webp", "image/gif"]
 const MAX_SIZE_BYTES = 4 * 1024 * 1024 // 4 MB
 
 export async function POST(req: NextRequest) {
-  // Only authenticated admins/masters can upload
   const session = await auth()
-  if (!session?.user || !["SUPERADMIN", "MASTER"].includes(session.user.role ?? "")) {
+  if (!session?.user || !["ADMIN", "MASTER"].includes(session.user.role ?? "")) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
