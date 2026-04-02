@@ -360,7 +360,7 @@ export default function DataExportModal({
       aria-labelledby="export-modal-title"
     >
       <div
-        className="w-full max-w-2xl rounded-2xl bg-white p-6 shadow-xl dark:bg-dark-card max-h-[90vh] overflow-y-auto"
+        className="w-full max-w-2xl rounded-2xl bg-card p-6 shadow-xl max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-4 flex items-start justify-between gap-4">
@@ -454,7 +454,7 @@ export default function DataExportModal({
                 ref={firstFieldRef}
                 value={name}
                 onChange={(event) => setName(event.target.value)}
-                className="w-full rounded-xl border border-border bg-white/90 px-4 py-3 text-sm text-text focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-dark-border dark:bg-dark-card/80 dark:text-dark-text"
+                className="w-full rounded-xl border border-border bg-card/80 px-4 py-3 text-sm text-card-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
                 placeholder={t('gdpr.export.namePlaceholder')}
                 autoComplete="name"
                 required
@@ -481,14 +481,14 @@ export default function DataExportModal({
                 id="export-email"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
-                className="w-full rounded-xl border border-border bg-white/90 px-4 py-3 text-sm text-text focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-dark-border dark:bg-dark-card/80 dark:text-dark-text"
+                className="w-full rounded-xl border border-border bg-card/80 px-4 py-3 text-sm text-card-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
                 placeholder={t('gdpr.export.emailPlaceholder')}
                 autoComplete="email"
               />
             </div>
 
             {siteKey && (
-              <div className="rounded-xl border border-border/60 bg-white/60 p-3 dark:border-dark-border/60 dark:bg-dark-border/20">
+              <div className="rounded-xl border border-border/60 bg-muted/20 p-3">
                 <div ref={turnstileRef} />
               </div>
             )}

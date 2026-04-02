@@ -16,6 +16,15 @@ interface Props {
 
 export default function ViewAppointmentModal({ appointment, onClose, onDelete, onEdit, onDuplicate }: Props) {
   const [isDeleting, setIsDeleting] = useState(false)
+  const formattedServicePrice =
+    appointment.service.price > 0
+      ? new Intl.NumberFormat("pl-PL", {
+          style: "currency",
+          currency: "PLN",
+          minimumFractionDigits: Number.isInteger(appointment.service.price) ? 0 : 2,
+          maximumFractionDigits: 2,
+        }).format(appointment.service.price)
+      : ""
 
   const handleDelete = async () => {
     if (!confirm("Are you sure you want to delete this appointment?")) return
@@ -83,7 +92,7 @@ export default function ViewAppointmentModal({ appointment, onClose, onDelete, o
             <p className="text-xs text-muted-foreground font-medium mb-1.5 flex items-center gap-1.5"><Scissors className="w-3.5 h-3.5"/> Service</p>
             <div className="flex justify-between items-center">
               <p className="font-semibold text-base">{appointment.service.name}</p>
-              <p className="font-bold text-primary">{appointment.service.price > 0 ? `$${appointment.service.price}` : ''}</p>
+              <p className="font-bold text-primary">{formattedServicePrice}</p>
             </div>
             <p className="text-sm text-muted-foreground mt-1">{appointment.service.duration} minutes</p>
           </div>

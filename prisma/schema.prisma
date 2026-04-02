@@ -31,6 +31,7 @@ model User {
   schedules            Schedule[]    @relation("MasterSchedules")
   dateOverrides        DateOverride[] @relation("MasterDateOverrides")
   createdServices      Service[]     @relation("MasterCreatedServices")
+  consentRecords       ConsentRecord[]
 }
 
 model MasterProfile {
@@ -79,6 +80,36 @@ model MasterService {
   service         Service       @relation(fields: [serviceId], references: [id], onDelete: Cascade)
 
   @@unique([masterProfileId, serviceId])
+}
+
+model ConsentRecord {
+  id                     String   @id @default(cuid())
+  userId                 String?
+  user                   User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  phoneDigits            String
+  email                  String?
+  emailNormalized        String?
+  fullName               String
+  normalizedName         String
+
+  consentDate            DateTime @default(now())
+  ipHash                 String?
+  consentPrivacyV10      Boolean
+  consentTermsV10        Boolean
+  consentNotificationsV10 Boolean
+
+  consentWithdrawnDate   DateTime?
+  withdrawalMethod       String?
+  requestErasureDate     DateTime?
+  erasureDate            DateTime?
+  erasureMethod          String?
+
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  @@index([phoneDigits, normalizedName, consentDate])
+  @@index([userId, consentDate])
 }
 
 model Schedule {

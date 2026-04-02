@@ -65,7 +65,7 @@ export default function ResultsPanel({
         <div className="text-sm text-neutral-600 dark:text-dark-muted">
           {t('management.total')} <strong>{results.length}</strong> {getBookingCountText(results.length)}
         </div>
-        <div className="text-xs text-neutral-500 dark:text-dark-muted bg-neutral-50 dark:bg-dark-border/30 rounded-lg p-2">
+        <div className="text-xs text-neutral-500 dark:text-dark-muted bg-muted/30 rounded-lg p-2">
           ℹ️ {t('management.onlineBookingsNote')}
         </div>
       </div>

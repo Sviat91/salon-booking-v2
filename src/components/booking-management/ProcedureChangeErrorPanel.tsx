@@ -89,7 +89,7 @@ export default function ProcedureChangeErrorPanel({
           <button
             type="button"
             onClick={onContactMaster}
-            className="flex-1 rounded-lg border border-neutral-300 bg-white px-4 py-2.5 text-sm font-medium text-neutral-700 transition-all duration-200 hover:bg-neutral-50 hover:border-neutral-400 hover:shadow-sm dark:border-dark-border dark:bg-dark-card dark:text-dark-text dark:hover:bg-dark-border/50"
+            className="flex-1 rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-medium text-card-foreground transition-all duration-200 hover:bg-muted hover:border-border hover:shadow-sm"
           >
             {t('management.contactSupport')}
           </button>
@@ -97,7 +97,7 @@ export default function ProcedureChangeErrorPanel({
         <button
           type="button"
           onClick={onBackToResults}
-          className="w-full rounded-lg border border-neutral-300 bg-white px-4 py-2.5 text-sm font-medium text-neutral-700 transition-all duration-200 hover:bg-neutral-50 hover:border-neutral-400 hover:shadow-sm dark:border-dark-border dark:bg-dark-card dark:text-dark-text dark:hover:bg-dark-border/50"
+          className="w-full rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-medium text-card-foreground transition-all duration-200 hover:bg-muted hover:border-border hover:shadow-sm"
         >
           {t('management.backToResults')}
         </button>

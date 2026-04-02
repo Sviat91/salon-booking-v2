@@ -2,17 +2,15 @@
 import * as React from "react"
 import { useSearchParams } from "next/navigation"
 import { signIn } from "next-auth/react"
-import { useTranslation } from "react-i18next"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
-interface UserAuthFormProps extends React.HTMLAttributes<HTMLDivElement> {}
+type UserAuthFormProps = React.HTMLAttributes<HTMLDivElement>
 
 export default function LoginForm({ className, ...props }: UserAuthFormProps) {
-  const { t } = useTranslation()
   const searchParams = useSearchParams()
   const [isLoading, setIsLoading] = React.useState<boolean>(false)
   const [error, setError] = React.useState<string | null>(null)
@@ -48,7 +46,7 @@ export default function LoginForm({ className, ...props }: UserAuthFormProps) {
       } else if (res?.url) {
         window.location.href = res.url
       }
-    } catch (err) {
+    } catch {
       setError('An error occurred. Please try again.')
     } finally {
       setIsLoading(false)
@@ -60,7 +58,7 @@ export default function LoginForm({ className, ...props }: UserAuthFormProps) {
       <form onSubmit={onSubmit}>
         <div className="grid gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email" className="text-foreground">Email</Label>
             <Input
               id="email"
               name="email"
@@ -71,10 +69,11 @@ export default function LoginForm({ className, ...props }: UserAuthFormProps) {
               autoCorrect="off"
               disabled={isLoading}
               required
+              className="h-11 border-input bg-card text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50"
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password" className="text-foreground">Password</Label>
             <Input
               id="password"
               name="password"
@@ -82,6 +81,7 @@ export default function LoginForm({ className, ...props }: UserAuthFormProps) {
               autoComplete="current-password"
               disabled={isLoading}
               required
+              className="h-11 border-input bg-card text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50"
             />
           </div>
           {error && (
@@ -119,3 +119,4 @@ export default function LoginForm({ className, ...props }: UserAuthFormProps) {
     </div>
   )
 }
+

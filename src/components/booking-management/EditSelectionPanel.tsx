@@ -45,7 +45,7 @@ export default function EditSelectionPanel({
       </div>
 
       {/* Booking info */}
-      <div className="rounded-xl border border-neutral-200 bg-neutral-50/50 p-4 dark:border-dark-border dark:bg-dark-border/30">
+      <div className="rounded-xl border border-border bg-muted/25 p-4">
         <div className="space-y-1">
           <div className="font-medium text-neutral-800 dark:text-dark-text">{procedureName}</div>
           <div className="text-sm text-neutral-600 dark:text-dark-muted">
@@ -59,7 +59,7 @@ export default function EditSelectionPanel({
         <button
           type="button"
           onClick={onChangeTime}
-          className="w-full rounded-lg border border-neutral-300 bg-white p-4 text-left transition-all duration-200 hover:bg-neutral-50 hover:border-neutral-400 hover:shadow-sm dark:border-dark-border dark:bg-dark-card dark:hover:bg-dark-border/50 dark:hover:border-dark-border/80"
+          className="w-full rounded-lg border border-border bg-card p-4 text-left transition-all duration-200 hover:bg-muted hover:border-border hover:shadow-sm"
         >
           <div className="flex items-center space-x-3">
             <div className="text-2xl">🕐</div>
@@ -77,7 +77,7 @@ export default function EditSelectionPanel({
         <button
           type="button"
           onClick={onChangeProcedure}
-          className="w-full rounded-lg border border-neutral-300 bg-white p-4 text-left transition-all duration-200 hover:bg-neutral-50 hover:border-neutral-400 hover:shadow-sm dark:border-dark-border dark:bg-dark-card dark:hover:bg-dark-border/50 dark:hover:border-dark-border/80"
+          className="w-full rounded-lg border border-border bg-card p-4 text-left transition-all duration-200 hover:bg-muted hover:border-border hover:shadow-sm"
         >
           <div className="flex items-center space-x-3">
             <div className="text-2xl">💆‍♀️</div>
@@ -98,7 +98,7 @@ export default function EditSelectionPanel({
         <button
           type="button"
           onClick={onBack}
-          className="w-full rounded-lg border border-neutral-300 bg-white px-4 py-3 text-sm font-medium text-neutral-700 transition-all duration-200 hover:bg-neutral-50 hover:border-neutral-400 hover:shadow-sm dark:border-dark-border dark:bg-dark-card dark:text-dark-text dark:hover:bg-dark-border/50 dark:hover:border-dark-border/80"
+          className="w-full rounded-lg border border-border bg-card px-4 py-3 text-sm font-medium text-card-foreground transition-all duration-200 hover:bg-muted hover:border-border hover:shadow-sm"
         >
           {t('management.backToBookingList')}
         </button>

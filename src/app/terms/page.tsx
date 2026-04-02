@@ -20,13 +20,13 @@ export default function TermsPage() {
       <div className="container mx-auto max-w-4xl px-6 py-8">
         {/* Header */}
         <div className="mb-6 text-center">
-          <h1 className="text-2xl font-bold text-text dark:text-dark-text mb-2">
+          <h1 className="text-2xl font-bold text-foreground mb-2">
             {t('terms.title')}
           </h1>
         </div>
 
         {/* Content */}
-        <div className="bg-white/80 dark:bg-dark-card/80 backdrop-blur-sm rounded-2xl border border-border dark:border-dark-border p-8">
+        <div className="bg-card backdrop-blur-sm rounded-2xl border border-border p-8">
           <div className="prose prose-neutral dark:prose-invert max-w-none">
             
             {language !== 'pl' && (
@@ -134,7 +134,7 @@ export default function TermsPage() {
 
             <section className="mb-8">
               <h2 className="text-xl font-semibold text-text dark:text-dark-text mb-4">§ 12. KONTAKT</h2>
-              <div className="bg-neutral-50 dark:bg-dark-border/30 rounded-lg p-6">
+              <div className="bg-muted/30 rounded-lg p-6">
                 <h3 className="font-medium text-text dark:text-dark-text mb-3">KOSMETOLOGIA I MASAŻ YULIIA YAKOVENKO</h3>
                 <div className="space-y-2 text-neutral-700 dark:text-dark-text">
                   <p><strong>Adres:</strong> Herbu Janina 3a/40, 02-972 Warszawa</p>

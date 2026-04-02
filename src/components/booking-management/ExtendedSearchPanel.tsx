@@ -70,7 +70,7 @@ export default function ExtendedSearchPanel({
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
             placeholder={t('management.fullNamePlaceholder')}
-            className="w-full max-w-full box-border px-3 py-2.5 rounded-lg border border-neutral-300 bg-white text-sm dark:border-dark-border dark:bg-dark-card dark:text-dark-text focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-accent"
+            className="w-full max-w-full box-border px-3 py-2.5 rounded-lg border border-border bg-card text-sm text-card-foreground focus:outline-none focus:ring-2 focus:ring-primary"
           />
         </div>
         
@@ -84,7 +84,7 @@ export default function ExtendedSearchPanel({
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             placeholder={t('management.phonePlaceholder')}
-            className="w-full max-w-full box-border px-3 py-2.5 rounded-lg border border-neutral-300 bg-white text-sm dark:border-dark-border dark:bg-dark-card dark:text-dark-text focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-accent"
+            className="w-full max-w-full box-border px-3 py-2.5 rounded-lg border border-border bg-card text-sm text-card-foreground focus:outline-none focus:ring-2 focus:ring-primary"
           />
         </div>
         
@@ -98,7 +98,7 @@ export default function ExtendedSearchPanel({
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder={t('management.emailPlaceholder')}
-            className="w-full max-w-full box-border px-3 py-2.5 rounded-lg border border-neutral-300 bg-white text-sm dark:border-dark-border dark:bg-dark-card dark:text-dark-text focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-accent"
+            className="w-full max-w-full box-border px-3 py-2.5 rounded-lg border border-border bg-card text-sm text-card-foreground focus:outline-none focus:ring-2 focus:ring-primary"
           />
         </div>
         
@@ -123,7 +123,7 @@ export default function ExtendedSearchPanel({
                   onClick={(e) => e.stopPropagation()}
                   min={minDateStr}
                   max={maxDateStr}
-                  className="w-full max-w-full box-border px-3 py-2 rounded-lg border border-amber-300 bg-white text-sm dark:border-amber-600 dark:bg-dark-card dark:text-dark-text focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  className="w-full max-w-full box-border px-3 py-2 rounded-lg border border-amber-400/60 bg-card text-sm text-card-foreground focus:outline-none focus:ring-2 focus:ring-amber-500"
                 />
               </div>
             </div>
@@ -142,7 +142,7 @@ export default function ExtendedSearchPanel({
                   onClick={(e) => e.stopPropagation()}
                   min={startDate || minDateStr}
                   max={maxDateStr}
-                  className="w-full max-w-full box-border px-3 py-2 rounded-lg border border-amber-300 bg-white text-sm dark:border-amber-600 dark:bg-dark-card dark:text-dark-text focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  className="w-full max-w-full box-border px-3 py-2 rounded-lg border border-amber-400/60 bg-card text-sm text-card-foreground focus:outline-none focus:ring-2 focus:ring-amber-500"
                 />
               </div>
             </div>
@@ -160,7 +160,7 @@ export default function ExtendedSearchPanel({
           type="button"
           onClick={onBack}
           disabled={isSearching}
-          className="flex-1 rounded-lg border border-neutral-300 bg-white px-4 py-2.5 text-sm font-medium text-neutral-700 transition-all hover:bg-neutral-50 hover:border-neutral-400 hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed dark:border-dark-border dark:bg-dark-card dark:text-dark-text dark:hover:bg-dark-border/50"
+          className="flex-1 rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-medium text-card-foreground transition-all hover:bg-muted hover:border-border hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {t('management.back')}
         </button>

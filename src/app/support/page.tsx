@@ -149,10 +149,10 @@ export default function SupportPage() {
       <div className="container mx-auto max-w-6xl px-6 py-6">
         {/* Header */}
         <div className="mb-6 text-center">
-          <h1 className="text-2xl font-bold text-text dark:text-dark-text mb-3">
+          <h1 className="text-2xl font-bold text-foreground mb-3">
             {t('support.title')}
           </h1>
-          <p className="text-neutral-600 dark:text-dark-muted max-w-2xl mx-auto">
+          <p className="text-muted-foreground max-w-2xl mx-auto">
             {t('support.subtitle')}
           </p>
         </div>
@@ -160,8 +160,8 @@ export default function SupportPage() {
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Contact Form */}
           <div className="lg:col-span-2">
-            <div className="bg-white/80 dark:bg-dark-card/80 backdrop-blur-sm rounded-2xl border border-border dark:border-dark-border p-6">
-              <h2 className="text-xl font-semibold text-text dark:text-dark-text mb-4">
+            <div className="bg-card backdrop-blur-sm rounded-2xl border border-border p-6 text-foreground">
+              <h2 className="text-xl font-semibold text-foreground mb-4">
                 {t('support.contactForm')}
               </h2>
               
@@ -172,8 +172,8 @@ export default function SupportPage() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                   </div>
-                  <h3 className="text-xl font-semibold text-text dark:text-dark-text mb-2">{t('support.successTitle')}</h3>
-                  <p className="text-neutral-600 dark:text-dark-muted mb-6">
+                  <h3 className="text-xl font-semibold text-foreground mb-2">{t('support.successTitle')}</h3>
+                  <p className="text-muted-foreground mb-6">
                     {t('support.successMessage')}
                   </p>
                   <button 
@@ -190,7 +190,7 @@ export default function SupportPage() {
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="grid md:grid-cols-2 gap-6">
                     <div>
-                      <label className="block text-sm font-medium text-text dark:text-dark-text mb-2">
+                      <label className="block text-sm font-medium text-foreground mb-2">
                         {t('form.name')} *
                       </label>
                       <input
@@ -198,12 +198,12 @@ export default function SupportPage() {
                         required
                         value={formData.name}
                         onChange={(e) => handleInputChange('name', e.target.value)}
-                        className="w-full rounded-xl border border-border bg-white/80 px-4 py-3 dark:bg-dark-card/80 dark:border-dark-border dark:text-dark-text dark:placeholder-dark-muted focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        className="w-full rounded-xl border border-border bg-card px-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                         placeholder="Wprowadź swoje imię i nazwisko"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-text dark:text-dark-text mb-2">
+                      <label className="block text-sm font-medium text-foreground mb-2">
                         E-mail *
                       </label>
                       <input
@@ -211,21 +211,21 @@ export default function SupportPage() {
                         required
                         value={formData.email}
                         onChange={(e) => handleInputChange('email', e.target.value)}
-                        className="w-full rounded-xl border border-border bg-white/80 px-4 py-3 dark:bg-dark-card/80 dark:border-dark-border dark:text-dark-text dark:placeholder-dark-muted focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        className="w-full rounded-xl border border-border bg-card px-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                         placeholder="twoj.email@example.com"
                       />
                     </div>
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-text dark:text-dark-text mb-2">
+                    <label className="block text-sm font-medium text-foreground mb-2">
                       {t('support.subject')} *
                     </label>
                     <select
                       required
                       value={formData.subject}
                       onChange={(e) => handleInputChange('subject', e.target.value)}
-                      className="w-full rounded-xl border border-border bg-white/80 px-4 py-3 dark:bg-dark-card/80 dark:border-dark-border dark:text-dark-text focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      className="w-full rounded-xl border border-border bg-card px-4 py-3 text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                     >
                       <option value="">{t('form.selectTopic')}</option>
                       <option value="booking">{t('support.topics.booking')}</option>
@@ -238,7 +238,7 @@ export default function SupportPage() {
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-text dark:text-dark-text mb-2">
+                    <label className="block text-sm font-medium text-foreground mb-2">
                       {t('form.message')} *
                     </label>
                     <textarea
@@ -246,7 +246,7 @@ export default function SupportPage() {
                       rows={4}
                       value={formData.message}
                       onChange={(e) => handleInputChange('message', e.target.value)}
-                      className="w-full rounded-xl border border-border bg-white/80 px-4 py-3 dark:bg-dark-card/80 dark:border-dark-border dark:text-dark-text dark:placeholder-dark-muted focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
+                      className="w-full rounded-xl border border-border bg-card px-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none"
                       placeholder="Opisz szczegółowo swój problem lub pytanie..."
                     />
                   </div>
@@ -266,7 +266,7 @@ export default function SupportPage() {
                   )}
 
                   {siteKey && !turnstileToken && (
-                    <div className="text-xs text-neutral-500 dark:text-dark-muted text-center">
+                    <div className="text-xs text-muted-foreground text-center">
                       Potwierdź weryfikację Turnstile, aby kontynuować.
                     </div>
                   )}
@@ -286,8 +286,8 @@ export default function SupportPage() {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Contact Info */}
-            <div className="bg-white/80 dark:bg-dark-card/80 backdrop-blur-sm rounded-2xl border border-border dark:border-dark-border p-5">
-              <h3 className="text-lg font-semibold text-text dark:text-dark-text mb-3">
+            <div className="bg-card backdrop-blur-sm rounded-2xl border border-border p-5">
+              <h3 className="text-lg font-semibold text-foreground mb-3">
                 Informacje kontaktowe
               </h3>
               <div className="space-y-4">
@@ -299,8 +299,8 @@ export default function SupportPage() {
                     </svg>
                   </div>
                   <div>
-                    <h4 className="font-medium text-text dark:text-dark-text">Adres</h4>
-                    <p className="text-sm text-neutral-600 dark:text-dark-muted">
+                    <h4 className="font-medium text-foreground">Adres</h4>
+                    <p className="text-sm text-muted-foreground">
                       Sarmacka 4B/ lokal 106<br />
                       02-972 Warszawa
                     </p>
@@ -314,8 +314,8 @@ export default function SupportPage() {
                     </svg>
                   </div>
                   <div>
-                    <h4 className="font-medium text-text dark:text-dark-text">Czas odpowiedzi</h4>
-                    <p className="text-sm text-neutral-600 dark:text-dark-muted">
+                    <h4 className="font-medium text-foreground">Czas odpowiedzi</h4>
+                    <p className="text-sm text-muted-foreground">
                       Zwykle w ciągu 72 godzin<br />
                       w dni robocze
                     </p>
@@ -325,33 +325,33 @@ export default function SupportPage() {
             </div>
 
             {/* Quick Actions */}
-            <div className="bg-white/80 dark:bg-dark-card/80 backdrop-blur-sm rounded-2xl border border-border dark:border-dark-border p-5">
-              <h3 className="text-lg font-semibold text-text dark:text-dark-text mb-3">
+            <div className="bg-card backdrop-blur-sm rounded-2xl border border-border p-5">
+              <h3 className="text-lg font-semibold text-foreground mb-3">
                 Szybkie akcje
               </h3>
               <div className="space-y-3">
                 <button 
                   onClick={handleOpenErasureModal}
-                  className="w-full text-left p-3 rounded-lg border border-border dark:border-dark-border hover:bg-primary/5 dark:hover:bg-accent/5 transition-colors"
+                  className="w-full text-left p-3 rounded-lg border border-border hover:bg-muted/50 transition-colors"
                 >
-                  <div className="font-medium text-text dark:text-dark-text text-sm">{t('support.eraseButton')}</div>
-                  <div className="text-xs text-neutral-600 dark:text-dark-muted">{t('support.eraseData')}</div>
+                  <div className="font-medium text-foreground text-sm">{t('support.eraseButton')}</div>
+                  <div className="text-xs text-muted-foreground">{t('support.eraseData')}</div>
                 </button>
                 
                 <button 
                   onClick={handleOpenExportModal}
-                  className="w-full text-left p-3 rounded-lg border border-border dark:border-dark-border hover:bg-primary/5 dark:hover:bg-accent/5 transition-colors"
+                  className="w-full text-left p-3 rounded-lg border border-border hover:bg-muted/50 transition-colors"
                 >
-                  <div className="font-medium text-text dark:text-dark-text text-sm">{t('support.exportButton')}</div>
-                  <div className="text-xs text-neutral-600 dark:text-dark-muted">{t('support.exportData')}</div>
+                  <div className="font-medium text-foreground text-sm">{t('support.exportButton')}</div>
+                  <div className="text-xs text-muted-foreground">{t('support.exportData')}</div>
                 </button>
                 
                 <button 
                   onClick={handleOpenConsentModal}
-                  className="w-full text-left p-3 rounded-lg border border-border dark:border-dark-border hover:bg-primary/5 dark:hover:bg-accent/5 transition-colors"
+                  className="w-full text-left p-3 rounded-lg border border-border hover:bg-muted/50 transition-colors"
                 >
-                  <div className="font-medium text-text dark:text-dark-text text-sm">{t('support.withdrawButton')}</div>
-                  <div className="text-xs text-neutral-600 dark:text-dark-muted">{t('support.withdrawConsent')}</div>
+                  <div className="font-medium text-foreground text-sm">{t('support.withdrawButton')}</div>
+                  <div className="text-xs text-muted-foreground">{t('support.withdrawConsent')}</div>
                 </button>
               </div>
             </div>
@@ -365,3 +365,4 @@ export default function SupportPage() {
     </main>
   )
 }
+

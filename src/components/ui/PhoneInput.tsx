@@ -1,5 +1,5 @@
 "use client"
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect } from 'react'
 
 interface Country {
   code: string
@@ -248,14 +248,14 @@ export default function PhoneInput({
 
       {/* Dropdown */}
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-dark-card border border-border dark:border-dark-border rounded-xl shadow-lg max-h-60 overflow-hidden max-w-full">
+        <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-card border border-border rounded-xl shadow-lg max-h-60 overflow-hidden max-w-full">
           <div className="p-2 border-b border-border dark:border-dark-border">
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Szukaj kraju..."
-              className="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-dark-border bg-white dark:bg-dark-card/80 dark:text-dark-text dark:placeholder-dark-muted focus:outline-none focus:ring-2 focus:ring-primary/20"
+              className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-card/80 text-card-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
               autoFocus
             />
           </div>

@@ -34,7 +34,7 @@ export default function BookingSuccess({
         )}
       </div>
       
-      <div className="mb-4 p-3 bg-neutral-50 dark:bg-dark-border/30 rounded-lg">
+      <div className="mb-4 rounded-lg border border-border/70 bg-card/60 p-3">
         <div className="text-sm text-neutral-600 dark:text-dark-muted">
           <strong className="text-text dark:text-dark-text">{t('success.addressLabel')}</strong><br />
           Sarmacka 4B/ lokal 106<br />

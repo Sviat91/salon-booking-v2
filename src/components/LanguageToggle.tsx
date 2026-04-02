@@ -87,7 +87,7 @@ export default function LanguageToggle() {
 
       {isOpen && (
         <div 
-          className="absolute right-0 top-full mt-1 bg-white dark:bg-dark-card border border-border dark:border-dark-border rounded-xl shadow-lg py-1 min-w-[120px] z-50"
+          className="absolute right-0 top-full mt-1 bg-card border border-border rounded-xl shadow-lg py-1 min-w-[120px] z-50"
           role="listbox"
           aria-label="Select language"
         >

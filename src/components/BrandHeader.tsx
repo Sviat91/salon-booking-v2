@@ -24,7 +24,7 @@ export default function BrandHeader({ onLogoClick }: BrandHeaderProps) {
     <header className="flex flex-col items-center gap-3 py-4 lg:py-6">
       <motion.div
         layoutId={prefersReducedMotion ? undefined : `master-photo-${masterPhotoId}`}
-        className={`h-20 w-20 rounded-full overflow-hidden ring-2 ring-accent/70 shadow-sm bg-white${
+        className={`h-20 w-20 rounded-full overflow-hidden ring-2 ring-accent/70 shadow-sm bg-card${
           logoClickable ? ' cursor-pointer' : ''
         }`}
         onClick={onLogoClick}

@@ -255,7 +255,7 @@ export default function ConsentWithdrawalModal({
       aria-labelledby="withdraw-modal-title"
     >
       <div
-        className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl dark:bg-dark-card"
+        className="w-full max-w-lg rounded-2xl bg-card p-6 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-4 flex items-start justify-between gap-4">
@@ -341,7 +341,7 @@ export default function ConsentWithdrawalModal({
                 ref={firstFieldRef}
                 value={name}
                 onChange={(event) => setName(event.target.value)}
-                className="w-full rounded-xl border border-border bg-white/90 px-4 py-3 text-sm text-text focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-dark-border dark:bg-dark-card/80 dark:text-dark-text"
+                className="w-full rounded-xl border border-border bg-card/80 px-4 py-3 text-sm text-card-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
                 placeholder={t('gdpr.export.namePlaceholder')}
                 autoComplete="name"
                 required
@@ -368,13 +368,13 @@ export default function ConsentWithdrawalModal({
                 id="withdraw-email"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
-                className="w-full rounded-xl border border-border bg-white/90 px-4 py-3 text-sm text-text focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-dark-border dark:bg-dark-card/80 dark:text-dark-text"
+                className="w-full rounded-xl border border-border bg-card/80 px-4 py-3 text-sm text-card-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
                 placeholder={t('gdpr.export.emailPlaceholder')}
                 autoComplete="email"
               />
             </div>
 
-            <label className="flex items-start gap-3 rounded-xl border border-border/70 bg-neutral-50/80 p-4 text-sm text-text transition dark:border-dark-border/70 dark:bg-dark-border/20 dark:text-dark-text">
+            <label className="flex items-start gap-3 rounded-xl border border-border/70 bg-muted/25 p-4 text-sm text-card-foreground transition">
               <input
                 type="checkbox"
                 className="mt-1 h-4 w-4 rounded border-border text-primary focus:ring-primary dark:border-dark-border"
@@ -388,7 +388,7 @@ export default function ConsentWithdrawalModal({
             </label>
 
             {siteKey && (
-              <div className="rounded-xl border border-border/60 bg-white/60 p-3 dark:border-dark-border/60 dark:bg-dark-border/20">
+              <div className="rounded-xl border border-border/60 bg-muted/20 p-3">
                 <div ref={turnstileRef} />
               </div>
             )}

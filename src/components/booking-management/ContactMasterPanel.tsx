@@ -105,7 +105,7 @@ export default function ContactMasterPanel({ onBack, onSuccess }: ContactMasterP
             onChange={(e) => setFullName(e.target.value)}
             placeholder={t('management.fullNamePlaceholder')}
             disabled={isSubmitting}
-            className="w-full max-w-full box-border px-3 py-2.5 rounded-lg border border-neutral-300 bg-white text-sm dark:border-dark-border dark:bg-dark-card dark:text-dark-text focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-accent disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full max-w-full box-border px-3 py-2.5 rounded-lg border border-border bg-card text-sm text-card-foreground focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
           />
         </div>
         
@@ -133,7 +133,7 @@ export default function ContactMasterPanel({ onBack, onSuccess }: ContactMasterP
             onChange={(e) => setEmail(e.target.value)}
             placeholder={t('management.emailPlaceholder')}
             disabled={isSubmitting}
-            className="w-full max-w-full box-border px-3 py-2.5 rounded-lg border border-neutral-300 bg-white text-sm dark:border-dark-border dark:bg-dark-card dark:text-dark-text focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-accent disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full max-w-full box-border px-3 py-2.5 rounded-lg border border-border bg-card text-sm text-card-foreground focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
           />
         </div>
         
@@ -148,7 +148,7 @@ export default function ContactMasterPanel({ onBack, onSuccess }: ContactMasterP
             placeholder={t('management.messagePlaceholder')}
             rows={5}
             disabled={isSubmitting}
-            className="w-full max-w-full box-border px-3 py-2.5 rounded-lg border border-neutral-300 bg-white text-sm dark:border-dark-border dark:bg-dark-card dark:text-dark-text focus:outline-none focus:ring-2 focus:ring-primary dark:focus:ring-accent disabled:opacity-50 disabled:cursor-not-allowed resize-none"
+            className="w-full max-w-full box-border px-3 py-2.5 rounded-lg border border-border bg-card text-sm text-card-foreground focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed resize-none"
           />
           <div className="text-xs text-neutral-500 dark:text-dark-muted mt-1">
             {t('management.minChars')}
@@ -162,7 +162,7 @@ export default function ContactMasterPanel({ onBack, onSuccess }: ContactMasterP
           type="button"
           onClick={onBack}
           disabled={isSubmitting}
-          className="flex-1 rounded-lg border border-neutral-300 bg-white px-4 py-2.5 text-sm font-medium text-neutral-700 transition-all hover:bg-neutral-50 hover:border-neutral-400 hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed dark:border-dark-border dark:bg-dark-card dark:text-dark-text dark:hover:bg-dark-border/50"
+          className="flex-1 rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-medium text-card-foreground transition-all hover:bg-muted hover:border-border hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {t('common.cancel')}
         </button>

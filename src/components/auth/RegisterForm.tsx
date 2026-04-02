@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
-interface RegisterFormProps extends React.HTMLAttributes<HTMLDivElement> {}
+type RegisterFormProps = React.HTMLAttributes<HTMLDivElement>
 
 export default function RegisterForm({ className, ...props }: RegisterFormProps) {
   const router = useRouter()
@@ -63,7 +63,7 @@ export default function RegisterForm({ className, ...props }: RegisterFormProps)
       <form onSubmit={onSubmit}>
         <div className="grid gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="name">Full Name</Label>
+            <Label htmlFor="name" className="text-foreground">Full Name</Label>
             <Input
               id="name"
               name="name"
@@ -73,10 +73,11 @@ export default function RegisterForm({ className, ...props }: RegisterFormProps)
               autoComplete="name"
               disabled={isLoading}
               required
+              className="h-11 border-input bg-card text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50"
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email" className="text-foreground">Email</Label>
             <Input
               id="email"
               name="email"
@@ -87,10 +88,11 @@ export default function RegisterForm({ className, ...props }: RegisterFormProps)
               autoCorrect="off"
               disabled={isLoading}
               required
+              className="h-11 border-input bg-card text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50"
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password" className="text-foreground">Password</Label>
             <Input
               id="password"
               name="password"
@@ -99,6 +101,7 @@ export default function RegisterForm({ className, ...props }: RegisterFormProps)
               disabled={isLoading}
               required
               minLength={6}
+              className="h-11 border-input bg-card text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50"
             />
           </div>
           {error && (
@@ -136,3 +139,4 @@ export default function RegisterForm({ className, ...props }: RegisterFormProps)
     </div>
   )
 }
+

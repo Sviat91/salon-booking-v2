@@ -40,26 +40,68 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const appointments = await prisma.appointment.findMany({
-      where: {
-        masterId: session.user.id,
-        ...(Object.keys(dateFilter).length > 0 ? { date: dateFilter } : {}),
-      },
-      select: {
-        id: true,
-        date: true,
-        startTime: true,
-        endTime: true,
-        status: true,
-        notes: true,
-        service: { select: { id: true, name: true, duration: true, price: true } },
-        client: { select: { id: true, name: true, phone: true, email: true } },
-        master: { select: { masterProfile: { select: { color: true } } } },
-      },
-      orderBy: [{ date: "asc" }, { startTime: "asc" }],
-    })
+    const [appointments, masterProfile] = await Promise.all([
+      prisma.appointment.findMany({
+        where: {
+          masterId: session.user.id,
+          ...(Object.keys(dateFilter).length > 0 ? { date: dateFilter } : {}),
+        },
+        select: {
+          id: true,
+          date: true,
+          startTime: true,
+          endTime: true,
+          status: true,
+          notes: true,
+          service: { select: { id: true, name: true, duration: true, price: true } },
+          client: { select: { id: true, name: true, phone: true, email: true } },
+          master: { select: { masterProfile: { select: { color: true } } } },
+        },
+        orderBy: [{ date: "asc" }, { startTime: "asc" }],
+      }),
+      prisma.masterProfile.findUnique({
+        where: { userId: session.user.id },
+        select: { id: true },
+      }),
+    ])
 
-    return NextResponse.json({ appointments })
+    let appointmentsWithEffectivePrice = appointments
+
+    if (masterProfile) {
+      const serviceIds = Array.from(new Set(appointments.map((a) => a.service.id)))
+      if (serviceIds.length > 0) {
+        const masterOverrides = await prisma.masterService.findMany({
+          where: {
+            masterProfileId: masterProfile.id,
+            serviceId: { in: serviceIds },
+          },
+          select: {
+            serviceId: true,
+            priceOverride: true,
+          },
+        })
+
+        const overrideByServiceId = new Map<string, number>(
+          masterOverrides
+            .filter((o) => o.priceOverride !== null)
+            .map((o) => [o.serviceId, o.priceOverride as number])
+        )
+
+        appointmentsWithEffectivePrice = appointments.map((appointment) => {
+          const overridePrice = overrideByServiceId.get(appointment.service.id)
+          if (overridePrice === undefined) return appointment
+          return {
+            ...appointment,
+            service: {
+              ...appointment.service,
+              price: overridePrice,
+            },
+          }
+        })
+      }
+    }
+
+    return NextResponse.json({ appointments: appointmentsWithEffectivePrice })
   } catch (error) {
     console.error("Error fetching master appointments:", error)
     return NextResponse.json(

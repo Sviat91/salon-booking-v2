@@ -115,7 +115,7 @@ export default function TimeChangeErrorPanel({
         <button
           type="button"
           onClick={onTryAgain}
-          className="flex-1 rounded-lg border border-red-300 bg-white px-4 py-3 text-sm font-medium text-red-700 transition-all duration-200 hover:bg-red-50 hover:border-red-400 hover:shadow-sm dark:border-red-700 dark:bg-dark-card dark:text-red-300 dark:hover:bg-red-900/10"
+          className="flex-1 rounded-lg border border-red-400/60 bg-card px-4 py-3 text-sm font-medium text-red-700 transition-all duration-200 hover:bg-red-500/10 hover:border-red-400 hover:shadow-sm dark:text-red-300"
         >
           {t('management.tryAgain')}
         </button>

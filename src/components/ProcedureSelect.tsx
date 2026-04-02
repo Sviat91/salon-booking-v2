@@ -57,10 +57,6 @@ export default function ProcedureSelect({ valueId, onChange }: { valueId?: strin
   // Helper to format procedure display
   const formatProcedure = (p: Procedure) => {
     const name = translateProcedureName(p.name_pl, language)
-    const hasOverride = p.price_override_pln !== null && p.price_override_pln !== undefined
-    if (hasOverride && p.price_default_pln !== null && p.price_default_pln !== undefined) {
-      return `${name} - ${p.duration_min} ${t('booking.minutes')} / ${p.price_pln} zł (default ${p.price_default_pln} zł)`
-    }
     return `${name} - ${p.duration_min} ${t('booking.minutes')}${p.price_pln ? ` / ${p.price_pln} zł` : ''}`
   }
 

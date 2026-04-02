@@ -39,7 +39,7 @@ export default function BookingConsentModal({
       <div className="text-lg font-medium mb-4 dark:text-dark-text">{t('consent.beforeBooking')}</div>
       
       {/* Booking summary */}
-      <div className="mb-4 p-3 bg-neutral-50 dark:bg-dark-border/30 rounded-lg">
+      <div className="mb-4 rounded-lg border border-border/70 bg-card/60 p-3">
         <div className="text-sm text-neutral-600 dark:text-dark-muted">
           <strong className="text-text dark:text-dark-text">{procedureName}</strong>
           <br />
@@ -109,7 +109,7 @@ export default function BookingConsentModal({
           type="button"
           onClick={onBack}
           disabled={loading}
-          className="flex-1 rounded-lg border border-neutral-300 bg-white px-4 py-3 text-sm font-medium text-neutral-700 transition-all hover:bg-neutral-50 hover:border-neutral-400 disabled:opacity-50 disabled:cursor-not-allowed dark:border-dark-border dark:bg-dark-card dark:text-dark-text dark:hover:bg-dark-border/50"
+          className="flex-1 rounded-lg border border-border bg-card px-4 py-3 text-sm font-medium text-card-foreground transition-all hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {t('consent.back')}
         </button>

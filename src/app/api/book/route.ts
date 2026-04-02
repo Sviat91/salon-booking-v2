@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { bookingApiSchema } from "@/lib/validation/api-schemas"
+import { evaluateConsentStatus, getRequestIp, saveConsentRecord } from "@/lib/consent-service"
 import { z } from "zod"
 
 export const runtime = "nodejs"
@@ -29,7 +30,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid payload" }, { status: 400 })
   }
 
-  const { startISO, endISO, procedureId, masterId, name, phone, email } = body
+  const { startISO, endISO, procedureId, masterId, name, phone, email, consents } = body
 
   if (!masterId) {
     return NextResponse.json({ error: "masterId is required", code: "MISSING_MASTER" }, { status: 400 })
@@ -60,6 +61,20 @@ export async function POST(req: NextRequest) {
   const endTime = wTimeFormatter.format(endDate)
 
   try {
+    const consentStatus = await evaluateConsentStatus({ phone, name, email })
+    const hasRequiredNewConsents = Boolean(consents?.dataProcessing && consents?.terms)
+    const needsNewConsent = !consentStatus.hasValidConsent
+
+    if (needsNewConsent && !hasRequiredNewConsents) {
+      return NextResponse.json(
+        {
+          error: "Consent required before booking",
+          code: "CONSENT_REQUIRED",
+        },
+        { status: 400 }
+      )
+    }
+
     // 1. Check for time conflict — no overlapping appointments for this master
     const existingAppointment = await prisma.appointment.findFirst({
       where: {
@@ -104,7 +119,21 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 3. Resolve service — use provided procedureId or create placeholder
+    // 3. Persist consent when user is booking after consent modal confirmation.
+    if (needsNewConsent && hasRequiredNewConsents) {
+      await saveConsentRecord({
+        userId: clientUser.id,
+        phone,
+        name,
+        email,
+        ip: getRequestIp(req),
+        dataProcessing: Boolean(consents?.dataProcessing),
+        terms: Boolean(consents?.terms),
+        notifications: Boolean(consents?.notifications),
+      })
+    }
+
+    // 4. Resolve service — use provided procedureId or create placeholder
     let serviceId = procedureId
     if (!serviceId) {
       // Find any generic service as fallback
@@ -122,7 +151,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 4. Create the appointment
+    // 5. Create the appointment
     const appointment = await prisma.appointment.create({
       data: {
         clientId: clientUser.id,

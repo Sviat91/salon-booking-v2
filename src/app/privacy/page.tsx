@@ -20,13 +20,13 @@ export default function PrivacyPage() {
       <div className="container mx-auto max-w-4xl px-6 py-8">
         {/* Header */}
         <div className="mb-6 text-center">
-          <h1 className="text-2xl font-bold text-text dark:text-dark-text mb-2">
+          <h1 className="text-2xl font-bold text-foreground mb-2">
             {t('privacy.title')}
           </h1>
         </div>
 
         {/* Content */}
-        <div className="bg-white/80 dark:bg-dark-card/80 backdrop-blur-sm rounded-2xl border border-border dark:border-dark-border p-8">
+        <div className="bg-card backdrop-blur-sm rounded-2xl border border-border p-8">
           <div className="prose prose-neutral dark:prose-invert max-w-none">
             
             {language !== 'pl' && (
@@ -48,7 +48,7 @@ export default function PrivacyPage() {
               <p className="text-neutral-700 dark:text-dark-text mb-4">
                 Administratorem Państwa danych osobowych jest:
               </p>
-              <div className="bg-neutral-50 dark:bg-dark-border/30 rounded-lg p-4">
+              <div className="bg-muted/30 rounded-lg p-4">
                 <div className="space-y-1 text-neutral-700 dark:text-dark-text">
                   <p><strong>KOSMETOLOGIA I MASAŻ YULIIA YAKOVENKO</strong></p>
                   <p>NIP: 9512580063</p>
@@ -152,7 +152,7 @@ export default function PrivacyPage() {
               <p className="text-neutral-700 dark:text-dark-text mb-4">
                 W sprawach dotyczących ochrony danych osobowych można kontaktować się:
               </p>
-              <div className="bg-neutral-50 dark:bg-dark-border/30 rounded-lg p-6">
+              <div className="bg-muted/30 rounded-lg p-6">
                 <div className="space-y-2 text-neutral-700 dark:text-dark-text">
                   <p><strong>Poprzez stronę wsparcia:</strong> <Link href="/support" className="text-primary hover:text-primary/80 dark:text-accent dark:hover:text-accent/80">Centrum pomocy</Link></p>
                   <p><strong>E-mailem:</strong> facemassageyakovenko@gmail.com</p>

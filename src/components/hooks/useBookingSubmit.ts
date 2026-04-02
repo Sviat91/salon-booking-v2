@@ -62,7 +62,7 @@ export function useBookingSubmit({
       
       // User needs to give consent, show modal
       setBookingState('consent')
-    } catch (e: any) {
+    } catch {
       setError('Nie udało się sprawdzić zgód. Spróbuj ponownie.')
     } finally {
       setLoading(false)
@@ -157,6 +157,8 @@ export function useBookingSubmit({
       setError('Już wysłałaś/-eś rezerwację na ten przedział. Odczekaj 5 minut lub wybierz inny termin.')
     } else if (msg.startsWith('BOOKING_CONFLICT')) {
       setError('Ten termin jest już zajęty. Wybierz inny przedział.')
+    } else if (msg.startsWith('BOOKING_CONSENT_REQUIRED')) {
+      setError('Przed rezerwacją musisz potwierdzić wymagane zgody.')
     } else if (msg.startsWith('BOOKING_RATE_LIMITED')) {
       setError('Zbyt wiele prób. Spróbuj później.')
     } else {

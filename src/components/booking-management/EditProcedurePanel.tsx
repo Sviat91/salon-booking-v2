@@ -66,7 +66,7 @@ export default function EditProcedurePanel({
 
       <div className="space-y-2">
         {/* Current procedure info */}
-        <div className="rounded-xl border border-border bg-neutral-50 p-3 dark:bg-dark-border/30 dark:border-dark-border">
+        <div className="rounded-xl border border-border bg-muted/30 p-3">
           <div className="text-xs text-neutral-500 dark:text-dark-muted mb-1">{t('management.currentProcedure')}</div>
           <div className="text-sm font-medium dark:text-dark-text">
             {booking.procedureName}
@@ -225,7 +225,7 @@ export default function EditProcedurePanel({
                                 className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
                                   isSelected
                                     ? 'bg-amber-200 text-amber-900 dark:bg-amber-600/30 dark:text-amber-200'
-                                    : 'bg-white/50 text-amber-800 hover:bg-amber-100 dark:bg-dark-card/50 dark:text-amber-300 dark:hover:bg-dark-border'
+                                    : 'bg-card/60 text-amber-800 hover:bg-amber-100 dark:text-amber-300'
                                 }`}
                               >
                                 {formatTime(slot.startISO)} - {formatTime(slot.endISO)}
@@ -290,7 +290,7 @@ export default function EditProcedurePanel({
                 <button 
                   type="button" 
                   onClick={onRequestNewTime} 
-                  className="flex-1 rounded-lg border border-neutral-300 bg-white px-4 py-2.5 text-sm font-medium text-neutral-700 transition-all duration-200 hover:bg-neutral-50 hover:border-neutral-400 hover:shadow-sm dark:border-dark-border dark:bg-dark-card dark:text-dark-text dark:hover:bg-dark-border/50"
+                  className="flex-1 rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-medium text-card-foreground transition-all duration-200 hover:bg-muted hover:border-border hover:shadow-sm"
                 >
                   {t('management.selectNewTerm')}
                 </button>
@@ -321,7 +321,7 @@ export default function EditProcedurePanel({
                     <button 
                       type="button" 
                       onClick={onRequestNewTime} 
-                      className="flex-1 rounded-lg border border-neutral-300 bg-white px-4 py-2.5 text-sm font-medium text-neutral-700 transition-all duration-200 hover:bg-neutral-50 hover:border-neutral-400 hover:shadow-sm dark:border-dark-border dark:bg-dark-card dark:text-dark-text dark:hover:bg-dark-border/50"
+                      className="flex-1 rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-medium text-card-foreground transition-all duration-200 hover:bg-muted hover:border-border hover:shadow-sm"
                     >
                       {t('management.selectNewTerm')}
                     </button>
@@ -352,7 +352,7 @@ export default function EditProcedurePanel({
                     <button 
                       type="button" 
                       onClick={onRequestNewTime} 
-                      className="flex-1 rounded-lg border border-neutral-300 bg-white px-4 py-2.5 text-sm font-medium text-neutral-700 transition-all duration-200 hover:bg-neutral-50 hover:border-neutral-400 hover:shadow-sm dark:border-dark-border dark:bg-dark-card dark:text-dark-text dark:hover:bg-dark-border/50"
+                      className="flex-1 rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-medium text-card-foreground transition-all duration-200 hover:bg-muted hover:border-border hover:shadow-sm"
                     >
                       {t('management.orSelectOtherTerm')}
                     </button>
@@ -390,7 +390,7 @@ export default function EditProcedurePanel({
                     <button 
                       type="button" 
                       onClick={onRequestNewTime} 
-                      className="flex-1 rounded-lg border border-neutral-300 bg-white px-4 py-2.5 text-sm font-medium text-neutral-700 transition-all duration-200 hover:bg-neutral-50 hover:border-neutral-400 hover:shadow-sm dark:border-dark-border dark:bg-dark-card dark:text-dark-text dark:hover:bg-dark-border/50"
+                      className="flex-1 rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-medium text-card-foreground transition-all duration-200 hover:bg-muted hover:border-border hover:shadow-sm"
                     >
                       {t('management.selectNewTerm')}
                     </button>
@@ -404,7 +404,7 @@ export default function EditProcedurePanel({
           <button 
             type="button" 
             onClick={onBack} 
-            className="w-full rounded-lg border border-neutral-300 bg-white px-4 py-2.5 text-sm font-medium text-neutral-700 transition-all duration-200 hover:bg-neutral-50 hover:border-neutral-400 hover:shadow-sm dark:border-dark-border dark:bg-dark-card dark:text-dark-text dark:hover:bg-dark-border/50"
+            className="w-full rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-medium text-card-foreground transition-all duration-200 hover:bg-muted hover:border-border hover:shadow-sm"
           >
             {t('management.back')}
           </button>

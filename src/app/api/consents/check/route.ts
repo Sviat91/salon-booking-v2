@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { checkConsentApiSchema } from "@/lib/validation/api-schemas"
+import { evaluateConsentStatus } from "@/lib/consent-service"
 import { z } from "zod"
 
 export const runtime = "nodejs"
@@ -7,14 +8,13 @@ export const runtime = "nodejs"
 /**
  * POST /api/consents/check
  * Checks if user already has valid consents (GDPR).
- * 
- * Stub implementation: always returns skipConsentModal: true
- * Full GDPR consent tracking will be implemented in a later phase.
  */
 export async function POST(req: NextRequest) {
+  let body: z.infer<typeof checkConsentApiSchema>
+
   try {
     const raw = await req.json()
-    checkConsentApiSchema.parse(raw)
+    body = checkConsentApiSchema.parse(raw)
   } catch (err) {
     if (err instanceof z.ZodError) {
       return NextResponse.json(
@@ -25,8 +25,23 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid payload" }, { status: 400 })
   }
 
-  // Stub: skip consent modal for now (no consent table yet)
-  // When GDPR consent table is added, query here and return
-  // skipConsentModal: false if user hasn't given consent yet
-  return NextResponse.json({ skipConsentModal: true })
+  try {
+    const status = await evaluateConsentStatus({
+      phone: body.phone,
+      name: body.name,
+      email: body.email,
+    })
+
+    return NextResponse.json({
+      skipConsentModal: status.hasValidConsent,
+      hasValidConsent: status.hasValidConsent,
+      consentDate: status.latestConsentDate,
+    })
+  } catch (error) {
+    console.error("[Consent Check API] Failed to evaluate consent:", error)
+    return NextResponse.json(
+      { error: "Failed to check consent status" },
+      { status: 500 }
+    )
+  }
 }

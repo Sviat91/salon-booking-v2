@@ -41,7 +41,7 @@ export default function ConfirmChangePanel({
       </div>
 
       <div className="space-y-3">
-        <div className="rounded-xl border border-border bg-neutral-50 p-3 dark:bg-dark-border/30 dark:border-dark-border">
+        <div className="rounded-xl border border-border bg-muted/30 p-3">
           <div className="text-xs text-neutral-500 dark:text-dark-muted mb-1">{t('management.currently')}</div>
           <div className="text-sm font-medium dark:text-dark-text">{booking.procedureName}</div>
           <div className="text-xs text-neutral-500 dark:text-dark-muted">{formatDate(booking.startTime)}</div>

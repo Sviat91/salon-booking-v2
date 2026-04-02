@@ -13,14 +13,14 @@ export default function RegisterPage() {
       {/* Background radial gradient matches main theme */}
       <div className="absolute inset-0 z-[-1] pointer-events-none" />
       
-      <div className="w-full max-w-md space-y-8 bg-background/80 backdrop-blur-md p-8 sm:p-10 rounded-2xl shadow-xl border border-border/50">
+      <div className="w-full max-w-md space-y-8 bg-card backdrop-blur-md p-8 sm:p-10 rounded-2xl shadow-xl border border-border text-foreground">
         <div className="flex flex-col items-center text-center">
           <Link href="/" className="inline-block mb-6">
             <span className="font-bold text-2xl tracking-tight text-primary">
               Somique <span className="opacity-70 font-light">beauty</span>
             </span>
           </Link>
-          <h2 className="text-3xl font-extrabold tracking-tight">
+          <h2 className="text-3xl font-extrabold tracking-tight text-foreground">
             Create an Account
           </h2>
           <p className="mt-2 text-sm text-muted-foreground">
@@ -48,3 +48,4 @@ export default function RegisterPage() {
     </div>
   )
 }
+
