@@ -125,7 +125,9 @@ export const withdrawConsentApiSchema = z.object({
   phone: z.string().min(5, 'Phone number is required'),
   name: z.string().min(2, 'Name is required'),
   email: z.string().email().optional().or(z.literal('')),
-  turnstileToken: z.string().optional(),
+  consentAcknowledged: z.boolean().optional(),
+  turnstileToken: z.string().nullish(),
+  requestId: z.string().trim().max(64).optional(),
 })
 
 export type WithdrawConsentApiInput = z.infer<typeof withdrawConsentApiSchema>
@@ -138,7 +140,9 @@ export const eraseDataApiSchema = z.object({
   phone: z.string().min(5, 'Phone number is required'),
   name: z.string().min(2, 'Name is required'),
   email: z.string().email().optional().or(z.literal('')),
-  turnstileToken: z.string().optional(),
+  consentAcknowledged: z.boolean().optional(),
+  turnstileToken: z.string().nullish(),
+  requestId: z.string().trim().max(64).optional(),
 })
 
 export type EraseDataApiInput = z.infer<typeof eraseDataApiSchema>
@@ -151,7 +155,8 @@ export const exportDataApiSchema = z.object({
   phone: z.string().min(5, 'Phone number is required'),
   name: z.string().min(2, 'Name is required'),
   email: z.string().email().optional().or(z.literal('')),
-  turnstileToken: z.string().optional(),
+  turnstileToken: z.string().nullish(),
+  requestId: z.string().trim().max(64).optional(),
 })
 
 export type ExportDataApiInput = z.infer<typeof exportDataApiSchema>
@@ -168,7 +173,7 @@ export const supportContactApiSchema = z.object({
   name: z.string().min(2, 'Name is required').max(100),
   email: z.string().email('Invalid email format'),
   message: z.string().min(10, 'Message must be at least 10 characters').max(1000, 'Message is too long'),
-  turnstileToken: z.string().optional(),
+  turnstileToken: z.string().nullish(),
 })
 
 export type SupportContactApiInput = z.infer<typeof supportContactApiSchema>
@@ -182,7 +187,7 @@ export const masterContactApiSchema = z.object({
   name: z.string().min(2, 'Name is required'),
   eventId: z.string().optional(),
   message: z.string().min(10, 'Message must be at least 10 characters').max(500, 'Message is too long'),
-  turnstileToken: z.string().optional(),
+  turnstileToken: z.string().nullish(),
 })
 
 export type MasterContactApiInput = z.infer<typeof masterContactApiSchema>

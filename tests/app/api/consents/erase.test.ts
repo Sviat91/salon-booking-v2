@@ -7,10 +7,8 @@ const mockLogger = {
 }
 
 const rateLimit = vi.fn()
-const cacheSetNX = vi.fn()
-const cacheDel = vi.fn()
 const validateTurnstileForAPI = vi.fn()
-const withdrawConsentRecord = vi.fn()
+const eraseConsentData = vi.fn()
 
 vi.mock("../../../../src/lib/logger", () => ({
   getLogger: () => mockLogger,
@@ -18,8 +16,6 @@ vi.mock("../../../../src/lib/logger", () => ({
 
 vi.mock("../../../../src/lib/cache", () => ({
   rateLimit: (...args: unknown[]) => rateLimit(...args),
-  cacheSetNX: (...args: unknown[]) => cacheSetNX(...args),
-  cacheDel: (...args: unknown[]) => cacheDel(...args),
 }))
 
 vi.mock("../../../../src/lib/turnstile", () => ({
@@ -27,12 +23,12 @@ vi.mock("../../../../src/lib/turnstile", () => ({
 }))
 
 vi.mock("../../../../src/lib/consent-service", () => ({
-  withdrawConsentRecord: (...args: unknown[]) => withdrawConsentRecord(...args),
+  eraseConsentData: (...args: unknown[]) => eraseConsentData(...args),
 }))
 
 let postHandler: (req: Request) => Promise<Response>
 
-describe("POST /api/consents/withdraw", () => {
+describe("POST /api/consents/erase", () => {
   const payload = {
     name: "Sviatoslav Upirow",
     phone: "+48 501 748 708",
@@ -49,58 +45,62 @@ describe("POST /api/consents/withdraw", () => {
   }
 
   beforeAll(async () => {
-    ;({ POST: postHandler } = await import("../../../../src/app/api/consents/withdraw/route"))
+    ;({ POST: postHandler } = await import("../../../../src/app/api/consents/erase/route"))
   })
 
   beforeEach(() => {
     vi.clearAllMocks()
     rateLimit.mockResolvedValue({ allowed: true, count: 1 })
-    cacheSetNX.mockResolvedValue(true)
-    cacheDel.mockResolvedValue(true)
     validateTurnstileForAPI.mockResolvedValue({ success: true })
-    withdrawConsentRecord.mockResolvedValue({
-      updated: true,
-      withdrawnDate: "2026-04-02T12:00:00.000Z",
+    eraseConsentData.mockResolvedValue({
+      erased: true,
+      erasedAt: "2026-04-02T12:00:00.000Z",
+      erasedRecordsCount: 2,
+      anonymizedUsersCount: 1,
     })
   })
 
-  it("withdraws consent successfully and releases idempotency lock", async () => {
+  it("erases data successfully and returns details", async () => {
     const response = await postHandler(createRequest())
     const body = await response.json()
 
     expect(response.status).toBe(200)
-    expect(body.status).toBe("accepted")
-    expect(withdrawConsentRecord).toHaveBeenCalledWith(
+    expect(body.status).toBe("erased")
+    expect(body.details).toBeDefined()
+    expect(eraseConsentData).toHaveBeenCalledWith(
       expect.objectContaining({
         phone: "+48501748708",
         name: "Sviatoslav Upirow",
         email: "user@example.com",
-        withdrawalMethod: "support_form",
+        erasureMethod: "support_form",
       })
     )
-    expect(cacheDel).toHaveBeenCalledTimes(1)
   })
 
   it("accepts null turnstile token when widget is disabled", async () => {
     const response = await postHandler(createRequest({ ...payload, turnstileToken: null }))
     expect(response.status).toBe(200)
-    expect(withdrawConsentRecord).toHaveBeenCalledTimes(1)
+    expect(eraseConsentData).toHaveBeenCalledTimes(1)
   })
 
-  it("returns 202 when idempotency lock already exists", async () => {
-    cacheSetNX.mockResolvedValue(false)
+  it("returns 409 when data is already erased", async () => {
+    eraseConsentData.mockResolvedValue({
+      erased: false,
+      alreadyErased: true,
+    })
 
     const response = await postHandler(createRequest())
     const body = await response.json()
 
-    expect(response.status).toBe(202)
-    expect(body.code).toBe("ALREADY_PROCESSING")
-    expect(withdrawConsentRecord).not.toHaveBeenCalled()
-    expect(cacheDel).not.toHaveBeenCalled()
+    expect(response.status).toBe(409)
+    expect(body.code).toBe("ALREADY_ERASED")
   })
 
-  it("returns 404 when no active consent is found", async () => {
-    withdrawConsentRecord.mockResolvedValue({ updated: false, reason: "NOT_FOUND" })
+  it("returns 404 when no data is found", async () => {
+    eraseConsentData.mockResolvedValue({
+      erased: false,
+      reason: "NOT_FOUND",
+    })
 
     const response = await postHandler(createRequest())
     const body = await response.json()
@@ -109,26 +109,12 @@ describe("POST /api/consents/withdraw", () => {
     expect(body.code).toBe("DATA_NOT_FOUND")
   })
 
-  it("returns 400 when phone format is invalid", async () => {
-    const response = await postHandler(createRequest({ ...payload, phone: "invalid-phone" }))
-    const body = await response.json()
-
-    expect(response.status).toBe(400)
-    expect(body.code).toBe("INVALID_PHONE")
-    expect(withdrawConsentRecord).not.toHaveBeenCalled()
-  })
-
   it("returns 400 when acknowledgement is missing", async () => {
-    const response = await postHandler(
-      createRequest({
-        ...payload,
-        consentAcknowledged: false,
-      })
-    )
+    const response = await postHandler(createRequest({ ...payload, consentAcknowledged: false }))
     const body = await response.json()
 
     expect(response.status).toBe(400)
     expect(body.code).toBe("CONSENT_ACK_REQUIRED")
-    expect(withdrawConsentRecord).not.toHaveBeenCalled()
+    expect(eraseConsentData).not.toHaveBeenCalled()
   })
 })

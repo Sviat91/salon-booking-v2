@@ -42,9 +42,21 @@ export function normalizePhoneToE164(input: string): string {
     cleaned = `+${cleaned.slice(2)}`
   }
   
-  // Add +48 (Poland) if no country code
+  // If the number has no leading '+', resolve whether it is local (PL)
+  // or already in international format without plus.
   if (!cleaned.startsWith('+')) {
-    cleaned = cleaned.startsWith('0') ? `+48${cleaned.slice(1)}` : `+48${cleaned}`
+    if (/^\d{9}$/.test(cleaned)) {
+      // Local PL number without prefix.
+      cleaned = `+48${cleaned}`
+    } else if (/^0\d{9}$/.test(cleaned)) {
+      // Local PL number with trunk '0'.
+      cleaned = `+48${cleaned.slice(1)}`
+    } else if (/^[1-9]\d{7,14}$/.test(cleaned)) {
+      // Looks like full international digits without '+'.
+      cleaned = `+${cleaned}`
+    } else {
+      cleaned = `+48${cleaned}`
+    }
   }
   
   // Remove all non-digit characters except leading +

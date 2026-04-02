@@ -296,7 +296,7 @@ export default function DataExportModal({
           name: name.trim(),
           phone,
           email: email.trim() || undefined,
-          turnstileToken: token,
+          turnstileToken: token ?? undefined,
           requestId,
         }),
       });
@@ -454,7 +454,7 @@ export default function DataExportModal({
                 ref={firstFieldRef}
                 value={name}
                 onChange={(event) => setName(event.target.value)}
-                className="w-full rounded-xl border border-border bg-card/80 px-4 py-3 text-sm text-card-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+                className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm text-card-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
                 placeholder={t('gdpr.export.namePlaceholder')}
                 autoComplete="name"
                 required
@@ -481,7 +481,7 @@ export default function DataExportModal({
                 id="export-email"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
-                className="w-full rounded-xl border border-border bg-card/80 px-4 py-3 text-sm text-card-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+                className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm text-card-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
                 placeholder={t('gdpr.export.emailPlaceholder')}
                 autoComplete="email"
               />
