@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Plus, Pencil, Trash2, Clock, DollarSign, Lock } from "lucide-react"
+import { Plus, Pencil, Trash2, Lock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
 import {
@@ -19,6 +19,7 @@ type Service = {
   duration: number
   price: number
   masterId: string | null
+  masterServices?: { masterProfileId: string; priceOverride: number | null }[]
 }
 
 export default function MasterServicesClient({
@@ -170,7 +171,7 @@ export default function MasterServicesClient({
                   <tr>
                     <th className="px-4 py-3 text-left font-medium">Name</th>
                     <th className="px-4 py-3 text-left font-medium">Duration</th>
-                    <th className="px-4 py-3 text-left font-medium">Price</th>
+                    <th className="px-4 py-3 text-left font-medium">Pricing</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -178,7 +179,20 @@ export default function MasterServicesClient({
                     <tr key={svc.id} className="bg-muted/10">
                       <td className="px-4 py-3 font-medium text-muted-foreground">{svc.name}</td>
                       <td className="px-4 py-3 text-muted-foreground">{svc.duration} min</td>
-                      <td className="px-4 py-3 text-muted-foreground">{svc.price.toFixed(2)} zł</td>
+                      <td className="px-4 py-3 text-muted-foreground">
+                        {(() => {
+                          const overridePrice = svc.masterServices?.[0]?.priceOverride
+                          if (overridePrice !== null && overridePrice !== undefined) {
+                            return (
+                              <div className="space-y-0.5">
+                                <div>Your rate: {overridePrice.toFixed(2)} zł</div>
+                                <div className="text-xs opacity-80">Default: {svc.price.toFixed(2)} zł</div>
+                              </div>
+                            )
+                          }
+                          return <span>{svc.price.toFixed(2)} zł</span>
+                        })()}
+                      </td>
                     </tr>
                   ))}
                 </tbody>

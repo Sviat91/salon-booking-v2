@@ -6,7 +6,14 @@ import { useSelectedMasterId } from '@/contexts/MasterContext'
 import { useCurrentLanguage } from '@/contexts/LanguageContext'
 import { translateProcedureName } from '@/lib/procedure-translator'
 
-type Procedure = { id: string; name_pl: string; duration_min: number; price_pln?: number | string }
+type Procedure = {
+  id: string
+  name_pl: string
+  duration_min: number
+  price_pln?: number | string
+  price_default_pln?: number | string | null
+  price_override_pln?: number | string | null
+}
 
 export default function ProcedureSelect({ valueId, onChange }: { valueId?: string; onChange?: (p: Procedure | null) => void }) {
   const { t } = useTranslation()
@@ -50,6 +57,10 @@ export default function ProcedureSelect({ valueId, onChange }: { valueId?: strin
   // Helper to format procedure display
   const formatProcedure = (p: Procedure) => {
     const name = translateProcedureName(p.name_pl, language)
+    const hasOverride = p.price_override_pln !== null && p.price_override_pln !== undefined
+    if (hasOverride && p.price_default_pln !== null && p.price_default_pln !== undefined) {
+      return `${name} - ${p.duration_min} ${t('booking.minutes')} / ${p.price_pln} zł (default ${p.price_default_pln} zł)`
+    }
     return `${name} - ${p.duration_min} ${t('booking.minutes')}${p.price_pln ? ` / ${p.price_pln} zł` : ''}`
   }
 

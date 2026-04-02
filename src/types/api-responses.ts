@@ -91,6 +91,8 @@ export interface ProcedureItem {
   description_en?: string
   duration_min: number
   price_pln: number
+  price_default_pln?: number
+  price_override_pln?: number | null
   active: boolean
   order?: number
 }

@@ -42,6 +42,10 @@ export default function ServicesClient({
     })
   }, [])
 
+  const masterNameByProfileId = new Map(
+    masters.map((m) => [m.masterProfileId, m.name])
+  )
+
   return (
     <div>
       {/* Header row */}
@@ -97,6 +101,7 @@ export default function ServicesClient({
                     <DollarSign className="h-3.5 w-3.5" /> Price
                   </span>
                 </th>
+                <th className="px-4 py-3 text-left font-medium">Special Prices</th>
                 <th className="px-4 py-3 text-right font-medium">Actions</th>
               </tr>
             </thead>
@@ -109,6 +114,21 @@ export default function ServicesClient({
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">
                     {svc.price.toFixed(2)} zł
+                  </td>
+                  <td className="px-4 py-3 text-xs text-muted-foreground">
+                    {svc.masterServices && svc.masterServices.some((ms) => ms.priceOverride !== null) ? (
+                      <div className="space-y-1">
+                        {svc.masterServices
+                          .filter((ms) => ms.priceOverride !== null)
+                          .map((ms) => (
+                            <div key={ms.masterProfileId}>
+                              {(masterNameByProfileId.get(ms.masterProfileId) ?? "Unknown master")}: {ms.priceOverride!.toFixed(2)} zł
+                            </div>
+                          ))}
+                      </div>
+                    ) : (
+                      <span>—</span>
+                    )}
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-1">

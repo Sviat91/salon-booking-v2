@@ -46,6 +46,7 @@ export default function BookingForm({
   // Turnstile state
   const [tsToken, setTsToken] = useState<string | null>(null)
   const tsRef = useRef<HTMLDivElement | null>(null)
+  const phoneValidationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY as string | undefined
 
   // Fetch procedures
@@ -130,6 +131,14 @@ export default function BookingForm({
     }
   }, [bookingState])
 
+  useEffect(() => {
+    return () => {
+      if (phoneValidationTimeoutRef.current) {
+        clearTimeout(phoneValidationTimeoutRef.current)
+      }
+    }
+  }, [])
+
   // Validation
   const canSubmit = useMemo(() => {
     const nameValid = validateName(name).valid
@@ -144,11 +153,6 @@ export default function BookingForm({
   const handleNameBlur = () => {
     const result = validateName(name)
     setNameError(result.valid ? null : result.error || null)
-  }
-  
-  const handlePhoneBlur = () => {
-    const result = validatePhone(phone)
-    setPhoneError(result.valid ? null : result.error || null)
   }
   
   const handleEmailBlur = () => {
@@ -250,15 +254,19 @@ export default function BookingForm({
           <PhoneInput 
             value={phone} 
             onChange={(val) => { 
-              setPhone(val); 
-              if (phoneError) setPhoneError(null);
-              // Validate after 500ms of no typing
-              setTimeout(() => {
-                const result = validatePhone(val);
-                if (!result.valid && val.length > 0) {
-                  setPhoneError(result.error || null);
+              setPhone(val)
+              if (phoneValidationTimeoutRef.current) {
+                clearTimeout(phoneValidationTimeoutRef.current)
+              }
+              // Validate after 500ms of no typing and always sync error state
+              phoneValidationTimeoutRef.current = setTimeout(() => {
+                if (!val.trim()) {
+                  setPhoneError(null)
+                  return
                 }
-              }, 500);
+                const result = validatePhone(val)
+                setPhoneError(result.valid ? null : result.error || null)
+              }, 500)
             }}
             placeholder={t('form.phone')}
           />
