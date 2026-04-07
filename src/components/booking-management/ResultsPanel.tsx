@@ -55,7 +55,7 @@ export default function ResultsPanel({
     if (count >= 2 && count <= 4) return t('management.bookingFew')
     return t('management.bookingMany')
   }
-  
+
   return (
     <div className="overflow-y-auto space-y-4 pr-1 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
       <div className="space-y-2">
@@ -73,11 +73,11 @@ export default function ResultsPanel({
         <div className="space-y-3">
           {results.map((booking) => {
             const isSelected = booking.eventId === selectedBookingId
-            
+
             // Format date and time with current locale
             const dateStr = format(booking.startTime, 'EEEE, d MMMM', { locale: dateLocale })
             const timeStr = `${format(booking.startTime, 'HH:mm')}–${format(booking.endTime, 'HH:mm')}`
-            
+
             // Translate procedure name
             const matchedProcedure = procedures?.find(p => p.id === booking.procedureId)
             const nameToTranslate = matchedProcedure?.name_pl || booking.procedureName
@@ -95,15 +95,28 @@ export default function ResultsPanel({
               >
                 <div className="space-y-1 p-3">
                   <div className="text-sm font-medium dark:text-dark-text">{procedureName}</div>
+
+                  {/* Master name badge — shown when there are bookings across multiple masters */}
+                  {booking.masterName && (
+                    <div className="inline-flex items-center gap-1 text-xs font-medium text-primary/80 dark:text-accent/80 bg-primary/8 dark:bg-accent/10 rounded-md px-1.5 py-0.5">
+                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                      {booking.masterName}
+                    </div>
+                  )}
+
                   <div className="text-xs text-neutral-600 dark:text-dark-muted">
                     {dateStr} • {timeStr}
                   </div>
                   <div className="text-xs text-neutral-500 dark:text-dark-muted">{t('management.price')} {booking.price}zł</div>
+
                   {!booking.canModify && (
                     <div className="mt-2 text-xs font-medium text-amber-600 dark:text-amber-400">
                       {t('management.lessThan24h')}
                     </div>
                   )}
+
                   {isSelected && booking.canModify ? (
                     <div className="mt-3 flex gap-2">
                       <button
@@ -128,6 +141,7 @@ export default function ResultsPanel({
                       </button>
                     </div>
                   ) : null}
+
                   {isSelected && !booking.canModify ? (
                     <div className="mt-3 text-xs text-neutral-500 dark:text-dark-muted">
                       {t('management.cannotModifyOnline')}

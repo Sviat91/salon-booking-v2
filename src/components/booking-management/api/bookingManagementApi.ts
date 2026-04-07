@@ -14,6 +14,9 @@ export interface SearchResultApi {
   phone: string
   email?: string
   procedureName: string
+  procedureId?: string
+  masterName?: string
+  masterId?: string
   startTime: string
   endTime: string
   price: number
@@ -52,8 +55,10 @@ export function mapApiResult(entry: SearchResultApi, procedures: ProcedureOption
   const start = new Date(entry.startTime)
   const end = new Date(entry.endTime)
   const durationMin = Math.max(15, Math.round((end.getTime() - start.getTime()) / 60000))
-  const matchedProcedure = procedures.find((proc) => proc.name_pl === entry.procedureName)
-  
+  // Prefer matching by procedureId (new API returns it), fall back to name match
+  const matchedProcedure = procedures.find((proc) => proc.id === (entry as any).procedureId)
+    ?? procedures.find((proc) => proc.name_pl === entry.procedureName)
+
   return {
     eventId: entry.eventId,
     procedureName: entry.procedureName,
@@ -68,6 +73,8 @@ export function mapApiResult(entry: SearchResultApi, procedures: ProcedureOption
     lastName: entry.lastName,
     phone: entry.phone,
     email: entry.email,
+    masterName: entry.masterName,
+    masterId: entry.masterId,
   }
 }
 
@@ -84,110 +91,35 @@ export async function fetchProcedures(masterId?: string): Promise<ProceduresResp
 export async function searchBookings(
   form: SearchFormData,
   procedures: ProcedureOption[],
-  turnstileToken?: string,
-  dateRange?: { start: string; end: string },
-  masterId?: string,
+  _turnstileToken?: string,  // kept for API compatibility — not sent to server
+  _dateRange?: { start: string; end: string }, // no longer needed — server returns all upcoming
+  _masterId?: string, // passed as sort hint (current master's bookings shown first)
 ): Promise<BookingResult[]> {
-  const { firstName, lastName } = splitFullName(form.fullName)
-  
-  clientLog.info('🔍 Searching for:', { firstName, lastName, phone: form.phone, dateRange })
+  clientLog.info('🔍 Searching for:', { fullName: form.fullName, phone: form.phone })
 
-  // Fetch ALL calendar events for the period, then filter on client
-  // Add force=true to bypass cache for new searches
-  // Add dateRange if provided for extended search
-  let url = '/api/bookings/all?force=true'
-  if (masterId) {
-    url += `&masterId=${encodeURIComponent(masterId)}`
-  }
-  if (dateRange) {
-    // API expects 'start' and 'end' parameters (not 'startDate' and 'endDate')
-    url += `&start=${dateRange.start}&end=${dateRange.end}`
-  }
-  const response = await fetch(url)
-  
-  if (!response.ok) {
-    throw new Error('Nie udało się pobrać danych z kalendarza')
-  }
-  
-  const allBookingsData = await response.json()
-  clientLog.info(`📅 Fetched ${allBookingsData.count} bookings (cached: ${allBookingsData.cached})`)
-  
-  const allBookings = allBookingsData.bookings || []
-  
-  // Filter bookings with strict matching rules to prevent showing foreign bookings
-  const matchingBookings = allBookings.filter((booking: any) => {
-    // Normalize search data
-    const searchFirstName = firstName.toLowerCase().trim()
-    const searchLastName = lastName.toLowerCase().trim()  
-    const searchPhone = form.phone.replace(/\D/g, '')
-    const searchEmail = form.email ? form.email.toLowerCase().trim() : ''
-    
-    // Normalize booking data
-    const bookingFirstName = booking.firstName.toLowerCase().trim()
-    const bookingLastName = booking.lastName.toLowerCase().trim()
-    const bookingPhone = booking.phone.replace(/\D/g, '')
-    const bookingEmail = booking.email ? booking.email.toLowerCase().trim() : ''
-    
-    // SECURITY-FIRST MATCHING RULES:
-    
-    // 1. First name must match exactly
-    const firstNameMatch = bookingFirstName === searchFirstName
-    if (!firstNameMatch) return false
-    
-    // 2. STRICT FULL NAME MATCHING to prevent showing foreign bookings
-    const searchHasLastName = searchLastName.length > 0
-    const bookingHasLastName = bookingLastName.length > 0
-    
-    let fullNameMatch = false
-    
-    if (searchHasLastName && bookingHasLastName) {
-      // Both have last names - must match exactly
-      fullNameMatch = searchLastName === bookingLastName
-    } else if (!searchHasLastName && !bookingHasLastName) {
-      // Both have only first names - already checked above
-      fullNameMatch = true
-    } else {
-      // One has last name, other doesn't - NO MATCH by default
-      // This prevents "Natalia" from seeing "Natalia Kowalska" bookings
-      fullNameMatch = false
-    }
-    
-    // 3. Phone number must match (last 9 digits)
-    let phoneMatch = false
-    if (searchPhone.length >= 9 && bookingPhone.length >= 9) {
-      phoneMatch = bookingPhone.slice(-9) === searchPhone.slice(-9)
-    }
-    
-    // 4. Email verification (exact match if provided)
-    let emailMatch = true
-    if (searchEmail && bookingEmail) {
-      emailMatch = bookingEmail === searchEmail
-    } else if (searchEmail && !bookingEmail) {
-      emailMatch = false
-    }
-    
-    // 5. MAIN SECURITY RULE: Full name structure + phone must match
-    if (fullNameMatch && phoneMatch) {
-      return true
-    }
-    
-    // 6. EXCEPTION: Email as additional verification allows name structure mismatch
-    // Only if email is provided and matches exactly + either name or phone matches
-    if (searchEmail && emailMatch) {
-      if (firstNameMatch && phoneMatch) {
-        return true // Name + Phone + Email = OK even if lastName structure differs
-      }
-      if (fullNameMatch) {
-        return true // Full name + Email = OK even if phone partial
-      }
-    }
-    
-    return false
+  // Send phone + name to server. masterId is optional — used only for sort priority.
+  const params = new URLSearchParams({
+    phone: form.phone,
+    name:  form.fullName.trim(),
   })
-  
-  clientLog.info(`✅ Found ${matchingBookings.length} matching bookings`)
-  
-  return matchingBookings.map((booking: SearchResultApi) => mapApiResult(booking, procedures))
+  if (_masterId) params.set('currentMasterId', _masterId)
+  const url = `/api/bookings/all?${params.toString()}`
+
+  const response = await fetch(url)
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}))
+    throw new Error(errorData.error ?? 'Nie udało się pobrać danych z kalendarza')
+  }
+
+  const data = await response.json()
+  clientLog.info(`📅 Received ${data.count} bookings from server`)
+
+  const bookings: SearchResultApi[] = data.bookings ?? []
+
+  clientLog.info(`✅ Found ${bookings.length} matching bookings`)
+
+  return bookings.map((booking) => mapApiResult(booking, procedures))
 }
 
 export async function updateBooking(

@@ -34,6 +34,8 @@ export interface BookingResult {
   lastName: string
   phone: string
   email?: string
+  masterName?: string  // Display name of the specialist
+  masterId?: string    // Used for sorting (current master's bookings shown first)
 }
 
 export interface ProcedureOption {

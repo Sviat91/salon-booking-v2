@@ -347,44 +347,18 @@ canModify = canCancel = (appointmentDateTime - now) > 24 часа
 
 **Файл**: `src/app/api/bookings/all/route.ts`
 
-- [ ] Создать файл `src/app/api/bookings/all/route.ts`
-- [ ] Реализовать `GET` обработчик
-- [ ] Принять query params: `masterId` (обязательный), `phone` (обязательный), `name` (обязательный)
-- [ ] Валидировать наличие `masterId`, `phone`, `name` → 400 если отсутствуют
-- [ ] Нормализовать телефон для поиска: оставить только последние 9 цифр (убрать код страны, пробелы, дефисы)
-- [ ] SQL-запрос через Prisma:
-  ```
-  Appointment.findMany({
-    where: {
-      masterId,
-      date: { gte: today },             // только предстоящие
-      status: { in: ["PENDING", "CONFIRMED"] },
-      client: {
-        phone: { endsWith: last9digits } // фильтр по телефону на сервере
-      }
-    },
-    include: { client: true, service: true }
-  })
-  ```
-- [ ] После SQL-выборки — дополнительно проверить совпадение имени (нормализованное сравнение: trim, lowercase, убрать лишние пробелы)
-- [ ] Для каждой записи вычислить `canModify` и `canCancel`:
-  - Построить `appointmentDateTime` из `date + startTime` в Europe/Warsaw timezone
-  - `canModify = canCancel = (appointmentDateTime - now) > 24 часа`
-  - Оба флага ВСЕГДА одинаковы
-  - Если `false` → в UI кнопки "Изменить" и "Отменить" полностью СКРЫТЫ, показывается текст "свяжитесь с мастером"
-- [ ] Маппинг полей:
-  - `eventId` = `appointment.id`
-  - `firstName` = `client.name?.split(' ')[0]`
-  - `lastName` = `client.name?.split(' ').slice(1).join(' ')`
-  - `phone` = `client.phone`
-  - `email` = `client.email`
-  - `procedureName` = `service.name`
-  - `startTime` = ISO string из `appointment.date + appointment.startTime` в Europe/Warsaw
-  - `endTime` = ISO string из `appointment.date + appointment.endTime` в Europe/Warsaw
-  - `price` = `service.price` (с учётом MasterService.priceOverride)
-- [ ] Возвращать формат: `{ bookings: [...], count: N, cached: false }`
+- [x] Создать файл `src/app/api/bookings/all/route.ts`
+- [x] Реализовать `GET` обработчик
+- [x] Принять query params: `masterId` (обязательный), `phone` (обязательный), `name` (обязательный)
+- [x] Валидировать наличие `masterId`, `phone`, `name` → 400 если отсутствуют
+- [x] Нормализовать телефон для поиска: оставить только последние 9 цифр (убрать код страны, пробелы, дефисы)
+- [x] SQL-запрос через Prisma (фильтр по masterId, date >= today, status PENDING/CONFIRMED)
+- [x] После SQL-выборки — дополнительно проверить совпадение имени (нормализованное сравнение: trim, lowercase, убрать лишние пробелы)
+- [x] Для каждой записи вычислить `canModify` и `canCancel`
+- [x] Маппинг полей (eventId, firstName, lastName, phone, email, procedureName, procedureId, startTime ISO, endTime ISO, price)
+- [x] Возвращать формат: `{ bookings: [...], count: N, cached: false }`
+- [x] **Обновить** `bookingManagementApi.ts` — `searchBookings()` теперь передаёт phone+name в query, клиентская фильтрация удалена
 
-**Зависимости**: `prisma`, `date-fns-tz` (для timezone конвертации)
 
 ---
 
