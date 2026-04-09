@@ -183,9 +183,6 @@ const BookingManagement = forwardRef<BookingManagementRef, BookingManagementProp
       handleContactMasterSuccess,
       handleContactMasterBack,
       handleContactMasterClose,
-      handleExtendSearch,
-      handleExtendedSearchSubmit,
-      handleExtendedSearchBack,
     } = handlers
 
     // handleToggle needs onPanelOpenChange callback
@@ -251,9 +248,6 @@ const BookingManagement = forwardRef<BookingManagementRef, BookingManagementProp
                 onSelectChangeTime={handleSelectChangeTime}
                 onChangeProcedure={handleSelectChangeProcedure}
                 onEditDatetimeBack={handleBackToEditSelection}
-                onExtendSearch={handleExtendSearch}
-                onExtendedSearchSubmit={handleExtendedSearchSubmit}
-                onExtendedSearchBack={handleExtendedSearchBack}
                 onContactMasterSuccess={handleContactMasterSuccess}
                 onContactMasterBack={handleContactMasterBack}
                 onContactMasterClose={handleContactMasterClose}

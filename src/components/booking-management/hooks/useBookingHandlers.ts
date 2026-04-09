@@ -402,39 +402,6 @@ export function useBookingHandlers({
     actions.resetForm()
   }, [actions])
 
-  // Extended search handlers
-  const handleExtendSearch = useCallback(() => {
-    clientLog.info('Opening extended search panel')
-    actions.setState('extended-search')
-  }, [actions])
-  
-  const handleExtendedSearchSubmit = useCallback((
-    fullName: string, 
-    phone: string, 
-    email: string, 
-    startDate: string, 
-    endDate: string
-  ) => {
-    clientLog.info('Extended search submitted:', { fullName, phone, email, startDate, endDate })
-    
-    // Обновляем форму с новыми данными
-    actions.updateForm({ fullName, phone, email })
-    
-    // Выполняем поиск с расширенным диапазоном дат
-    actions.setState('loading')
-    
-    const token = turnstileSession.turnstileToken ?? undefined
-    searchMutation.mutate({
-      turnstileToken: token,
-      dateRange: { start: startDate, end: endDate }
-    })
-  }, [actions, searchMutation, turnstileSession])
-  
-  const handleExtendedSearchBack = useCallback(() => {
-    clientLog.info('Going back from extended search')
-    actions.setState('not-found')
-  }, [actions])
-
   return {
     handleSearch,
     handleToggle,
@@ -463,8 +430,5 @@ export function useBookingHandlers({
     handleContactMasterSuccess,
     handleContactMasterBack,
     handleContactMasterClose,
-    handleExtendSearch,
-    handleExtendedSearchSubmit,
-    handleExtendedSearchBack,
   }
 }

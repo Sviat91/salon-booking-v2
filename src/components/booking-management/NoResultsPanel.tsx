@@ -3,11 +3,10 @@ import { useTranslation } from 'react-i18next'
 
 interface NoResultsPanelProps {
   onRetry: () => void
-  onExtendSearch: () => void
   onContactMaster: () => void
 }
 
-export default function NoResultsPanel({ onRetry, onExtendSearch, onContactMaster }: NoResultsPanelProps) {
+export default function NoResultsPanel({ onRetry, onContactMaster }: NoResultsPanelProps) {
   const { t } = useTranslation()
 
   return (
@@ -25,9 +24,6 @@ export default function NoResultsPanel({ onRetry, onExtendSearch, onContactMaste
       <div className="space-y-3">
         <button type="button" onClick={onRetry} className="btn btn-primary w-full">
           {t('management.checkAgain')}
-        </button>
-        <button type="button" onClick={onExtendSearch} className="btn btn-outline w-full">
-          {t('management.extendDateRange')}
         </button>
         <button type="button" onClick={onContactMaster} className="btn btn-outline w-full">
           {t('management.contactMasterBtn')}

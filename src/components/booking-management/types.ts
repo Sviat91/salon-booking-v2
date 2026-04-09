@@ -10,7 +10,6 @@ export type ManagementState =
   | 'direct-time-change'
   | 'confirm-cancel'
   | 'not-found'
-  | 'extended-search'
   | 'contact-master'
   | 'contact-master-success'
   | 'time-change-success'

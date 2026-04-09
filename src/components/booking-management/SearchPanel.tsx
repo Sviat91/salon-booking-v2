@@ -11,7 +11,6 @@ interface SearchPanelProps {
   isLoading: boolean
   errorMessage?: string | null
   onSearch: () => void
-  onExtendedSearch?: () => void
   turnstileNode?: ReactNode
   turnstileRequired?: boolean
 }
@@ -23,7 +22,6 @@ export default function SearchPanel({
   isLoading,
   errorMessage,
   onSearch,
-  onExtendedSearch,
   turnstileNode,
   turnstileRequired,
 }: SearchPanelProps) {

@@ -17,7 +17,6 @@ import CancelErrorPanel from './CancelErrorPanel'
 import EditProcedurePanel from './EditProcedurePanel'
 import ProcedureChangeSuccessPanel from './ProcedureChangeSuccessPanel'
 import ProcedureChangeErrorPanel from './ProcedureChangeErrorPanel'
-import ExtendedSearchPanel from './ExtendedSearchPanel'
 import ContactMasterPanel from './ContactMasterPanel'
 import ContactMasterSuccessPanel from './ContactMasterSuccessPanel'
 import type {
@@ -52,9 +51,6 @@ interface PanelRendererProps {
   onSelectChangeTime: () => void
   onChangeProcedure: () => void
   onEditDatetimeBack: () => void
-  onExtendSearch: () => void
-  onExtendedSearchSubmit: (fullName: string, phone: string, email: string, startDate: string, endDate: string) => void
-  onExtendedSearchBack: () => void
   onContactMasterSuccess: () => void
   onContactMasterBack: () => void
   onContactMasterClose: () => void
@@ -114,9 +110,6 @@ export default function PanelRenderer(props: PanelRendererProps) {
     onSelectChangeTime,
     onChangeProcedure,
     onEditDatetimeBack,
-    onExtendSearch,
-    onExtendedSearchSubmit,
-    onExtendedSearchBack,
     onContactMasterSuccess,
     onContactMasterBack,
     onContactMasterClose,
@@ -186,19 +179,7 @@ export default function PanelRenderer(props: PanelRendererProps) {
       return (
         <NoResultsPanel
           onRetry={onBackToSearch}
-          onExtendSearch={onExtendSearch}
           onContactMaster={onContactMaster}
-        />
-      )
-    case 'extended-search':
-      return (
-        <ExtendedSearchPanel
-          initialFullName={form.fullName}
-          initialPhone={form.phone}
-          initialEmail={form.email}
-          onSearch={onExtendedSearchSubmit}
-          onBack={onExtendedSearchBack}
-          isSearching={searchPending}
         />
       )
     case 'contact-master':
