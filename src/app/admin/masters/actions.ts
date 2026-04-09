@@ -57,7 +57,7 @@ export async function createMaster(
     return { fieldErrors: parsed.error.flatten().fieldErrors }
   }
 
-  const existing = await prisma.user.findUnique({ where: { email: parsed.data.email } })
+  const existing = await prisma.user.findFirst({ where: { email: parsed.data.email } })
   if (existing) {
     return { fieldErrors: { email: ["This email is already registered"] } }
   }

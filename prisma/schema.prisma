@@ -9,12 +9,15 @@ datasource db {
 
 // Enums replaced with String constants due to SQLite limitations
 
+// Client identity = (phone + name) pair. Two people sharing the same phone
+// (e.g. a couple) get separate User records. Email uniqueness for admin/master
+// auth is enforced at the application level (register endpoint), not in DB.
 model User {
   id            String    @id @default(cuid())
   name          String?
-  email         String?   @unique
+  email         String?
   emailVerified DateTime?
-  phone         String?   @unique
+  phone         String?
   password      String?
   plainPassword String?
   image         String?
@@ -32,6 +35,9 @@ model User {
   dateOverrides        DateOverride[] @relation("MasterDateOverrides")
   createdServices      Service[]     @relation("MasterCreatedServices")
   consentRecords       ConsentRecord[]
+
+  @@index([phone])
+  @@index([email])
 }
 
 model MasterProfile {

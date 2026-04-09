@@ -21,6 +21,7 @@ export default async function MasterDashboardPage() {
         gte: startOfDay(today),
         lte: endOfDay(today),
       },
+      status: { not: "CANCELLED" },
     },
     include: {
       service: true,
@@ -37,7 +38,7 @@ export default async function MasterDashboardPage() {
       where: {
         masterId,
         date: { gte: startOfWeekDate, lte: endOfWeekDate },
-        status: { notIn: ["CANCELLED_BY_CLIENT", "CANCELLED_BY_MASTER"] },
+        status: { not: "CANCELLED" },
       },
     }),
     prisma.appointment.groupBy({

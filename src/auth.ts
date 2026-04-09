@@ -25,7 +25,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         }
 
         try {
-          const user = await prisma.user.findUnique({
+          const user = await prisma.user.findFirst({
             where: { email: credentials.email as string },
           })
 

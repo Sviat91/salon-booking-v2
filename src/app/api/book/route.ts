@@ -95,14 +95,21 @@ export async function POST(req: NextRequest) {
     }
 
     // 2. Find or create client user
+    // Identity = (phone + name) — a couple sharing the same phone get separate records.
+    const normalizedName = name.trim()
     let clientUser = phone
-      ? await prisma.user.findUnique({ where: { phone } })
+      ? await prisma.user.findFirst({
+          where: {
+            phone,
+            name: normalizedName,
+          },
+        })
       : null
 
     if (!clientUser) {
       clientUser = await prisma.user.create({
         data: {
-          name,
+          name: normalizedName,
           phone: phone || null,
           email: email || null,
           role: "CLIENT",
@@ -110,12 +117,9 @@ export async function POST(req: NextRequest) {
         },
       })
     } else {
-      // Update name/email if provided and user has no data
-      const updates: Record<string, string> = {}
-      if (name && !clientUser.name) updates.name = name
-      if (email && !clientUser.email) updates.email = email
-      if (Object.keys(updates).length > 0) {
-        await prisma.user.update({ where: { id: clientUser.id }, data: updates })
+      // Update email if provided and user has no email yet
+      if (email && !clientUser.email) {
+        await prisma.user.update({ where: { id: clientUser.id }, data: { email } })
       }
     }
 

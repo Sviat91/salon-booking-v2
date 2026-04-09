@@ -20,19 +20,21 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    // Find user by phone
-    const user = await prisma.user.findUnique({
+    // Find all users with this phone (may be multiple — e.g. a couple)
+    const users = await prisma.user.findMany({
       where: { phone },
       select: { id: true, name: true },
     })
 
-    if (!user) {
+    if (users.length === 0) {
       return NextResponse.json({ appointments: [], clientName: null })
     }
 
-    // Fetch all appointments for this client
+    const userIds = users.map((u) => u.id)
+
+    // Fetch all appointments for all users with this phone
     const appointments = await prisma.appointment.findMany({
-      where: { clientId: user.id },
+      where: { clientId: { in: userIds } },
       select: {
         id: true,
         date: true,
@@ -50,13 +52,14 @@ export async function GET(req: NextRequest) {
             masterProfile: { select: { avatarUrl: true } },
           },
         },
+        client: { select: { name: true } },
       },
       orderBy: [{ date: "desc" }, { startTime: "desc" }],
     })
 
     return NextResponse.json({
       appointments,
-      clientName: user.name,
+      clientName: users[0].name, // primary name for display
     })
   } catch (error) {
     console.error("Error fetching client appointments:", error)

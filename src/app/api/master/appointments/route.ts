@@ -44,6 +44,7 @@ export async function GET(req: NextRequest) {
       prisma.appointment.findMany({
         where: {
           masterId: session.user.id,
+          status: { not: "CANCELLED" },
           ...(Object.keys(dateFilter).length > 0 ? { date: dateFilter } : {}),
         },
         select: {
@@ -131,9 +132,14 @@ export async function POST(req: NextRequest) {
          return NextResponse.json({ error: "Client Name is required if no existing client selected" }, { status: 400 })
        }
        
-       // Try to find existing guest by phone if provided
+       // Try to find existing client by phone + name (identity pair)
        if (parsed.clientPhone) {
-         const existingUser = await prisma.user.findUnique({ where: { phone: parsed.clientPhone } })
+         const existingUser = await prisma.user.findFirst({
+           where: {
+             phone: parsed.clientPhone,
+             name: parsed.clientName,
+           },
+         })
          if (existingUser) {
            finalClientId = existingUser.id
          }

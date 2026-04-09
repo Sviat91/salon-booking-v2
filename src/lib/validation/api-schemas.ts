@@ -52,8 +52,10 @@ export type SearchApiInput = z.infer<typeof searchApiSchema>
  */
 export const cancelBookingApiSchema = z.object({
   eventId: z.string().min(1, 'Event ID is required'),
+  firstName: z.string().min(1, 'First name is required'),
   phone: z.string().min(5, 'Phone number is required'),
-  name: z.string().min(2, 'Name is required'),
+  email: z.string().optional().or(z.literal('')),
+  masterId: z.string().optional(),
 })
 
 export type CancelBookingApiInput = z.infer<typeof cancelBookingApiSchema>
@@ -64,10 +66,15 @@ export type CancelBookingApiInput = z.infer<typeof cancelBookingApiSchema>
  */
 export const updateTimeApiSchema = z.object({
   eventId: z.string().min(1, 'Event ID is required'),
+  procedureName: z.string().optional(),
+  firstName: z.string().min(1, 'First name is required'),
+  lastName: z.string().optional().default(''),
   phone: z.string().min(5, 'Phone number is required'),
-  name: z.string().min(2, 'Name is required'),
+  email: z.string().optional().or(z.literal('')),
+  price: z.number().optional(),
   newStartISO: z.string().min(16, 'Invalid start time format'),
   newEndISO: z.string().min(16, 'Invalid end time format'),
+  masterId: z.string().optional(),
 })
 
 export type UpdateTimeApiInput = z.infer<typeof updateTimeApiSchema>
@@ -78,11 +85,13 @@ export type UpdateTimeApiInput = z.infer<typeof updateTimeApiSchema>
  */
 export const updateProcedureApiSchema = z.object({
   eventId: z.string().min(1, 'Event ID is required'),
+  firstName: z.string().min(1, 'First name is required'),
+  lastName: z.string().optional().default(''),
   phone: z.string().min(5, 'Phone number is required'),
-  name: z.string().min(2, 'Name is required'),
+  email: z.string().optional().or(z.literal('')),
+  currentStartISO: z.string().min(16, 'Current start time is required'),
   newProcedureId: z.string().min(1, 'Procedure ID is required'),
-  newStartISO: z.string().min(16, 'Invalid start time format').optional(),
-  newEndISO: z.string().min(16, 'Invalid end time format').optional(),
+  masterId: z.string().optional(),
 })
 
 export type UpdateProcedureApiInput = z.infer<typeof updateProcedureApiSchema>
@@ -92,12 +101,25 @@ export type UpdateProcedureApiInput = z.infer<typeof updateProcedureApiSchema>
  * Checks if procedure can be extended
  */
 export const checkExtensionApiSchema = z.object({
-  phone: z.string().min(5),
-  name: z.string().min(2),
+  eventId: z.string().min(1, 'Event ID is required'),
   currentStartISO: z.string().min(16),
   currentEndISO: z.string().min(16),
-  newDurationMin: z.number().min(15).max(300),
+  newProcedureId: z.string().min(1, 'New procedure ID is required'),
+  masterId: z.string().optional(),
 })
+
+/**
+ * Schema for PATCH /api/bookings/[id]
+ * Combined procedure + time update
+ */
+export const combinedUpdateApiSchema = z.object({
+  newProcedureId: z.string().optional(),
+  newStartISO: z.string().min(16).optional(),
+  newEndISO: z.string().min(16).optional(),
+  masterId: z.string().optional(),
+})
+
+export type CombinedUpdateApiInput = z.infer<typeof combinedUpdateApiSchema>
 
 export type CheckExtensionApiInput = z.infer<typeof checkExtensionApiSchema>
 
