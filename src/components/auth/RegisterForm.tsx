@@ -2,6 +2,7 @@
 import * as React from "react"
 import { useRouter } from "next/navigation"
 import { signIn } from "next-auth/react"
+import { useTranslation } from "react-i18next"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -14,6 +15,7 @@ export default function RegisterForm({ className, ...props }: RegisterFormProps)
   const router = useRouter()
   const [isLoading, setIsLoading] = React.useState<boolean>(false)
   const [error, setError] = React.useState<string | null>(null)
+  const { t } = useTranslation()
 
   async function onSubmit(event: React.SyntheticEvent) {
     event.preventDefault()
@@ -34,7 +36,7 @@ export default function RegisterForm({ className, ...props }: RegisterFormProps)
 
       if (!response.ok) {
         const body = await response.json()
-        throw new Error(body.error || 'Registration failed')
+        throw new Error(body.error || t('auth.registrationFailed', 'Registration failed'))
       }
 
       // Automatically sign in the user after successful registration
@@ -46,13 +48,13 @@ export default function RegisterForm({ className, ...props }: RegisterFormProps)
       })
 
       if (res?.error) {
-        setError('Failed to auto-login. Please sign in manually.')
+        setError(t('auth.autoLoginFailed', 'Failed to auto-login. Please sign in manually.'))
         setTimeout(() => router.push('/auth/login'), 2000)
       } else if (res?.url) {
         window.location.href = res.url
       }
     } catch (err: any) {
-      setError(err.message || 'An error occurred during registration. Please try again.')
+      setError(err.message || t('auth.registrationError', 'An error occurred during registration. Please try again.'))
     } finally {
       setIsLoading(false)
     }
@@ -63,11 +65,11 @@ export default function RegisterForm({ className, ...props }: RegisterFormProps)
       <form onSubmit={onSubmit}>
         <div className="grid gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="name" className="text-foreground">Full Name</Label>
+            <Label htmlFor="name" className="text-foreground">{t('form.name', 'Full Name')}</Label>
             <Input
               id="name"
               name="name"
-              placeholder="John Doe"
+              placeholder={t('form.namePlaceholder', 'John Doe')}
               type="text"
               autoCapitalize="words"
               autoComplete="name"
@@ -77,11 +79,11 @@ export default function RegisterForm({ className, ...props }: RegisterFormProps)
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="email" className="text-foreground">Email</Label>
+            <Label htmlFor="email" className="text-foreground">{t('form.email', 'Email')}</Label>
             <Input
               id="email"
               name="email"
-              placeholder="client@somique.com"
+              placeholder={t('form.emailPlaceholder', 'client@example.com')}
               type="email"
               autoCapitalize="none"
               autoComplete="email"
@@ -92,7 +94,7 @@ export default function RegisterForm({ className, ...props }: RegisterFormProps)
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="password" className="text-foreground">Password</Label>
+            <Label htmlFor="password" className="text-foreground">{t('form.password', 'Password')}</Label>
             <Input
               id="password"
               name="password"
@@ -132,7 +134,7 @@ export default function RegisterForm({ className, ...props }: RegisterFormProps)
                 ></path>
               </svg>
             )}
-            Create Account
+            {t('auth.createAccount', 'Create Account')}
           </Button>
         </div>
       </form>

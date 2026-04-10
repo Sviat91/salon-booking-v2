@@ -8,14 +8,13 @@ export default auth((req) => {
   const { nextUrl } = req
   const isLoggedIn = !!req.auth
   const pathname = nextUrl.pathname
+  const role = req.auth?.user?.role
 
   // Protect /admin routes
   if (pathname.startsWith("/admin")) {
     if (!isLoggedIn) {
       return Response.redirect(new URL("/auth/login", nextUrl))
     }
-
-    const role = req.auth?.user?.role
 
     // Master wants to access superadmin area (/admin but not /admin/master)
     if (role === "MASTER" && pathname === "/admin") {
@@ -28,16 +27,33 @@ export default auth((req) => {
     }
   }
 
-  // Go to admin after login if logged in
+  // Protect /profile routes — must be logged in
+  if (pathname.startsWith("/profile")) {
+    if (!isLoggedIn) {
+      const loginUrl = new URL("/auth/login", nextUrl)
+      loginUrl.searchParams.set("callbackUrl", pathname)
+      return Response.redirect(loginUrl)
+    }
+  }
+
+  // Redirect logged-in users away from login page
   if (pathname.startsWith("/auth/login") && isLoggedIn) {
-    if (req.auth?.user?.role === "SUPERADMIN") {
+    // Respect callbackUrl if provided
+    const callbackUrl = nextUrl.searchParams.get("callbackUrl")
+    if (callbackUrl) {
+      return Response.redirect(new URL(callbackUrl, nextUrl))
+    }
+
+    if (role === "SUPERADMIN") {
       return Response.redirect(new URL("/admin", nextUrl))
-    } else if (req.auth?.user?.role === "MASTER") {
+    } else if (role === "MASTER") {
       return Response.redirect(new URL("/admin/master", nextUrl))
+    } else if (role === "CLIENT") {
+      return Response.redirect(new URL("/profile", nextUrl))
     }
   }
 })
 
 export const config = {
-  matcher: ["/admin/:path*", "/auth/login"],
+  matcher: ["/admin/:path*", "/auth/login", "/profile/:path*"],
 }

@@ -2,6 +2,7 @@
 import * as React from "react"
 import { useSearchParams } from "next/navigation"
 import { signIn } from "next-auth/react"
+import { useTranslation } from "react-i18next"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -14,13 +15,14 @@ export default function LoginForm({ className, ...props }: UserAuthFormProps) {
   const searchParams = useSearchParams()
   const [isLoading, setIsLoading] = React.useState<boolean>(false)
   const [error, setError] = React.useState<string | null>(null)
+  const { t } = useTranslation()
 
-  const callbackUrl = searchParams.get('callbackUrl') || '/admin'
+  const callbackUrl = searchParams.get('callbackUrl') || '/'
   const errorParam = searchParams.get('error')
 
   React.useEffect(() => {
     if (errorParam === 'CredentialsSignin') {
-      setError('Invalid username or password')
+      setError(t('auth.invalidCredentials', 'Invalid email or password'))
     }
   }, [errorParam])
 
@@ -42,12 +44,12 @@ export default function LoginForm({ className, ...props }: UserAuthFormProps) {
       })
 
       if (res?.error) {
-        setError('Invalid email or password')
+        setError(t('auth.invalidCredentials', 'Invalid email or password'))
       } else if (res?.url) {
         window.location.href = res.url
       }
     } catch {
-      setError('An error occurred. Please try again.')
+      setError(t('auth.loginError', 'An error occurred. Please try again.'))
     } finally {
       setIsLoading(false)
     }
@@ -58,11 +60,11 @@ export default function LoginForm({ className, ...props }: UserAuthFormProps) {
       <form onSubmit={onSubmit}>
         <div className="grid gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="email" className="text-foreground">Email</Label>
+            <Label htmlFor="email" className="text-foreground">{t('form.email', 'Email')}</Label>
             <Input
               id="email"
               name="email"
-              placeholder="client@somique.com"
+              placeholder={t('form.emailPlaceholder', 'client@example.com')}
               type="email"
               autoCapitalize="none"
               autoComplete="email"
@@ -73,7 +75,7 @@ export default function LoginForm({ className, ...props }: UserAuthFormProps) {
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="password" className="text-foreground">Password</Label>
+            <Label htmlFor="password" className="text-foreground">{t('form.password', 'Password')}</Label>
             <Input
               id="password"
               name="password"
@@ -112,7 +114,7 @@ export default function LoginForm({ className, ...props }: UserAuthFormProps) {
                 ></path>
               </svg>
             )}
-            Sign In
+            {t('auth.signIn', 'Sign In')}
           </Button>
         </div>
       </form>

@@ -10,11 +10,14 @@ declare module "next-auth" {
       id: string
       /** The user's assigned role. */
       role: string
+      /** The user's phone number (may be null for email-only registrations). */
+      phone?: string | null
     } & DefaultSession["user"]
   }
 
   interface User {
     role: string
+    phone?: string | null
   }
 }
 
@@ -24,5 +27,6 @@ declare module "next-auth/jwt" {
     /** OpenID ID Token */
     id?: string
     role?: string
+    phone?: string | null
   }
 }

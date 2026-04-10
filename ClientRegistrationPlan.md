@@ -1,6 +1,6 @@
 # 🔐 Регистрация клиентов и Личный кабинет — План реализации
 
-> **Цель**: Добавить клиентскую регистрацию (по телефону + имя + опциональный email/пароль) и полноценный личный кабинет (`/profile`) с историей записей, управлением данными и быстрой повторной записью.
+> **Цель**: Добавить клиентскую регистрацию (по email + пароль) и полноценный личный кабинет (`/profile`) с историей записей, управлением данными и быстрой повторной записью.
 
 ---
 
@@ -9,309 +9,396 @@
 | Компонент | Статус | Описание |
 |-----------|--------|----------|
 | `User` модель (Prisma) | ✅ Есть | Поля: name, email, phone, password, role, isGuest |
-| `POST /api/auth/register` | ⚠️ Есть, но только для admin/master | Требует email + password, создаёт CLIENT без phone |
-| `RegisterForm.tsx` | ⚠️ Есть, не для клиентов | Поля: name, email, password. Нет phone |
+| `POST /api/auth/register` | ⚠️ Есть, но базовый | Требует name + email + password, создаёт CLIENT |
+| `RegisterForm.tsx` | ⚠️ Есть, базовый | Поля: name, email, password. Без phone |
 | `/auth/login` + `LoginForm.tsx` | ✅ Есть | Вход по email + password (Credentials Provider) |
 | `auth.ts` (NextAuth) | ✅ Есть | JWT strategy, Credentials provider по email |
+| `auth.config.ts` | ✅ Есть | JWT/session callbacks, pages config |
 | `middleware.ts` | ✅ Есть | Защищает `/admin`, но не `/profile` |
 | `/profile/page.tsx` | ⚠️ Есть | Работает без auth — ввод телефона → список записей |
 | `/api/client/appointments` | ✅ Есть | GET по phone → все записи |
-| Идентификация клиента | ✅ Есть | По паре (phone + name), isGuest=true |
+| Идентификация гостей | ✅ Есть | По паре (phone + name), `isGuest: true` |
 | GDPR Consent | ✅ Есть | `consent-service.ts`, `/api/consents/*` |
 
-### Ключевые решения, принятые ранее
-- **Клиент НЕ обязан регистрироваться** для записи (гостевой флоу сохраняется — PRD §3).
-- **Идентификация**: `(phone + name)` — у `User.phone` и `User.email` нет `@unique` constraint.
-- **Auth**: NextAuth Credentials Provider по email + password (для master/admin). Клиенты пока идут как `isGuest: true`.
+### Ключевые решения
+- **Регистрация по email + пароль**. Телефон не нужен для auth — это идентификатор гостя.
+- **Гостевой флоу НЕ меняется** — запись без регистрации сохраняется (PRD §3).
+- **OAuth-ready**: email как primary identifier открывает путь к Google, Apple, Telegram auth.
+- **Guest merge**: Зарегистрированный клиент может привязать телефон → гостевые записи привяжутся.
 
 ---
 
 ## 🏗 Архитектура решения
 
 ### Два типа клиентов
-1. **Гость** (`isGuest: true`) — записывается без регистрации. Текущий флоу.
-2. **Зарегистрированный** (`isGuest: false`, `password != null`) — вошёл в ЛК, видит историю, может управлять записями.
+1. **Гость** (`isGuest: true`, `password: null`) — записывается по phone+name без регистрации
+2. **Зарегистрированный** (`isGuest: false`, `password != null`, `email != null`) — вошёл в ЛК
 
-### Флоу авторизации клиента
+### Флоу авторизации
 ```
-Вариант A: Вход по телефону + пароль
-Вариант B: Вход по email + пароль (уже работает через NextAuth)
+Регистрация: name + email + password → email verification (будущее)
+Вход: email + password (Credentials Provider — уже работает!)
+Будущее: + Google OAuth, Apple Sign-In, Telegram Login Widget
+```
+
+### Guest merge (привязка гостевых записей)
+```
+1. Клиент регистрируется → создаётся User с isGuest=false
+2. В ЛК идёт в "Привязать записи" → вводит phone + name
+3. Система ищет Guest-юзеров с (phone + name)
+4. Найденные записи перепривязываются к зарегистрированному User
+5. Guest-юзер удаляется (или помечается как merged)
 ```
 
 ### Маршруты
 | Маршрут | Доступ | Описание |
 |---------|--------|----------|
-| `/auth/register` | Публичный | Регистрация клиента: имя + phone + пароль + email (опц.) |
-| `/auth/login` | Публичный | Вход: phone/email + пароль |
-| `/profile` | Только auth CLIENT | Личный кабинет: записи, профиль, GDPR |
-| `/profile/edit` | Только auth CLIENT | Редактирование профиля |
+| `/auth/register` | Публичный | Регистрация: name + email + пароль |
+| `/auth/login` | Публичный | Вход: email + пароль |
+| `/profile` | Только auth (CLIENT) | ЛК: записи, профиль, настройки |
+| `/profile/edit` | Только auth (CLIENT) | Редактирование профиля |
 
 ---
 
 ## 📋 Пошаговый план реализации
 
-### Фаза 1: Backend — Регистрация и авторизация клиента
+### Фаза 1: Backend — Доработка auth
 
 #### Шаг 1.1: Обновить `POST /api/auth/register`
-- [ ] Добавить поле `phone` (обязательное для CLIENT)
-- [ ] Сделать `email` необязательным (optional) для CLIENT
-- [ ] Добавить валидацию: phone ≥ 9 цифр, name ≥ 2 символа, password ≥ 6
-- [ ] При регистрации искать существующих Guest-юзеров по `(phone + name)`:
-  - Если найден `isGuest: true` → **конвертировать** в зарегистрированного (`isGuest: false`, установить password, email)
-  - Если не найден → создать нового юзера с `isGuest: false`
-- [ ] Дедупликация: если `(phone + name)` есть с `isGuest: false` → вернуть ошибку "Аккаунт уже существует"
-- [ ] После создания автоматически залогинить (как сейчас)
+- [x] Валидация: `name` ≥ 2, `email` валидный формат, `password` ≥ 6
+- [x] Проверка дубликата по email: `findFirst({ email, password: { not: null } })` — ищем только зарегистрированных (не гостей с фейковым email)
+- [x] Создание: `{ name, email, password: bcrypt(password), role: "CLIENT", isGuest: false }`
+- [x] Автоматический логин после регистрации (уже работает)
+- [x] Zod-схема для валидации body
 
-**Файл**: `src/app/api/auth/register/route.ts`
+**Файл**: `src/app/api/auth/register/route.ts` [MODIFY]
 
 ```
-Body: { name, phone, password, email? }
-Response: { id, name, phone, email, role: "CLIENT" }
+Body: { name: string, email: string, password: string }
+Response 201: { id, name, email, role }
+Response 400: { error: "..." }
 ```
 
-#### Шаг 1.2: Добавить вход по phone в NextAuth Credentials Provider
-- [ ] Расширить `authorize()` в `src/auth.ts`:
-  - Если передан `phone` → `findFirst({ phone, password != null })` → сравнить bcrypt
-  - Если передан `email` → текущая логика (без изменений)
-- [ ] Обновить `credentials` config: добавить `phone` как optional field
-- [ ] Убедиться что JWT token содержит `role`, `id`, `name`, `phone`
+#### Шаг 1.2: Убедиться что NextAuth Credentials Provider корректен
+- [x] `authorize()` в `auth.ts` — уже ищет по email+password для master/admin
+- [x] Убедиться что CLIENT с `isGuest: false` тоже может залогиниться (текущий код это уже позволяет!)
+- [x] `findFirst({ email })` уже используется → ОК
 
-**Файл**: `src/auth.ts`
+**Файл**: `src/auth.ts` — скорее всего изменений НЕ нужно. Просто проверить.
 
-#### Шаг 1.3: Обновить `auth.config.ts` → JWT callbacks
-- [ ] Добавить `phone` в JWT token (для отображения в ЛК без лишних запросов)
-- [ ] Добавить `name` в session
+#### Шаг 1.3: Расширить JWT/Session данными клиента
+- [x] Добавить `phone` в JWT token (из user БД → token → session)
+- [x] Добавить `name` в session (может уже есть)
+- [x] Расширить TypeScript типы NextAuth
 
-**Файл**: `src/auth.config.ts`
+**Файлы**:
+- `src/auth.config.ts` [MODIFY] — callbacks
+- `src/types/next-auth.d.ts` [NEW или MODIFY] — type augmentation
 
-#### Шаг 1.4: Обновить Middleware для `/profile`
-- [ ] Добавить `/profile` в protected routes
-- [ ] CLIENT → разрешить `/profile`
-- [ ] MASTER/SUPERADMIN → разрешить `/profile` (опционально, можно redirect в admin)
-- [ ] Неавторизованный → redirect на `/auth/login?callbackUrl=/profile`
+```ts
+// JWT callback
+async jwt({ token, user }) {
+  if (user) {
+    token.role = user.role
+    token.id = user.id
+    token.phone = user.phone  // ← ADD
+  }
+  return token
+}
 
-**Файл**: `src/middleware.ts`
+// Session callback
+async session({ session, token }) {
+  if (session.user) {
+    session.user.role = token.role
+    session.user.id = token.id
+    session.user.phone = token.phone  // ← ADD
+  }
+  return session
+}
+```
+
+#### Шаг 1.4: Обновить Middleware — защитить `/profile`
+- [x] Добавить `/profile` в matcher
+- [x] Если не залогинен → redirect `/auth/login?callbackUrl=/profile`
+- [x] Если CLIENT → разрешить
+- [x] Если MASTER/SUPERADMIN → разрешить (они тоже могут смотреть)
+- [x] После логина CLIENT → redirect на `/profile`
+
+**Файл**: `src/middleware.ts` [MODIFY]
 
 ---
 
-### Фаза 2: Frontend — Регистрация клиента
+### Фаза 2: Frontend — Формы auth
 
-#### Шаг 2.1: Переработать `RegisterForm.tsx`
-- [ ] Добавить поле phone (PhoneInput компонент — уже есть)
-- [ ] Сделать email опциональным (убрать `required`)
-- [ ] Добавить пояснение: "Телефон будет использоваться для входа"
-- [ ] Обновить `onSubmit` → передавать phone в API
-- [ ] Добавить i18n ключи (PL + RU + EN)
-- [ ] Стилизация — соответствие дизайн-системе
+#### Шаг 2.1: Обновить `RegisterForm.tsx`
+- [x] Текущие поля уже правильные: name, email, password
+- [x] Обновить тексты/labels на клиентский контекст (не "Create Account" а "Зарегистрироваться")
+- [x] Добавить i18n ключи (PL / RU / EN)
+- [x] После успешной регистрации → redirect `/profile`
+- [x] Добавить ссылку "Уже есть аккаунт? Войти"
 
-**Файл**: `src/components/auth/RegisterForm.tsx`
+**Файл**: `src/components/auth/RegisterForm.tsx` [MODIFY]
 
-#### Шаг 2.2: Обновить `LoginForm.tsx` — вход по phone или email
-- [ ] Добавить toggle/tabs: "По телефону" / "По email"
-- [ ] При входе по телефону → передавать `phone` вместо `email` в `signIn("credentials", { phone, password })`
-- [ ] При входе по email → текущая логика
-- [ ] Обновить placeholder'ы и labels
-- [ ] i18n ключи
+#### Шаг 2.2: Обновить `LoginForm.tsx`
+- [x] Обновить тексты на клиентский контекст
+- [x] i18n ключи
+- [x] После логина CLIENT → redirect `/profile`
+- [x] Обработка `callbackUrl` из query params
 
-**Файл**: `src/components/auth/LoginForm.tsx`
+**Файл**: `src/components/auth/LoginForm.tsx` [MODIFY]
 
-#### Шаг 2.3: Обновить страницы `/auth/login` и `/auth/register`
-- [ ] Обновить тексты и descriptions для клиентского контекста
-- [ ] Добавить ссылку на `/profile` после успешного логина для CLIENT
-- [ ] i18n
+#### Шаг 2.3: Обновить страницы auth
+- [x] `/auth/login/page.tsx` — i18n тексты, мета-описание
+- [x] `/auth/register/page.tsx` — i18n тексты, мета-описание
+- [x] Обе страницы: дизайн соответствует основной теме салона
 
-**Файлы**: `src/app/auth/login/page.tsx`, `src/app/auth/register/page.tsx`
+**Файлы**: `src/app/auth/login/page.tsx`, `src/app/auth/register/page.tsx` [MODIFY]
 
 ---
 
 ### Фаза 3: Личный кабинет (`/profile`)
 
-#### Шаг 3.1: Переработать `/profile/page.tsx`
-Текущая страница — просто ввод телефона. Нужно превратить в полноценный ЛК.
-
-- [ ] Убрать ручной ввод телефона. Данные получать из NextAuth session
-- [ ] Структура страницы:
+#### Шаг 3.1: API — `GET /api/client/profile`
+- [x] Auth-protected: userId из session
+- [x] Возвращает:
+  ```json
+  {
+    "user": { "name", "email", "phone", "createdAt" },
+    "upcoming": [{ appointment... }],  // date >= today, status != CANCELLED, sort ASC
+    "past": [{ appointment... }],       // date < today OR CANCELLED, sort DESC
+    "stats": { "totalVisits", "lastVisit" }
+  }
   ```
-  ┌─────────────────────────┐
-  │  Привет, {name}!        │ ← из session
-  │  📱 {phone}  ✉️ {email}  │
-  │  [Редактировать профиль] │
-  ├─────────────────────────┤
-  │  📅 Предстоящие записи   │ ← с кнопками Изменить/Отменить
-  │  ├── Booking 1           │
-  │  └── Booking 2           │
-  ├─────────────────────────┤
-  │  📜 История              │ ← с кнопкой "Повторить"
-  │  ├── Past 1  [Повторить] │
-  │  └── Past 2  [Повторить] │
-  ├─────────────────────────┤
-  │  🔐 Настройки            │
-  │  ├── Сменить пароль      │
-  │  ├── GDPR: Мои данные    │
-  │  └── Выйти               │
-  └─────────────────────────┘
-  ```
-- [ ] Добавить кнопку "Записаться" (→ redirect на главную)
-
-**Файл**: `src/app/profile/page.tsx`
-
-#### Шаг 3.2: API — `GET /api/client/profile`
-- [ ] Нужен новый эндпоинт: возвращает данные профиля + appointments
-- [ ] Auth-protected: берёт userId из session
-- [ ] Возвращает: `{ user: { name, phone, email }, upcoming: [...], past: [...] }`
-- [ ] Фильтрация:
-  - upcoming: `date >= today AND status != CANCELLED`, sort ASC
-  - past: `date < today OR status == CANCELLED`, sort DESC
-- [ ] Включить price override для мастера (как в `/api/bookings/all`)
+- [x] Если у пользователя есть phone → искать и его записи (merge view)
+- [x] Price override: как в `/api/bookings/all`
 
 **Файл**: `src/app/api/client/profile/route.ts` [NEW]
 
-#### Шаг 3.3: API — `PATCH /api/client/profile`
-- [ ] Auth-protected
-- [ ] Позволяет обновить: `name`, `email` (phone менять нельзя — это идентификатор)
-- [ ] Валидация: `name` ≥ 2, `email` формат (если указан)
+#### Шаг 3.2: Переработать `/profile/page.tsx`
+- [x] **Убрать** ручной ввод телефона. Данные из auth session.
+- [x] Layout:
+  ```
+  ┌─────────────────────────────┐
+  │  👤 Привет, {name}!         │ ← из session
+  │  ✉️ {email}                  │
+  │  📱 {phone || "не указан"}  │
+  │  [Редактировать] [Выйти]    │
+  ├─────────────────────────────┤
+  │  📅 Предстоящие записи      │
+  │  ├── Booking card 1         │ ← service, date, time, master, price
+  │  │   [Изменить] [Отменить]  │ ← 24ч guard
+  │  └── Booking card 2         │
+  ├─────────────────────────────┤
+  │  📜 История                 │
+  │  ├── Past card [Повторить]  │ ← redirect на мастера
+  │  └── Past card [Повторить]  │
+  ├─────────────────────────────┤
+  │  🔗 Привязать записи        │ ← если phone не указан
+  │  "Введите телефон чтобы     │
+  │   привязать гостевые записи"│
+  ├─────────────────────────────┤
+  │  ⚙️ Настройки               │
+  │  ├── Сменить пароль         │
+  │  ├── 🔐 GDPR: Мои данные   │
+  │  └── 🚪 Выйти              │
+  └─────────────────────────────┘
+  ```
+- [x] React Query для загрузки данных из `/api/client/profile`
+- [x] Responsive дизайн
+- [x] i18n
 
-**Файл**: `src/app/api/client/profile/route.ts` [добавить PATCH handler]
+**Файл**: `src/app/profile/page.tsx` [REWRITE]
+
+#### Шаг 3.3: API — `PATCH /api/client/profile`
+- [x] Auth-protected
+- [x] Обновляет: `name`, `email` (phone — отдельный flow через merge)
+- [x] Валидация: name ≥ 2, email — формат
+- [x] Проверка уникальности email среди зарегистрированных (password != null)
+
+**Файл**: `src/app/api/client/profile/route.ts` [ADD PATCH handler]
 
 #### Шаг 3.4: API — `POST /api/client/change-password`
-- [ ] Auth-protected
-- [ ] Body: `{ currentPassword, newPassword }`
-- [ ] Валидация: currentPassword correct, newPassword ≥ 6
-- [ ] bcrypt hash нового пароля
+- [x] Auth-protected
+- [x] Body: `{ currentPassword, newPassword }`
+- [x] Валидация: currentPassword верный (bcrypt compare), newPassword ≥ 6
+- [x] Обновить password hash в БД
 
 **Файл**: `src/app/api/client/change-password/route.ts` [NEW]
 
-#### Шаг 3.5: Страница редактирования профиля `/profile/edit`
-- [ ] Форма: имя, email (phone показывается но не редактируется)
-- [ ] Секция смены пароля (current + new + confirm)
-- [ ] Кнопка "Сохранить"
-- [ ] Toast/уведомление об успехе
+#### Шаг 3.5: Страница `/profile/edit`
+- [x] Форма: name (editable), email (editable), phone (readonly display)
+- [x] Секция смены пароля: current + new + confirm
+- [x] Кнопка "Сохранить"
+- [x] Toast/уведомление об успехе
+- [x] Back button → `/profile`
 
 **Файл**: `src/app/profile/edit/page.tsx` [NEW]
 
 ---
 
-### Фаза 4: Интеграция с существующим флоу бронирования
+### Фаза 4: Guest Merge — привязка гостевых записей
 
-#### Шаг 4.1: After booking — предложить регистрацию
-- [ ] После успешной записи (гостевой флоу) показать баннер:
-  > "Хотите видеть свои записи и управлять ими? Создайте аккаунт за 30 секунд"
-  > [Создать аккаунт] [Нет, спасибо]
-- [ ] Кнопка "Создать аккаунт" → redirect на `/auth/register?phone=XXX&name=XXX` (предзаполнение)
-- [ ] Хранить phone/name в query params для предзаполнения формы регистрации
+#### Шаг 4.1: API — `POST /api/client/link-bookings`
+- [ ] Auth-protected
+- [ ] Body: `{ phone, name }` — данные которые клиент использовал при гостевой записи
+- [ ] Логика:
+  1. Найти Guest-юзеров с `(phone, name, isGuest: true)`
+  2. Перенести все appointments: `UPDATE appointment SET clientId = authUserId WHERE clientId = guestUserId`
+  3. Перенести consent records: аналогично
+  4. Обновить auth-юзера: `phone = phone` (если ещё не задан)
+  5. Удалить пустого Guest-юзера (у которого больше нет записей)
+- [ ] Вернуть количество привязанных записей
 
-**Файл**: Компонент success booking (определить точный компонент)
+**Файл**: `src/app/api/client/link-bookings/route.ts` [NEW]
 
-#### Шаг 4.2: Предзаполнение формы регистрации
-- [ ] `RegisterForm` → читать `searchParams` (`phone`, `name`)
-- [ ] Предзаполнять поля из query params
-- [ ] Показывать только поле пароля если phone+name уже заполнены
+```
+Body: { phone: "+48501748708", name: "Sviat" }
+Response: { linked: 5, phone: "+48501748708" }
+```
 
-**Файл**: `src/components/auth/RegisterForm.tsx`, `src/app/auth/register/page.tsx`
+#### Шаг 4.2: UI — "Привязать записи" в ЛК
+- [ ] В `/profile` блок с PhoneInput + имя
+- [ ] Кнопка "Привязать"
+- [ ] Показать результат: "Привязано N записей"
+- [ ] После привязки — перезагрузить данные профиля
 
-#### Шаг 4.3: Guest → Registered merge
-- [ ] При регистрации, если Guest-юзер с таким (phone+name) уже есть:
-  - Не создавать нового, а **обновить** существующего: `isGuest: false`, добавить password, email
-  - Все предыдущие записи автоматически привязаны (тот же userId)
-- [ ] Это уже описано в Шаге 1.1, но проверить end-to-end
-
----
-
-### Фаза 5: Навигация и UX
-
-#### Шаг 5.1: Добавить кнопку "Мой профиль" на главную страницу
-- [ ] В header/navbar добавить:
-  - Если залогинен → иконка профиля + "Мой кабинет" → `/profile`
-  - Если не залогинен → "Войти" → `/auth/login`
-- [ ] Responsive: на мобильном — иконка, на десктопе — текст
-
-**Файлы**: Header/Layout компонент (определить точный файл)
-
-#### Шаг 5.2: Redirect после логина
-- [ ] CLIENT логин → redirect на `/profile` (вместо `/`)
-- [ ] MASTER логин → redirect на `/admin/master` (уже работает)
-- [ ] SUPERADMIN логин → redirect на `/admin` (уже работает)
-
-**Файл**: `src/middleware.ts`
-
-#### Шаг 5.3: Кнопка "Выйти" в ЛК
-- [ ] В `/profile` добавить кнопку "Выйти" → `signOut({ callbackUrl: "/" })`
-- [ ] Подтверждение перед выходом
-
-**Файл**: `src/app/profile/page.tsx`
+**Файл**: Компонент `LinkBookingsCard.tsx` [NEW], встраивается в `/profile`
 
 ---
 
-### Фаза 6: GDPR в личном кабинете
+### Фаза 5: Интеграция с booking flow
 
-#### Шаг 6.1: Секция "Мои данные" в ЛК
-- [ ] Показать текущие согласия (consent records)
-- [ ] Кнопка "Экспортировать мои данные" → `/api/consents/export`
-- [ ] Кнопка "Удалить мои данные" → `/api/consents/erase` + подтверждение
+#### Шаг 5.1: After booking — предложить регистрацию/логин
+- [ ] После успешной гостевой записи показать баннер:
+  > "Хотите управлять записями? Создайте аккаунт или войдите"
+  > [Создать аккаунт] [Войти] [Нет, спасибо]
+- [ ] "Создать аккаунт" → `/auth/register`
+- [ ] "Войти" → `/auth/login?callbackUrl=/profile`
+
+**Файл**: Определить success-компонент после бронирования
+
+#### Шаг 5.2: Автозаполнение при записи для залогиненного клиента
+- [ ] Если клиент залогинен → автозаполнить имя и phone из session в форме записи
+- [ ] Это упрощает повторную запись (не нужно вводить данные заново)
+- [ ] Если phone в session есть → подставить
+
+**Файл**: Booking form component (определить точный файл)
+
+---
+
+### Фаза 6: Навигация
+
+#### Шаг 6.1: Header — кнопка профиля/входа
+- [x] В header/navbar:
+  - Залогинен → иконка 👤 + "Мой кабинет" → `/profile`
+  - Не залогинен → "Войти" / "Зарегистрироваться"
+- [x] Responsive: иконка на мобильном
+
+**Файлы**: Header/Layout component
+
+#### Шаг 6.2: Redirect после логина для CLIENT
+- [x] В middleware: CLIENT login → redirect `/profile`
+- [x] Учитывать `callbackUrl` если указан
+
+**Файл**: `src/middleware.ts` [MODIFY]
+
+---
+
+### Фаза 7: GDPR в ЛК
+
+#### Шаг 7.1: Секция "Мои данные"
+- [ ] Показать текущие consent records
+- [ ] Кнопка "Экспортировать данные" → `/api/consents/export`
+- [ ] Кнопка "Удалить данные" → `/api/consents/erase` + confirm modal
 - [ ] Кнопка "Отозвать согласие" → `/api/consents/withdraw`
 
-**Файл**: Компонент в `/profile` или отдельная страница `/profile/privacy`
+**Файл**: Компонент в `/profile` или отдельная страница
 
 ---
 
-### Фаза 7: Cleanup и тестирование
+### Фаза 8: Cleanup и тестирование
 
-#### Шаг 7.1: Удалить старый публичный `/profile`
-- [ ] Убрать ручной ввод телефона (заменён на auth-based в Фазе 3)
-- [ ] Убрать или адаптировать `/api/client/appointments` (если больше не нужен без auth)
+#### Шаг 8.1: Обновить `/api/client/appointments`
+- [ ] Решить: оставить публичный endpoint (для совместимости) или сделать auth-only
+- [ ] Рекомендация: оставить, но добавить rate limiting в будущем
 
-#### Шаг 7.2: i18n — все новые ключи
-- [ ] Добавить все тексты в PL / RU / EN:
-  - Формы регистрации/логина
-  - Личный кабинет
-  - Уведомления и ошибки
-
-#### Шаг 7.3: TypeScript типы
-- [ ] Расширить `next-auth` types:
+#### Шаг 8.2: TypeScript типы NextAuth
+- [ ] Расширить типы:
   ```ts
   declare module "next-auth" {
-    interface User { role: string; phone?: string }
-    interface Session { user: { role: string; id: string; phone?: string } }
+    interface User { role: string; phone?: string | null }
+  }
+  declare module "next-auth/jwt" {
+    interface JWT { role: string; id: string; phone?: string | null }
   }
   ```
-- [ ] Обновить JWT type
+- [ ] Проверить/создать `src/types/next-auth.d.ts`
 
-**Файл**: `src/types/next-auth.d.ts` (проверить существует ли)
+#### Шаг 8.3: i18n — все новые ключи
+- [ ] PL / RU / EN для:
+  - Регистрация/логин формы
+  - Личный кабинет
+  - Link bookings
+  - Ошибки и уведомления
 
-#### Шаг 7.4: Smoke тестирование
-- [ ] Регистрация нового клиента (phone + name + password)
-- [ ] Логин по телефону
+#### Шаг 8.4: Smoke тестирование
+- [ ] Регистрация нового клиента (email + password + name)
 - [ ] Логин по email
-- [ ] Просмотр ЛК → записи видны
-- [ ] Гостевая запись → предложение зарегистрироваться
-- [ ] Guest merge: записался как гость → зарегился → записи привязаны
-- [ ] Редактирование профиля
+- [ ] Просмотр `/profile` → записи видны (если phone привязан)
+- [ ] Гостевая запись → записи есть в БД
+- [ ] Guest merge: записался как гость → зарегился → привязал по phone+name → записи в ЛК
+- [ ] Редактирование профиля (name, email)
 - [ ] Смена пароля
-- [ ] Выход
+- [ ] Кнопка "Повторить" → redirect на мастера
+- [ ] Кнопка "Выйти"
 - [ ] GDPR экспорт/удаление
 - [ ] Мастер/Админ логин не сломан
 - [ ] Middleware: `/profile` без auth → redirect на login
+- [ ] Middleware: CLIENT logon → redirect `/profile`
 
 ---
 
 ## 📐 Схема данных
 
-Существующая модель `User` **не требует изменений** в Prisma schema. Все поля уже есть:
-- `name`, `email`, `phone`, `password` — для auth
-- `isGuest` — отделяет гостей от зарегистрированных
-- `role` — CLIENT / MASTER / SUPERADMIN
+Модель `User` **не требует изменений** в Prisma schema:
+```prisma
+model User {
+  id            String    @id @default(cuid())
+  name          String?        // ← есть
+  email         String?        // ← auth identifier
+  phone         String?        // ← гостевой identifier, добавляется через link-bookings
+  password      String?        // ← bcrypt hash для зарегистрированных
+  role          String    @default("CLIENT")   // ← есть
+  isGuest       Boolean   @default(false)      // ← guest vs registered
+  // ... остальные поля
+}
+```
 
-**Единственное изменение**: может понадобиться добавить `phone` в JWT token (auth.config.ts callbacks).
+**Зарегистрированный клиент**: `isGuest=false`, `email!=null`, `password!=null`
+**Гость**: `isGuest=true`, `phone!=null`, `password=null`
+
+---
+
+## 🔮 Будущие OAuth провайдеры (out of scope сейчас)
+
+| Provider | Что даёт | Сложность |
+|----------|----------|-----------|
+| Google | email + name + avatar | 🟢 Лёгкая — NextAuth имеет встроенный Google Provider |
+| Apple | email + name | 🟡 Средняя — нужен Apple Developer Account |
+| Telegram | username + id (email не всегда) | 🟡 Средняя — Telegram Login Widget |
+
+Все эти провайдеры дают email → merge по email будет работать автоматически.
 
 ---
 
 ## ⚠️ Важные моменты
 
-1. **Обратная совместимость**: Гостевой флоу записи НЕ ломается. Клиент по-прежнему может записаться без регистрации.
-2. **Guest merge**: При регистрации с телефоном, который уже есть у гостя с тем же именем — мержим, не дублируем.
-3. **Phone не меняется**: При редактировании профиля phone — readonly. Это идентификатор.
-4. **Security**: `/profile` и `/api/client/profile` — только для auth users. Middleware + серверная проверка session.
-5. **Один пароль на phone+name**: Два человека с одним телефоном и разными именами — два разных аккаунта с разными паролями.
+1. **Обратная совместимость**: Гостевой флоу записи НЕ ломается.
+2. **Email — единственный auth identifier**: Никакого SMS, верификации телефона.
+3. **Guest merge**: Явный action от пользователя — "Привязать записи" → ввести phone+name.
+4. **Phone readonly**: В ЛК phone показывается но не редактируется напрямую (только через link-bookings).
+5. **Security**: `/profile` + API — только auth. Middleware + server session check.
+6. **Дубликат email**: Проверяется только среди `password != null` юзеров (гости могут иметь фейковый email).
 
 ---
 
@@ -319,10 +406,13 @@ Response: { id, name, phone, email, role: "CLIENT" }
 
 | Фаза | Описание | Критичность | Оценка |
 |------|----------|-------------|--------|
-| 1 | Backend auth (register + login by phone) | 🔴 Высокая | 2-3ч |
-| 2 | Frontend auth (формы) | 🔴 Высокая | 2-3ч |
-| 3 | Личный кабинет (profile) | 🔴 Высокая | 3-4ч |
-| 4 | Интеграция с booking flow | 🟡 Средняя | 1-2ч |
-| 5 | Навигация и UX | 🟡 Средняя | 1ч |
-| 6 | GDPR в ЛК | 🟢 Низкая | 1ч |
-| 7 | Cleanup и тесты | 🔴 Высокая | 1-2ч |
+| 1 | Backend auth (register + JWT) | 🔴 Высокая | 1-2ч |
+| 2 | Frontend auth (формы, i18n) | 🔴 Высокая | 2-3ч |
+| 3 | Личный кабинет (profile + API) | 🔴 Высокая | 3-4ч |
+| 4 | Guest merge (link-bookings) | 🟡 Средняя | 2ч |
+| 5 | Интеграция с booking flow | 🟡 Средняя | 1-2ч |
+| 6 | Навигация (header, redirects) | 🟡 Средняя | 1ч |
+| 7 | GDPR в ЛК | 🟢 Низкая | 1ч |
+| 8 | Cleanup и тесты | 🔴 Высокая | 1-2ч |
+
+**Итого: ~13-17 часов работы**

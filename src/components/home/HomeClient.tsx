@@ -8,6 +8,8 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { ReviewImage } from '@/lib/reviews'
 
+import UserDropdown from '@/components/auth/UserDropdown'
+
 type LogoConfig = {
   logoUrl?: string | null
   darkLogoUrl?: string | null
@@ -58,27 +60,7 @@ export default function HomeClient({ initialReviews, config, isPreview }: HomeCl
   return (
     <main className="flex-1 flex flex-col relative pb-4">
       <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
-        <Link 
-          href="/admin" 
-          className="p-2 hover:bg-black/5 dark:hover:bg-white/10 rounded-full transition-colors duration-300"
-          title="Login"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="text-foreground/80 hover:text-foreground"
-          >
-            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-            <circle cx="12" cy="7" r="4" />
-          </svg>
-        </Link>
+        <UserDropdown />
         <LanguageToggle />
         <ThemeToggle />
       </div>

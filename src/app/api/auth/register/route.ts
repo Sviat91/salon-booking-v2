@@ -1,32 +1,38 @@
 import { NextResponse } from "next/server"
 import bcrypt from "bcryptjs"
 import prisma from "@/lib/prisma"
+import { z } from "zod"
+
+const registerSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters").max(100),
+  email: z.string().email("Invalid email format"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+})
 
 export async function POST(req: Request) {
   try {
-    const { name, email, password } = await req.json()
+    const raw = await req.json()
+    const parsed = registerSchema.safeParse(raw)
 
-    if (!name || !email || !password) {
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: "Missing required fields" },
+        { error: parsed.error.errors[0]?.message || "Invalid data" },
         { status: 400 }
       )
     }
 
-    if (password.length < 6) {
-      return NextResponse.json(
-        { error: "Password must be at least 6 characters long" },
-        { status: 400 }
-      )
-    }
+    const { name, email, password } = parsed.data
 
-    const existingUser = await prisma.user.findFirst({
+    // Only check duplicates among registered users (password != null).
+    // Guest users may have a fake email — we don't block on those.
+    const existingRegistered = await prisma.user.findFirst({
       where: {
-        email: email,
+        email,
+        password: { not: null },
       },
     })
 
-    if (existingUser) {
+    if (existingRegistered) {
       return NextResponse.json(
         { error: "User with this email already exists" },
         { status: 400 }
@@ -41,17 +47,18 @@ export async function POST(req: Request) {
         email,
         password: hashedPassword,
         role: "CLIENT",
+        isGuest: false,
       },
       select: {
         id: true,
         name: true,
         email: true,
         role: true,
-      }
+      },
     })
 
     return NextResponse.json(user, { status: 201 })
-  } catch (error: any) {
+  } catch (error) {
     console.error("Registration error:", error)
     return NextResponse.json(
       { error: "Internal server error" },

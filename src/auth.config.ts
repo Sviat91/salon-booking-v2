@@ -10,6 +10,8 @@ export default {
       if (user) {
         token.role = user.role
         token.id = user.id
+        // phone is populated from DB in auth.ts authorize() return value
+        token.phone = (user as any).phone ?? null
       }
       return token
     },
@@ -17,6 +19,7 @@ export default {
       if (session.user) {
         session.user.role = token.role as string
         session.user.id = token.id as string
+        session.user.phone = token.phone as string | null
       }
       return session
     },
