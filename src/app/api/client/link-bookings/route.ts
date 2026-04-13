@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
 
     if (guestUsers.length === 0) {
       return NextResponse.json(
-        { error: "Гостевые записи с таким именем и телефоном не найдены." },
+        { error: "No guest records found with this name and phone number." },
         { status: 404 }
       )
     }
@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
       })
 
       // 2. Move Consents
-      const { count: linkedConsents } = await tx.consent.updateMany({
+      const { count: linkedConsents } = await tx.consentRecord.updateMany({
         where: { userId: { in: guestIds } },
         data: { userId: currentUserId },
       })

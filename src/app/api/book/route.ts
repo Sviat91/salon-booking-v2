@@ -37,6 +37,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "masterId is required", code: "MISSING_MASTER" }, { status: 400 })
   }
 
+  const session = await auth();
+  const isAuth = session?.user?.role === "CLIENT";
+
+  if (!isAuth && (!phone || phone.trim().length < 5)) {
+    return NextResponse.json({ error: "Phone number is required for booking", code: "VALIDATION_ERROR" }, { status: 400 })
+  }
+
   // Parse start/end times from ISO strings
   const startDate = new Date(startISO)
   const endDate = new Date(endISO)
@@ -96,11 +103,10 @@ export async function POST(req: NextRequest) {
     }
 
     // 2. Find or create client user
-    const session = await auth();
     let clientUser = null;
     let userIdForConsent = null;
 
-    if (session?.user?.role === "CLIENT") {
+    if (isAuth) {
       clientUser = await prisma.user.findUnique({ where: { id: session.user.id } })
       if (!clientUser) {
         return NextResponse.json({ error: "Session user not found", code: "UNAUTHORIZED" }, { status: 401 })

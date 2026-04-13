@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useCallback } from "react"
+import { useMemo, useCallback, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useRouter } from "next/navigation"
 import { useQuery } from "@tanstack/react-query"
@@ -33,6 +33,7 @@ type ProfileData = {
 export default function ProfilePage() {
   const { t } = useTranslation()
   const router = useRouter()
+  const [showPast, setShowPast] = useState(false)
 
   const { data, isLoading, error, refetch } = useQuery<ProfileData>({
     queryKey: ['clientProfile'],
@@ -183,35 +184,53 @@ export default function ProfilePage() {
         {/* Past appointments */}
         {past.length > 0 && (
           <div className="space-y-3">
-            <h2 className="text-lg font-semibold text-text dark:text-dark-text">
-              {t("profile.past", "Past")}
-            </h2>
-            {past.map((a) => (
-              <Card key={a.id} className="!px-4 !py-3">
-                <div className="flex justify-between items-start">
-                  <div className="space-y-1">
-                    <div className="font-medium text-text dark:text-dark-text opacity-70">
-                      {a.service.name}
+            <button 
+              onClick={() => setShowPast(!showPast)}
+              className="flex items-center justify-between w-full py-2 group text-left"
+            >
+              <h2 className="text-lg font-semibold text-text dark:text-dark-text group-hover:opacity-80 transition-opacity">
+                {t("profile.past", "Past")} {/*({past.length})*/}
+              </h2>
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                width="20" height="20" 
+                viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" 
+                className={`text-muted-foreground transition-transform duration-200 ${showPast ? "rotate-180" : ""}`}
+              >
+                <path d="m6 9 6 6 6-6"/>
+              </svg>
+            </button>
+            
+            {showPast && (
+              <div className="space-y-3 animate-fade-in-up">
+                {past.map((a) => (
+                  <Card key={a.id} className="!px-4 !py-3">
+                    <div className="flex justify-between items-start">
+                      <div className="space-y-1">
+                        <div className="font-medium text-text dark:text-dark-text opacity-70">
+                          {a.service.name}
+                        </div>
+                        <div className="text-sm text-muted dark:text-dark-muted">
+                          {formatDate(a.date)} • {a.startTime}–{a.endTime}
+                        </div>
+                        <div className="text-sm text-muted dark:text-dark-muted">
+                          {t("profile.master", "Specialist")}: {a.master.name}
+                        </div>
+                        <div className={`text-xs font-medium ${statusColor(a.status)}`}>
+                          {statusLabel(a.status)}
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => handleRepeat(a.master.id, a.service.id)}
+                        className="btn btn-outline text-xs !px-3 !py-1.5 whitespace-nowrap ml-3 shrink-0"
+                      >
+                        {t("profile.repeat", "Book again")}
+                      </button>
                     </div>
-                    <div className="text-sm text-muted dark:text-dark-muted">
-                      {formatDate(a.date)} • {a.startTime}–{a.endTime}
-                    </div>
-                    <div className="text-sm text-muted dark:text-dark-muted">
-                      {t("profile.master", "Specialist")}: {a.master.name}
-                    </div>
-                    <div className={`text-xs font-medium ${statusColor(a.status)}`}>
-                      {statusLabel(a.status)}
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => handleRepeat(a.master.id, a.service.id)}
-                    className="btn btn-outline text-xs !px-3 !py-1.5 whitespace-nowrap ml-3 shrink-0"
-                  >
-                    {t("profile.repeat", "Book again")}
-                  </button>
-                </div>
-              </Card>
-            ))}
+                  </Card>
+                ))}
+              </div>
+            )}
           </div>
         )}
 

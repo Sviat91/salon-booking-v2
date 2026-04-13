@@ -34,7 +34,7 @@ export default function LinkBookingsCard() {
     onSuccess: (data) => {
       setMessage({
         type: "success",
-        text: `Успешно! Привязано записей: ${data.linked}`,
+        text: t('profile.linkSuccess', 'Successfully linked records: {{count}}', { count: data.linked }),
       })
       setName("")
       setPhone("")
@@ -52,11 +52,11 @@ export default function LinkBookingsCard() {
     setMessage(null)
     
     if (name.trim().length < 2) {
-      setMessage({ type: "error", text: "Имя слишком короткое" })
+      setMessage({ type: "error", text: t('form.nameTooShort', 'Name is too short') })
       return
     }
     if (phone.trim().length < 5) {
-      setMessage({ type: "error", text: "Введите корректный номер телефона" })
+      setMessage({ type: "error", text: t('form.invalidPhone', 'Please enter a valid phone number') })
       return
     }
 
@@ -71,31 +71,31 @@ export default function LinkBookingsCard() {
             <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
             <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
           </svg>
-          {t("profile.linkBookingsTitle", "Привязать старые записи")}
+          {t("profile.linkBookingsTitle", "Link Old Bookings")}
         </h2>
         <p className="text-sm text-muted-foreground">
           {t(
             "profile.linkBookingsDesc",
-            "Записывались к нам раньше без регистрации? Введите ваши имя и номер телефона точно так, как указывали при записи, чтобы добавить историю в личный кабинет."
+            "Have you booked with us before without registering? Enter your name and phone exactly as you did when booking to link them to your account."
           )}
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid gap-2">
-          <Label htmlFor="linkName" className="text-foreground">{t("form.name", "Имя")}</Label>
+          <Label htmlFor="linkName" className="text-foreground">{t("form.name", "Name")}</Label>
           <Input
             id="linkName"
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
-            placeholder={t("form.namePlaceholder", "Иван")}
-            className="h-11 border-input bg-background"
+            placeholder={t("form.namePlaceholder", "John")}
+            className="h-11 border-input bg-card text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50"
           />
         </div>
 
         <div className="grid gap-2 relative z-50">
-          <Label htmlFor="linkPhone" className="text-foreground">{t("form.phone", "Телефон")}</Label>
+          <Label htmlFor="linkPhone" className="text-foreground">{t("form.phone", "Phone")}</Label>
           <PhoneInput
             value={phone}
             onChange={setPhone}
@@ -120,8 +120,8 @@ export default function LinkBookingsCard() {
 
         <Button disabled={linkMutation.isPending} type="submit" className="w-full mt-2">
           {linkMutation.isPending 
-            ? t("common.searching", "Поиск записей...") 
-            : t("profile.linkBookingsBtn", "Найти и привязать записи")}
+            ? t("common.searching", "Searching records...") 
+            : t("profile.linkBookingsBtn", "Find & Link Bookings")}
         </Button>
       </form>
     </Card>

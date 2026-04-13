@@ -3,11 +3,11 @@ import { useQuery } from '@tanstack/react-query'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSession } from 'next-auth/react'
-import { useSession } from 'next-auth/react'
 import PhoneInput from './ui/PhoneInput'
 import BookingSuccess from './BookingSuccess'
 import BookingConsentModal from './BookingConsentModal'
 import { useBookingSubmit, type Slot } from './hooks/useBookingSubmit'
+
 import { fullDateFormatter, formatTimeRange } from '@/lib/utils/date-formatters'
 import { validateName, validatePhone, validateEmail, validateTurnstileToken } from '@/lib/validation/client-validators'
 import { useSelectedMasterId } from '@/contexts/MasterContext'
@@ -30,10 +30,23 @@ export default function BookingForm({
   const language = useCurrentLanguage()
   const masterId = useSelectedMasterId()
   
+  const { data: session } = useSession()
+  const isAuth = session?.user?.role === "CLIENT"
+  const authUser = session?.user
+
   // Form state
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
   const [email, setEmail] = useState('')
+
+  // Sync session data to form state
+  useEffect(() => {
+    if (isAuth && authUser) {
+      setName(authUser.name || '')
+      setPhone(authUser.phone || '')
+      setEmail(authUser.email || '')
+    }
+  }, [isAuth, authUser])
   
   // Validation errors
   const [nameError, setNameError] = useState<string | null>(null)
@@ -144,12 +157,12 @@ export default function BookingForm({
   // Validation
   const canSubmit = useMemo(() => {
     const nameValid = validateName(name).valid
-    const phoneValid = validatePhone(phone).valid
+    const phoneValid = isAuth ? true : validatePhone(phone).valid
     const emailValid = !email || validateEmail(email).valid
     const tokenValid = !siteKey || validateTurnstileToken(tsToken).valid
     
     return nameValid && phoneValid && emailValid && tokenValid && !loading
-  }, [name, phone, email, loading, siteKey, tsToken])
+  }, [name, phone, email, loading, siteKey, tsToken, isAuth])
   
   // Validate on blur
   const handleNameBlur = () => {
@@ -241,50 +254,71 @@ export default function BookingForm({
         <div className="font-medium text-text dark:text-dark-text mb-0.5">{selectedProcedureName}</div>
         <div className="text-sm">{terminLabel}</div>
       </div>
-      <div className="space-y-2">
-        <div>
-          <input 
-            className={`w-full rounded-xl border ${nameError ? 'border-red-500' : 'border-border'} bg-transparent px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary dark:border-dark-border dark:placeholder-dark-muted`}
-            placeholder={t('form.name')} 
-            value={name} 
-            onChange={e => { setName(e.target.value); if (nameError) setNameError(null); }}
-            onBlur={handleNameBlur}
-          />
-          {nameError && <div className="mt-1 text-xs text-red-600 dark:text-red-400">{nameError}</div>}
+      {isAuth ? (
+        <div className="bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-xl p-4">
+          <div className="flex justify-between items-start mb-2">
+            <span className="text-xs font-semibold text-primary uppercase tracking-wider">{t('booking.yourDetails', 'Your Details')}</span>
+            <a href="/profile/edit" target="_blank" className="text-xs underline text-muted-foreground hover:text-primary">
+              {t('common.edit', 'Edit')}
+            </a>
+          </div>
+          <div className="text-sm space-y-1">
+            <p className="font-medium text-foreground">{name || authUser?.name}</p>
+            {phone || authUser?.phone ? (
+              <p className="text-muted-foreground">{phone || authUser?.phone}</p>
+            ) : (
+              <p className="text-muted-foreground text-xs">{t('profile.noPhone', 'Phone not provided')}</p>
+            )}
+            {email || authUser?.email ? (
+              <p className="text-muted-foreground">{email || authUser?.email}</p>
+            ) : null}
+          </div>
         </div>
-        <div>
-          <PhoneInput 
-            value={phone} 
-            onChange={(val) => { 
-              setPhone(val)
-              if (phoneValidationTimeoutRef.current) {
-                clearTimeout(phoneValidationTimeoutRef.current)
-              }
-              // Validate after 500ms of no typing and always sync error state
-              phoneValidationTimeoutRef.current = setTimeout(() => {
-                if (!val.trim()) {
-                  setPhoneError(null)
-                  return
+      ) : (
+        <div className="space-y-2">
+          <div>
+            <input 
+              className={`w-full rounded-xl border ${nameError ? 'border-red-500' : 'border-border'} bg-transparent px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary dark:border-dark-border dark:placeholder-dark-muted`}
+              placeholder={t('form.name')} 
+              value={name} 
+              onChange={e => { setName(e.target.value); if (nameError) setNameError(null); }}
+              onBlur={handleNameBlur}
+            />
+            {nameError && <div className="mt-1 text-xs text-red-600 dark:text-red-400">{nameError}</div>}
+          </div>
+          <div>
+            <PhoneInput 
+              value={phone} 
+              onChange={(val) => { 
+                setPhone(val)
+                if (phoneValidationTimeoutRef.current) {
+                  clearTimeout(phoneValidationTimeoutRef.current)
                 }
-                const result = validatePhone(val)
-                setPhoneError(result.valid ? null : result.error || null)
-              }, 500)
-            }}
-            placeholder={t('form.phone')}
-          />
-          {phoneError && <div className="mt-1 text-xs text-red-600 dark:text-red-400">{phoneError}</div>}
+                phoneValidationTimeoutRef.current = setTimeout(() => {
+                  if (!val.trim()) {
+                    setPhoneError(null)
+                    return
+                  }
+                  const result = validatePhone(val)
+                  setPhoneError(result.valid ? null : result.error || null)
+                }, 500)
+              }}
+              placeholder={t('form.phone')}
+            />
+            {phoneError && <div className="mt-1 text-xs text-red-600 dark:text-red-400">{phoneError}</div>}
+          </div>
+          <div>
+            <input 
+              className={`w-full rounded-xl border ${emailError ? 'border-red-500' : 'border-border'} bg-transparent px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary dark:border-dark-border dark:placeholder-dark-muted`}
+              placeholder={t('form.emailOptional')} 
+              value={email} 
+              onChange={e => { setEmail(e.target.value); if (emailError) setEmailError(null); }}
+              onBlur={handleEmailBlur}
+            />
+            {emailError && <div className="mt-1 text-xs text-red-600 dark:text-red-400">{emailError}</div>}
+          </div>
         </div>
-        <div>
-          <input 
-            className={`w-full rounded-xl border ${emailError ? 'border-red-500' : 'border-border'} bg-transparent px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary dark:border-dark-border dark:placeholder-dark-muted`}
-            placeholder={t('form.emailOptional')} 
-            value={email} 
-            onChange={e => { setEmail(e.target.value); if (emailError) setEmailError(null); }}
-            onBlur={handleEmailBlur}
-          />
-          {emailError && <div className="mt-1 text-xs text-red-600 dark:text-red-400">{emailError}</div>}
-        </div>
-      </div>
+      )}
       {siteKey && (
         <div className="mt-3">
           <div ref={tsRef} className="rounded-xl" />

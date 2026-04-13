@@ -23,7 +23,7 @@ export const bookingApiSchema = z.object({
   procedureId: z.string().nullish(),
   masterId: z.string().nullish(),
   name: z.string().min(2, 'Name must be at least 2 characters').max(100, 'Name is too long'),
-  phone: z.string().min(5, 'Phone number is too short').max(20, 'Phone number is too long'),
+  phone: z.string().min(5, 'Phone number is too short').max(20, 'Phone number is too long').optional().or(z.literal('')).nullish(),
   email: z.string().email('Invalid email format').optional().or(z.literal('')).nullish(),
   turnstileToken: z.string().nullish(),
   consents: z.object({
