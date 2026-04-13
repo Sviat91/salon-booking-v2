@@ -15,6 +15,12 @@ export default function RegisterForm({ className, ...props }: RegisterFormProps)
   const router = useRouter()
   const [isLoading, setIsLoading] = React.useState<boolean>(false)
   const [error, setError] = React.useState<string | null>(null)
+  
+  // Real-time password validation
+  const [password, setPassword] = React.useState("")
+  const [confirmPassword, setConfirmPassword] = React.useState("")
+  const passMismatch = !!(password && confirmPassword && password !== confirmPassword)
+
   const { t } = useTranslation()
 
   async function onSubmit(event: React.SyntheticEvent) {
@@ -25,7 +31,12 @@ export default function RegisterForm({ className, ...props }: RegisterFormProps)
     const form = event.target as HTMLFormElement
     const name = (form.elements.namedItem('name') as HTMLInputElement).value
     const email = (form.elements.namedItem('email') as HTMLInputElement).value
-    const password = (form.elements.namedItem('password') as HTMLInputElement).value
+
+    if (password !== confirmPassword) {
+      setError(t('auth.passwordsDoNotMatch', 'Passwords do not match'))
+      setIsLoading(false)
+      return
+    }
 
     try {
       const response = await fetch('/api/auth/register', {
@@ -103,8 +114,34 @@ export default function RegisterForm({ className, ...props }: RegisterFormProps)
               disabled={isLoading}
               required
               minLength={6}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               className="h-11 border-input bg-card text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50"
             />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="confirmPassword" className={`text-foreground ${passMismatch ? 'text-destructive' : ''}`}>{t('form.confirmPassword', 'Confirm Password')}</Label>
+            <Input
+              id="confirmPassword"
+              name="confirmPassword"
+              type="password"
+              autoComplete="new-password"
+              disabled={isLoading}
+              required
+              minLength={6}
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              className={`h-11 bg-card text-foreground placeholder:text-muted-foreground focus-visible:ring-ring/50 ${
+                passMismatch 
+                  ? 'border-destructive focus-visible:border-destructive focus-visible:ring-destructive' 
+                  : 'border-input focus-visible:border-ring'
+              }`}
+            />
+            {passMismatch && (
+              <span className="text-xs font-medium text-destructive mt-1">
+                {t('auth.passwordsDoNotMatch', 'Passwords do not match')}
+              </span>
+            )}
           </div>
           {error && (
             <div className="text-sm font-medium text-destructive">

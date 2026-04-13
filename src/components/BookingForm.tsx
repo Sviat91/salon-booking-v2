@@ -2,6 +2,8 @@
 import { useQuery } from '@tanstack/react-query'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useSession } from 'next-auth/react'
+import { useSession } from 'next-auth/react'
 import PhoneInput from './ui/PhoneInput'
 import BookingSuccess from './BookingSuccess'
 import BookingConsentModal from './BookingConsentModal'

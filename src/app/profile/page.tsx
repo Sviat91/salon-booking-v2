@@ -10,6 +10,7 @@ import LanguageToggle from "@/components/LanguageToggle"
 import BackButton from "@/components/BackButton"
 import { signOut } from "next-auth/react"
 import Link from "next/link"
+import LinkBookingsCard from "@/components/profile/LinkBookingsCard"
 
 type AppointmentData = {
   id: string
@@ -224,6 +225,9 @@ export default function ProfilePage() {
             </Link>
           </Card>
         )}
+
+        {/* Guest Bookings Merger */}
+        <LinkBookingsCard />
       </div>
     </main>
   )

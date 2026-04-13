@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma"
 import { bookingApiSchema } from "@/lib/validation/api-schemas"
 import { evaluateConsentStatus, getRequestIp, saveConsentRecord } from "@/lib/consent-service"
 import { z } from "zod"
+import { auth } from "@/auth"
 
 export const runtime = "nodejs"
 
@@ -95,38 +96,52 @@ export async function POST(req: NextRequest) {
     }
 
     // 2. Find or create client user
-    // Identity = (phone + name) — a couple sharing the same phone get separate records.
-    const normalizedName = name.trim()
-    let clientUser = phone
-      ? await prisma.user.findFirst({
-          where: {
-            phone,
+    const session = await auth();
+    let clientUser = null;
+    let userIdForConsent = null;
+
+    if (session?.user?.role === "CLIENT") {
+      clientUser = await prisma.user.findUnique({ where: { id: session.user.id } })
+      if (!clientUser) {
+        return NextResponse.json({ error: "Session user not found", code: "UNAUTHORIZED" }, { status: 401 })
+      }
+      userIdForConsent = clientUser.id;
+    } else {
+      // Identity = (phone + name) — a couple sharing the same phone get separate records.
+      const normalizedName = name.trim()
+      clientUser = phone
+        ? await prisma.user.findFirst({
+            where: {
+              phone,
+              name: normalizedName,
+              isGuest: true
+            },
+          })
+        : null
+
+      if (!clientUser) {
+        clientUser = await prisma.user.create({
+          data: {
             name: normalizedName,
+            phone: phone || null,
+            email: email || null,
+            role: "CLIENT",
+            isGuest: true,
           },
         })
-      : null
-
-    if (!clientUser) {
-      clientUser = await prisma.user.create({
-        data: {
-          name: normalizedName,
-          phone: phone || null,
-          email: email || null,
-          role: "CLIENT",
-          isGuest: true,
-        },
-      })
-    } else {
-      // Update email if provided and user has no email yet
-      if (email && !clientUser.email) {
-        await prisma.user.update({ where: { id: clientUser.id }, data: { email } })
+      } else {
+        // Update email if provided and user has no email yet
+        if (email && !clientUser.email) {
+          await prisma.user.update({ where: { id: clientUser.id }, data: { email } })
+        }
       }
+      userIdForConsent = clientUser.id;
     }
 
     // 3. Persist consent when user is booking after consent modal confirmation.
-    if (needsNewConsent && hasRequiredNewConsents) {
+    if (needsNewConsent && hasRequiredNewConsents && userIdForConsent) {
       await saveConsentRecord({
-        userId: clientUser.id,
+        userId: userIdForConsent,
         phone,
         name,
         email,
