@@ -5,6 +5,8 @@ import { validateTurnstileForAPI } from "@/lib/turnstile"
 import { normalizePhoneDigitsOnly, normalizePhoneToE164 } from "@/lib/utils/phone-normalization"
 import { exportConsentData } from "@/lib/consent-service"
 import { exportDataApiSchema } from "@/lib/validation/api-schemas"
+import { auth } from "@/auth"
+import prisma from "@/lib/prisma"
 
 export const runtime = "nodejs"
 
@@ -65,9 +67,43 @@ export async function POST(req: NextRequest) {
   const finalRequestId =
     body.requestId || `gdpr-export-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`
 
+  const session = await auth()
+  let targetPhone = body.phone
+  let targetName = body.name
+  let targetEmail = body.email
+
+  if (session?.user?.id) {
+    try {
+      const dbUser = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { phone: true, name: true, email: true },
+      })
+      if (dbUser) {
+        if (!dbUser.phone || !dbUser.name) {
+          return NextResponse.json(
+            { error: "Your profile is missing phone or name. Please update it first." },
+            { status: 400 }
+          )
+        }
+        targetPhone = dbUser.phone
+        targetName = dbUser.name
+        targetEmail = dbUser.email
+      }
+    } catch (err) {
+      log.error({ error: err }, "Failed to fetch user from session")
+    }
+  }
+
+  if (!targetPhone || !targetName) {
+    return NextResponse.json(
+      { error: "Phone and name must be provided if you are not logged in." },
+      { status: 400 }
+    )
+  }
+
   let normalizedPhoneE164: string
   try {
-    normalizedPhoneE164 = normalizePhoneToE164(body.phone)
+    normalizedPhoneE164 = normalizePhoneToE164(targetPhone)
   } catch {
     return invalidPhoneResponse()
   }
@@ -83,18 +119,20 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  const turnstileResult = await validateTurnstileForAPI(body.turnstileToken, ip, {
-    requireToken: false,
-  })
-  if (!turnstileResult.success) {
-    return NextResponse.json(turnstileResult.errorResponse, { status: turnstileResult.status })
+  if (!session?.user?.id) {
+    const turnstileResult = await validateTurnstileForAPI(body.turnstileToken, ip, {
+      requireToken: false,
+    })
+    if (!turnstileResult.success) {
+      return NextResponse.json(turnstileResult.errorResponse, { status: turnstileResult.status })
+    }
   }
 
   try {
     const result = await exportConsentData({
       phone: normalizedPhoneE164,
-      name: body.name,
-      email: body.email,
+      name: targetName,
+      email: targetEmail,
     })
 
     if (!result.exportedData) {

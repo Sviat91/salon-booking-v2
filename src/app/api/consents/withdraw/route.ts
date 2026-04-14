@@ -6,6 +6,8 @@ import { normalizePhoneDigitsOnly, normalizePhoneToE164 } from "@/lib/utils/phon
 import { normalizeNameForMatching } from "@/lib/utils/string-normalization"
 import { withdrawConsentRecord } from "@/lib/consent-service"
 import { withdrawConsentApiSchema } from "@/lib/validation/api-schemas"
+import { auth } from "@/auth"
+import prisma from "@/lib/prisma"
 
 export const runtime = "nodejs"
 
@@ -76,16 +78,50 @@ export async function POST(req: NextRequest) {
   const finalRequestId =
     body.requestId || `gdpr-withdraw-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`
 
+  const session = await auth()
+  let targetPhone = body.phone
+  let targetName = body.name
+  let targetEmail = body.email
+
+  if (session?.user?.id) {
+    try {
+      const dbUser = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { phone: true, name: true, email: true },
+      })
+      if (dbUser) {
+        if (!dbUser.phone || !dbUser.name) {
+          return NextResponse.json(
+            { error: "Your profile is missing phone or name. Please update it first." },
+            { status: 400 }
+          )
+        }
+        targetPhone = dbUser.phone
+        targetName = dbUser.name
+        targetEmail = dbUser.email
+      }
+    } catch (err) {
+      log.error({ error: err }, "Failed to fetch user from session")
+    }
+  }
+
+  if (!targetPhone || !targetName) {
+    return NextResponse.json(
+      { error: "Phone and name must be provided if you are not logged in." },
+      { status: 400 }
+    )
+  }
+
   let normalizedPhoneE164: string
   let phoneDigits: string
   try {
-    normalizedPhoneE164 = normalizePhoneToE164(body.phone)
+    normalizedPhoneE164 = normalizePhoneToE164(targetPhone)
     phoneDigits = normalizePhoneDigitsOnly(normalizedPhoneE164)
   } catch {
     return invalidPhoneResponse()
   }
 
-  const normalizedName = normalizeNameForMatching(body.name)
+  const normalizedName = normalizeNameForMatching(targetName)
   if (!normalizedName) {
     return NextResponse.json(
       {
@@ -107,11 +143,13 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  const turnstileResult = await validateTurnstileForAPI(body.turnstileToken, ip, {
-    requireToken: false,
-  })
-  if (!turnstileResult.success) {
-    return NextResponse.json(turnstileResult.errorResponse, { status: turnstileResult.status })
+  if (!session?.user?.id) {
+    const turnstileResult = await validateTurnstileForAPI(body.turnstileToken, ip, {
+      requireToken: false,
+    })
+    if (!turnstileResult.success) {
+      return NextResponse.json(turnstileResult.errorResponse, { status: turnstileResult.status })
+    }
   }
 
   const lockKey = `lock:gdpr:withdraw:${phoneDigits}:${normalizedName}`
@@ -130,9 +168,9 @@ export async function POST(req: NextRequest) {
   try {
     const result = await withdrawConsentRecord({
       phone: normalizedPhoneE164,
-      name: body.name,
-      email: body.email,
-      withdrawalMethod: "support_form",
+      name: targetName,
+      email: targetEmail,
+      withdrawalMethod: session?.user?.id ? "support_form_auth" : "support_form",
     })
 
     if (!result.updated) {

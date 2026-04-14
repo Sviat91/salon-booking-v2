@@ -282,6 +282,7 @@ export default function BookingForm({
         procedureName={selectedProcedureName}
         terminLabel={terminLabel}
         procedurePrice={selectedProcedure?.price_pln}
+        isAuth={isAuth}
         onClose={handleSuccessClose}
       />
     )

@@ -144,8 +144,8 @@ export type CheckConsentApiInput = z.infer<typeof checkConsentApiSchema>
  * Withdraws user consent (GDPR)
  */
 export const withdrawConsentApiSchema = z.object({
-  phone: z.string().min(5, 'Phone number is required'),
-  name: z.string().min(2, 'Name is required'),
+  phone: z.string().min(5, 'Phone number is required').optional(),
+  name: z.string().min(2, 'Name is required').optional(),
   email: z.string().email().optional().or(z.literal('')),
   consentAcknowledged: z.boolean().optional(),
   turnstileToken: z.string().nullish(),
@@ -159,8 +159,8 @@ export type WithdrawConsentApiInput = z.infer<typeof withdrawConsentApiSchema>
  * Erases user data (GDPR)
  */
 export const eraseDataApiSchema = z.object({
-  phone: z.string().min(5, 'Phone number is required'),
-  name: z.string().min(2, 'Name is required'),
+  phone: z.string().min(5, 'Phone number is required').optional(),
+  name: z.string().min(2, 'Name is required').optional(),
   email: z.string().email().optional().or(z.literal('')),
   consentAcknowledged: z.boolean().optional(),
   turnstileToken: z.string().nullish(),
@@ -174,8 +174,8 @@ export type EraseDataApiInput = z.infer<typeof eraseDataApiSchema>
  * Exports user data (GDPR)
  */
 export const exportDataApiSchema = z.object({
-  phone: z.string().min(5, 'Phone number is required'),
-  name: z.string().min(2, 'Name is required'),
+  phone: z.string().min(5, 'Phone number is required').optional(),
+  name: z.string().min(2, 'Name is required').optional(),
   email: z.string().email().optional().or(z.literal('')),
   turnstileToken: z.string().nullish(),
   requestId: z.string().trim().max(64).optional(),

@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { useCurrentLanguage } from "@/contexts/LanguageContext";
 import PhoneInput from "./ui/PhoneInput";
 import { clientLog } from "@/lib/client-logger";
+import { useSession } from "next-auth/react";
 
 type ModalState =
   | "idle"
@@ -152,6 +153,8 @@ export default function DataExportModal({
   const [exportData, setExportData] = useState<UserDataExport | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [requestId, setRequestId] = useState<string>(() => generateRequestId());
+  const { data: session } = useSession();
+  const isAuth = !!session?.user;
 
   const resetTurnstile = useCallback(() => {
     setToken(null);
@@ -225,7 +228,7 @@ export default function DataExportModal({
 
   // Load Turnstile
   useEffect(() => {
-    if (!isOpen || !siteKey) return;
+    if (!isOpen || !siteKey || isAuth) return;
     const scriptId = "cf-turnstile";
     if (!document.getElementById(scriptId)) {
       const script = document.createElement("script");
@@ -271,15 +274,16 @@ export default function DataExportModal({
       }
       widgetIdRef.current = null;
     };
-  }, [isOpen, resetTurnstile, siteKey]);
+  }, [isOpen, resetTurnstile, siteKey, isAuth]);
 
   if (!isOpen) return null;
 
-  const canSubmit =
+  const canSubmit = isAuth ? (state !== "loading") : (
     name.trim().length >= 2 &&
     phone.replace(/\D/g, "").length >= 8 &&
     (siteKey ? !!token : true) &&
-    state !== "loading";
+    state !== "loading"
+  );
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -293,10 +297,10 @@ export default function DataExportModal({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: name.trim(),
-          phone,
-          email: email.trim() || undefined,
-          turnstileToken: token ?? undefined,
+          name: isAuth ? undefined : name.trim(),
+          phone: isAuth ? undefined : phone,
+          email: isAuth ? undefined : (email.trim() || undefined),
+          turnstileToken: isAuth ? undefined : (token ?? undefined),
           requestId,
         }),
       });
@@ -445,49 +449,53 @@ export default function DataExportModal({
           </div>
         ) : (
           <form className="space-y-5" onSubmit={handleSubmit}>
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium text-text dark:text-dark-text" htmlFor="export-name">
-              {t('form.name')}
-            </label>
-              <input
-                id="export-name"
-                ref={firstFieldRef}
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-                className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm text-card-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
-                placeholder={t('gdpr.export.namePlaceholder')}
-                autoComplete="name"
-                required
-              />
-            </div>
+            {!isAuth && (
+              <>
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-medium text-text dark:text-dark-text" htmlFor="export-name">
+                  {t('form.name')}
+                </label>
+                  <input
+                    id="export-name"
+                    ref={firstFieldRef}
+                    value={name}
+                    onChange={(event) => setName(event.target.value)}
+                    className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm text-card-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    placeholder={t('gdpr.export.namePlaceholder')}
+                    autoComplete="name"
+                    required
+                  />
+                </div>
 
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium text-text dark:text-dark-text" htmlFor="export-phone">
-              {t('form.phone')}
-            </label>
-              <PhoneInput
-                value={phone}
-                onChange={setPhone}
-                placeholder={t('gdpr.export.phonePlaceholder')}
-                error={state === "error" && error?.code === "INVALID_PHONE" ? error.error : undefined}
-              />
-            </div>
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-medium text-text dark:text-dark-text" htmlFor="export-phone">
+                  {t('form.phone')}
+                </label>
+                  <PhoneInput
+                    value={phone}
+                    onChange={setPhone}
+                    placeholder={t('gdpr.export.phonePlaceholder')}
+                    error={state === "error" && error?.code === "INVALID_PHONE" ? error.error : undefined}
+                  />
+                </div>
 
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium text-text dark:text-dark-text" htmlFor="export-email">
-              {t('form.email')} <span className="text-xs text-neutral-500 dark:text-dark-muted">({t('gdpr.export.emailOptional')})</span>
-              </label>
-              <input
-                id="export-email"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm text-card-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
-                placeholder={t('gdpr.export.emailPlaceholder')}
-                autoComplete="email"
-              />
-            </div>
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-medium text-text dark:text-dark-text" htmlFor="export-email">
+                  {t('form.email')} <span className="text-xs text-neutral-500 dark:text-dark-muted">({t('gdpr.export.emailOptional')})</span>
+                  </label>
+                  <input
+                    id="export-email"
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                    className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm text-card-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    placeholder={t('gdpr.export.emailPlaceholder')}
+                    autoComplete="email"
+                  />
+                </div>
+              </>
+            )}
 
-            {siteKey && (
+            {!isAuth && siteKey && (
               <div className="rounded-xl border border-border/60 bg-muted/20 p-3">
                 <div ref={turnstileRef} />
               </div>

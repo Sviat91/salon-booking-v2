@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import PhoneInput from "./ui/PhoneInput";
 import { clientLog } from "@/lib/client-logger";
 import { useCurrentLanguage } from "@/contexts/LanguageContext";
+import { useSession } from "next-auth/react";
 
 type ModalState =
   | "idle"
@@ -52,6 +53,8 @@ export default function ConsentWithdrawalModal({
   const [error, setError] = useState<ApiError | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [requestId, setRequestId] = useState<string>(() => generateRequestId());
+  const { data: session } = useSession();
+  const isAuth = !!session?.user;
 
   const resetTurnstile = useCallback(() => {
     setToken(null);
@@ -125,7 +128,7 @@ export default function ConsentWithdrawalModal({
 
   // Load Turnstile
   useEffect(() => {
-    if (!isOpen || !siteKey) return;
+    if (!isOpen || !siteKey || isAuth) return;
     const scriptId = "cf-turnstile";
     if (!document.getElementById(scriptId)) {
       const script = document.createElement("script");
@@ -171,16 +174,17 @@ export default function ConsentWithdrawalModal({
       }
       widgetIdRef.current = null;
     };
-  }, [isOpen, resetTurnstile, siteKey]);
+  }, [isOpen, resetTurnstile, siteKey, isAuth]);
 
   if (!isOpen) return null;
 
-  const canSubmit =
+  const canSubmit = isAuth ? (acknowledged && state !== "loading") : (
     name.trim().length >= 2 &&
     phone.replace(/\D/g, "").length >= 8 &&
     acknowledged &&
     (siteKey ? !!token : true) &&
-    state !== "loading";
+    state !== "loading"
+  );
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -194,11 +198,11 @@ export default function ConsentWithdrawalModal({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: name.trim(),
-          phone,
-          email: email.trim() || undefined,
+          name: isAuth ? undefined : name.trim(),
+          phone: isAuth ? undefined : phone,
+          email: isAuth ? undefined : (email.trim() || undefined),
           consentAcknowledged: acknowledged,
-          turnstileToken: token ?? undefined,
+          turnstileToken: isAuth ? undefined : (token ?? undefined),
           requestId,
         }),
       });
@@ -332,47 +336,51 @@ export default function ConsentWithdrawalModal({
           </div>
         ) : (
           <form className="space-y-5" onSubmit={handleSubmit}>
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium text-text dark:text-dark-text" htmlFor="withdraw-name">
-              {t('form.name')}
-            </label>
-              <input
-                id="withdraw-name"
-                ref={firstFieldRef}
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-                className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm text-card-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
-                placeholder={t('gdpr.export.namePlaceholder')}
-                autoComplete="name"
-                required
-              />
-            </div>
+            {!isAuth && (
+              <>
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-medium text-text dark:text-dark-text" htmlFor="withdraw-name">
+                  {t('form.name')}
+                </label>
+                  <input
+                    id="withdraw-name"
+                    ref={firstFieldRef}
+                    value={name}
+                    onChange={(event) => setName(event.target.value)}
+                    className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm text-card-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    placeholder={t('gdpr.export.namePlaceholder')}
+                    autoComplete="name"
+                    required
+                  />
+                </div>
 
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium text-text dark:text-dark-text" htmlFor="withdraw-phone">
-              {t('form.phone')}
-            </label>
-              <PhoneInput
-                value={phone}
-                onChange={setPhone}
-                placeholder={t('gdpr.export.phonePlaceholder')}
-                error={state === "error" && error?.code === "INVALID_PHONE" ? error.error : undefined}
-              />
-            </div>
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-medium text-text dark:text-dark-text" htmlFor="withdraw-phone">
+                  {t('form.phone')}
+                </label>
+                  <PhoneInput
+                    value={phone}
+                    onChange={setPhone}
+                    placeholder={t('gdpr.export.phonePlaceholder')}
+                    error={state === "error" && error?.code === "INVALID_PHONE" ? error.error : undefined}
+                  />
+                </div>
 
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium text-text dark:text-dark-text" htmlFor="withdraw-email">
-              {t('form.email')} <span className="text-xs text-neutral-500 dark:text-dark-muted">({t('gdpr.export.emailOptional')})</span>
-              </label>
-              <input
-                id="withdraw-email"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm text-card-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
-                placeholder={t('gdpr.export.emailPlaceholder')}
-                autoComplete="email"
-              />
-            </div>
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-medium text-text dark:text-dark-text" htmlFor="withdraw-email">
+                  {t('form.email')} <span className="text-xs text-neutral-500 dark:text-dark-muted">({t('gdpr.export.emailOptional')})</span>
+                  </label>
+                  <input
+                    id="withdraw-email"
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                    className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm text-card-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    placeholder={t('gdpr.export.emailPlaceholder')}
+                    autoComplete="email"
+                  />
+                </div>
+              </>
+            )}
 
             <label className="flex items-start gap-3 rounded-xl border border-border/70 bg-muted/25 p-4 text-sm text-card-foreground transition">
               <input
@@ -387,7 +395,7 @@ export default function ConsentWithdrawalModal({
               </span>
             </label>
 
-            {siteKey && (
+            {!isAuth && siteKey && (
               <div className="rounded-xl border border-border/60 bg-muted/20 p-3">
                 <div ref={turnstileRef} />
               </div>

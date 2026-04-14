@@ -5,6 +5,7 @@ interface BookingSuccessProps {
   procedureName: string | null
   terminLabel: string
   procedurePrice?: number
+  isAuth: boolean
   onClose: () => void
 }
 
@@ -12,6 +13,7 @@ export default function BookingSuccess({
   procedureName,
   terminLabel,
   procedurePrice,
+  isAuth,
   onClose,
 }: BookingSuccessProps) {
   const { t } = useTranslation()
@@ -44,6 +46,28 @@ export default function BookingSuccess({
       </div>
       
       <div className="text-emerald-700 dark:text-emerald-400 mb-4">{t('success.thankYou')}</div>
+
+      {!isAuth && (
+        <div className="mb-6 rounded-xl border border-primary/20 bg-primary/5 p-4 text-center">
+          <p className="text-sm font-medium text-foreground mb-3">
+            {t('success.guestBannerTitle', 'Хотите удобнее управлять своими записями?')}
+          </p>
+          <div className="flex flex-col sm:flex-row gap-2 justify-center">
+            <a 
+              href="/auth/register" 
+              className="btn btn-primary py-2 px-4 text-xs flex-1"
+            >
+              {t('success.guestBannerRegister', 'Создать кабинет')}
+            </a>
+            <a 
+              href="/auth/login?callbackUrl=/profile" 
+              className="btn btn-outline py-2 px-4 text-xs flex-1"
+            >
+              {t('success.guestBannerLogin', 'Уже есть аккаунт')}
+            </a>
+          </div>
+        </div>
+      )}
       
       <button
         type="button"
