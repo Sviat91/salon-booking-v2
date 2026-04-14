@@ -68,9 +68,9 @@ export async function POST(req: NextRequest) {
     body.requestId || `gdpr-export-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`
 
   const session = await auth()
-  let targetPhone = body.phone
-  let targetName = body.name
-  let targetEmail = body.email
+  let targetPhone: string | null | undefined = body.phone
+  let targetName: string | null | undefined = body.name
+  let targetEmail: string | null | undefined = body.email
 
   if (session?.user?.id) {
     try {
@@ -94,7 +94,11 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  if (!targetPhone || !targetName) {
+  const finalPhone = targetPhone;
+  const finalName = targetName;
+  const finalEmail = targetEmail;
+
+  if (!finalPhone || !finalName) {
     return NextResponse.json(
       { error: "Phone and name must be provided if you are not logged in." },
       { status: 400 }
@@ -103,7 +107,7 @@ export async function POST(req: NextRequest) {
 
   let normalizedPhoneE164: string
   try {
-    normalizedPhoneE164 = normalizePhoneToE164(targetPhone)
+    normalizedPhoneE164 = normalizePhoneToE164(finalPhone)
   } catch {
     return invalidPhoneResponse()
   }
@@ -131,8 +135,8 @@ export async function POST(req: NextRequest) {
   try {
     const result = await exportConsentData({
       phone: normalizedPhoneE164,
-      name: targetName,
-      email: targetEmail,
+      name: finalName,
+      email: finalEmail,
     })
 
     if (!result.exportedData) {

@@ -75,7 +75,10 @@ export async function POST(req: NextRequest) {
     // Consent is enforced only for guest booking flow.
     // Authenticated clients accept consents during registration.
     if (!isAuth) {
-      const consentStatus = await evaluateConsentStatus({ phone, name, email })
+      if (!phone || !name) {
+        return NextResponse.json({ error: "Missing identity for guest consent check", code: "VALIDATION_ERROR" }, { status: 400 })
+      }
+      const consentStatus = await evaluateConsentStatus({ phone, name, email: email ?? undefined })
       needsNewConsent = !consentStatus.hasValidConsent
     }
 
@@ -152,11 +155,15 @@ export async function POST(req: NextRequest) {
 
     // 3. Persist consent when user is booking after consent modal confirmation.
     if (!isAuth && needsNewConsent && hasRequiredNewConsents && userIdForConsent) {
+      if (!phone || !name) {
+        // This shouldn't normally happen due to line 43, but for TS safety:
+        return NextResponse.json({ error: "Missing identity for guest consent saving", code: "VALIDATION_ERROR" }, { status: 400 })
+      }
       await saveConsentRecord({
         userId: userIdForConsent,
         phone,
         name,
-        email,
+        email: email || null,
         ip: getRequestIp(req),
         dataProcessing: Boolean(consents?.dataProcessing),
         terms: Boolean(consents?.terms),
