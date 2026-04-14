@@ -11,10 +11,10 @@ const TZ = "Europe/Warsaw"
  * GET /api/client/profile
  * Returns profile details and upcoming/past appointments.
  */
-export async function GET(req: NextRequest) {
+export async function GET() {
   const session = await auth()
   
-  if (!session?.user || session.user.role !== "CLIENT") {
+  if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
@@ -59,7 +59,7 @@ export async function GET(req: NextRequest) {
       select: { id: true, userId: true },
     })
     
-    let overrideMap = new Map<string, number>()
+    const overrideMap = new Map<string, number>()
     if (masterProfiles.length > 0 && appointments.length > 0) {
       const serviceIds = [...new Set(appointments.map((a) => a.service.id))]
       const overrides = await prisma.masterService.findMany({
@@ -141,7 +141,7 @@ const updateProfileSchema = z.object({
 export async function PATCH(req: NextRequest) {
   const session = await auth()
   
-  if (!session?.user || session.user.role !== "CLIENT") {
+  if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 

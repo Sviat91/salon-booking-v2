@@ -17,7 +17,7 @@ const changePasswordSchema = z.object({
 export async function POST(req: NextRequest) {
   const session = await auth()
   
-  if (!session?.user || session.user.role !== "CLIENT") {
+  if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 

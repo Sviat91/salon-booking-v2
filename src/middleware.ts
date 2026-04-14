@@ -44,13 +44,16 @@ export default auth((req) => {
       return Response.redirect(new URL(callbackUrl, nextUrl))
     }
 
-    if (role === "SUPERADMIN") {
+    if (role === "SUPERADMIN" || role === "ADMIN") {
       return Response.redirect(new URL("/admin", nextUrl))
     } else if (role === "MASTER") {
       return Response.redirect(new URL("/admin/master", nextUrl))
     } else if (role === "CLIENT") {
       return Response.redirect(new URL("/profile", nextUrl))
     }
+
+    // Fallback if role is unfamiliar
+    return Response.redirect(new URL("/", nextUrl))
   }
 })
 

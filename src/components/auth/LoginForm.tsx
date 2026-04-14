@@ -17,7 +17,7 @@ export default function LoginForm({ className, ...props }: UserAuthFormProps) {
   const [error, setError] = React.useState<string | null>(null)
   const { t } = useTranslation()
 
-  const callbackUrl = searchParams.get('callbackUrl') || '/'
+  const callbackUrl = searchParams.get('callbackUrl')
   const errorParam = searchParams.get('error')
 
   React.useEffect(() => {
@@ -40,13 +40,18 @@ export default function LoginForm({ className, ...props }: UserAuthFormProps) {
         redirect: false,
         email,
         password,
-        callbackUrl,
+        ...(callbackUrl ? { callbackUrl } : {}),
       })
 
       if (res?.error) {
         setError(t('auth.invalidCredentials', 'Invalid email or password'))
-      } else if (res?.url) {
-        window.location.href = res.url
+      } else {
+        if (callbackUrl) {
+          window.location.href = callbackUrl
+        } else {
+          // Redirect to login page again so the middleware can intercept and route by role
+          window.location.href = '/auth/login'
+        }
       }
     } catch {
       setError(t('auth.loginError', 'An error occurred. Please try again.'))

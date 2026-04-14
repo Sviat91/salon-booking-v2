@@ -69,9 +69,15 @@ export async function POST(req: NextRequest) {
   const endTime = wTimeFormatter.format(endDate)
 
   try {
-    const consentStatus = await evaluateConsentStatus({ phone, name, email })
     const hasRequiredNewConsents = Boolean(consents?.dataProcessing && consents?.terms)
-    const needsNewConsent = !consentStatus.hasValidConsent
+    let needsNewConsent = false
+
+    // Consent is enforced only for guest booking flow.
+    // Authenticated clients accept consents during registration.
+    if (!isAuth) {
+      const consentStatus = await evaluateConsentStatus({ phone, name, email })
+      needsNewConsent = !consentStatus.hasValidConsent
+    }
 
     if (needsNewConsent && !hasRequiredNewConsents) {
       return NextResponse.json(
@@ -145,7 +151,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 3. Persist consent when user is booking after consent modal confirmation.
-    if (needsNewConsent && hasRequiredNewConsents && userIdForConsent) {
+    if (!isAuth && needsNewConsent && hasRequiredNewConsents && userIdForConsent) {
       await saveConsentRecord({
         userId: userIdForConsent,
         phone,

@@ -29,17 +29,24 @@ export default function BookingForm({
   const { t } = useTranslation()
   const language = useCurrentLanguage()
   const masterId = useSelectedMasterId()
-  
+
   const { data: session } = useSession()
-  const isAuth = session?.user?.role === "CLIENT"
+  const isAuth = session?.user?.role === 'CLIENT'
   const authUser = session?.user
 
-  // Form state
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
   const [email, setEmail] = useState('')
 
-  // Sync session data to form state
+  // In-place profile editing while booking
+  const [isEditingDetails, setIsEditingDetails] = useState(false)
+  const [editName, setEditName] = useState('')
+  const [editPhone, setEditPhone] = useState('')
+  const [editEmail, setEditEmail] = useState('')
+  const [saveToProfile, setSaveToProfile] = useState(true)
+  const [detailsSaving, setDetailsSaving] = useState(false)
+  const [detailsMessage, setDetailsMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+
   useEffect(() => {
     if (isAuth && authUser) {
       setName(authUser.name || '')
@@ -47,32 +54,28 @@ export default function BookingForm({
       setEmail(authUser.email || '')
     }
   }, [isAuth, authUser])
-  
-  // Validation errors
+
   const [nameError, setNameError] = useState<string | null>(null)
   const [phoneError, setPhoneError] = useState<string | null>(null)
   const [emailError, setEmailError] = useState<string | null>(null)
-  
-  // Consent state
+
   const [dataProcessingConsent, setDataProcessingConsent] = useState(false)
   const [termsConsent, setTermsConsent] = useState(false)
   const [notificationsConsent, setNotificationsConsent] = useState(false)
-  
-  // Turnstile state
+
   const [tsToken, setTsToken] = useState<string | null>(null)
   const tsRef = useRef<HTMLDivElement | null>(null)
   const phoneValidationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY as string | undefined
 
-  // Fetch procedures
   const { data: proceduresData } = useQuery<ProceduresResponse>({
     queryKey: ['procedures', masterId],
-    queryFn: () => fetch(`/api/procedures?masterId=${masterId}`).then(r => r.json() as Promise<ProceduresResponse>),
+    queryFn: () => fetch(`/api/procedures?masterId=${masterId}`).then((r) => r.json() as Promise<ProceduresResponse>),
   })
 
   const selectedProcedure = useMemo(() => {
     if (!procedureId) return null
-    return proceduresData?.items.find(p => p.id === procedureId) ?? null
+    return proceduresData?.items.find((p) => p.id === procedureId) ?? null
   }, [procedureId, proceduresData])
 
   const selectedProcedureName = useMemo(() => {
@@ -80,7 +83,6 @@ export default function BookingForm({
     return translateProcedureName(selectedProcedure.name_pl, language)
   }, [selectedProcedure, language])
 
-  // Use booking submit hook
   const {
     loading,
     error,
@@ -97,14 +99,13 @@ export default function BookingForm({
     phone,
     email,
     tsToken,
+    isAuthenticatedClient: isAuth,
     onSuccess,
   })
 
-  // Load Turnstile widget
   useEffect(() => {
     if (!siteKey) return
-    
-    // Load script once
+
     const id = 'cf-turnstile'
     if (!document.getElementById(id)) {
       const s = document.createElement('script')
@@ -114,30 +115,29 @@ export default function BookingForm({
       s.defer = true
       document.head.appendChild(s)
     }
-    
-    // Map our language codes to Turnstile supported codes
+
     const turnstileLang = language === 'uk' ? 'uk-ua' : language
-    
-    // Render widget when available
+
     const iv = setInterval(() => {
       // @ts-ignore -- Turnstile render helper lacks type definitions
-      const t = (window as any).turnstile
-      if (t && tsRef.current) {
+      const turnstile = (window as any).turnstile
+      if (turnstile && tsRef.current) {
         try {
           tsRef.current.setAttribute('data-language', turnstileLang)
-          t.render(tsRef.current, {
+          turnstile.render(tsRef.current, {
             sitekey: siteKey,
             language: turnstileLang,
             callback: (token: string) => setTsToken(token),
           })
           clearInterval(iv)
-        } catch {}
+        } catch {
+          // no-op
+        }
       }
     }, 200)
     return () => clearInterval(iv)
   }, [siteKey, language])
 
-  // Hide Turnstile when showing consent modal
   useEffect(() => {
     if (bookingState === 'consent' && tsRef.current) {
       tsRef.current.style.display = 'none'
@@ -154,22 +154,20 @@ export default function BookingForm({
     }
   }, [])
 
-  // Validation
   const canSubmit = useMemo(() => {
     const nameValid = validateName(name).valid
     const phoneValid = isAuth ? true : validatePhone(phone).valid
     const emailValid = !email || validateEmail(email).valid
     const tokenValid = !siteKey || validateTurnstileToken(tsToken).valid
-    
+
     return nameValid && phoneValid && emailValid && tokenValid && !loading
   }, [name, phone, email, loading, siteKey, tsToken, isAuth])
-  
-  // Validate on blur
+
   const handleNameBlur = () => {
     const result = validateName(name)
     setNameError(result.valid ? null : result.error || null)
   }
-  
+
   const handleEmailBlur = () => {
     if (!email) {
       setEmailError(null)
@@ -179,13 +177,11 @@ export default function BookingForm({
     setEmailError(result.valid ? null : result.error || null)
   }
 
-  // Format dates
   const startDate = useMemo(() => new Date(slot.startISO), [slot.startISO])
   const endDate = useMemo(() => new Date(slot.endISO), [slot.endISO])
   const label = formatTimeRange(startDate, endDate)
   const terminLabel = `${fullDateFormatter.format(startDate)}, ${label}`
 
-  // Handle consent confirmation
   const handleConsentConfirm = () => {
     if (!dataProcessingConsent || !termsConsent) return
     bookWithConsents({
@@ -195,27 +191,91 @@ export default function BookingForm({
     })
   }
 
-  // Handle consent back
   const handleConsentBack = () => {
     resetToForm()
-    // Show Turnstile again
     if (tsRef.current) {
       tsRef.current.style.display = 'block'
     }
   }
 
-  // Handle success close
   const handleSuccessClose = () => {
     resetToForm()
-    setName('')
-    setPhone('')
-    setEmail('')
+
+    if (!isAuth) {
+      setName('')
+      setPhone('')
+      setEmail('')
+    }
+
     setDataProcessingConsent(false)
     setTermsConsent(false)
     setNotificationsConsent(false)
   }
 
-  // Render success state
+  const openInlineEditor = () => {
+    setEditName(name || authUser?.name || '')
+    setEditPhone(phone || authUser?.phone || '')
+    setEditEmail(email || authUser?.email || '')
+    setSaveToProfile(true)
+    setDetailsMessage(null)
+    setIsEditingDetails(true)
+  }
+
+  const handleInlineDetailsSave = async () => {
+    const trimmedName = editName.trim()
+    const trimmedPhone = editPhone.trim()
+    const trimmedEmail = editEmail.trim()
+
+    if (trimmedName.length < 2) {
+      setDetailsMessage({ type: 'error', text: t('validation.nameMinLength', 'Name must be at least 2 characters') })
+      return
+    }
+
+    if (trimmedPhone && !validatePhone(trimmedPhone).valid) {
+      setDetailsMessage({ type: 'error', text: t('validation.phoneInvalid', 'Invalid phone number') })
+      return
+    }
+
+    if (!trimmedEmail || !validateEmail(trimmedEmail).valid) {
+      setDetailsMessage({ type: 'error', text: t('validation.emailInvalid', 'Invalid email address') })
+      return
+    }
+
+    setDetailsSaving(true)
+    setDetailsMessage(null)
+
+    try {
+      setName(trimmedName)
+      setPhone(trimmedPhone)
+      setEmail(trimmedEmail)
+
+      if (saveToProfile) {
+        const res = await fetch('/api/client/profile', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: trimmedName, email: trimmedEmail, phone: trimmedPhone || null }),
+        })
+
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}))
+          throw new Error(body.error || t('profile.errorLoading', 'Failed to update profile'))
+        }
+      }
+
+      setIsEditingDetails(false)
+      setDetailsMessage({
+        type: 'success',
+        text: saveToProfile
+          ? t('profile.updateSuccess', 'Profile updated successfully')
+          : t('common.success', 'Saved successfully'),
+      })
+    } catch (e: any) {
+      setDetailsMessage({ type: 'error', text: e?.message || t('common.error', 'Error') })
+    } finally {
+      setDetailsSaving(false)
+    }
+  }
+
   if (bookingState === 'success') {
     return (
       <BookingSuccess
@@ -227,7 +287,6 @@ export default function BookingForm({
     )
   }
 
-  // Render consent modal state
   if (bookingState === 'consent') {
     return (
       <BookingConsentModal
@@ -247,49 +306,125 @@ export default function BookingForm({
     )
   }
 
-  // Render form input state
   return (
     <div className="space-y-3">
       <div className="text-neutral-700 dark:text-dark-muted">
         <div className="font-medium text-text dark:text-dark-text mb-0.5">{selectedProcedureName}</div>
         <div className="text-sm">{terminLabel}</div>
       </div>
+
       {isAuth ? (
         <div className="bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-xl p-4">
           <div className="flex justify-between items-start mb-2">
-            <span className="text-xs font-semibold text-primary uppercase tracking-wider">{t('booking.yourDetails', 'Your Details')}</span>
-            <a href="/profile/edit" target="_blank" className="text-xs underline text-muted-foreground hover:text-primary">
-              {t('common.edit', 'Edit')}
-            </a>
-          </div>
-          <div className="text-sm space-y-1">
-            <p className="font-medium text-foreground">{name || authUser?.name}</p>
-            {phone || authUser?.phone ? (
-              <p className="text-muted-foreground">{phone || authUser?.phone}</p>
-            ) : (
-              <p className="text-muted-foreground text-xs">{t('profile.noPhone', 'Phone not provided')}</p>
+            <span className="text-xs font-semibold text-primary uppercase tracking-wider">
+              {t('booking.yourDetails', 'Your Details')}
+            </span>
+            {!isEditingDetails && (
+              <button
+                type="button"
+                onClick={openInlineEditor}
+                className="text-xs underline text-muted-foreground hover:text-primary"
+              >
+                {t('common.edit', 'Edit')}
+              </button>
             )}
-            {email || authUser?.email ? (
-              <p className="text-muted-foreground">{email || authUser?.email}</p>
-            ) : null}
           </div>
+
+          {!isEditingDetails ? (
+            <div className="text-sm space-y-1">
+              <p className="font-medium text-foreground">{name || authUser?.name}</p>
+              {phone || authUser?.phone ? (
+                <p className="text-muted-foreground">{phone || authUser?.phone}</p>
+              ) : (
+                <p className="text-muted-foreground text-xs">{t('profile.noPhone', 'Phone not provided')}</p>
+              )}
+              {email || authUser?.email ? <p className="text-muted-foreground">{email || authUser?.email}</p> : null}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <input
+                className="w-full rounded-xl border border-border bg-transparent px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary dark:border-dark-border dark:placeholder-dark-muted"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                placeholder={t('form.name', 'Full name')}
+              />
+
+              <PhoneInput
+                value={editPhone}
+                onChange={setEditPhone}
+                placeholder={t('form.phone', 'Phone')}
+              />
+
+              <input
+                className="w-full rounded-xl border border-border bg-transparent px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary dark:border-dark-border dark:placeholder-dark-muted"
+                value={editEmail}
+                onChange={(e) => setEditEmail(e.target.value)}
+                placeholder={t('form.email', 'E-mail')}
+                type="email"
+              />
+
+              <label className="flex items-start gap-2 text-xs text-muted-foreground">
+                <input
+                  type="checkbox"
+                  checked={saveToProfile}
+                  onChange={(e) => setSaveToProfile(e.target.checked)}
+                  className="mt-0.5"
+                />
+                <span>
+                  {t(
+                    'profile.applyGlobally',
+                    'Also update these details in your profile globally'
+                  )}
+                </span>
+              </label>
+
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={handleInlineDetailsSave}
+                  disabled={detailsSaving}
+                  className="btn btn-primary text-xs px-3 py-2"
+                >
+                  {detailsSaving ? t('common.loading', 'Loading...') : t('common.save', 'Save')}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsEditingDetails(false)}
+                  disabled={detailsSaving}
+                  className="btn btn-outline text-xs px-3 py-2"
+                >
+                  {t('common.cancel', 'Cancel')}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {detailsMessage && (
+            <p className={`mt-3 text-xs ${detailsMessage.type === 'success' ? 'text-green-600' : 'text-red-500'}`}>
+              {detailsMessage.text}
+            </p>
+          )}
         </div>
       ) : (
         <div className="space-y-2">
           <div>
-            <input 
+            <input
               className={`w-full rounded-xl border ${nameError ? 'border-red-500' : 'border-border'} bg-transparent px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary dark:border-dark-border dark:placeholder-dark-muted`}
-              placeholder={t('form.name')} 
-              value={name} 
-              onChange={e => { setName(e.target.value); if (nameError) setNameError(null); }}
+              placeholder={t('form.name')}
+              value={name}
+              onChange={(e) => {
+                setName(e.target.value)
+                if (nameError) setNameError(null)
+              }}
               onBlur={handleNameBlur}
             />
             {nameError && <div className="mt-1 text-xs text-red-600 dark:text-red-400">{nameError}</div>}
           </div>
+
           <div>
-            <PhoneInput 
-              value={phone} 
-              onChange={(val) => { 
+            <PhoneInput
+              value={phone}
+              onChange={(val) => {
                 setPhone(val)
                 if (phoneValidationTimeoutRef.current) {
                   clearTimeout(phoneValidationTimeoutRef.current)
@@ -307,34 +442,47 @@ export default function BookingForm({
             />
             {phoneError && <div className="mt-1 text-xs text-red-600 dark:text-red-400">{phoneError}</div>}
           </div>
+
           <div>
-            <input 
+            <input
               className={`w-full rounded-xl border ${emailError ? 'border-red-500' : 'border-border'} bg-transparent px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary dark:border-dark-border dark:placeholder-dark-muted`}
-              placeholder={t('form.emailOptional')} 
-              value={email} 
-              onChange={e => { setEmail(e.target.value); if (emailError) setEmailError(null); }}
+              placeholder={t('form.emailOptional')}
+              value={email}
+              onChange={(e) => {
+                setEmail(e.target.value)
+                if (emailError) setEmailError(null)
+              }}
               onBlur={handleEmailBlur}
             />
             {emailError && <div className="mt-1 text-xs text-red-600 dark:text-red-400">{emailError}</div>}
           </div>
         </div>
       )}
+
       {siteKey && (
         <div className="mt-3">
           <div ref={tsRef} className="rounded-xl" />
         </div>
       )}
+
       {error && <div className="mt-3 text-sm text-red-600 dark:text-red-400">{error}</div>}
-      <button 
-        disabled={!canSubmit || isCheckingConsent} 
-        onClick={checkConsentAndProceed} 
-        className={`btn btn-primary mt-4 w-full transition-all duration-200 ${!canSubmit || isCheckingConsent ? 'opacity-60 pointer-events-none' : 'hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]'}`}
+
+      <button
+        disabled={!canSubmit || isCheckingConsent}
+        onClick={checkConsentAndProceed}
+        className={`btn btn-primary mt-4 w-full transition-all duration-200 ${
+          !canSubmit || isCheckingConsent ? 'opacity-60 pointer-events-none' : 'hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]'
+        }`}
       >
         {isCheckingConsent ? (
           <span className="flex items-center justify-center gap-2">
             <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
             </svg>
             <span>{t('booking.preparing')}</span>
           </span>

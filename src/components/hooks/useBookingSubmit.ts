@@ -12,6 +12,7 @@ interface UseBookingSubmitProps {
   phone: string
   email: string
   tsToken: string | null
+  isAuthenticatedClient?: boolean
   onSuccess?: () => void
 }
 
@@ -29,6 +30,7 @@ export function useBookingSubmit({
   phone,
   email,
   tsToken,
+  isAuthenticatedClient = false,
   onSuccess,
 }: UseBookingSubmitProps) {
   const [loading, setLoading] = useState(false)
@@ -37,66 +39,52 @@ export function useBookingSubmit({
   const [eventId, setEventId] = useState<string | null>(null)
   const [isCheckingConsent, setIsCheckingConsent] = useState(false)
 
-  // Check if user already has valid consents and proceed accordingly
-  const checkConsentAndProceed = useCallback(async () => {
-    setIsCheckingConsent(true)
-    setLoading(true)
-    setError(null)
-    
-    try {
-      // Check if user already has valid consents
-      const consentCheckRes = await fetch('/api/consents/check', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone, name, email: email || undefined }),
-      })
-      
-      if (consentCheckRes.ok) {
-        const consentData = await consentCheckRes.json()
-        if (consentData.skipConsentModal) {
-          // User already has valid consent, proceed directly to booking
-          await bookWithoutConsents()
-          return
-        }
-      }
-      
-      // User needs to give consent, show modal
-      setBookingState('consent')
-    } catch {
-      setError('Nie udało się sprawdzić zgód. Spróbuj ponownie.')
-    } finally {
-      setLoading(false)
-      setIsCheckingConsent(false)
+  const handleBookingError = useCallback((e: any) => {
+    const msg = String(e?.message || '')
+    if (msg.startsWith('BOOKING_TURNSTILE')) {
+      setError('Potwierdz weryfikacje Turnstile i sprobuj ponownie.')
+    } else if (msg.startsWith('BOOKING_DUPLICATE')) {
+      setError('Rezerwacja na ten przedzial juz zostala wyslana. Odczekaj 5 minut lub wybierz inny termin.')
+    } else if (msg.startsWith('BOOKING_CONFLICT')) {
+      setError('Ten termin jest juz zajety. Wybierz inny przedzial.')
+    } else if (msg.startsWith('BOOKING_CONSENT_REQUIRED')) {
+      setError('Przed rezerwacja musisz potwierdzic wymagane zgody.')
+    } else if (msg.startsWith('BOOKING_RATE_LIMITED')) {
+      setError('Zbyt wiele prob. Sprobuj pozniej.')
+    } else {
+      setError('Nie udalo sie zarezerwowac. Wybierz inny termin i sprobuj ponownie.')
     }
-  }, [phone, name, email])
+  }, [])
 
   // Book without saving new consents (user already has valid ones)
   const bookWithoutConsents = useCallback(async () => {
     setLoading(true)
     setError(null)
-    
+
     try {
       const res = await fetch('/api/book', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          startISO: slot.startISO, 
-          endISO: slot.endISO, 
+        body: JSON.stringify({
+          startISO: slot.startISO,
+          endISO: slot.endISO,
           procedureId,
-          masterId, 
-          name, 
-          phone, 
-          email: email || undefined, 
+          masterId,
+          name,
+          phone,
+          email: email || undefined,
           turnstileToken: tsToken,
           // No consents object - user already has valid consents
         }),
       })
+
       const body = await res.json()
       if (!res.ok) {
         const code = (body && body.code) || 'UNKNOWN'
         const details = (body && body.details) || ''
         throw new Error(`BOOKING_${code}${details ? `: ${details}` : ''}`)
       }
+
       setEventId(body.eventId || null)
       setBookingState('success')
       onSuccess?.()
@@ -105,39 +93,77 @@ export function useBookingSubmit({
     } finally {
       setLoading(false)
     }
-  }, [slot, procedureId, name, phone, email, tsToken, onSuccess])
+  }, [slot, procedureId, masterId, name, phone, email, tsToken, onSuccess, handleBookingError])
+
+  // Check if user already has valid consents and proceed accordingly
+  const checkConsentAndProceed = useCallback(async () => {
+    setIsCheckingConsent(true)
+    setLoading(true)
+    setError(null)
+
+    try {
+      // For authenticated clients, consent is collected during registration
+      if (isAuthenticatedClient) {
+        await bookWithoutConsents()
+        return
+      }
+
+      const consentCheckRes = await fetch('/api/consents/check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, name, email: email || undefined }),
+      })
+
+      if (consentCheckRes.ok) {
+        const consentData = await consentCheckRes.json()
+        if (consentData.skipConsentModal) {
+          await bookWithoutConsents()
+          return
+        }
+      }
+
+      setBookingState('consent')
+    } catch {
+      setError('Nie udalo sie sprawdzic zgod. Sprobuj ponownie.')
+    } finally {
+      setLoading(false)
+      setIsCheckingConsent(false)
+    }
+  }, [phone, name, email, isAuthenticatedClient, bookWithoutConsents])
 
   // Book with new consents
   const bookWithConsents = useCallback(async (consents: ConsentData) => {
     setLoading(true)
     setError(null)
-    
+
     try {
       const res = await fetch('/api/book', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          startISO: slot.startISO, 
-          endISO: slot.endISO, 
+        body: JSON.stringify({
+          startISO: slot.startISO,
+          endISO: slot.endISO,
           procedureId,
-          masterId, 
-          name, 
-          phone, 
-          email: email || undefined, 
+          masterId,
+          name,
+          phone,
+          email: email || undefined,
           turnstileToken: tsToken,
           consents: {
             dataProcessing: consents.dataProcessing,
             terms: consents.terms,
-            notifications: consents.notifications
-          }
+            notifications: consents.notifications,
+          },
         }),
       })
+
       const body = await res.json()
       if (!res.ok) {
         const code = (body && body.code) || 'UNKNOWN'
         const details = (body && body.details) || ''
         throw new Error(`BOOKING_${code}${details ? `: ${details}` : ''}`)
       }
+
       setEventId(body.eventId || null)
       setBookingState('success')
       onSuccess?.()
@@ -146,27 +172,8 @@ export function useBookingSubmit({
     } finally {
       setLoading(false)
     }
-  }, [slot, procedureId, name, phone, email, tsToken, onSuccess])
+  }, [slot, procedureId, masterId, name, phone, email, tsToken, onSuccess, handleBookingError])
 
-  // Handle booking errors
-  const handleBookingError = useCallback((e: any) => {
-    const msg = String(e?.message || '')
-    if (msg.startsWith('BOOKING_TURNSTILE')) {
-      setError('Potwierdź weryfikację Turnstile i spróbuj ponownie.')
-    } else if (msg.startsWith('BOOKING_DUPLICATE')) {
-      setError('Już wysłałaś/-eś rezerwację na ten przedział. Odczekaj 5 minut lub wybierz inny termin.')
-    } else if (msg.startsWith('BOOKING_CONFLICT')) {
-      setError('Ten termin jest już zajęty. Wybierz inny przedział.')
-    } else if (msg.startsWith('BOOKING_CONSENT_REQUIRED')) {
-      setError('Przed rezerwacją musisz potwierdzić wymagane zgody.')
-    } else if (msg.startsWith('BOOKING_RATE_LIMITED')) {
-      setError('Zbyt wiele prób. Spróbuj później.')
-    } else {
-      setError('Nie udało się zarezerwować. Wybierz inny termin i spróbuj ponownie.')
-    }
-  }, [])
-
-  // Reset to form state
   const resetToForm = useCallback(() => {
     setBookingState('form')
     setError(null)

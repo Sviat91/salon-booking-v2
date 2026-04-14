@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useCallback, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useRouter } from "next/navigation"
 import { useQuery } from "@tanstack/react-query"
@@ -11,16 +11,11 @@ import BackButton from "@/components/BackButton"
 import { signOut } from "next-auth/react"
 import Link from "next/link"
 import LinkBookingsCard from "@/components/profile/LinkBookingsCard"
+import EditAppointmentModal, { type EditableAppointment } from "@/components/profile/EditAppointmentModal"
 
-type AppointmentData = {
-  id: string
-  date: string
-  startTime: string
-  endTime: string
+type AppointmentData = EditableAppointment & {
   status: string
   notes: string | null
-  service: { id: string; name: string; duration: number; price: number }
-  master: { id: string; name: string }
 }
 
 type ProfileData = {
@@ -30,10 +25,25 @@ type ProfileData = {
   stats: { totalVisits: number }
 }
 
+function toDatePart(dateIso: string) {
+  return new Date(dateIso).toISOString().slice(0, 10)
+}
+
+function canModifyLocally(appointment: AppointmentData) {
+  if (appointment.status === "CANCELLED") return false
+  const datePart = toDatePart(appointment.date)
+  const dt = new Date(`${datePart}T${appointment.startTime}:00`)
+  const hoursUntil = (dt.getTime() - Date.now()) / (1000 * 60 * 60)
+  return hoursUntil >= 24
+}
+
 export default function ProfilePage() {
   const { t } = useTranslation()
   const router = useRouter()
   const [showPast, setShowPast] = useState(false)
+  const [editingAppointment, setEditingAppointment] = useState<AppointmentData | null>(null)
+  const [actionLoadingId, setActionLoadingId] = useState<string | null>(null)
+  const [actionMessage, setActionMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
 
   const { data, isLoading, error, refetch } = useQuery<ProfileData>({
     queryKey: ['clientProfile'],
@@ -50,7 +60,7 @@ export default function ProfilePage() {
   })
 
   const handleRepeat = useCallback(
-    (masterId: string, serviceId?: string) => {
+    (masterId: string) => {
       router.push(`/${masterId}`)
     },
     [router]
@@ -89,6 +99,51 @@ export default function ProfilePage() {
     }
   }
 
+  const handleCancelAppointment = async (appointmentId: string) => {
+    setActionMessage(null)
+    setActionLoadingId(appointmentId)
+
+    try {
+      const res = await fetch(`/api/client/appointments/${appointmentId}`, {
+        method: "DELETE",
+      })
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        throw new Error(body.error || t('common.error', 'Error'))
+      }
+
+      await refetch()
+      setActionMessage({
+        type: "success",
+        text: t("management.cancelSuccess", "Booking cancelled"),
+      })
+    } catch (e: any) {
+      setActionMessage({
+        type: "error",
+        text: e?.message || t('common.error', 'Error'),
+      })
+    } finally {
+      setActionLoadingId(null)
+    }
+  }
+
+  const handleEditSaved = async () => {
+    await refetch()
+    setActionMessage({
+      type: "success",
+      text: t("management.changeSuccess", "Changes saved"),
+    })
+  }
+
+  const upcomingWithFlags = useMemo(() => {
+    if (!data) return []
+    return data.upcoming.map((a) => ({
+      ...a,
+      canModify: canModifyLocally(a),
+    }))
+  }, [data])
+
   if (isLoading) {
     return (
       <main className="flex-1 flex items-center justify-center">
@@ -109,7 +164,7 @@ export default function ProfilePage() {
     )
   }
 
-  const { user, upcoming, past } = data
+  const { user, past } = data
 
   return (
     <main className="px-3 py-4 sm:p-6 relative flex-1 flex flex-col w-full max-w-full box-border overflow-x-hidden">
@@ -124,7 +179,16 @@ export default function ProfilePage() {
           {t("profile.title", "My Appointments")}
         </h1>
 
-        {/* User Card */}
+        {actionMessage && (
+          <div className={`rounded-lg border px-3 py-2 text-sm ${
+            actionMessage.type === "success"
+              ? "border-green-300 bg-green-50 text-green-700"
+              : "border-red-300 bg-red-50 text-red-700"
+          }`}>
+            {actionMessage.text}
+          </div>
+        )}
+
         <Card className="!px-4 !py-4 space-y-4">
           <div className="flex justify-between items-start">
             <div>
@@ -147,21 +211,20 @@ export default function ProfilePage() {
           </div>
         </Card>
 
-        {/* Upcoming appointments */}
-        {upcoming.length > 0 && (
+        {upcomingWithFlags.length > 0 && (
           <div className="space-y-3">
             <h2 className="text-lg font-semibold text-text dark:text-dark-text">
               {t("profile.upcoming", "Upcoming")}
             </h2>
-            {upcoming.map((a) => (
-              <Card key={a.id} className="!px-4 !py-3">
+            {upcomingWithFlags.map((a) => (
+              <Card key={a.id} className="!px-4 !py-3 space-y-3">
                 <div className="flex justify-between items-start">
                   <div className="space-y-1">
                     <div className="font-medium text-text dark:text-dark-text">
                       {a.service.name}
                     </div>
                     <div className="text-sm text-muted dark:text-dark-muted">
-                      {formatDate(a.date)} • {a.startTime}–{a.endTime}
+                      {formatDate(a.date)} - {a.startTime}-{a.endTime}
                     </div>
                     <div className="text-sm text-muted dark:text-dark-muted">
                       {t("profile.master", "Specialist")}: {a.master.name}
@@ -176,31 +239,63 @@ export default function ProfilePage() {
                     </div>
                   )}
                 </div>
+
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setEditingAppointment(a)}
+                    disabled={!a.canModify}
+                    className="btn btn-outline text-xs px-3 py-1.5 disabled:opacity-50 disabled:pointer-events-none"
+                  >
+                    {t("management.editBooking", "Edit booking")}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleCancelAppointment(a.id)}
+                    disabled={!a.canModify || actionLoadingId === a.id}
+                    className="btn btn-outline text-xs px-3 py-1.5 text-red-500 border-red-200 hover:bg-red-50 disabled:opacity-50 disabled:pointer-events-none"
+                  >
+                    {actionLoadingId === a.id
+                      ? t('common.loading', 'Loading...')
+                      : t("management.cancelBooking", "Cancel booking")}
+                  </button>
+                </div>
+
+                {!a.canModify && (
+                  <p className="text-xs text-muted-foreground">
+                    {t('management.lessThan24h', 'Less than 24h - contact the specialist')}
+                  </p>
+                )}
               </Card>
             ))}
           </div>
         )}
 
-        {/* Past appointments */}
         {past.length > 0 && (
           <div className="space-y-3">
-            <button 
+            <button
               onClick={() => setShowPast(!showPast)}
               className="flex items-center justify-between w-full py-2 group text-left"
             >
               <h2 className="text-lg font-semibold text-text dark:text-dark-text group-hover:opacity-80 transition-opacity">
-                {t("profile.past", "Past")} {/*({past.length})*/}
+                {t("profile.past", "Past")}
               </h2>
-              <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                width="20" height="20" 
-                viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" 
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
                 className={`text-muted-foreground transition-transform duration-200 ${showPast ? "rotate-180" : ""}`}
               >
-                <path d="m6 9 6 6 6-6"/>
+                <path d="m6 9 6 6 6-6" />
               </svg>
             </button>
-            
+
             {showPast && (
               <div className="space-y-3 animate-fade-in-up">
                 {past.map((a) => (
@@ -211,7 +306,7 @@ export default function ProfilePage() {
                           {a.service.name}
                         </div>
                         <div className="text-sm text-muted dark:text-dark-muted">
-                          {formatDate(a.date)} • {a.startTime}–{a.endTime}
+                          {formatDate(a.date)} - {a.startTime}-{a.endTime}
                         </div>
                         <div className="text-sm text-muted dark:text-dark-muted">
                           {t("profile.master", "Specialist")}: {a.master.name}
@@ -221,7 +316,7 @@ export default function ProfilePage() {
                         </div>
                       </div>
                       <button
-                        onClick={() => handleRepeat(a.master.id, a.service.id)}
+                        onClick={() => handleRepeat(a.master.id)}
                         className="btn btn-outline text-xs !px-3 !py-1.5 whitespace-nowrap ml-3 shrink-0"
                       >
                         {t("profile.repeat", "Book again")}
@@ -234,7 +329,7 @@ export default function ProfilePage() {
           </div>
         )}
 
-        {upcoming.length === 0 && past.length === 0 && (
+        {upcomingWithFlags.length === 0 && past.length === 0 && (
           <Card className="!px-4 !py-6 text-center">
             <p className="text-muted dark:text-dark-muted mb-4">
               {t("profile.noAppointmentsAuth", "You don't have any appointments yet.")}
@@ -245,9 +340,15 @@ export default function ProfilePage() {
           </Card>
         )}
 
-        {/* Guest Bookings Merger */}
         <LinkBookingsCard />
       </div>
+
+      <EditAppointmentModal
+        open={Boolean(editingAppointment)}
+        appointment={editingAppointment}
+        onClose={() => setEditingAppointment(null)}
+        onSaved={handleEditSaved}
+      />
     </main>
   )
 }
