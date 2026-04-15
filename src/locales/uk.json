@@ -77,7 +77,11 @@
     "priceLabel": "Ціна:",
     "addressLabel": "Адреса:",
     "thankYou": "Дякуємо, до зустрічі!",
-    "close": "Закрити"
+    "close": "Закрити",
+    "guestBannerTitle": "Хочете зручно керувати своїми записами?",
+    "guestBannerDesc": "Створіть акаунт, щоб переглядати історію візитів і записуватися повторно в один клік.",
+    "guestBannerRegister": "Створити акаунт",
+    "guestBannerLogin": "Вже маю акаунт"
   },
   "management": {
     "searchTitle": "Керування бронюванням",

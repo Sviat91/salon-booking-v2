@@ -105,7 +105,11 @@
     "priceLabel": "Cena:",
     "addressLabel": "Adres:",
     "thankYou": "Dziękujemy, do zobaczenia!",
-    "close": "Zamknij"
+    "close": "Zamknij",
+    "guestBannerTitle": "Chcesz łatwo zarządzać swoimi wizytami?",
+    "guestBannerDesc": "Utwórz konto, aby przeglądać historię rezerwacji i umawiać się ponownie jednym kliknięciem.",
+    "guestBannerRegister": "Utwórz konto",
+    "guestBannerLogin": "Mam już konto"
   },
   "management": {
     "searchTitle": "Zarządzaj rezerwacją",

@@ -105,7 +105,11 @@
     "priceLabel": "Price:",
     "addressLabel": "Address:",
     "thankYou": "Thank you, see you soon!",
-    "close": "Close"
+    "close": "Close",
+    "guestBannerTitle": "Want to manage your appointments easily?",
+    "guestBannerDesc": "Create an account to view your booking history and rebook in one click.",
+    "guestBannerRegister": "Create account",
+    "guestBannerLogin": "I already have an account"
   },
   "management": {
     "searchTitle": "Manage booking",

@@ -48,23 +48,31 @@ export default function BookingSuccess({
       <div className="text-emerald-700 dark:text-emerald-400 mb-4">{t('success.thankYou')}</div>
 
       {!isAuth && (
-        <div className="mb-6 rounded-xl border border-primary/20 bg-primary/5 p-4 text-center">
-          <p className="text-sm font-medium text-foreground mb-3">
-            {t('success.guestBannerTitle', 'Хотите удобнее управлять своими записями?')}
-          </p>
-          <div className="flex flex-col sm:flex-row gap-2 justify-center">
-            <a 
-              href="/auth/register" 
-              className="btn btn-primary py-2 px-4 text-xs flex-1"
-            >
-              {t('success.guestBannerRegister', 'Создать кабинет')}
-            </a>
-            <a 
-              href="/auth/login?callbackUrl=/profile" 
-              className="btn btn-outline py-2 px-4 text-xs flex-1"
-            >
-              {t('success.guestBannerLogin', 'Уже есть аккаунт')}
-            </a>
+        <div className="mb-5 rounded-xl border border-primary/25 bg-primary/5 dark:bg-primary/10 p-4">
+          <div className="flex items-start gap-3">
+            <span className="mt-0.5 text-primary text-lg leading-none select-none" aria-hidden="true">✨</span>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-foreground dark:text-dark-text mb-0.5">
+                {t('success.guestBannerTitle')}
+              </p>
+              <p className="text-xs text-neutral-500 dark:text-dark-muted mb-3 leading-relaxed">
+                {t('success.guestBannerDesc')}
+              </p>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <a
+                  href="/auth/register"
+                  className="btn btn-primary py-2 px-4 text-xs flex-1 text-center"
+                >
+                  {t('success.guestBannerRegister')}
+                </a>
+                <a
+                  href="/auth/login?callbackUrl=/profile"
+                  className="btn btn-outline py-2 px-4 text-xs flex-1 text-center"
+                >
+                  {t('success.guestBannerLogin')}
+                </a>
+              </div>
+            </div>
           </div>
         </div>
       )}

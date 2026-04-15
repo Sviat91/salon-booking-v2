@@ -226,7 +226,10 @@ export default function DayCalendar({ procedureId, onChange }: { procedureId?: s
           classNames={{
             day: 'h-10 w-10 rounded-full transition duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60',
             month: 'space-y-2',
-            table: 'w-full max-w-full border-collapse mx-auto',
+            // table-fixed + explicit column widths = constant 7×40px grid regardless of locale text length
+            table: 'w-full table-fixed border-collapse',
+            head_cell: 'w-10 text-center font-normal text-xs text-neutral-400 dark:text-dark-muted overflow-hidden',
+            cell: 'w-10 text-center p-0',
           }}
           formatters={{
             formatWeekdayName: (date) => capitalizeFirst(format(date, 'EEEEEE', { locale: dateLocale })),

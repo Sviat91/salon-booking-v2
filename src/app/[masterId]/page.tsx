@@ -19,6 +19,7 @@ import ThemeToggle from '../../components/ThemeToggle'
 import LanguageToggle from '../../components/LanguageToggle'
 import BackButton from '../../components/BackButton'
 import LogoDisplay from '../../components/LogoDisplay'
+import GuestConversionBanner from '../../components/GuestConversionBanner'
 
 interface PageProps {
   params: {
@@ -399,6 +400,9 @@ export default function Page({ params }: PageProps) {
                 />
               </Card>
             )}
+
+            {/* Баннер конверсии гостей — под Calendar Card, только после успешного бронирования гостем */}
+            <GuestConversionBanner show={showBookingSuccess} />
           </div>
         </motion.div>
       </div>
