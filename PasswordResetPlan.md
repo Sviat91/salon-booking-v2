@@ -136,7 +136,7 @@ model PasswordResetToken {
 
 #### Шаг 2.1: Создать `src/lib/email.ts`
 
-**Файл**: `src/lib/email.ts` [NEW]
+**Файл**: `src/lib/email.ts` [✅ DONE]
 
 Экспортирует:
 - `getSmtpConfig()` — читает SMTP-настройки из TenantConfig в БД

@@ -213,3 +213,29 @@ export const masterContactApiSchema = z.object({
 })
 
 export type MasterContactApiInput = z.infer<typeof masterContactApiSchema>
+
+// ============================================
+// Password Reset Schemas
+// ============================================
+
+/**
+ * Schema for POST /api/auth/forgot-password
+ * Initiates password reset - sends email with a one-time token link
+ */
+export const forgotPasswordApiSchema = z.object({
+  email: z.string().email('Invalid email format'),
+})
+
+export type ForgotPasswordApiInput = z.infer<typeof forgotPasswordApiSchema>
+
+/**
+ * Schema for POST /api/auth/reset-password
+ * Validates the one-time token and sets a new password
+ */
+export const resetPasswordApiSchema = z.object({
+  token: z.string().min(1, 'Token is required'),
+  newPassword: z.string().min(6, 'Password must be at least 6 characters'),
+})
+
+export type ResetPasswordApiInput = z.infer<typeof resetPasswordApiSchema>
+
