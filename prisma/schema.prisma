@@ -35,6 +35,7 @@ model User {
   dateOverrides        DateOverride[] @relation("MasterDateOverrides")
   createdServices      Service[]     @relation("MasterCreatedServices")
   consentRecords       ConsentRecord[]
+  passwordResetTokens  PasswordResetToken[]
 
   @@index([phone])
   @@index([email])
@@ -206,6 +207,29 @@ model TenantConfig {
   logoPages       String   @default("[\"home\",\"booking\"]")
   logoLayer       String   @default("above") // "above" = on top of content, "below" = behind content
 
+  // Email / SMTP settings — configured once in Admin Panel per deployment
+  // Works with any SMTP provider: Gmail, Outlook, Hostinger, OVH, etc.
+  smtpHost        String?           // e.g. "smtp.gmail.com"
+  smtpPort        Int?     @default(587)     // 587 for STARTTLS, 465 for SSL
+  smtpUser        String?           // sender login / email address
+  smtpPass        String?           // App Password or SMTP password
+  smtpFrom        String?           // display address e.g. "Salon Beauty <info@salon.pl>"
+  smtpSecure      Boolean  @default(false)   // true = port 465 SSL, false = 587 STARTTLS
+
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+}
+
+// One-time-use token for password reset emails.
+// Deleted immediately after use. Cascades when user is deleted.
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
 }

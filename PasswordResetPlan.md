@@ -83,8 +83,8 @@ TenantConfig (расширение)
 ### Фаза 1: Зависимости и Schema
 
 #### Шаг 1.1: Установить nodemailer
-- [ ] `npm install nodemailer`
-- [ ] `npm install -D @types/nodemailer`
+- [x] `npm install nodemailer`
+- [x] `npm install -D @types/nodemailer`
 
 **Почему nodemailer**: Единственная зависимость, работает с любым SMTP, 0 vendor lock-in. Идеально для white-label SaaS.
 
@@ -127,8 +127,8 @@ model PasswordResetToken {
 ```
 
 #### Шаг 1.4: Применить миграцию
-- [ ] `npx prisma db push` (для SQLite dev workflow без миграций)
-- [ ] `npx prisma generate`
+- [x] `npx prisma db push` (для SQLite dev workflow без миграций)
+- [x] `npx prisma generate`
 
 ---
 
