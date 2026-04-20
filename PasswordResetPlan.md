@@ -258,8 +258,8 @@ export type ResetPasswordApiInput = z.infer<typeof resetPasswordApiSchema>
 #### Шаг 4.1: Страница `/auth/forgot-password`
 
 **Файлы**:
-- `src/app/auth/forgot-password/page.tsx` [NEW] — server component (metadata)
-- `src/components/auth/ForgotPasswordForm.tsx` [NEW] — клиентский компонент
+- `src/app/auth/forgot-password/page.tsx` [✅ DONE] — server component (metadata)
+- `src/components/auth/ForgotPasswordForm.tsx` [✅ DONE] — клиентский компонент
 
 **UI** (повторяет стиль Register/Login pages):
 ```
@@ -300,8 +300,8 @@ export type ResetPasswordApiInput = z.infer<typeof resetPasswordApiSchema>
 #### Шаг 4.2: Страница `/auth/reset-password`
 
 **Файлы**:
-- `src/app/auth/reset-password/page.tsx` [NEW] — server component
-- `src/components/auth/ResetPasswordForm.tsx` [NEW] — клиентский компонент
+- `src/app/auth/reset-password/page.tsx` [✅ DONE] — server component
+- `src/components/auth/ResetPasswordForm.tsx` [✅ DONE] — клиентский компонент
 
 **UI**:
 ```
