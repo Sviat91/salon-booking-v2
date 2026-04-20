@@ -1,4 +1,25 @@
 {
+  "auth": {
+    "forgotPassword": "Zapomniałeś hasła?",
+    "forgotPasswordTitle": "Zresetuj hasło",
+    "forgotPasswordDesc": "Wprowadź swój adres e-mail, a my wyślemy Ci link do zresetowania hasła.",
+    "forgotPasswordSubmit": "Wyślij link",
+    "forgotPasswordSending": "Wysyłanie...",
+    "forgotPasswordSentTitle": "Sprawdź swoją pocztę",
+    "forgotPasswordSentDesc": "Jeśli ten e-mail jest zarejestrowany, wkrótce otrzymasz link do resetowania hasła.",
+    "resetPasswordTitle": "Utwórz nowe hasło",
+    "resetPasswordNew": "Nowe hasło",
+    "resetPasswordConfirm": "Potwierdź hasło",
+    "resetPasswordSubmit": "Ustaw nowe hasło",
+    "resetPasswordSuccess": "Hasło zostało pomyślnie zaktualizowane!",
+    "resetPasswordSuccessDesc": "Możesz teraz zalogować się używając nowego hasła.",
+    "resetTokenInvalid": "Ten link wygasł lub jest nieprawidłowy.",
+    "resetTokenInvalidDesc": "Proszę poprosić o nowy link do resetowania hasła.",
+    "resetPasswordMismatch": "Hasła nie pasują do siebie.",
+    "resetPasswordTooShort": "Hasło musi mieć co najmniej 6 znaków.",
+    "requestNewLink": "Poproś o nowy link",
+    "backToLogin": "Wróć do logowania"
+  },
   "common": {
     "loading": "Ładowanie…",
     "cancel": "Anuluj",

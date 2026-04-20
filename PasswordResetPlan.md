@@ -336,7 +336,7 @@ export type ResetPasswordApiInput = z.infer<typeof resetPasswordApiSchema>
 
 #### Шаг 5.1: Ссылка "Forgot password?"
 
-**Файл**: `src/components/auth/LoginForm.tsx` [MODIFY]
+**Файл**: `src/components/auth/LoginForm.tsx` [✅ DONE]
 
 После поля Password, перед кнопкой Submit, добавить:
 ```tsx
@@ -352,7 +352,7 @@ export type ResetPasswordApiInput = z.infer<typeof resetPasswordApiSchema>
 
 #### Шаг 5.2: Success-сообщение после сброса пароля
 
-**Файл**: `src/app/auth/login/page.tsx` [MODIFY]
+**Файл**: `src/app/auth/login/page.tsx` (в нашем случае мы сделали это прямо в `LoginForm`) [✅ DONE]
 
 Если URL содержит `?reset=success` → показать зелёное уведомление "Password updated successfully. You can now sign in."
 
@@ -362,7 +362,7 @@ export type ResetPasswordApiInput = z.infer<typeof resetPasswordApiSchema>
 
 #### Шаг 6.1: Добавить ключи во все 3 локали
 
-**Файлы**: `src/locales/en.json`, `pl.json`, `uk.json` [MODIFY]
+**Файлы**: `src/locales/en.json`, `pl.json`, `uk.json` [✅ DONE]
 
 Добавить секцию `"auth"`:
 ```json

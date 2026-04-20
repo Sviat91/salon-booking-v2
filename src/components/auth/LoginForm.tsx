@@ -19,6 +19,7 @@ export default function LoginForm({ className, ...props }: UserAuthFormProps) {
 
   const callbackUrl = searchParams.get('callbackUrl')
   const errorParam = searchParams.get('error')
+  const resetParam = searchParams.get('reset')
 
   React.useEffect(() => {
     if (errorParam === 'CredentialsSignin') {
@@ -64,6 +65,11 @@ export default function LoginForm({ className, ...props }: UserAuthFormProps) {
     <div className={cn("grid gap-6", className)} {...props}>
       <form onSubmit={onSubmit}>
         <div className="grid gap-4">
+          {resetParam === 'success' && (
+            <div className="bg-green-500/10 text-green-500 p-3 rounded-lg text-sm border border-green-500/20 text-center font-medium">
+              {t('auth.resetPasswordSuccessDesc', 'Password updated successfully. You can now sign in.')}
+            </div>
+          )}
           <div className="grid gap-2">
             <Label htmlFor="email" className="text-foreground">{t('form.email', 'Email')}</Label>
             <Input
@@ -96,6 +102,14 @@ export default function LoginForm({ className, ...props }: UserAuthFormProps) {
               {error}
             </div>
           )}
+          <div className="flex justify-end mt-1">
+            <a 
+              href="/auth/forgot-password" 
+              className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+            >
+              {t('auth.forgotPassword', 'Forgot password?')}
+            </a>
+          </div>
           <Button disabled={isLoading} type="submit" className="mt-2">
             {isLoading && (
               <svg

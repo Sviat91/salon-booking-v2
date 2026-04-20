@@ -1,4 +1,25 @@
 {
+  "auth": {
+    "forgotPassword": "Забули пароль?",
+    "forgotPasswordTitle": "Скинути пароль",
+    "forgotPasswordDesc": "Введіть свою електронну адресу, і ми надішлемо посилання для скидання пароля.",
+    "forgotPasswordSubmit": "Надіслати посилання",
+    "forgotPasswordSending": "Надсилання...",
+    "forgotPasswordSentTitle": "Перевірте свою пошту",
+    "forgotPasswordSentDesc": "Якщо ця адреса зареєстрована, ви незабаром отримаєте посилання для скидання пароля.",
+    "resetPasswordTitle": "Створити новий пароль",
+    "resetPasswordNew": "Новий пароль",
+    "resetPasswordConfirm": "Підтвердіть пароль",
+    "resetPasswordSubmit": "Встановити новий пароль",
+    "resetPasswordSuccess": "Пароль успішно оновлено!",
+    "resetPasswordSuccessDesc": "Тепер ви можете увійти з новим паролем.",
+    "resetTokenInvalid": "Це посилання минуло або недійсне.",
+    "resetTokenInvalidDesc": "Будь ласка, зробіть запит на нове посилання для скидання пароля.",
+    "resetPasswordMismatch": "Паролі не збігаються.",
+    "resetPasswordTooShort": "Пароль має містити щонайменше 6 символів.",
+    "requestNewLink": "Запитати нове посилання",
+    "backToLogin": "Повернутися до входу"
+  },
   "common": {
     "loading": "Завантаження…",
     "cancel": "Скасувати",

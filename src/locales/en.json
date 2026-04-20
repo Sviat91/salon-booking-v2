@@ -1,4 +1,25 @@
 {
+  "auth": {
+    "forgotPassword": "Forgot password?",
+    "forgotPasswordTitle": "Reset your password",
+    "forgotPasswordDesc": "Enter your email address and we'll send you a link to reset your password.",
+    "forgotPasswordSubmit": "Send reset link",
+    "forgotPasswordSending": "Sending...",
+    "forgotPasswordSentTitle": "Check your email",
+    "forgotPasswordSentDesc": "If this email is registered, you'll receive a password reset link shortly.",
+    "resetPasswordTitle": "Create new password",
+    "resetPasswordNew": "New password",
+    "resetPasswordConfirm": "Confirm password",
+    "resetPasswordSubmit": "Set new password",
+    "resetPasswordSuccess": "Password updated successfully!",
+    "resetPasswordSuccessDesc": "You can now sign in with your new password.",
+    "resetTokenInvalid": "This link has expired or is invalid.",
+    "resetTokenInvalidDesc": "Please request a new password reset link.",
+    "resetPasswordMismatch": "Passwords do not match.",
+    "resetPasswordTooShort": "Password must be at least 6 characters.",
+    "requestNewLink": "Request new link",
+    "backToLogin": "Back to sign in"
+  },
   "common": {
     "loading": "Loading…",
     "cancel": "Cancel",
