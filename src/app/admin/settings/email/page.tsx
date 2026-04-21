@@ -1,5 +1,6 @@
 import { Metadata } from "next"
 import EmailSettingsForm from "@/components/admin/EmailSettingsForm"
+import { SmtpInstructions } from "@/components/admin/SmtpInstructions"
 
 export const metadata: Metadata = {
   title: "Email Settings | Admin",
@@ -16,7 +17,14 @@ export default function EmailSettingsPage() {
         </p>
       </div>
 
-      <EmailSettingsForm />
+      <div className="grid lg:grid-cols-3 gap-6 items-start">
+        <div className="lg:col-span-2">
+          <EmailSettingsForm />
+        </div>
+        <div className="lg:col-span-1">
+          <SmtpInstructions />
+        </div>
+      </div>
     </div>
   )
 }
