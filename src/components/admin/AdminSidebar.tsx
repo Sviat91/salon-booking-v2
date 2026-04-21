@@ -13,6 +13,7 @@ import {
   ChevronRight,
   ArrowLeft,
   CalendarDays,
+  Mail,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { ThemeToggle } from "@/components/ui/theme-toggle"
@@ -38,6 +39,12 @@ const superadminNavItems = [
     label: "Settings",
     href: "/admin/settings",
     icon: Settings,
+    exact: true,
+  },
+  {
+    label: "Email",
+    href: "/admin/settings/email",
+    icon: Mail,
   },
 ]
 

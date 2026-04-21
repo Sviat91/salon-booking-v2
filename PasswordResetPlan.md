@@ -396,15 +396,15 @@ export type ResetPasswordApiInput = z.infer<typeof resetPasswordApiSchema>
 > **ПРИМЕЧАНИЕ**: Эту фазу можно сделать после основного flow. На время разработки SMTP можно настроить через Prisma Studio (`npx prisma studio` → TenantConfig → вписать smtpHost и т.д.).
 
 #### Шаг 7.1: API для SMTP-настроек
-- [ ] `GET /api/admin/email-settings` — возвращает текущие SMTP-поля (без пароля)
-- [ ] `PATCH /api/admin/email-settings` — обновляет SMTP-поля
-- [ ] `POST /api/admin/email-settings/test` — отправляет тестовое письмо admin'у
+- [x] `GET /api/admin/email-settings` — возвращает текущие SMTP-поля (без пароля)
+- [x] `PATCH /api/admin/email-settings` — обновляет SMTP-поля
+- [x] `POST /api/admin/email-settings/test` — отправляет тестовое письмо admin'у
 
 #### Шаг 7.2: UI — страница Admin → Email Settings
-- [ ] `/admin/settings/email/page.tsx`
-- [ ] Форма: Host, Port, User, Password, From Name, Secure toggle
-- [ ] Кнопка "Send test email"
-- [ ] Toast об успехе / ошибке
+- [x] `/admin/settings/email/page.tsx`
+- [x] Форма: Host, Port, User, Password, From Name, Secure toggle
+- [x] Кнопка "Send test email"
+- [x] Toast об успехе / ошибке
 
 ---
 
