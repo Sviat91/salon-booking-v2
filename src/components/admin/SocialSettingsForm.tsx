@@ -154,7 +154,7 @@ export default function SocialSettingsForm() {
                   <FormControl>
                     <Input placeholder="my_salon_auth_bot" {...field} />
                   </FormControl>
-                  <FormDescription>Exclude the @ symbol</FormDescription>
+                  <FormDescription>Exclude the @ symbol. Note: If the bot username is invalid or if testing on localhost, the widget might display "Username invalid". If so, verify double-check BotFather configuration and register your domain.</FormDescription>
                 </FormItem>
               )}
             />
@@ -226,7 +226,7 @@ export default function SocialSettingsForm() {
                   <FormControl>
                     <textarea 
                       placeholder="-----BEGIN PRIVATE KEY-----&#10;...&#10;-----END PRIVATE KEY-----" 
-                      className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-h-[120px] font-mono"
+                      className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-h-[120px] font-mono"
                       {...field} 
                     />
                   </FormControl>

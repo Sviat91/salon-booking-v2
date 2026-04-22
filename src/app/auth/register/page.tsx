@@ -1,13 +1,24 @@
 import { Metadata } from "next"
 import RegisterForm from "@/components/auth/RegisterForm"
+import { SocialLoginButtons } from "@/components/auth/SocialLoginButtons"
 import Link from "next/link"
+import prisma from "@/lib/prisma"
 
 export const metadata: Metadata = {
   title: "Register | Somique Beauty",
   description: "Create your client account",
 }
 
-export default function RegisterPage() {
+export default async function RegisterPage() {
+  const config = await prisma.tenantConfig.findFirst()
+  
+  const providers = {
+    google: !!(config?.googleClientId && config?.googleClientSecret),
+    apple: !!(config?.appleClientId && config?.applePrivateKey),
+    telegram: !!(config?.telegramBotToken && config?.telegramBotUsername),
+    telegramBotUsername: config?.telegramBotUsername,
+  }
+
   return (
     <div className="relative flex-1 flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       {/* Background radial gradient matches main theme */}
@@ -29,6 +40,8 @@ export default function RegisterPage() {
         </div>
         
         <RegisterForm />
+        
+        <SocialLoginButtons providers={providers} />
         
         <div className="flex flex-col space-y-4 text-center mt-6">
           <Link 

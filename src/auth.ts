@@ -6,11 +6,11 @@ import type { Adapter } from "next-auth/adapters"
 import Credentials from "next-auth/providers/credentials"
 import bcrypt from "bcryptjs"
 
-export const { handlers, signIn, signOut, auth } = NextAuth({
+import type { NextAuthConfig } from "next-auth"
+
+export const coreAuthOptions: NextAuthConfig = {
   adapter: PrismaAdapter(prisma) as Adapter,
   session: { strategy: "jwt" },
-  // Spread only the non-provider parts of authConfig (callbacks, pages).
-  // Providers are defined here in Node.js runtime where prisma/bcrypt are available.
   callbacks: authConfig.callbacks,
   pages: authConfig.pages,
   providers: [
@@ -55,4 +55,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
     }),
   ],
-})
+}
+
+export const { handlers, signIn, signOut, auth } = NextAuth(coreAuthOptions)
