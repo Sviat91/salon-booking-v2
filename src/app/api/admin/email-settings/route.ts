@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { auth } from "@/auth"
 import prisma from "@/lib/prisma"
+import { encrypt } from "@/lib/encryption"
 
 export async function GET() {
   const session = await auth()
@@ -14,7 +15,7 @@ export async function GET() {
     smtpHost: config?.smtpHost || "",
     smtpPort: config?.smtpPort || 587,
     smtpUser: config?.smtpUser || "",
-    smtpPass: config?.smtpPass || "",
+    smtpPass: config?.smtpPass ? "••••••••" : "",
     smtpFrom: config?.smtpFrom || "",
     smtpSecure: config?.smtpSecure || false
   })
@@ -35,7 +36,7 @@ export async function PATCH(req: Request) {
       smtpHost: data.smtpHost || null,
       smtpPort: data.smtpPort ? parseInt(data.smtpPort, 10) : 587,
       smtpUser: data.smtpUser || null,
-      smtpPass: data.smtpPass || null,
+      smtpPass: data.smtpPass === "••••••••" ? (existing?.smtpPass || null) : (encrypt(data.smtpPass) || null),
       smtpFrom: data.smtpFrom || null,
       smtpSecure: data.smtpSecure || false
     }

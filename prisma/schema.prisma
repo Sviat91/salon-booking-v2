@@ -36,6 +36,7 @@ model User {
   createdServices      Service[]     @relation("MasterCreatedServices")
   consentRecords       ConsentRecord[]
   passwordResetTokens  PasswordResetToken[]
+  accounts             Account[]
 
   @@index([phone])
   @@index([email])
@@ -216,6 +217,18 @@ model TenantConfig {
   smtpFrom        String?           // display address e.g. "Salon Beauty <info@salon.pl>"
   smtpSecure      Boolean  @default(false)   // true = port 465 SSL, false = 587 STARTTLS
 
+  // Social Login Settings
+  googleClientId     String?
+  googleClientSecret String?
+  
+  appleClientId      String?
+  appleTeamId        String?
+  appleKeyId         String?
+  applePrivateKey    String?
+  
+  telegramBotToken   String?
+  telegramBotUsername  String?
+
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }
@@ -232,4 +245,24 @@ model PasswordResetToken {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([token])
+}
+
+// NextAuth standardized Account model (required for OAuth linking)
+model Account {
+  id                 String  @id @default(cuid())
+  userId             String
+  type               String
+  provider           String
+  providerAccountId  String
+  refresh_token      String?
+  access_token       String?
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String?
+  session_state      String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
 }

@@ -14,6 +14,7 @@
 
 import nodemailer from 'nodemailer'
 import prisma from '@/lib/prisma'
+import { decrypt } from '@/lib/encryption'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -49,12 +50,14 @@ export async function getSmtpConfig(): Promise<SmtpConfig | null> {
 
     const from = config.smtpFrom?.trim() || config.smtpUser
     const brandName = config.brandName || 'Salon Booking'
+    
+    const decryptedPass = decrypt(config.smtpPass)
 
     return {
       host: config.smtpHost,
       port: config.smtpPort ?? 587,
       secure: config.smtpSecure ?? false,
-      auth: { user: config.smtpUser, pass: config.smtpPass },
+      auth: { user: config.smtpUser, pass: decryptedPass || '' },
       from,
       brandName,
     }
