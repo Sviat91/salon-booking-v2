@@ -27,6 +27,11 @@ const superadminNavItems = [
     exact: true,
   },
   {
+    label: "Calendar",
+    href: "/admin/calendar",
+    icon: CalendarDays,
+  },
+  {
     label: "Services",
     href: "/admin/services",
     icon: Scissors,

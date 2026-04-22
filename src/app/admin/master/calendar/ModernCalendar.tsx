@@ -34,14 +34,31 @@ export default function ModernCalendar({
   availableSlotColor = "#22c55e", 
   dayOffColor = "#ef4444",
   workingHourStart = 8,
-  workingHourEnd = 21
-}: { masterId: string, availableSlotColor?: string, dayOffColor?: string, workingHourStart?: number, workingHourEnd?: number }) {
+  workingHourEnd = 21,
+  apiPrefix = "/api/master",
+  isAdminView = false,
+  selectedMasterId = "all",
+  adminMastersList,
+  onMasterChange
+}: { 
+  masterId?: string; 
+  availableSlotColor?: string; 
+  dayOffColor?: string; 
+  workingHourStart?: number; 
+  workingHourEnd?: number; 
+  apiPrefix?: string; 
+  isAdminView?: boolean; 
+  selectedMasterId?: string;
+  adminMastersList?: {id:string, name:string}[];
+  onMasterChange?: (id:string) => void;
+}) {
   const [isMounted, setIsMounted] = useState(false)
   const [view, setView] = useState<ViewType>("Week")
   const [currentDate, setCurrentDate] = useState(new Date())
   const [step, setStep] = useState(15) // Minutes grid step
   const [isEditMode, setIsEditMode] = useState(false)
   const [showBulkModal, setShowBulkModal] = useState(false)
+  const [showMasterSelect, setShowMasterSelect] = useState(false)
   
   // Appointment Booking State
   const [bookingDate, setBookingDate] = useState<Date | null>(null)
@@ -97,10 +114,13 @@ export default function ModernCalendar({
   const fetchData = async () => {
     setLoading(true)
     try {
+      const querySuffix = isAdminView && selectedMasterId ? `&masterId=${selectedMasterId}` : ''
+      const querySuffixQ = isAdminView && selectedMasterId ? `?masterId=${selectedMasterId}` : ''
+
       const [apptsRes, tmplRes, ovrRes] = await Promise.all([
-        fetch(`/api/master/appointments?from=${dateRange.from}&to=${dateRange.to}`),
-        fetch(`/api/master/schedule/template`),
-        fetch(`/api/master/schedule/overrides?from=${dateRange.from}&to=${dateRange.to}`)
+        fetch(`${apiPrefix}/appointments?from=${dateRange.from}&to=${dateRange.to}${querySuffix}`),
+        fetch(`${apiPrefix}/schedule/template${querySuffixQ}`),
+        fetch(`${apiPrefix}/schedule/overrides?from=${dateRange.from}&to=${dateRange.to}${querySuffix}`)
       ])
 
       const apptsData = await apptsRes.json()
@@ -119,7 +139,8 @@ export default function ModernCalendar({
 
   useEffect(() => {
     if (isMounted) fetchData()
-  }, [dateRange, isMounted])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dateRange, isMounted, selectedMasterId])
 
   const navigate = (direction: "prev" | "next" | "today") => {
     if (direction === "today") {
@@ -146,11 +167,11 @@ export default function ModernCalendar({
   }, [currentDate, view])
 
   // Bulk save handler
-  const saveBulkOverrides = async (dates: string[], isDayOff: boolean, intervals: Interval[]) => {
-    const res = await fetch("/api/master/schedule/overrides/bulk", {
+  const saveBulkOverrides = async (dates: string[], isDayOff: boolean, intervals: Interval[], masterIds?: string[]) => {
+    const res = await fetch(`${apiPrefix}/schedule/overrides/bulk`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ dates, isDayOff, intervals }),
+      body: JSON.stringify({ dates, isDayOff, intervals, masterIds, masterId: selectedMasterId !== "all" ? selectedMasterId : undefined }),
     })
     if (!res.ok) throw new Error("Failed bulk update")
     fetchData()
@@ -159,15 +180,16 @@ export default function ModernCalendar({
   if (!isMounted) return <div className="animate-pulse bg-muted rounded-xl h-full w-full" />
 
   return (
-    <div className="flex flex-col h-full w-full bg-background overflow-hidden relative">
-      <div className="min-h-[4rem] py-2 border-b flex flex-wrap gap-y-3 gap-x-4 items-center justify-between px-4 shrink-0 bg-background z-10 transition-colors">
+    <div className="flex flex-col h-full w-full bg-card text-card-foreground overflow-hidden relative">
+      <div className="min-h-[4rem] py-2 border-b border-border/60 flex flex-wrap gap-y-3 gap-x-4 items-center justify-between px-4 shrink-0 z-10 transition-colors shadow-sm">
         <div className="flex items-center gap-4">
-          <Button variant="outline" size="sm" onClick={() => navigate("today")}>Today</Button>
+          <Button variant="outline" size="sm" onClick={() => navigate("today")} className="bg-transparent border-border hover:bg-muted">Today</Button>
           <div className="flex items-center gap-1">
-            <Button variant="ghost" size="icon" onClick={() => navigate("prev")}><ChevronLeft className="h-4 w-4" /></Button>
-            <Button variant="ghost" size="icon" onClick={() => navigate("next")}><ChevronRight className="h-4 w-4" /></Button>
+            <Button variant="ghost" size="icon" onClick={() => navigate("prev")} className="hover:bg-muted"><ChevronLeft className="h-4 w-4" /></Button>
+            <Button variant="ghost" size="icon" onClick={() => navigate("next")} className="hover:bg-muted"><ChevronRight className="h-4 w-4" /></Button>
           </div>
-          <h2 className="text-xl font-semibold min-w-[200px]">{headerDisplay}</h2>
+          <h2 className="text-xl font-semibold min-w-[150px]">{headerDisplay}</h2>
+          
           {loading && <div className="h-4 w-4 rounded-full border-2 border-primary border-t-transparent animate-spin ml-2"></div>}
         </div>
 
@@ -177,10 +199,10 @@ export default function ModernCalendar({
               <select
                 value={step}
                 onChange={(e) => setStep(Number(e.target.value))}
-                className="appearance-none bg-muted text-foreground border border-input rounded-md px-3 py-1.5 pr-8 text-sm font-medium shadow-sm outline-none focus:ring-1 focus:ring-primary hover:bg-muted/80 cursor-pointer transition-colors"
+                className="appearance-none bg-transparent hover:bg-muted text-card-foreground border border-border rounded-md px-3 py-1.5 pr-8 text-sm font-medium shadow-sm outline-none focus:ring-1 focus:ring-primary transition-colors cursor-pointer"
               >
                 {[5, 10, 15, 30, 60].map(s => (
-                  <option key={s} value={s} className="bg-background text-foreground">{s} min</option>
+                  <option key={s} value={s} className="bg-card">{s} min</option>
                 ))}
               </select>
               <div className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground">
@@ -191,34 +213,74 @@ export default function ModernCalendar({
 
           <div className="h-6 w-px bg-border mx-1" />
 
+          {/* Always show Bulk Settings and Edit Tools, Bulk handles 'all' context naturally */}
           <Button 
             variant={isEditMode ? "default" : "outline"} 
             size="sm" 
             onClick={() => setIsEditMode(!isEditMode)} 
-            className={`gap-2 transition-all ${isEditMode ? 'bg-primary text-primary-foreground shadow shadow-primary/20' : ''}`}
+            disabled={isAdminView && selectedMasterId === "all"} // Disable inline edit for 'all' mode
+            className={`gap-2 transition-all ${isEditMode ? 'bg-primary text-primary-foreground shadow shadow-primary/20' : 'bg-transparent border-border hover:bg-muted'}`}
           >
             {isEditMode ? <Save className="w-4 h-4" /> : <Edit3 className="w-4 h-4" />}
             <span className="hidden sm:inline">{isEditMode ? 'Done Editing' : 'Редактор графика'}</span>
           </Button>
 
-          <Button variant="outline" size="sm" onClick={() => setShowBulkModal(true)} className="gap-2 shrink-0">
+          <Button variant="outline" size="sm" onClick={() => setShowBulkModal(true)} className="gap-2 shrink-0 bg-transparent border-border hover:bg-muted">
             <Calendar className="w-4 h-4" />
             <span className="hidden sm:inline">Bulk Settings</span>
           </Button>
 
           <div className="h-6 w-px bg-border mx-1" />
 
-          <div className="bg-muted p-1 rounded-md flex">
+          <div className="bg-muted p-1 rounded-md flex border border-border/50">
             {(["Month", "Week", "Day"] as ViewType[]).map(v => (
               <button
                 key={v}
                 onClick={() => setView(v)}
-                className={`px-3 py-1 text-sm rounded ${view === v ? "bg-background shadow-sm font-medium text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                className={`px-3 py-1 text-sm rounded transition-colors ${view === v ? "bg-background shadow-sm font-medium text-foreground" : "text-muted-foreground hover:bg-background/50 hover:text-foreground"}`}
               >
                 {v}
               </button>
             ))}
           </div>
+
+          {isAdminView && adminMastersList && onMasterChange && (
+            <div className="relative ml-2">
+              <button 
+                onClick={() => setShowMasterSelect(!showMasterSelect)}
+                className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium bg-transparent hover:bg-muted rounded-md transition-colors border border-border"
+              >
+                 {selectedMasterId === "all" ? "🌐 All Masters" : `👤 ${adminMastersList.find(m => m.id === selectedMasterId)?.name || 'Select'}`}
+                 <ChevronRight className={`w-3.5 h-3.5 opacity-50 transition-transform ${showMasterSelect ? "rotate-[270deg]" : "rotate-90"}`} />
+              </button>
+              {showMasterSelect && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setShowMasterSelect(false)} />
+                  <div className="absolute right-0 top-full mt-2 w-64 bg-card border border-border rounded-xl shadow-xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-100">
+                    <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
+                      <button 
+                         className={`w-full text-left px-4 py-3 text-sm hover:bg-muted transition-colors ${selectedMasterId === "all" ? 'bg-primary/20 text-primary font-medium' : ''}`}
+                         onClick={() => { onMasterChange("all"); setShowMasterSelect(false); }}
+                      >
+                        🌐 All Masters (Combined)
+                      </button>
+                      <div className="h-px bg-border/60 w-full" />
+                      {adminMastersList.map(m => (
+                        <button 
+                           key={m.id}
+                           className={`w-full text-left px-4 py-3 text-sm hover:bg-muted transition-colors border-b border-border/40 last:border-0 ${selectedMasterId === m.id ? 'bg-primary/20 text-primary font-medium' : ''}`}
+                           onClick={() => { onMasterChange(m.id); setShowMasterSelect(false); }}
+                        >
+                          👤 {m.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
         </div>
       </div>
 
@@ -278,6 +340,10 @@ export default function ModernCalendar({
           onClose={() => setShowBulkModal(false)} 
           onSave={saveBulkOverrides} 
           templates={templates}
+          apiPrefix={apiPrefix}
+          isAdminView={isAdminView}
+          selectedMasterId={selectedMasterId}
+          adminMastersList={adminMastersList}
         />
       )}
 
@@ -286,6 +352,9 @@ export default function ModernCalendar({
           date={bookingDate || undefined} 
           initialAppointment={editingAppointment?.appt}
           mode={editingAppointment?.mode}
+          apiPrefix={apiPrefix}
+          isAdminView={isAdminView}
+          selectedMasterId={selectedMasterId}
           onClose={() => { setBookingDate(null); setEditingAppointment(null); }} 
           onSuccess={() => { setBookingDate(null); setEditingAppointment(null); fetchData(); }} 
         />
@@ -304,7 +373,8 @@ export default function ModernCalendar({
             setViewingAppointment(null)
           }}
           onDelete={async (id) => {
-             const res = await fetch(`/api/master/appointments/${id}`, { method: 'DELETE' })
+             const queryPart = isAdminView && selectedMasterId ? `?masterId=${selectedMasterId}` : ''
+             const res = await fetch(`${apiPrefix}/appointments/${id}${queryPart}`, { method: 'DELETE' })
              if(!res.ok) throw new Error("Delete failed")
              setViewingAppointment(null)
              fetchData()

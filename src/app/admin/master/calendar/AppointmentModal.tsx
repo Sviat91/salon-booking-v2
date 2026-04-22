@@ -11,6 +11,9 @@ interface AppointmentModalProps {
   date?: Date
   initialAppointment?: any
   mode?: "edit" | "copy"
+  apiPrefix?: string
+  isAdminView?: boolean
+  selectedMasterId?: string
   onClose: () => void
   onSuccess: () => void
 }
@@ -19,12 +22,17 @@ type Service = { id: string; name: string; duration: number }
 type Client = { id: string; name: string | null; phone: string | null }
 type Entry = { id: string; date: string; startTime: string; duration: number }
 
-export default function AppointmentModal({ date, initialAppointment, mode, onClose, onSuccess }: AppointmentModalProps) {
+export default function AppointmentModal({ date, initialAppointment, mode, apiPrefix = "/api/master", isAdminView = false, selectedMasterId, onClose, onSuccess }: AppointmentModalProps) {
   const [loading, setLoading] = useState(false)
   const [fetching, setFetching] = useState(true)
   
   const [services, setServices] = useState<Service[]>([])
   const [clients, setClients] = useState<Client[]>([])
+  const [masters, setMasters] = useState<{id: string, name: string}[]>([])
+
+  const [formMasterId, setFormMasterId] = useState<string>(
+    initialAppointment ? (initialAppointment.masterId || initialAppointment.master?.id || "") : (selectedMasterId === "all" ? "" : (selectedMasterId || ""))
+  )
 
   const [serviceId, setServiceId] = useState<string>(initialAppointment ? (initialAppointment.service?.id || "custom") : "custom")
   const [customServiceName, setCustomServiceName] = useState("")
@@ -55,16 +63,25 @@ export default function AppointmentModal({ date, initialAppointment, mode, onClo
   useEffect(() => {
     async function init() {
       try {
-        const [srvRes, cliRes] = await Promise.all([
-          fetch("/api/master/services"),
-          fetch("/api/master/clients")
-        ])
-        const srvData = await srvRes.json()
-        const cliData = await cliRes.json()
+        const fetches = [
+          fetch(`${apiPrefix}/services`),
+          fetch(`${apiPrefix}/clients`)
+        ]
+        if (isAdminView) {
+           fetches.push(fetch(`${apiPrefix}/masters`))
+        }
+
+        const resArr = await Promise.all(fetches)
+        const srvData = await resArr[0].json()
+        const cliData = await resArr[1].json()
         
-        const allServices = srvData.services || []
-        setServices(allServices)
+        setServices(srvData.services || [])
         setClients(cliData.clients || [])
+
+        if (isAdminView) {
+           const mstData = await resArr[2].json()
+           setMasters(mstData.masters || [])
+        }
       } catch (err) {
         console.error(err)
       } finally {
@@ -84,10 +101,11 @@ export default function AppointmentModal({ date, initialAppointment, mode, onClo
         clientId: clientId !== "custom" ? clientId : undefined,
         clientName: clientId === "custom" ? customClientName : undefined,
         clientPhone: clientId === "custom" ? customClientPhone : undefined,
-        notes
+        notes,
+        masterId: isAdminView ? formMasterId : undefined
       }
 
-      const url = mode === "edit" && initialAppointment ? `/api/master/appointments/${initialAppointment.id}` : "/api/master/appointments"
+      const url = mode === "edit" && initialAppointment ? `${apiPrefix}/appointments/${initialAppointment.id}` : `${apiPrefix}/appointments`
       const method = mode === "edit" ? "PUT" : "POST"
 
       const res = await fetch(url, {
@@ -137,6 +155,7 @@ export default function AppointmentModal({ date, initialAppointment, mode, onClo
   }, [serviceId, services])
 
   const isValid = () => {
+    if (isAdminView && !formMasterId) return false
     if (serviceId === "custom" && !customServiceName) return false
     if (clientId === "custom" && !customClientName) return false
     if (entries.some(e => !e.date || !e.startTime || !e.duration)) return false
@@ -168,6 +187,21 @@ export default function AppointmentModal({ date, initialAppointment, mode, onClo
             </div>
           ) : (
             <>
+              {isAdminView && (
+                <div className="bg-muted/50 p-4 rounded-lg border border-border mb-4">
+                  <label className="text-sm font-medium mb-1.5 block">Select Master <span className="text-destructive">*</span></label>
+                  <select 
+                    value={formMasterId} 
+                    onChange={e => setFormMasterId(e.target.value)}
+                    className="w-full flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    disabled={mode === "edit"}
+                  >
+                    <option value="">-- Choose Master --</option>
+                    {masters.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
+                  </select>
+                </div>
+              )}
+
               {/* Row 1: Service & Client */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* Service Column */}

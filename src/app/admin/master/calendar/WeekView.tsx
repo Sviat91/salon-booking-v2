@@ -400,6 +400,7 @@ export default function WeekView({ currentDate, appointments, templates, overrid
                                   key={a.id}
                                   onClick={(e) => { e.stopPropagation(); onAppointmentClick(a); }}
                                   className="p-2 border-b last:border-b-0 border-border hover:bg-muted/50 transition-colors cursor-pointer"
+                                  style={{ borderLeft: `4px solid ${a.master?.masterProfile?.color || "#166534"}` }}
                                 >
                                   <div className="flex items-center gap-2">
                                     <Clock className="w-3 h-3 text-muted-foreground shrink-0" />

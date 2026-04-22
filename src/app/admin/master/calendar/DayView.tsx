@@ -349,6 +349,7 @@ export default function DayView({ currentDate, appointments, templates, override
                             key={a.id}
                             onClick={(e) => { e.stopPropagation(); onAppointmentClick(a); }}
                             className="p-3 border-b last:border-b-0 border-border hover:bg-muted/50 transition-colors cursor-pointer flex gap-4"
+                            style={{ borderLeft: `6px solid ${a.master?.masterProfile?.color || "#166534"}` }}
                           >
                             <div className="flex flex-col gap-1 w-[100px] shrink-0">
                               <div className="font-bold text-lg">{a.startTime}</div>
