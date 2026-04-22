@@ -14,6 +14,7 @@ import {
   ArrowLeft,
   CalendarDays,
   Mail,
+  Key,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { ThemeToggle } from "@/components/ui/theme-toggle"
@@ -45,6 +46,11 @@ const superadminNavItems = [
     label: "Email",
     href: "/admin/settings/email",
     icon: Mail,
+  },
+  {
+    label: "Social Auth",
+    href: "/admin/settings/social",
+    icon: Key,
   },
 ]
 

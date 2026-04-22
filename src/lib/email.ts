@@ -48,7 +48,12 @@ export async function getSmtpConfig(): Promise<SmtpConfig | null> {
       return null // SMTP not configured yet — silently skip sending
     }
 
-    const from = config.smtpFrom?.trim() || config.smtpUser
+    let from = config.smtpFrom?.trim() || config.smtpUser
+    // If the user only enter "Salon Beauty" instead of "Salon Beauty <email@...>", we fix it
+    if (from && !from.includes('<') && config.smtpUser) {
+      from = `"${from}" <${config.smtpUser}>`
+    }
+    
     const brandName = config.brandName || 'Salon Booking'
     
     const decryptedPass = decrypt(config.smtpPass)
