@@ -20,6 +20,13 @@ export default async function SettingsPage() {
     dayOffColor: c.dayOffColor as string || "#ef4444",
     workingHourStart: c.workingHourStart as number ?? 8,
     workingHourEnd: c.workingHourEnd as number ?? 21,
+    salonAddress: c.salonAddress as string | null ?? null,
+    salonCity: c.salonCity as string | null ?? null,
+    salonPhone: c.salonPhone as string | null ?? null,
+    salonEmail: c.salonEmail as string | null ?? null,
+    salonCompanyName: c.salonCompanyName as string | null ?? null,
+    salonNip: c.salonNip as string | null ?? null,
+    salonLegalAddress: c.salonLegalAddress as string | null ?? null,
   }
 
   return (

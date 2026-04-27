@@ -2,13 +2,36 @@
 import Link from 'next/link'
 import { useTranslation } from 'react-i18next'
 import { useCurrentLanguage } from '@/contexts/LanguageContext'
+import { useQuery } from '@tanstack/react-query'
 import BackButton from '../../components/BackButton'
 import ThemeToggle from '../../components/ThemeToggle'
 import LanguageToggle from '../../components/LanguageToggle'
 
+type SalonConfig = {
+  salonCompanyName?: string | null
+  salonNip?: string | null
+  salonAddress?: string | null
+  salonCity?: string | null
+  salonLegalAddress?: string | null
+  salonEmail?: string | null
+}
+
 export default function TermsPage() {
   const { t } = useTranslation();
   const language = useCurrentLanguage();
+
+  const { data: config } = useQuery<SalonConfig>({
+    queryKey: ['tenant-config-contact'],
+    queryFn: () => fetch('/api/tenant-config').then(r => r.json() as Promise<SalonConfig>),
+    staleTime: 60 * 60 * 1000,
+  })
+
+  // Use legal address for official docs, fall back to salon address
+  const legalAddress = config?.salonLegalAddress || [config?.salonAddress, config?.salonCity].filter(Boolean).join(', ')
+  const companyName = config?.salonCompanyName || 'Salon'
+  const nip = config?.salonNip
+  const email = config?.salonEmail
+
   return (
     <main className="flex-1 relative">
       <BackButton />
@@ -40,7 +63,10 @@ export default function TermsPage() {
             <section className="mb-8">
               <h2 className="text-xl font-semibold text-text dark:text-dark-text mb-4">§ 1. POSTANOWIENIA OGÓLNE</h2>
               <p className="text-neutral-700 dark:text-dark-text mb-4">
-                Niniejszy regulamin określa zasady korzystania z usług świadczonych przez <strong>KOSMETOLOGIA I MASAŻ YULIIA YAKOVENKO</strong>, NIP: 9512580063, z siedzibą przy ul. Herbu Janina 3a/40, 02-972 Warszawa, Email: facemassageyakovenko@gmail.com. 
+                Niniejszy regulamin określa zasady korzystania z usług świadczonych przez <strong>{companyName}</strong>
+                {nip && <>, NIP: {nip}</>}
+                {legalAddress && <>, z siedzibą przy {legalAddress}</>}
+                {email && <>, Email: {email}</>}. 
               </p>
               <p className="text-neutral-700 dark:text-dark-text mb-4">
                 Regulamin stanowi integralną część umowy o świadczenie usług zawartej między Usługodawcą a Klientem.
@@ -62,7 +88,7 @@ export default function TermsPage() {
               <h2 className="text-xl font-semibold text-text dark:text-dark-text mb-4">§ 2. DEFINICJE</h2>
               <ul className="space-y-2 text-neutral-700 dark:text-dark-text">
                 <li><strong>Klient</strong> – osoba fizyczna korzystająca z usług Salonu</li>
-                <li><strong>Usługodawca</strong> – KOSMETOLOGIA I MASAŻ YULIIA YAKOVENKO</li>
+                <li><strong>Usługodawca</strong> – {companyName}</li>
                 <li><strong>Rezerwacja</strong> – zarezerwowanie terminu zabiegu przez system online</li>
                 <li><strong>Zabieg</strong> – usługa świadczona przez Usługodawcę na rzecz Klienta</li>
                 <li><strong>System zgód</strong> – elektroniczny system zarządzania zgodami na przetwarzanie danych</li>
@@ -89,13 +115,13 @@ export default function TermsPage() {
               <h3 className="text-lg font-medium text-text dark:text-dark-text mt-6 mb-3">Zarządzanie zgodami w procesie rezerwacji:</h3>
               <ul className="list-disc pl-6 mb-4 text-neutral-700 dark:text-dark-text">
                 <li>Przy pierwszej rezerwacji system wyświetli formularz zgód na przetwarzanie danych</li>
-                <li>Informacje o udzielonych zgodach przechowujemy w bezpiecznej bazie danych (Google Sheets)</li>
+                <li>Informacje o udzielonych zgodach przechowujemy w bezpiecznej bazie danych</li>
                 <li>Stali klienci nie muszą ponownie akceptować warunków przy kolejnych rezerwacjach</li>
                 <li>System ponownie wyświetli formularz zgód tylko w przypadku aktualizacji dokumentów</li>
               </ul>
               
               <p className="text-neutral-700 dark:text-dark-text">
-                Dostępność terminów jest obliczana w czasie rzeczywistym na podstawie kalendarza Google i może ulec zmianie.
+                Dostępność terminów jest obliczana w czasie rzeczywistym na podstawie kalendarza i może ulec zmianie.
               </p>
             </section>
 
@@ -135,16 +161,13 @@ export default function TermsPage() {
             <section className="mb-8">
               <h2 className="text-xl font-semibold text-text dark:text-dark-text mb-4">§ 12. KONTAKT</h2>
               <div className="bg-muted/30 rounded-lg p-6">
-                <h3 className="font-medium text-text dark:text-dark-text mb-3">KOSMETOLOGIA I MASAŻ YULIIA YAKOVENKO</h3>
+                <h3 className="font-medium text-text dark:text-dark-text mb-3">{companyName}</h3>
                 <div className="space-y-2 text-neutral-700 dark:text-dark-text">
-                  <p><strong>Adres:</strong> Herbu Janina 3a/40, 02-972 Warszawa</p>
-                  <p><strong>Email:</strong> facemassageyakovenko@gmail.com</p>
-                  <p><strong>NIP:</strong> 9512580063</p>
+                  {legalAddress && <p><strong>Adres:</strong> {legalAddress}</p>}
+                  {email && <p><strong>Email:</strong> {email}</p>}
+                  {nip && <p><strong>NIP:</strong> {nip}</p>}
                   <p><strong>Strona wsparcia:</strong> <Link href="/support" className="text-primary hover:text-primary/80 dark:text-accent dark:hover:text-accent/80">Centrum pomocy</Link></p>
                 </div>
-                <p className="text-sm text-neutral-600 dark:text-dark-muted mt-4">
-                  Data ostatniej aktualizacji: 23 września 2025 r.
-                </p>
               </div>
             </section>
 

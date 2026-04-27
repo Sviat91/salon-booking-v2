@@ -44,6 +44,7 @@ export default function Header({ brandName = "Somique Beauty", logoUrl }: Header
           <nav className="flex items-center space-x-2">
             <UserDropdown />
             <ThemeToggle />
+          </nav>
         </div>
       </div>
     </header>

@@ -10,6 +10,13 @@ import { translateProcedureName } from '@/lib/procedure-translator'
 type Procedure = { id: string; name_pl: string; price_pln?: number }
 type ProceduresResponse = { items: Procedure[] }
 
+// Only the fields we actually use from tenant config
+type SalonContactInfo = {
+  salonAddress?: string | null
+  salonCity?: string | null
+  salonPhone?: string | null
+}
+
 interface BookingSuccessPanelProps {
   slot: { startISO: string; endISO: string }
   procedureId?: string
@@ -26,6 +33,13 @@ export default function BookingSuccessPanel({ slot, procedureId, onClose }: Book
     staleTime: 60 * 60 * 1000, // 1 hour - procedures rarely change
   })
 
+  // Fetch salon contact info from tenant config
+  const { data: tenantConfig } = useQuery<SalonContactInfo>({
+    queryKey: ['tenant-config-contact'],
+    queryFn: () => fetch('/api/tenant-config').then(r => r.json() as Promise<SalonContactInfo>),
+    staleTime: 60 * 60 * 1000, // 1 hour — config rarely changes
+  })
+
   const selectedProcedure = useMemo(() => {
     if (!procedureId) return null
     return proceduresData?.items.find(p => p.id === procedureId) ?? null
@@ -40,6 +54,8 @@ export default function BookingSuccessPanel({ slot, procedureId, onClose }: Book
   const endDate = useMemo(() => new Date(slot.endISO), [slot.endISO])
   const label = formatTimeRange(startDate, endDate)
   const terminLabel = `${fullDateFormatter.format(startDate)}, ${label}`
+
+  const hasAddress = tenantConfig?.salonAddress || tenantConfig?.salonCity || tenantConfig?.salonPhone
 
   return (
     <div className="transition-all duration-300 ease-out">
@@ -59,14 +75,16 @@ export default function BookingSuccessPanel({ slot, procedureId, onClose }: Book
         )}
       </div>
       
-      <div className="mb-4 rounded-lg border border-border/70 bg-card/60 p-3">
-        <div className="text-sm text-neutral-600 dark:text-dark-muted">
-          <strong className="text-text dark:text-dark-text">{t('success.addressLabel')}</strong><br />
-          Sarmacka 4B/ lokal 106<br />
-          02-972 Warszawa<br />
-          +48 789 894 948
+      {hasAddress && (
+        <div className="mb-4 rounded-lg border border-border/70 bg-card/60 p-3">
+          <div className="text-sm text-neutral-600 dark:text-dark-muted">
+            <strong className="text-text dark:text-dark-text">{t('success.addressLabel')}</strong><br />
+            {tenantConfig.salonAddress && <>{tenantConfig.salonAddress}<br /></>}
+            {tenantConfig.salonCity && <>{tenantConfig.salonCity}<br /></>}
+            {tenantConfig.salonPhone && <>{tenantConfig.salonPhone}</>}
+          </div>
         </div>
-      </div>
+      )}
       
       <div className="text-emerald-700 dark:text-emerald-400 mb-4">{t('success.thankYou')}</div>
       

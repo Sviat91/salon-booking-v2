@@ -232,12 +232,16 @@ export default function ModernCalendar({
 
           <div className="h-6 w-px bg-border mx-1" />
 
-          <div className="bg-muted p-1 rounded-md flex border border-border/50">
-            {(["Month", "Week", "Day"] as ViewType[]).map(v => (
+          <div className="flex rounded-md border border-border bg-transparent">
+            {(["Month", "Week", "Day"] as ViewType[]).map((v, idx) => (
               <button
                 key={v}
                 onClick={() => setView(v)}
-                className={`px-3 py-1 text-sm rounded transition-colors ${view === v ? "bg-background shadow-sm font-medium text-foreground" : "text-muted-foreground hover:bg-background/50 hover:text-foreground"}`}
+                className={`px-3 py-1.5 text-sm font-medium transition-colors ${
+                  view === v 
+                    ? "bg-primary text-primary-foreground" 
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                } ${idx !== 2 ? 'border-r border-border' : ''} ${idx === 0 ? 'rounded-l-[5px]' : ''} ${idx === 2 ? 'rounded-r-[5px]' : ''}`}
               >
                 {v}
               </button>

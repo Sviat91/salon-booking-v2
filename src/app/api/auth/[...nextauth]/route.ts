@@ -36,7 +36,7 @@ async function getDynamicConfig() {
             teamId: config.appleTeamId,
             privateKey: privateKey,
             keyId: config.appleKeyId,
-          },
+          } as any,
           allowDangerousEmailAccountLinking: true
         }))
       }
@@ -65,8 +65,9 @@ async function getDynamicConfig() {
             // Telegram verification algorithm
             const dataToCheck: string[] = []
             for (const key in credentials) {
-              if (key !== "hash" && credentials[key]) {
-                dataToCheck.push(`${key}=${credentials[key]}`)
+              const typedKey = key as keyof typeof credentials
+              if (typedKey !== "hash" && credentials[typedKey]) {
+                dataToCheck.push(`${key}=${credentials[typedKey]}`)
               }
             }
             dataToCheck.sort()

@@ -27,6 +27,13 @@ const DEFAULT_CONFIG = {
   logoWidth: 200,
   logoHeight: 80,
   logoPages: '["home","booking"]',
+  salonAddress: null,
+  salonCity: null,
+  salonPhone: null,
+  salonEmail: null,
+  salonCompanyName: null,
+  salonNip: null,
+  salonLegalAddress: null,
 }
 
 export async function getTenantConfig() {

@@ -7,7 +7,14 @@ import DataErasureModal from '../../components/DataErasureModal'
 import DataExportModal from '../../components/DataExportModal'
 import { useState, useRef, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useQuery } from '@tanstack/react-query'
 import { clientLog } from '@/lib/client-logger'
+
+type SalonConfig = {
+  salonAddress?: string | null
+  salonCity?: string | null
+  salonPhone?: string | null
+}
 
 export default function SupportPage() {
   const { t } = useTranslation()
@@ -23,6 +30,13 @@ export default function SupportPage() {
   const [isConsentModalOpen, setConsentModalOpen] = useState(false)
   const [isErasureModalOpen, setErasureModalOpen] = useState(false)
   const [isExportModalOpen, setExportModalOpen] = useState(false)
+
+  // Fetch salon contact info for the sidebar
+  const { data: salonConfig } = useQuery<SalonConfig>({
+    queryKey: ['tenant-config-contact'],
+    queryFn: () => fetch('/api/tenant-config').then(r => r.json() as Promise<SalonConfig>),
+    staleTime: 60 * 60 * 1000,
+  })
   
   // Turnstile
   const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY as string | undefined
@@ -288,9 +302,10 @@ export default function SupportPage() {
             {/* Contact Info */}
             <div className="bg-card backdrop-blur-sm rounded-2xl border border-border p-5">
               <h3 className="text-lg font-semibold text-foreground mb-3">
-                Informacje kontaktowe
+                {t('support.contactInfo', 'Contact Information')}
               </h3>
               <div className="space-y-4">
+                {(salonConfig?.salonAddress || salonConfig?.salonCity) && (
                 <div className="flex items-start gap-3">
                   <div className="w-10 h-10 bg-primary/10 dark:bg-accent/10 rounded-lg flex items-center justify-center flex-shrink-0">
                     <svg className="w-5 h-5 text-primary dark:text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -299,13 +314,14 @@ export default function SupportPage() {
                     </svg>
                   </div>
                   <div>
-                    <h4 className="font-medium text-foreground">Adres</h4>
+                    <h4 className="font-medium text-foreground">{t('support.address', 'Address')}</h4>
                     <p className="text-sm text-muted-foreground">
-                      Sarmacka 4B/ lokal 106<br />
-                      02-972 Warszawa
+                      {salonConfig.salonAddress && <>{salonConfig.salonAddress}<br /></>}
+                      {salonConfig.salonCity}
                     </p>
                   </div>
                 </div>
+                )}
                 
                 <div className="flex items-start gap-3">
                   <div className="w-10 h-10 bg-primary/10 dark:bg-accent/10 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -314,10 +330,10 @@ export default function SupportPage() {
                     </svg>
                   </div>
                   <div>
-                    <h4 className="font-medium text-foreground">Czas odpowiedzi</h4>
+                    <h4 className="font-medium text-foreground">{t('support.responseTime', 'Response Time')}</h4>
                     <p className="text-sm text-muted-foreground">
-                      Zwykle w ciągu 72 godzin<br />
-                      w dni robocze
+                      {t('support.responseTimeValue', 'Usually within 72 hours')}<br />
+                      {t('support.responseTimeDays', 'on business days')}
                     </p>
                   </div>
                 </div>
@@ -365,4 +381,3 @@ export default function SupportPage() {
     </main>
   )
 }
-

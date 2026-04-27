@@ -19,14 +19,12 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const profile = await prisma.masterProfile.findUnique({
-      where: { userId: masterId },
-      include: { 
-        scheduleTemplate: { orderBy: { dayOfWeek: "asc" } } 
-      }
+    const templates = await prisma.schedule.findMany({
+      where: { masterId: masterId },
+      orderBy: { dayOfWeek: "asc" }
     })
 
-    return NextResponse.json({ templates: profile?.scheduleTemplate || [] })
+    return NextResponse.json({ templates })
   } catch (error) {
     console.error("Error fetching admin templates:", error)
     return NextResponse.json({ error: "Failed to fetch templates" }, { status: 500 })

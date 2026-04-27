@@ -45,10 +45,10 @@ export async function POST(req: NextRequest) {
         for (const dateStr of parsed.dates) {
           const date = new Date(dateStr)
           
-          await tx.scheduleOverride.upsert({
+          await tx.dateOverride.upsert({
             where: {
-              masterProfileId_date: {
-                masterProfileId: profile.id,
+              masterId_date: {
+                masterId: profile.userId, // use userId because DateOverride relates to User, not MasterProfile
                 date: date
               }
             },
@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
               intervals: JSON.stringify(parsed.intervals)
             },
             create: {
-              masterProfileId: profile.id,
+              masterId: profile.userId,
               date: date,
               isDayOff: parsed.isDayOff,
               intervals: JSON.stringify(parsed.intervals)

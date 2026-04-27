@@ -370,7 +370,7 @@ export default function LogoEditor({
                     }}
                     disabled={logoUploading}
                   />
-                  <div className="flex items-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm hover:bg-muted transition-colors">
+                  <div className="flex items-center gap-2 rounded-md border border-input bg-transparent px-3 py-2 text-sm hover:bg-muted transition-colors">
                     <Upload className="h-4 w-4" />
                     {logoUploading ? "Uploading…" : "Upload"}
                   </div>
@@ -416,7 +416,7 @@ export default function LogoEditor({
                     }}
                     disabled={darkLogoUploading}
                   />
-                  <div className="flex items-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm hover:bg-muted transition-colors">
+                  <div className="flex items-center gap-2 rounded-md border border-input bg-transparent px-3 py-2 text-sm hover:bg-muted transition-colors">
                     <Upload className="h-4 w-4" />
                     {darkLogoUploading ? "Uploading…" : "Upload"}
                   </div>

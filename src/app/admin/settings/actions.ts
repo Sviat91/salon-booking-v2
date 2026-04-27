@@ -35,6 +35,14 @@ const SettingsSchema = z.object({
   dayOffColor:     hexColor,
   workingHourStart: z.coerce.number().min(0).max(23).default(8),
   workingHourEnd:   z.coerce.number().min(1).max(24).default(21),
+  // Salon contact / legal info
+  salonAddress:     z.string().max(200).optional().default(""),
+  salonCity:        z.string().max(100).optional().default(""),
+  salonPhone:       z.string().max(30).optional().default(""),
+  salonEmail:       z.string().max(120).optional().default(""),
+  salonCompanyName: z.string().max(200).optional().default(""),
+  salonNip:         z.string().max(30).optional().default(""),
+  salonLegalAddress:z.string().max(200).optional().default(""),
 })
 
 export type SettingsFormState = {
@@ -75,6 +83,13 @@ export async function saveSettings(
     dayOffColor:      formData.get("dayOffColor"),
     workingHourStart: formData.get("workingHourStart"),
     workingHourEnd:   formData.get("workingHourEnd"),
+    salonAddress:     formData.get("salonAddress") || "",
+    salonCity:        formData.get("salonCity") || "",
+    salonPhone:       formData.get("salonPhone") || "",
+    salonEmail:       formData.get("salonEmail") || "",
+    salonCompanyName: formData.get("salonCompanyName") || "",
+    salonNip:         formData.get("salonNip") || "",
+    salonLegalAddress:formData.get("salonLegalAddress") || "",
   }
 
   const parsed = SettingsSchema.safeParse(raw)
@@ -84,9 +99,16 @@ export async function saveSettings(
 
   const data = {
     ...parsed.data,
-    logoUrl:     parsed.data.logoUrl     || null,
-    faviconUrl:  parsed.data.faviconUrl  || null,
-    darkLogoUrl: parsed.data.darkLogoUrl || null,
+    logoUrl:          parsed.data.logoUrl          || null,
+    faviconUrl:       parsed.data.faviconUrl       || null,
+    darkLogoUrl:      parsed.data.darkLogoUrl      || null,
+    salonAddress:     parsed.data.salonAddress      || null,
+    salonCity:        parsed.data.salonCity         || null,
+    salonPhone:       parsed.data.salonPhone        || null,
+    salonEmail:       parsed.data.salonEmail        || null,
+    salonCompanyName: parsed.data.salonCompanyName  || null,
+    salonNip:         parsed.data.salonNip          || null,
+    salonLegalAddress:parsed.data.salonLegalAddress || null,
   }
 
   try {

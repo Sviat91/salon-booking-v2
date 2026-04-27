@@ -1,5 +1,13 @@
 "use client"
+import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
+
+// Only the fields we actually use from tenant config
+type SalonContactInfo = {
+  salonAddress?: string | null
+  salonCity?: string | null
+  salonPhone?: string | null
+}
 
 interface BookingSuccessProps {
   procedureName: string | null
@@ -17,6 +25,15 @@ export default function BookingSuccess({
   onClose,
 }: BookingSuccessProps) {
   const { t } = useTranslation()
+
+  // Fetch salon contact info from tenant config
+  const { data: tenantConfig } = useQuery<SalonContactInfo>({
+    queryKey: ['tenant-config-contact'],
+    queryFn: () => fetch('/api/tenant-config').then(r => r.json() as Promise<SalonContactInfo>),
+    staleTime: 60 * 60 * 1000, // 1 hour — config rarely changes
+  })
+
+  const hasAddress = tenantConfig?.salonAddress || tenantConfig?.salonCity || tenantConfig?.salonPhone
 
   return (
     <div className="transition-all duration-300 ease-out">
@@ -36,14 +53,16 @@ export default function BookingSuccess({
         )}
       </div>
       
-      <div className="mb-4 rounded-lg border border-border/70 bg-card/60 p-3">
-        <div className="text-sm text-neutral-600 dark:text-dark-muted">
-          <strong className="text-text dark:text-dark-text">{t('success.addressLabel')}</strong><br />
-          Sarmacka 4B/ lokal 106<br />
-          02-972 Warszawa<br />
-          +48 789 894 948
+      {hasAddress && (
+        <div className="mb-4 rounded-lg border border-border/70 bg-card/60 p-3">
+          <div className="text-sm text-neutral-600 dark:text-dark-muted">
+            <strong className="text-text dark:text-dark-text">{t('success.addressLabel')}</strong><br />
+            {tenantConfig.salonAddress && <>{tenantConfig.salonAddress}<br /></>}
+            {tenantConfig.salonCity && <>{tenantConfig.salonCity}<br /></>}
+            {tenantConfig.salonPhone && <>{tenantConfig.salonPhone}</>}
+          </div>
         </div>
-      </div>
+      )}
       
       <div className="text-emerald-700 dark:text-emerald-400 mb-4">{t('success.thankYou')}</div>
 
@@ -58,7 +77,7 @@ export default function BookingSuccess({
               <p className="text-xs text-neutral-500 dark:text-dark-muted mb-3 leading-relaxed">
                 {t('success.guestBannerDesc')}
               </p>
-              <div className="flex flex-col sm:flex-row gap-2">
+              <div className="flex flex-col gap-2">
                 <a
                   href="/auth/register"
                   className="btn btn-primary py-2 px-4 text-xs flex-1 text-center"

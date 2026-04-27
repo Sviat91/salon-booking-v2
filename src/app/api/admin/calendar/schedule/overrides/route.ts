@@ -29,17 +29,15 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const profile = await prisma.masterProfile.findUnique({
-      where: { userId: masterId },
-      include: {
-        scheduleOverrides: {
-          where: Object.keys(dateFilter).length > 0 ? { date: dateFilter } : {},
-          orderBy: { date: "asc" }
-        }
-      }
+    const overrides = await prisma.dateOverride.findMany({
+      where: {
+        masterId: masterId,
+        ...(Object.keys(dateFilter).length > 0 ? { date: dateFilter } : {})
+      },
+      orderBy: { date: "asc" }
     })
 
-    return NextResponse.json({ overrides: profile?.scheduleOverrides || [] })
+    return NextResponse.json({ overrides })
   } catch (error) {
     console.error("Error fetching admin overrides:", error)
     return NextResponse.json({ error: "Failed to fetch overrides" }, { status: 500 })

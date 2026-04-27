@@ -47,7 +47,7 @@ export default function GuestConversionBanner({ show }: GuestConversionBannerPro
             </div>
 
             {/* CTA buttons */}
-            <div className="flex flex-col sm:flex-row gap-2">
+            <div className="flex flex-col gap-2">
               <a
                 href="/auth/register"
                 className="btn btn-primary py-2 px-4 text-xs flex-1 text-center"

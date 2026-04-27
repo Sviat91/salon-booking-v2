@@ -2,13 +2,36 @@
 import Link from 'next/link'
 import { useTranslation } from 'react-i18next'
 import { useCurrentLanguage } from '@/contexts/LanguageContext'
+import { useQuery } from '@tanstack/react-query'
 import BackButton from '../../components/BackButton'
 import ThemeToggle from '../../components/ThemeToggle'
 import LanguageToggle from '../../components/LanguageToggle'
 
+type SalonConfig = {
+  salonCompanyName?: string | null
+  salonNip?: string | null
+  salonAddress?: string | null
+  salonCity?: string | null
+  salonLegalAddress?: string | null
+  salonEmail?: string | null
+}
+
 export default function PrivacyPage() {
   const { t } = useTranslation();
   const language = useCurrentLanguage();
+
+  const { data: config } = useQuery<SalonConfig>({
+    queryKey: ['tenant-config-contact'],
+    queryFn: () => fetch('/api/tenant-config').then(r => r.json() as Promise<SalonConfig>),
+    staleTime: 60 * 60 * 1000,
+  })
+
+  // Use legal address for official docs, fall back to salon address
+  const legalAddress = config?.salonLegalAddress || [config?.salonAddress, config?.salonCity].filter(Boolean).join(', ')
+  const companyName = config?.salonCompanyName || 'Salon'
+  const nip = config?.salonNip
+  const email = config?.salonEmail
+
   return (
     <main className="flex-1 relative">
       <BackButton />
@@ -50,10 +73,10 @@ export default function PrivacyPage() {
               </p>
               <div className="bg-muted/30 rounded-lg p-4">
                 <div className="space-y-1 text-neutral-700 dark:text-dark-text">
-                  <p><strong>KOSMETOLOGIA I MASAŻ YULIIA YAKOVENKO</strong></p>
-                  <p>NIP: 9512580063</p>
-                  <p>Adres: Herbu Janina 3a/40, 02-972 Warszawa</p>
-                  <p>Email: facemassageyakovenko@gmail.com</p>
+                  <p><strong>{companyName}</strong></p>
+                  {nip && <p>NIP: {nip}</p>}
+                  {legalAddress && <p>Adres: {legalAddress}</p>}
+                  {email && <p>Email: {email}</p>}
                 </div>
               </div>
             </section>
@@ -103,7 +126,7 @@ export default function PrivacyPage() {
               
               <h3 className="text-lg font-medium text-text dark:text-dark-text mt-6 mb-3">Rejestrowanie zgód:</h3>
               <p className="text-neutral-700 dark:text-dark-text mb-4">
-                Informacje o udzielonych zgodach przechowujemy w Google Sheets w celu:
+                Informacje o udzielonych zgodach przechowujemy w bezpiecznej bazie danych w celu:
               </p>
               <ul className="list-disc pl-6 mb-4 text-neutral-700 dark:text-dark-text">
                 <li>Unikania wielokrotnego wyświetlania formularza zgody stałym klientom</li>
@@ -155,12 +178,9 @@ export default function PrivacyPage() {
               <div className="bg-muted/30 rounded-lg p-6">
                 <div className="space-y-2 text-neutral-700 dark:text-dark-text">
                   <p><strong>Poprzez stronę wsparcia:</strong> <Link href="/support" className="text-primary hover:text-primary/80 dark:text-accent dark:hover:text-accent/80">Centrum pomocy</Link></p>
-                  <p><strong>E-mailem:</strong> facemassageyakovenko@gmail.com</p>
-                  <p><strong>Pisemnie:</strong> Herbu Janina 3a/40, 02-972 Warszawa</p>
+                  {email && <p><strong>E-mailem:</strong> {email}</p>}
+                  {legalAddress && <p><strong>Pisemnie:</strong> {legalAddress}</p>}
                 </div>
-                <p className="text-sm text-neutral-600 dark:text-dark-muted mt-4">
-                  Data ostatniej aktualizacji: 23 września 2025 r.
-                </p>
               </div>
             </section>
 

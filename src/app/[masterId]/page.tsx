@@ -342,7 +342,7 @@ export default function Page({ params }: PageProps) {
           </div>
           
           {/* На мобильных - календарь после услуг, на десктопе - слева */}
-          <div className="lg:order-1 space-y-6 w-full max-w-sm mx-auto lg:max-w-none lg:mx-0">
+          <div className="lg:order-1 space-y-6 w-full max-w-sm mx-auto lg:mx-0">
             <Card className="!px-2 !py-3 sm:!px-4 sm:!py-4" ref={calendarRef}>
               <DayCalendar
                 key={`calendar-${procId ?? 'none'}`}

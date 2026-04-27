@@ -35,7 +35,7 @@ const formSchema = z.object({
   smtpUser: z.string().or(z.literal("")),
   smtpPass: z.string().or(z.literal("")),
   smtpFrom: z.string().or(z.literal("")),
-  smtpSecure: z.boolean().default(false),
+  smtpSecure: z.boolean(),
 })
 
 type EmailSettingsFormValues = z.infer<typeof formSchema>

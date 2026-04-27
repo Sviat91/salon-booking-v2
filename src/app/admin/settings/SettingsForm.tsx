@@ -39,6 +39,13 @@ type TenantConfig = {
   dayOffColor:     string
   workingHourStart: number
   workingHourEnd:   number
+  salonAddress:      string | null
+  salonCity:         string | null
+  salonPhone:        string | null
+  salonEmail:        string | null
+  salonCompanyName:  string | null
+  salonNip:          string | null
+  salonLegalAddress: string | null
 }
 
 const initialState: SettingsFormState = {}
@@ -82,7 +89,7 @@ function ColorRow({
         <input
           type="color"
           value={color}
-          className="h-8 w-10 cursor-pointer rounded border border-input bg-background p-0.5 shrink-0"
+          className="h-8 w-10 cursor-pointer rounded border border-input bg-transparent p-0.5 shrink-0"
           onChange={(e) => setColor(e.target.value)}
         />
         <Input
@@ -157,7 +164,7 @@ function ImageUploadField({
             onChange={onUpload}
             disabled={uploading}
           />
-          <div className="flex items-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm hover:bg-muted transition-colors">
+          <div className="flex items-center gap-2 rounded-md border border-input bg-transparent px-3 py-2 text-sm hover:bg-muted transition-colors">
             <Upload className="h-4 w-4" />
             {uploading ? "Uploading…" : "Upload"}
           </div>
@@ -229,7 +236,7 @@ export default function SettingsForm({ config }: { config: TenantConfig }) {
   return (
     <form action={formAction} className="flex flex-col gap-10">
 
-      <section className="flex flex-col gap-4">
+      <section className="flex flex-col gap-6 bg-card border border-border p-6 rounded-xl shadow-sm">
         <div>
           <h2 className="text-base font-semibold">Brand</h2>
           <p className="text-xs text-muted-foreground mt-0.5">Salon name and visual identity</p>
@@ -288,8 +295,100 @@ export default function SettingsForm({ config }: { config: TenantConfig }) {
         />
       </section>
 
+      {/* ── Salon Contact Info ────────────────────────────────────────── */}
+      <section className="flex flex-col gap-6 bg-card border border-border p-6 rounded-xl shadow-sm">
+        <div>
+          <h2 className="text-base font-semibold">Salon Contact Info</h2>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Address, phone, email and legal details. Displayed on booking confirmation, support page, terms and privacy policy.
+          </p>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-1.5">
+            <Label htmlFor="salonCompanyName">Company Name</Label>
+            <Input
+              id="salonCompanyName"
+              name="salonCompanyName"
+              defaultValue={config.salonCompanyName ?? ""}
+              placeholder="e.g. Beauty Studio LLC"
+            />
+            <p className="text-xs text-muted-foreground">Legal entity name shown in terms &amp; privacy</p>
+          </div>
+          <div className="grid gap-1.5">
+            <Label htmlFor="salonNip">Tax ID (NIP)</Label>
+            <Input
+              id="salonNip"
+              name="salonNip"
+              defaultValue={config.salonNip ?? ""}
+              placeholder="e.g. 9512580063"
+            />
+            <p className="text-xs text-muted-foreground">Tax identification number</p>
+          </div>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-1.5">
+            <Label htmlFor="salonAddress">Salon Address</Label>
+            <Input
+              id="salonAddress"
+              name="salonAddress"
+              defaultValue={config.salonAddress ?? ""}
+              placeholder="e.g. Sarmacka 4B/ lokal 106"
+            />
+            <p className="text-xs text-muted-foreground">Street address shown to clients</p>
+          </div>
+          <div className="grid gap-1.5">
+            <Label htmlFor="salonCity">City / Postal Code</Label>
+            <Input
+              id="salonCity"
+              name="salonCity"
+              defaultValue={config.salonCity ?? ""}
+              placeholder="e.g. 02-972 Warszawa"
+            />
+            <p className="text-xs text-muted-foreground">City and postal code</p>
+          </div>
+        </div>
+
+        <div className="grid gap-1.5 max-w-sm">
+          <Label htmlFor="salonLegalAddress">Legal Address</Label>
+          <Input
+            id="salonLegalAddress"
+            name="salonLegalAddress"
+            defaultValue={config.salonLegalAddress ?? ""}
+            placeholder="e.g. Herbu Janina 3a/40, 02-972 Warszawa"
+          />
+          <p className="text-xs text-muted-foreground">Registered address if different from salon address. Shown in terms &amp; privacy.</p>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-1.5">
+            <Label htmlFor="salonPhone">Phone Number</Label>
+            <Input
+              id="salonPhone"
+              name="salonPhone"
+              type="tel"
+              defaultValue={config.salonPhone ?? ""}
+              placeholder="e.g. +48 789 894 948"
+            />
+            <p className="text-xs text-muted-foreground">Shown on booking confirmation &amp; support</p>
+          </div>
+          <div className="grid gap-1.5">
+            <Label htmlFor="salonEmail">Contact Email</Label>
+            <Input
+              id="salonEmail"
+              name="salonEmail"
+              type="email"
+              defaultValue={config.salonEmail ?? ""}
+              placeholder="e.g. info@salon.pl"
+            />
+            <p className="text-xs text-muted-foreground">Public contact email</p>
+          </div>
+        </div>
+      </section>
+
       {/* ── Calendar Settings ────────────────────────────────────────── */}
-      <section className="flex flex-col gap-4">
+      <section className="flex flex-col gap-6 bg-card border border-border p-6 rounded-xl shadow-sm">
         <div>
           <h2 className="text-base font-semibold">Calendar Settings</h2>
           <p className="text-xs text-muted-foreground mt-0.5">
@@ -309,7 +408,7 @@ export default function SettingsForm({ config }: { config: TenantConfig }) {
       </section>
 
       {/* ── Business Hours ────────────────────────────────────────── */}
-      <section className="flex flex-col gap-4">
+      <section className="flex flex-col gap-6 bg-card border border-border p-6 rounded-xl shadow-sm">
         <div>
           <h2 className="text-base font-semibold">Business Hours</h2>
           <p className="text-xs text-muted-foreground mt-0.5">
@@ -331,7 +430,7 @@ export default function SettingsForm({ config }: { config: TenantConfig }) {
       </section>
 
       {/* ── Light theme ──────────────────────────────────────────── */}
-      <section className="flex flex-col gap-4">
+      <section className="flex flex-col gap-6 bg-card border border-border p-6 rounded-xl shadow-sm">
         <div>
           <h2 className="text-base font-semibold">Light Theme Colors</h2>
           <p className="text-xs text-muted-foreground mt-0.5">
@@ -346,7 +445,7 @@ export default function SettingsForm({ config }: { config: TenantConfig }) {
       </section>
 
       {/* ── Dark theme ───────────────────────────────────────────── */}
-      <section className="flex flex-col gap-4">
+      <section className="flex flex-col gap-6 bg-card border border-border p-6 rounded-xl shadow-sm">
         <div>
           <h2 className="text-base font-semibold">Dark Theme Colors</h2>
           <p className="text-xs text-muted-foreground mt-0.5">

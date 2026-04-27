@@ -208,6 +208,16 @@ model TenantConfig {
   logoPages       String   @default("[\"home\",\"booking\"]")
   logoLayer       String   @default("above") // "above" = on top of content, "below" = behind content
 
+  // Salon contact / legal info — displayed on booking confirmation,
+  // support page, terms, and privacy policy.
+  salonAddress      String?           // e.g. "Sarmacka 4B/ lokal 106"
+  salonCity         String?           // e.g. "02-972 Warszawa"
+  salonPhone        String?           // e.g. "+48 789 894 948"
+  salonEmail        String?           // e.g. "info@salon.pl"
+  salonCompanyName  String?           // Legal entity name
+  salonNip          String?           // Tax ID (NIP)
+  salonLegalAddress String?           // Registered legal address if different from salon
+
   // Email / SMTP settings — configured once in Admin Panel per deployment
   // Works with any SMTP provider: Gmail, Outlook, Hostinger, OVH, etc.
   smtpHost        String?           // e.g. "smtp.gmail.com"
