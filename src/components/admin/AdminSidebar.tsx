@@ -15,11 +15,14 @@ import {
   CalendarDays,
   Mail,
   Key,
+  Database,
+  UserCog,
+  Table2,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { ThemeToggle } from "@/components/ui/theme-toggle"
 
-const superadminNavItems = [
+const adminNavItems = [
   {
     label: "Dashboard",
     href: "/admin",
@@ -57,6 +60,25 @@ const superadminNavItems = [
     href: "/admin/settings/social",
     icon: Key,
   },
+  {
+    label: "Database",
+    href: "/admin/database",
+    icon: Database,
+  },
+]
+
+const superadminNavItems = [
+  ...adminNavItems,
+  {
+    label: "Admins",
+    href: "/admin/admins",
+    icon: UserCog,
+  },
+  {
+    label: "DB Browser",
+    href: "/admin/db-browser",
+    icon: Table2,
+  },
 ]
 
 const masterNavItems = [
@@ -87,7 +109,10 @@ export default function AdminSidebar({ brandName, logoUrl }: AdminSidebarProps) 
   const pathname = usePathname()
   const { data: session } = useSession()
 
-  const navItems = session?.user?.role === "MASTER" ? masterNavItems : superadminNavItems
+  const navItems =
+    session?.user?.role === "MASTER"     ? masterNavItems :
+    session?.user?.role === "SUPERADMIN" ? superadminNavItems :
+    adminNavItems
 
   function isActive(item: { href: string; exact?: boolean }) {
     if (item.exact) return pathname === item.href

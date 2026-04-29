@@ -16,6 +16,14 @@ export default auth((req) => {
       return Response.redirect(new URL("/auth/login", nextUrl))
     }
 
+    // SUPERADMIN-only routes
+    const superadminOnly = ["/admin/admins", "/admin/db-browser"]
+    if (superadminOnly.some(p => pathname.startsWith(p))) {
+      if (role !== "SUPERADMIN") {
+        return Response.redirect(new URL("/admin", nextUrl))
+      }
+    }
+
     // Master wants to access superadmin area (/admin but not /admin/master)
     if (role === "MASTER" && pathname === "/admin") {
       return Response.redirect(new URL("/admin/master", nextUrl))
