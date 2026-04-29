@@ -74,3 +74,29 @@ export async function GET(
 
   return NextResponse.json({ rows, total, page, pageSize })
 }
+
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: { table: string } }
+) {
+  const session = await auth()
+  if (!session?.user || session.user.role !== "SUPERADMIN") {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
+  }
+
+  const { table } = params
+  if (!(ALLOWED_TABLES as readonly string[]).includes(table)) {
+    return NextResponse.json({ error: "Invalid table" }, { status: 400 })
+  }
+
+  const body = await req.json().catch(() => ({}))
+  const id = body?.id
+  if (!id || typeof id !== "string") {
+    return NextResponse.json({ error: "Missing id" }, { status: 400 })
+  }
+
+  const model = (prisma as unknown as Record<AllowedTable, { delete: Function }>)[table as AllowedTable]
+  await model.delete({ where: { id } })
+
+  return NextResponse.json({ success: true })
+}

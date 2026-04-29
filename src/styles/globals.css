@@ -47,6 +47,17 @@ body::before {
   }
 }
 
+/* Admin panel: hide public footer and lock scroll — layout handles it internally */
+body:has(.admin-layout) {
+  overflow: hidden;
+}
+body:has(.admin-layout) footer {
+  display: none;
+}
+body:has(.admin-layout) > * > .flex-1 {
+  overflow: hidden;
+}
+
 @media (max-width: 640px) {
   body::before {
     background: radial-gradient(1200px 1600px at 50% -20%, var(--bg-start), var(--bg-end)) !important;

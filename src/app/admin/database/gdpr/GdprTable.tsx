@@ -71,12 +71,9 @@ export default function GdprTable({ records, permissions }: Props) {
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold tracking-tight">GDPR Records</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {records.length} consent record{records.length !== 1 ? "s" : ""} total
-        </p>
-      </div>
+      <p className="mb-4 text-sm text-muted-foreground">
+        {records.length} consent record{records.length !== 1 ? "s" : ""} total
+      </p>
 
       <div className="mb-4 flex items-center gap-2 max-w-sm">
         <Search className="h-4 w-4 text-muted-foreground shrink-0" />

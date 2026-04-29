@@ -1,7 +1,11 @@
+import { auth } from "@/auth"
 import { getTenantConfig } from "@/lib/tenant"
 import SettingsForm from "./SettingsForm"
+import SuperAdminCredentials from "./SuperAdminCredentials"
 
 export default async function SettingsPage() {
+  const session = await auth()
+  const isSuperAdmin = session?.user?.role === "SUPERADMIN"
   const config = await getTenantConfig()
   const c = config as Record<string, unknown>
   const fullConfig = {
@@ -39,6 +43,13 @@ export default async function SettingsPage() {
       </div>
 
       <SettingsForm config={fullConfig} />
+
+      {isSuperAdmin && (
+        <>
+          <hr className="border-border" />
+          <SuperAdminCredentials />
+        </>
+      )}
     </div>
   )
 }
