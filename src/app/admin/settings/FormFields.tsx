@@ -1,0 +1,117 @@
+"use client"
+
+import { useState } from "react"
+import Image from "next/image"
+import { Upload, X, ImageIcon } from "lucide-react"
+import { useFormStatus } from "react-dom"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+
+export function ColorRow({
+  field,
+  defaultValue,
+}: {
+  field: { name: string; label: string; description: string }
+  defaultValue: string
+}) {
+  const [color, setColor] = useState(defaultValue)
+
+  return (
+    <div className="grid gap-1.5">
+      <Label htmlFor={field.name}>{field.label}</Label>
+      <div className="flex gap-2 items-center">
+        <input
+          type="color"
+          value={color}
+          className="h-8 w-10 cursor-pointer rounded border border-input bg-transparent p-0.5 shrink-0"
+          onChange={(e) => setColor(e.target.value)}
+        />
+        <Input
+          id={field.name}
+          name={field.name}
+          value={color}
+          pattern="^#[0-9A-Fa-f]{6}$"
+          placeholder="#000000"
+          className="font-mono text-sm"
+          onChange={(e) => {
+            if (/^#[0-9A-Fa-f]{6}$/.test(e.target.value)) setColor(e.target.value)
+          }}
+        />
+      </div>
+      <p className="text-xs text-muted-foreground">{field.description}</p>
+    </div>
+  )
+}
+
+export function ImageUploadField({
+  label,
+  hint,
+  preview,
+  fieldName,
+  fieldValue,
+  onUpload,
+  onRemove,
+  uploading,
+  uploadError,
+}: {
+  label: string
+  hint: string
+  preview: string | null
+  fieldName: string
+  fieldValue: string
+  onUpload: (e: React.ChangeEvent<HTMLInputElement>) => void
+  onRemove: () => void
+  uploading: boolean
+  uploadError: string | null
+}) {
+  return (
+    <div className="grid gap-2 max-w-sm">
+      <Label>{label}</Label>
+      <p className="text-xs text-muted-foreground -mt-1">{hint}</p>
+      <input type="hidden" name={fieldName} value={fieldValue} />
+      <div className="flex items-start gap-4">
+        {preview ? (
+          <div className="relative flex h-16 w-32 items-center justify-center rounded-lg border border-border bg-muted/30 p-2">
+            <Image src={preview} alt={label} fill className="object-contain p-1" />
+            <button
+              type="button"
+              onClick={onRemove}
+              className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-destructive-foreground shadow"
+            >
+              <X className="h-3 w-3" />
+            </button>
+          </div>
+        ) : (
+          <div className="flex h-16 w-32 items-center justify-center rounded-lg border border-dashed border-border bg-muted/20 gap-1.5 text-xs text-muted-foreground">
+            <ImageIcon className="h-4 w-4" />
+            None
+          </div>
+        )}
+        <label className="cursor-pointer">
+          <input
+            type="file"
+            accept="image/png,image/jpeg,image/webp,image/svg+xml,image/x-icon"
+            className="hidden"
+            onChange={onUpload}
+            disabled={uploading}
+          />
+          <div className="flex items-center gap-2 rounded-md border border-input bg-transparent px-3 py-2 text-sm hover:bg-muted transition-colors">
+            <Upload className="h-4 w-4" />
+            {uploading ? "Uploading…" : "Upload"}
+          </div>
+        </label>
+      </div>
+      {uploadError && <p className="text-xs text-destructive">{uploadError}</p>}
+    </div>
+  )
+}
+
+export function SubmitButton() {
+  const { pending } = useFormStatus()
+  return (
+    <Button type="submit" disabled={pending}>
+      {pending ? "Saving…" : "Save Settings"}
+    </Button>
+  )
+}

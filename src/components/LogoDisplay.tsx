@@ -12,6 +12,8 @@ type LogoConfig = {
   logoHeight: number
   logoPages: string
   brandName: string
+  logoLayer: string
+  logoFullscreen: boolean
 }
 
 function shouldShowLogo(logoPages: string, page: string): boolean {
@@ -48,9 +50,23 @@ export default function LogoDisplay({ page }: { page: "home" | "booking" | "mast
   const darkLogoSrc = config.darkLogoUrl || config.logoUrl || "/head_logo_night.png"
 
   if (config.logoUrl || config.darkLogoUrl) {
+    if (config.logoLayer === 'below' && config.logoFullscreen) {
+      return (
+        <div className="fixed inset-0 w-full h-full pointer-events-none" style={{ zIndex: 0 }}>
+          <div className="relative w-full h-full dark:hidden">
+            <Image src={logoSrc} alt={config.brandName} fill className="object-contain" />
+          </div>
+          <div className="relative w-full h-full hidden dark:block">
+            <Image src={darkLogoSrc} alt={config.brandName} fill className="object-contain" />
+          </div>
+        </div>
+      )
+    }
+
+    const zClass = config.logoLayer === 'below' ? 'z-[0]' : 'z-10'
     return (
       <div
-        className="hidden lg:block z-10 cursor-pointer"
+        className={`hidden lg:block cursor-pointer ${zClass}`}
         style={{
           position: "absolute",
           left: `${config.logoPositionX}%`,

@@ -2,7 +2,8 @@
 
 import { useState, useRef, useCallback, useEffect } from "react"
 import Image from "next/image"
-import { Upload, X, ImageIcon, Move, Maximize2, Minimize2 } from "lucide-react"
+import { Upload, X, ImageIcon, Maximize2, Minimize2 } from "lucide-react"
+import HomepagePreview from "./HomepagePreview"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 
@@ -15,6 +16,7 @@ type LogoConfig = {
   logoHeight: number
   logoPages: string
   logoLayer: string
+  logoFullscreen: boolean
 }
 
 type LogoEditorProps = {
@@ -25,6 +27,8 @@ type LogoEditorProps = {
   onSizeChange: (width: number, height: number) => void
   onPagesChange: (pages: string) => void
   onLayerChange: (layer: string) => void
+  logoFullscreen: boolean
+  onFullscreenChange: (v: boolean) => void
   onRemoveLogo: () => void
   onRemoveDarkLogo: () => void
   logoUploading: boolean
@@ -60,123 +64,6 @@ async function uploadImage(
   }
 }
 
-// --- Iframe-based real homepage preview ---
-// The iframe renders the actual homepage at full resolution (1440×900),
-// then CSS transform: scale() shrinks it to fit the preview container.
-// A transparent overlay sits on top for drag interaction.
-// The logo is positioned on the overlay to match real page coordinates.
-
-const IFRAME_WIDTH = 1440
-const IFRAME_HEIGHT = 900
-
-function HomepagePreview({
-  logoUrl,
-  posX,
-  posY,
-  logoWidth,
-  logoHeight,
-  logoLayer,
-  onDragStart,
-  previewRef,
-  containerHeight,
-}: {
-  logoUrl: string | null
-  posX: number
-  posY: number
-  logoWidth: number
-  logoHeight: number
-  logoLayer?: string
-  onDragStart: (e: React.MouseEvent | React.TouchEvent) => void
-  previewRef: React.RefObject<HTMLDivElement>
-  containerHeight: number // px height of the visible container
-}) {
-  const containerRef = useRef<HTMLDivElement>(null)
-  const [scale, setScale] = useState(0.25)
-
-  // Compute scale based on container width
-  useEffect(() => {
-    const el = containerRef.current
-    if (!el) return
-    const observer = new ResizeObserver((entries) => {
-      const width = entries[0]?.contentRect.width ?? 400
-      setScale(width / IFRAME_WIDTH)
-    })
-    observer.observe(el)
-    return () => observer.disconnect()
-  }, [])
-
-  const scaledLogoW = Math.round(logoWidth * scale)
-  const scaledLogoH = Math.round(logoHeight * scale)
-  const visibleHeight = IFRAME_HEIGHT * scale
-
-  return (
-    <div
-      ref={containerRef}
-      className="relative w-full overflow-hidden rounded-lg border border-border"
-      style={{ height: containerHeight || visibleHeight }}
-    >
-      {/* Real homepage in iframe — scaled down */}
-      <iframe
-        src="/?preview=1"
-        title="Homepage preview"
-        className="origin-top-left pointer-events-none"
-        style={{
-          width: IFRAME_WIDTH,
-          height: IFRAME_HEIGHT,
-          transform: `scale(${scale})`,
-          transformOrigin: "top left",
-          border: "none",
-        }}
-        tabIndex={-1}
-      />
-
-      {/* Transparent overlay for drag interaction */}
-      <div
-        ref={previewRef}
-        className="absolute inset-0 cursor-crosshair z-10"
-        onMouseDown={onDragStart}
-        onTouchStart={onDragStart}
-      >
-        {/* Logo overlay — positioned to match real page coordinates */}
-        {logoUrl ? (
-          <div
-            className={`absolute pointer-events-none transition-opacity ${logoLayer === 'below' ? 'opacity-40' : 'opacity-100'}`}
-            style={{
-              left: `${posX}%`,
-              top: `${posY}%`,
-            }}
-          >
-            <Image
-              src={logoUrl}
-              alt="Logo position"
-              width={scaledLogoW}
-              height={scaledLogoH}
-              className="object-contain"
-            />
-          </div>
-        ) : (
-          <div
-            className={`absolute pointer-events-none transition-opacity ${logoLayer === 'below' ? 'opacity-40' : 'opacity-100'}`}
-            style={{
-              left: `${posX}%`,
-              top: `${posY}%`,
-            }}
-          >
-            <div className="h-8 w-14 rounded border-2 border-dashed border-primary/50 flex items-center justify-center gap-0.5 bg-primary/10">
-              <Move className="h-3 w-3 text-primary/60" />
-              <span className="text-[9px] text-primary/60">Logo</span>
-            </div>
-          </div>
-        )}
-
-        {/* Position badge */}
-        <div className="absolute bottom-1 left-1 text-[10px] text-white bg-black/60 px-1.5 py-0.5 rounded">
-          X {posX}% / Y {posY}%
-        </div>
-      </div>
-    </div>
-  )
-}
 
 export default function LogoEditor({
   config,
@@ -194,6 +81,8 @@ export default function LogoEditor({
   onLogoUploadStart,
   onDarkLogoUploadStart,
   onLayerChange,
+  logoFullscreen,
+  onFullscreenChange,
 }: LogoEditorProps) {
   const [isDragging, setIsDragging] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
@@ -288,11 +177,23 @@ export default function LogoEditor({
                   Below
                 </button>
               </div>
+              {/* Fullscreen toggle in fullscreen editor */}
+              {config.logoLayer === 'below' && (
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={logoFullscreen}
+                    onChange={(e) => onFullscreenChange(e.target.checked)}
+                    className="accent-primary"
+                  />
+                  <span className="text-xs">Full Screen</span>
+                </label>
+              )}
               {/* Size controls in fullscreen */}
               <div className="flex items-center gap-2">
                 <span className="text-xs text-muted-foreground">Size:</span>
                 <input
-                  type="range" min={50} max={400} value={config.logoWidth}
+                  type="range" min={50} max={800} value={config.logoWidth}
                   onChange={(e) => onSizeChange(parseInt(e.target.value), config.logoHeight)}
                   className="w-24 h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
                 />
@@ -435,7 +336,7 @@ export default function LogoEditor({
                 <input
                   type="range"
                   min={50}
-                  max={400}
+                  max={800}
                   value={config.logoWidth}
                   onChange={(e) => onSizeChange(parseInt(e.target.value), config.logoHeight)}
                   className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
@@ -470,6 +371,17 @@ export default function LogoEditor({
                   />
                   <span className="text-sm">Show Below Content</span>
                 </label>
+                {config.logoLayer === 'below' && (
+                  <label className="flex items-center gap-2 cursor-pointer ml-5">
+                    <input
+                      type="checkbox"
+                      checked={logoFullscreen}
+                      onChange={(e) => onFullscreenChange(e.target.checked)}
+                      className="accent-primary"
+                    />
+                    <span className="text-sm">Stretch to Full Screen</span>
+                  </label>
+                )}
               </div>
               <p className="text-xs text-muted-foreground">
                 In the preview box, "Below Content" logos are shown slightly transparent for easier editing.

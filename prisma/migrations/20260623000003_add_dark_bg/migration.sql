@@ -1,0 +1,5 @@
+ALTER TABLE "TenantConfig" ADD COLUMN "darkBgType" TEXT NOT NULL DEFAULT 'solid';
+ALTER TABLE "TenantConfig" ADD COLUMN "darkBgImageUrl" TEXT;
+ALTER TABLE "TenantConfig" ADD COLUMN "darkBgGradientFrom" TEXT NOT NULL DEFAULT '#9c6849';
+ALTER TABLE "TenantConfig" ADD COLUMN "darkBgGradientTo" TEXT NOT NULL DEFAULT '#2A2A2A';
+ALTER TABLE "TenantConfig" ADD COLUMN "darkBgGradientAngle" INTEGER NOT NULL DEFAULT 135;

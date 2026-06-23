@@ -4,6 +4,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { useSession, signOut } from "next-auth/react"
+import { useState, useEffect } from "react"
 import {
   LayoutDashboard,
   Scissors,
@@ -18,6 +19,7 @@ import {
   Database,
   UserCog,
   Table2,
+  Save,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { ThemeToggle } from "@/components/ui/theme-toggle"
@@ -108,6 +110,15 @@ interface AdminSidebarProps {
 export default function AdminSidebar({ brandName, logoUrl }: AdminSidebarProps) {
   const pathname = usePathname()
   const { data: session } = useSession()
+  const [isDirty, setIsDirty] = useState(false)
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      setIsDirty((e as CustomEvent<{ isDirty: boolean }>).detail.isDirty)
+    }
+    document.addEventListener('settings-dirty', handler)
+    return () => document.removeEventListener('settings-dirty', handler)
+  }, [])
 
   const navItems =
     session?.user?.role === "MASTER"     ? masterNavItems :
@@ -189,6 +200,26 @@ export default function AdminSidebar({ brandName, logoUrl }: AdminSidebarProps) 
           </Link>
         </div>
       </nav>
+
+      {/* Save button — only on settings page */}
+      {pathname.startsWith('/admin/settings') && (
+        <div className="px-3 pb-2">
+          <button
+            type="submit"
+            form="settings-form"
+            disabled={!isDirty}
+            className={cn(
+              "flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+              isDirty
+                ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                : "text-muted-foreground cursor-not-allowed opacity-50"
+            )}
+          >
+            <Save className="h-4 w-4" />
+            Save Settings
+          </button>
+        </div>
+      )}
 
       {/* User + controls */}
       <div className="border-t border-border px-3 py-3 space-y-2">

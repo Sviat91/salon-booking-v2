@@ -208,6 +208,18 @@ model TenantConfig {
   logoHeight      Int      @default(80)
   logoPages       String   @default("[\"home\",\"booking\"]")
   logoLayer       String   @default("above") // "above" = on top of content, "below" = behind content
+  bgType          String   @default("solid")    // "solid" | "gradient" | "picture"
+  bgImageUrl      String?
+  bgGradientFrom  String   @default("#FDE5C3")
+  bgGradientTo    String   @default("#FFF6E9")
+  bgGradientAngle Int      @default(135)
+  bgApplyToDark   Boolean  @default(true)
+  logoFullscreen  Boolean  @default(false)
+  darkBgType        String   @default("solid")
+  darkBgImageUrl    String?
+  darkBgGradientFrom String  @default("#9c6849")
+  darkBgGradientTo  String   @default("#2A2A2A")
+  darkBgGradientAngle Int    @default(135)
 
   // Salon contact / legal info — displayed on booking confirmation,
   // support page, terms, and privacy policy.

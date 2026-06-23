@@ -1,14 +1,13 @@
 "use client"
 
-import { useState } from "react"
-import { useFormState, useFormStatus } from "react-dom"
-import Image from "next/image"
-import { Upload, X, ImageIcon } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { useState, useEffect } from "react"
+import { useFormState } from "react-dom"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { saveSettings, type SettingsFormState } from "./actions"
 import LogoEditor from "./LogoEditor"
+import BackgroundSection from "./BackgroundSection"
+import { ColorRow, ImageUploadField, SubmitButton } from "./FormFields"
 
 type TenantConfig = {
   brandName:       string
@@ -21,6 +20,13 @@ type TenantConfig = {
   logoHeight:      number
   logoPages:       string
   logoLayer:       string
+  bgType:          string
+  bgImageUrl:      string | null
+  bgGradientFrom:  string
+  bgGradientTo:    string
+  bgGradientAngle: number
+  bgApplyToDark:   boolean
+  logoFullscreen:  boolean
   primaryColor:    string
   secondaryColor:  string
   accentColor:     string
@@ -35,6 +41,11 @@ type TenantConfig = {
   darkTextColor:   string
   darkMutedColor:  string
   darkBorderColor: string
+  darkBgType:          string
+  darkBgImageUrl:      string | null
+  darkBgGradientFrom:  string
+  darkBgGradientTo:    string
+  darkBgGradientAngle: number
   availableSlotColor: string
   dayOffColor:     string
   workingHourStart: number
@@ -52,7 +63,6 @@ const initialState: SettingsFormState = {}
 
 // Light theme color fields — plain English labels
 const lightColorFields: { name: keyof TenantConfig; label: string; description: string }[] = [
-  { name: "secondaryColor", label: "Page Background",  description: "Main background color of pages" },
   { name: "primaryColor",   label: "Secondary Tint",   description: "Accent backgrounds, hover states" },
   { name: "cardColor",      label: "Card Background",  description: "Background for cards and panels" },
   { name: "accentColor",    label: "Primary Button",   description: "Buttons and highlighted elements" },
@@ -71,123 +81,10 @@ const darkColorFields: { name: keyof TenantConfig; label: string; description: s
   { name: "darkBorderColor", label: "Dark Borders",         description: "Dividers in dark theme" },
 ]
 
-// ── Shared sub-components ─────────────────────────────────────────────────────
-
-function ColorRow({
-  field,
-  defaultValue,
-}: {
-  field: { name: string; label: string; description: string }
-  defaultValue: string
-}) {
-  const [color, setColor] = useState(defaultValue)
-
-  return (
-    <div className="grid gap-1.5">
-      <Label htmlFor={field.name}>{field.label}</Label>
-      <div className="flex gap-2 items-center">
-        <input
-          type="color"
-          value={color}
-          className="h-8 w-10 cursor-pointer rounded border border-input bg-transparent p-0.5 shrink-0"
-          onChange={(e) => setColor(e.target.value)}
-        />
-        <Input
-          id={field.name}
-          name={field.name}
-          value={color}
-          pattern="^#[0-9A-Fa-f]{6}$"
-          placeholder="#000000"
-          className="font-mono text-sm"
-          onChange={(e) => {
-            const val = e.target.value
-            if (/^#[0-9A-Fa-f]{6}$/.test(val)) {
-              setColor(val)
-            }
-          }}
-        />
-      </div>
-      <p className="text-xs text-muted-foreground">{field.description}</p>
-    </div>
-  )
-}
-
-function ImageUploadField({
-  label,
-  hint,
-  preview,
-  fieldName,
-  fieldValue,
-  onUpload,
-  onRemove,
-  uploading,
-  uploadError,
-}: {
-  label: string
-  hint: string
-  preview: string | null
-  fieldName: string
-  fieldValue: string
-  onUpload: (e: React.ChangeEvent<HTMLInputElement>) => void
-  onRemove: () => void
-  uploading: boolean
-  uploadError: string | null
-}) {
-  return (
-    <div className="grid gap-2 max-w-sm">
-      <Label>{label}</Label>
-      <p className="text-xs text-muted-foreground -mt-1">{hint}</p>
-      <input type="hidden" name={fieldName} value={fieldValue} />
-      <div className="flex items-start gap-4">
-        {preview ? (
-          <div className="relative flex h-16 w-32 items-center justify-center rounded-lg border border-border bg-muted/30 p-2">
-            <Image src={preview} alt={label} fill className="object-contain p-1" />
-            <button
-              type="button"
-              onClick={onRemove}
-              className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-destructive-foreground shadow"
-            >
-              <X className="h-3 w-3" />
-            </button>
-          </div>
-        ) : (
-          <div className="flex h-16 w-32 items-center justify-center rounded-lg border border-dashed border-border bg-muted/20 gap-1.5 text-xs text-muted-foreground">
-            <ImageIcon className="h-4 w-4" />
-            None
-          </div>
-        )}
-        <label className="cursor-pointer">
-          <input
-            type="file"
-            accept="image/png,image/jpeg,image/webp,image/svg+xml,image/x-icon"
-            className="hidden"
-            onChange={onUpload}
-            disabled={uploading}
-          />
-          <div className="flex items-center gap-2 rounded-md border border-input bg-transparent px-3 py-2 text-sm hover:bg-muted transition-colors">
-            <Upload className="h-4 w-4" />
-            {uploading ? "Uploading…" : "Upload"}
-          </div>
-        </label>
-      </div>
-      {uploadError && <p className="text-xs text-destructive">{uploadError}</p>}
-    </div>
-  )
-}
-
-function SubmitButton() {
-  const { pending } = useFormStatus()
-  return (
-    <Button type="submit" disabled={pending}>
-      {pending ? "Saving…" : "Save Settings"}
-    </Button>
-  )
-}
-
-// ── Main form ─────────────────────────────────────────────────────────────────
 
 export default function SettingsForm({ config }: { config: TenantConfig }) {
   const [state, formAction] = useFormState(saveSettings, initialState)
+  const [isDirty, setIsDirty] = useState(false)
 
   const [logoUrl, setLogoUrl] = useState<string>(config.logoUrl ?? "")
   const [darkLogoUrl, setDarkLogoUrl] = useState<string>(config.darkLogoUrl ?? "")
@@ -197,15 +94,31 @@ export default function SettingsForm({ config }: { config: TenantConfig }) {
   const [logoHeight, setLogoHeight] = useState(config.logoHeight)
   const [logoPages, setLogoPages] = useState(config.logoPages)
   const [logoLayer, setLogoLayer] = useState(config.logoLayer ?? "above")
+  const [logoFullscreen, setLogoFullscreen] = useState(config.logoFullscreen ?? false)
   const [logoUploading, setLogoUploading] = useState(false)
   const [darkLogoUploading, setDarkLogoUploading] = useState(false)
   const [logoError, setLogoError] = useState<string | null>(null)
   const [darkLogoError, setDarkLogoError] = useState<string | null>(null)
 
+  const [bgImageUrl, setBgImageUrl] = useState<string>(config.bgImageUrl ?? "")
+  const [darkBgImageUrl, setDarkBgImageUrl] = useState<string>(config.darkBgImageUrl ?? "")
+
   const [faviconPreview, setFaviconPreview] = useState<string | null>(config.faviconUrl)
   const [faviconUrl, setFaviconUrl] = useState<string>(config.faviconUrl ?? "")
   const [faviconUploading, setFaviconUploading] = useState(false)
   const [faviconError, setFaviconError] = useState<string | null>(null)
+
+  // Reset dirty on successful save
+  useEffect(() => {
+    if (state.success) {
+      setIsDirty(false)
+    }
+  }, [state.success])
+
+  // Dispatch custom event so sidebar can read isDirty
+  useEffect(() => {
+    document.dispatchEvent(new CustomEvent('settings-dirty', { detail: { isDirty } }))
+  }, [isDirty])
 
   async function uploadFile(
     e: React.ChangeEvent<HTMLInputElement>,
@@ -234,7 +147,12 @@ export default function SettingsForm({ config }: { config: TenantConfig }) {
   }
 
   return (
-    <form action={formAction} className="flex flex-col gap-10">
+    <form
+      id="settings-form"
+      action={formAction}
+      className="flex flex-col gap-10"
+      onChange={() => setIsDirty(true)}
+    >
 
       <section className="flex flex-col gap-6 bg-card border border-border p-6 rounded-xl shadow-sm">
         <div>
@@ -265,15 +183,18 @@ export default function SettingsForm({ config }: { config: TenantConfig }) {
             logoHeight,
             logoPages,
             logoLayer,
+            logoFullscreen,
           }}
-          onLogoUpload={(url) => setLogoUrl(url)}
-          onDarkLogoUpload={(url) => setDarkLogoUrl(url)}
-          onPositionChange={(x, y) => { setLogoPositionX(x); setLogoPositionY(y) }}
-          onSizeChange={(w, h) => { setLogoWidth(w); setLogoHeight(h) }}
-          onPagesChange={(pages) => setLogoPages(pages)}
-          onLayerChange={(layer) => setLogoLayer(layer)}
-          onRemoveLogo={() => setLogoUrl("")}
-          onRemoveDarkLogo={() => setDarkLogoUrl("")}
+          onLogoUpload={(url) => { setLogoUrl(url); setIsDirty(true) }}
+          onDarkLogoUpload={(url) => { setDarkLogoUrl(url); setIsDirty(true) }}
+          onPositionChange={(x, y) => { setLogoPositionX(x); setLogoPositionY(y); setIsDirty(true) }}
+          onSizeChange={(w, h) => { setLogoWidth(w); setLogoHeight(h); setIsDirty(true) }}
+          onPagesChange={(pages) => { setLogoPages(pages); setIsDirty(true) }}
+          onLayerChange={(layer) => { setLogoLayer(layer); setIsDirty(true) }}
+          logoFullscreen={logoFullscreen}
+          onFullscreenChange={(v) => { setLogoFullscreen(v); setIsDirty(true) }}
+          onRemoveLogo={() => { setLogoUrl(""); setIsDirty(true) }}
+          onRemoveDarkLogo={() => { setDarkLogoUrl(""); setIsDirty(true) }}
           logoUploading={logoUploading}
           darkLogoUploading={darkLogoUploading}
           logoError={logoError}
@@ -281,6 +202,7 @@ export default function SettingsForm({ config }: { config: TenantConfig }) {
           onLogoUploadStart={() => { setLogoUploading(true); setLogoError(null) }}
           onDarkLogoUploadStart={() => { setDarkLogoUploading(true); setDarkLogoError(null) }}
         />
+        <input type="hidden" name="logoFullscreen" value={String(logoFullscreen)} />
 
         <ImageUploadField
           label="Favicon"
@@ -288,8 +210,8 @@ export default function SettingsForm({ config }: { config: TenantConfig }) {
           preview={faviconPreview}
           fieldName="faviconUrl"
           fieldValue={faviconUrl}
-          onUpload={(e) => uploadFile(e, setFaviconPreview, setFaviconUrl, setFaviconUploading, setFaviconError)}
-          onRemove={() => { setFaviconPreview(null); setFaviconUrl("") }}
+          onUpload={(e) => { uploadFile(e, setFaviconPreview, setFaviconUrl, setFaviconUploading, setFaviconError); setIsDirty(true) }}
+          onRemove={() => { setFaviconPreview(null); setFaviconUrl(""); setIsDirty(true) }}
           uploading={faviconUploading}
           uploadError={faviconError}
         />
@@ -396,13 +318,13 @@ export default function SettingsForm({ config }: { config: TenantConfig }) {
           </p>
         </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <ColorRow 
-            field={{ name: "availableSlotColor", label: "Available Slot", description: "Color for open working intervals" }} 
-            defaultValue={config.availableSlotColor} 
+          <ColorRow
+            field={{ name: "availableSlotColor", label: "Available Slot", description: "Color for open working intervals" }}
+            defaultValue={config.availableSlotColor}
           />
-          <ColorRow 
-            field={{ name: "dayOffColor", label: "Day Off", description: "Color highlighting non-working days" }} 
-            defaultValue={config.dayOffColor} 
+          <ColorRow
+            field={{ name: "dayOffColor", label: "Day Off", description: "Color highlighting non-working days" }}
+            defaultValue={config.dayOffColor}
           />
         </div>
       </section>
@@ -432,11 +354,23 @@ export default function SettingsForm({ config }: { config: TenantConfig }) {
       {/* ── Light theme ──────────────────────────────────────────── */}
       <section className="flex flex-col gap-6 bg-card border border-border p-6 rounded-xl shadow-sm">
         <div>
-          <h2 className="text-base font-semibold">Light Theme Colors</h2>
+          <h2 className="text-base font-semibold">Light Theme</h2>
           <p className="text-xs text-muted-foreground mt-0.5">
             Colors used when the light theme is active
           </p>
         </div>
+        <BackgroundSection
+          config={{
+            bgType: config.bgType,
+            bgImageUrl: bgImageUrl,
+            bgGradientFrom: config.bgGradientFrom,
+            bgGradientTo: config.bgGradientTo,
+            bgGradientAngle: config.bgGradientAngle,
+            secondaryColor: config.secondaryColor,
+            bgApplyToDark: config.bgApplyToDark,
+          }}
+          onBgImageUpload={(url) => { setBgImageUrl(url); setIsDirty(true) }}
+        />
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {lightColorFields.map((field) => (
             <ColorRow key={field.name} field={field} defaultValue={config[field.name] as string} />
@@ -452,6 +386,19 @@ export default function SettingsForm({ config }: { config: TenantConfig }) {
             Colors used when the dark theme is active
           </p>
         </div>
+        <BackgroundSection
+          config={{
+            bgType: config.darkBgType || 'solid',
+            bgImageUrl: darkBgImageUrl || null,
+            bgGradientFrom: config.darkBgGradientFrom || '#9c6849',
+            bgGradientTo: config.darkBgGradientTo || '#2A2A2A',
+            bgGradientAngle: config.darkBgGradientAngle ?? 135,
+            secondaryColor: config.darkBgColor || '#724b27',
+            bgApplyToDark: false,
+          }}
+          onBgImageUpload={(url) => { setDarkBgImageUrl(url); setIsDirty(true) }}
+          prefix="dark"
+        />
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {darkColorFields.map((field) => (
             <ColorRow key={field.name} field={field} defaultValue={config[field.name] as string} />
@@ -459,17 +406,8 @@ export default function SettingsForm({ config }: { config: TenantConfig }) {
         </div>
       </section>
 
-      {/* ── Feedback ─────────────────────────────────────────────── */}
       {state.error && <p className="text-sm text-destructive">{state.error}</p>}
-      {state.success && (
-        <p className="text-sm text-green-600 dark:text-green-400">
-          Settings saved. Reload the page to see color changes applied across the admin panel.
-        </p>
-      )}
-
-      <div>
-        <SubmitButton />
-      </div>
+      {state.success && <p className="text-sm text-green-600 dark:text-green-400">Settings saved.</p>}
     </form>
   )
 }

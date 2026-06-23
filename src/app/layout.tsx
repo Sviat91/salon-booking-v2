@@ -95,6 +95,50 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
             }
           `
         }} />
+        {/* Light theme bg override */}
+        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+        {(config as any).bgType !== 'solid' && (() => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const cfg = config as any
+          if (cfg.bgType === 'gradient') {
+            const grad = `linear-gradient(${cfg.bgGradientAngle}deg, ${cfg.bgGradientFrom}, ${cfg.bgGradientTo}) fixed`
+            return (
+              <style dangerouslySetInnerHTML={{
+                __html: `html:not(.dark) body { background: ${grad} !important; } html:not(.dark) body::before { display: none !important; } html:not(.dark) .admin-layout, html:not(.dark) .admin-layout main { background: transparent !important; }`
+              }} />
+            )
+          }
+          if (cfg.bgType === 'picture' && cfg.bgImageUrl) {
+            return (
+              <style dangerouslySetInnerHTML={{
+                __html: `html:not(.dark) body { background: url('${cfg.bgImageUrl}') center/cover no-repeat fixed !important; } html:not(.dark) body::before { display: none !important; } html:not(.dark) .admin-layout, html:not(.dark) .admin-layout main { background: transparent !important; }`
+              }} />
+            )
+          }
+          return null
+        })()}
+        {/* Dark theme bg override */}
+        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+        {(config as any).darkBgType !== 'solid' && (() => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const cfg = config as any
+          if (cfg.darkBgType === 'gradient') {
+            const grad = `linear-gradient(${cfg.darkBgGradientAngle}deg, ${cfg.darkBgGradientFrom}, ${cfg.darkBgGradientTo}) fixed`
+            return (
+              <style dangerouslySetInnerHTML={{
+                __html: `.dark body { background: ${grad} !important; } .dark body::before { display: none !important; } .dark .admin-layout, .dark .admin-layout main { background: transparent !important; }`
+              }} />
+            )
+          }
+          if (cfg.darkBgType === 'picture' && cfg.darkBgImageUrl) {
+            return (
+              <style dangerouslySetInnerHTML={{
+                __html: `.dark body { background: url('${cfg.darkBgImageUrl}') center/cover no-repeat fixed !important; } .dark body::before { display: none !important; } .dark .admin-layout, .dark .admin-layout main { background: transparent !important; }`
+              }} />
+            )
+          }
+          return null
+        })()}
         <script
           async
           src="https://stats.theboatscanner.com/script.js"
