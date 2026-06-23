@@ -5,51 +5,9 @@ export interface ReviewImage {
 }
 
 export async function listReviewImages(): Promise<ReviewImage[]> {
-  return [] // Mocked for now, Google API removed
+  return []
 }
-
-import { Redis } from '@upstash/redis'
-import { config } from '@/lib/env'
-import { logger } from '@/lib/logger'
-
-// Initialize Redis safely
-let redis: Redis | null = null
-try {
-  if (config.UPSTASH_REDIS_REST_URL && config.UPSTASH_REDIS_REST_TOKEN) {
-    redis = new Redis({
-      url: config.UPSTASH_REDIS_REST_URL,
-      token: config.UPSTASH_REDIS_REST_TOKEN,
-    })
-  }
-} catch (e) {
-  logger.warn('Redis initialization skipped or failed')
-}
-
-const CACHE_KEY = 'reviews:list'
-const CACHE_TTL = 60 * 60 // 1 hour in seconds
 
 export async function getCachedReviews(): Promise<ReviewImage[]> {
-  try {
-    // 1. Try to get from cache
-    if (redis) {
-      const cachedData = await redis.get<ReviewImage[]>(CACHE_KEY)
-      if (cachedData) {
-        return cachedData
-      }
-    }
-
-    // 2. If miss, fetch from Google Drive (mocked)
-    const images = await listReviewImages()
-
-    // 3. Save to cache
-    if (redis && images.length > 0) {
-      await redis.set(CACHE_KEY, images, { ex: CACHE_TTL })
-    }
-
-    return images
-
-  } catch (error) {
-    logger.error({ err: error }, 'Error fetching reviews:')
-    return []
-  }
+  return []
 }

@@ -60,8 +60,6 @@ export const ErrorCodes = {
   
   // Server errors (500)
   INTERNAL_ERROR: 'INTERNAL_ERROR',
-  CALENDAR_ERROR: 'CALENDAR_ERROR',
-  SHEETS_ERROR: 'SHEETS_ERROR',
   CACHE_ERROR: 'CACHE_ERROR',
   EMAIL_ERROR: 'EMAIL_ERROR',
 } as const
@@ -196,18 +194,4 @@ export const ErrorResponses = {
   // Server errors
   internalError: (message: string = 'Internal server error') =>
     errorResponse(ErrorCodes.INTERNAL_ERROR, message, 500),
-
-  calendarError: () =>
-    errorResponse(
-      ErrorCodes.CALENDAR_ERROR,
-      'Calendar service error. Please try again.',
-      500
-    ),
-
-  sheetsError: () =>
-    errorResponse(
-      ErrorCodes.SHEETS_ERROR,
-      'Data service error. Please try again.',
-      500
-    ),
 }
