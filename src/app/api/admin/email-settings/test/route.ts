@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
-import { sendEmail } from '@/lib/email'
+import { sendEmail, getSmtpConfig } from '@/lib/email'
 
 export async function POST(req: Request) {
   const session = await auth()
@@ -12,6 +12,14 @@ export async function POST(req: Request) {
     const { email } = await req.json()
     if (!email) {
       return NextResponse.json({ error: "Email is required" }, { status: 400 })
+    }
+
+    const smtp = await getSmtpConfig()
+    if (!smtp) {
+      return NextResponse.json(
+        { error: "SMTP is not configured. Fill in SMTP Host, Username and Password in Email Settings and save first." },
+        { status: 400 }
+      )
     }
 
     await sendEmail({

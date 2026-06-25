@@ -46,6 +46,13 @@ const DEFAULT_CONFIG = {
   salonCompanyName: null,
   salonNip: null,
   salonLegalAddress: null,
+  notifEmailEnabled: false,
+  notifTelegramEnabled: false,
+  notifAdminChatId: null,
+  notifReminder24hEnabled: false,
+  notifReminder2hEnabled: false,
+  telegramBotToken: null,
+  telegramBotUsername: null,
 }
 
 export async function getTenantConfig() {

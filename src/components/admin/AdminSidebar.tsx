@@ -20,6 +20,7 @@ import {
   UserCog,
   Table2,
   Save,
+  Bell,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { ThemeToggle } from "@/components/ui/theme-toggle"
@@ -61,6 +62,11 @@ const adminNavItems = [
     label: "Social Auth",
     href: "/admin/settings/social",
     icon: Key,
+  },
+  {
+    label: "Notifications",
+    href: "/admin/settings/notifications",
+    icon: Bell,
   },
   {
     label: "Database",

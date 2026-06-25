@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { getLogger } from '../../../../lib/logger'
 import { rateLimit } from '../../../../lib/cache'
+import { notifyContactForm } from '../../../../lib/notifications'
 
 export const runtime = 'nodejs'
 
@@ -58,7 +59,14 @@ export async function POST(req: NextRequest) {
     requestId: finalRequestId,
     subject: subject.trim(),
     email: maskEmailForLog(email),
-  }, 'Contact form received — Telegram bot delivery pending')
+  }, 'Contact form received')
+
+  notifyContactForm({
+    senderName: body.name,
+    senderEmail: body.email,
+    subject: body.subject,
+    message: body.message,
+  }).catch(console.error)
 
   return NextResponse.json({
     status: 'success',

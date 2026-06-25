@@ -4,6 +4,7 @@ import { bookingApiSchema } from "@/lib/validation/api-schemas"
 import { evaluateConsentStatus, getRequestIp, saveConsentRecord } from "@/lib/consent-service"
 import { z } from "zod"
 import { auth } from "@/auth"
+import { notifyBookingConfirmation } from "@/lib/notifications"
 
 export const runtime = "nodejs"
 
@@ -201,6 +202,8 @@ export async function POST(req: NextRequest) {
         status: "CONFIRMED",
       },
     })
+
+    notifyBookingConfirmation(appointment.id).catch(console.error)
 
     return NextResponse.json({ eventId: appointment.id })
   } catch (error) {
