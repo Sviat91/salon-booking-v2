@@ -67,6 +67,9 @@ const config: Config = {
           '5': 'var(--chart-5)',
         },
       },
+      fontFamily: {
+        sans: ['var(--font-sans)', 'system-ui', 'sans-serif'],
+      },
       borderRadius: {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',

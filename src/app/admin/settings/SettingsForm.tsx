@@ -9,6 +9,25 @@ import LogoEditor from "./LogoEditor"
 import BackgroundSection from "./BackgroundSection"
 import { ColorRow, ImageUploadField, SubmitButton } from "./FormFields"
 
+const M3_LIGHT_DEFAULTS = {
+  primaryColor:  '#FFF0F1',
+  cardColor:     '#FFF0F1',
+  accentColor:   '#8B4A58',
+  textColor:     '#211A1B',
+  mutedColor:    '#524344',
+  borderColor:   '#D8C2C3',
+} as const
+
+const M3_DARK_DEFAULTS = {
+  darkBgColor:      '#191112',
+  darkPrimaryColor: '#261E1F',
+  darkCardColor:    '#211A1B',
+  darkAccentColor:  '#FFB2B8',
+  darkTextColor:    '#EDE1E1',
+  darkMutedColor:   '#D8C2C3',
+  darkBorderColor:  '#524344',
+} as const
+
 type TenantConfig = {
   brandName:       string
   logoUrl:         string | null
@@ -85,6 +104,10 @@ const darkColorFields: { name: keyof TenantConfig; label: string; description: s
 export default function SettingsForm({ config }: { config: TenantConfig }) {
   const [state, formAction] = useFormState(saveSettings, initialState)
   const [isDirty, setIsDirty] = useState(false)
+  const [lightReset, setLightReset] = useState(0)
+  const [darkReset,  setDarkReset]  = useState(0)
+  const [lightColorOverrides, setLightColorOverrides] = useState<Record<string, string> | null>(null)
+  const [darkColorOverrides,  setDarkColorOverrides]  = useState<Record<string, string> | null>(null)
 
   const [logoUrl, setLogoUrl] = useState<string>(config.logoUrl ?? "")
   const [darkLogoUrl, setDarkLogoUrl] = useState<string>(config.darkLogoUrl ?? "")
@@ -144,6 +167,17 @@ export default function SettingsForm({ config }: { config: TenantConfig }) {
     } finally {
       setUploading(false)
     }
+  }
+
+  function resetLightToM3() {
+    setLightColorOverrides(M3_LIGHT_DEFAULTS)
+    setLightReset(k => k + 1)
+    setIsDirty(true)
+  }
+  function resetDarkToM3() {
+    setDarkColorOverrides(M3_DARK_DEFAULTS)
+    setDarkReset(k => k + 1)
+    setIsDirty(true)
   }
 
   return (
@@ -353,11 +387,20 @@ export default function SettingsForm({ config }: { config: TenantConfig }) {
 
       {/* ── Light theme ──────────────────────────────────────────── */}
       <section className="flex flex-col gap-6 bg-card border border-border p-6 rounded-xl shadow-sm">
-        <div>
-          <h2 className="text-base font-semibold">Light Theme</h2>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Colors used when the light theme is active
-          </p>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h2 className="text-base font-semibold">Light Theme</h2>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Colors used when the light theme is active
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={resetLightToM3}
+            className="shrink-0 text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors"
+          >
+            Reset to M3 defaults
+          </button>
         </div>
         <BackgroundSection
           config={{
@@ -371,20 +414,33 @@ export default function SettingsForm({ config }: { config: TenantConfig }) {
           }}
           onBgImageUpload={(url) => { setBgImageUrl(url); setIsDirty(true) }}
         />
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div key={lightReset} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {lightColorFields.map((field) => (
-            <ColorRow key={field.name} field={field} defaultValue={config[field.name] as string} />
+            <ColorRow
+              key={field.name}
+              field={field}
+              defaultValue={lightColorOverrides?.[field.name as keyof typeof M3_LIGHT_DEFAULTS] ?? config[field.name] as string}
+            />
           ))}
         </div>
       </section>
 
       {/* ── Dark theme ───────────────────────────────────────────── */}
       <section className="flex flex-col gap-6 bg-card border border-border p-6 rounded-xl shadow-sm">
-        <div>
-          <h2 className="text-base font-semibold">Dark Theme Colors</h2>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Colors used when the dark theme is active
-          </p>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h2 className="text-base font-semibold">Dark Theme Colors</h2>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Colors used when the dark theme is active
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={resetDarkToM3}
+            className="shrink-0 text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors"
+          >
+            Reset to M3 defaults
+          </button>
         </div>
         <BackgroundSection
           config={{
@@ -399,9 +455,13 @@ export default function SettingsForm({ config }: { config: TenantConfig }) {
           onBgImageUpload={(url) => { setDarkBgImageUrl(url); setIsDirty(true) }}
           prefix="dark"
         />
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div key={darkReset} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {darkColorFields.map((field) => (
-            <ColorRow key={field.name} field={field} defaultValue={config[field.name] as string} />
+            <ColorRow
+              key={field.name}
+              field={field}
+              defaultValue={darkColorOverrides?.[field.name as keyof typeof M3_DARK_DEFAULTS] ?? config[field.name] as string}
+            />
           ))}
         </div>
       </section>

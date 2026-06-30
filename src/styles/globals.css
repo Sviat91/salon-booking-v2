@@ -3,13 +3,13 @@
 @tailwind utilities;
 
 :root {
-  --bg-start: var(--color-primary); /* Accent tint at top-left */
-  --bg-end: var(--color-secondary); /* Main page background */
+  --bg-start: var(--color-primary, var(--md-primary-container));
+  --bg-end:   var(--color-secondary, var(--md-surface));
 }
 
 .dark {
-  --bg-start: var(--color-dark-primary, var(--color-primary));
-  --bg-end: var(--color-dark-bg);
+  --bg-start: var(--color-dark-primary, var(--md-primary-container));
+  --bg-end:   var(--color-dark-bg, var(--md-surface));
 }
 
 html {
@@ -23,7 +23,7 @@ body {
   min-height: 100%;
   margin: 0;
   position: relative;
-  color: var(--color-text);
+  color: var(--foreground);
   background-color: var(--bg-end);
   transition: background-color 0.3s ease;
   overflow-x: hidden;
@@ -36,7 +36,7 @@ body::before {
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  background: radial-gradient(1600px 1100px at 20% 0%, var(--bg-start), var(--bg-end)) !important;
+  background: radial-gradient(ellipse 140% 55% at 15% -5%, var(--bg-start) 0%, var(--bg-end) 58%) !important;
   background-repeat: no-repeat;
   background-size: cover;
 }
@@ -65,23 +65,23 @@ body:has(.admin-layout) > * > .flex-1 {
 }
 
 .dark body {
-  color: var(--color-dark-text);
-  background-color: var(--color-dark-bg);
+  color: var(--foreground);
+  background-color: var(--bg-end);
 }
 
 .dark body::before {
-  background: radial-gradient(1600px 1100px at 20% 0%, var(--color-dark-primary, var(--color-primary)), var(--color-dark-bg));
+  background: radial-gradient(1600px 1100px at 20% 0%, var(--bg-start), var(--bg-end));
 }
 
 @media (max-width: 1024px) {
   .dark body::before {
-    background: radial-gradient(1400px 1400px at 50% -10%, var(--color-dark-primary, var(--color-primary)), var(--color-dark-bg));
+    background: radial-gradient(1400px 1400px at 50% -10%, var(--bg-start), var(--bg-end));
   }
 }
 
 @media (max-width: 640px) {
   .dark body::before {
-    background: radial-gradient(1200px 1600px at 50% -20%, var(--color-dark-primary, var(--color-primary)), var(--color-dark-bg));
+    background: radial-gradient(1200px 1600px at 50% -20%, var(--bg-start), var(--bg-end));
   }
 }
 
@@ -370,89 +370,78 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 @layer base {
-  /*
-   * Tailwind CSS variables bridged to dynamic tenant CSS variables.
-   * Tenant vars (--color-primary, --color-text, etc.) are injected by
-   * the root layout's <style> tag from the DB on every request.
-   * This way, when settings are changed, BOTH the public site and the
-   * admin panel automatically reflect the new colors.
-   */
   :root {
-    /* Backgrounds — use tenant secondary/primary colors */
-    --background:         var(--color-secondary, #FFF6E9);
-    --foreground:         var(--color-text, #2B2B2B);
-    --card:               var(--color-card, #FFFFFF);
-    --card-foreground:    var(--color-text, #2B2B2B);
-    --popover:            var(--color-card, #FFFFFF);
-    --popover-foreground: var(--color-text, #2B2B2B);
+    /* Semantic aliases → --color-* (DB-customisable) with --md-* as CSS fallbacks */
+    --background:             var(--color-secondary, var(--md-surface));
+    --foreground:             var(--color-text,      var(--md-on-surface));
+    --card:                   var(--color-card,      var(--md-surface-container-low));
+    --card-foreground:        var(--color-text,      var(--md-on-surface));
+    --popover:                var(--color-card,      var(--md-surface-container-low));
+    --popover-foreground:     var(--color-text,      var(--md-on-surface));
 
-    /* Primary = tenant accent color (buttons, active nav, etc.) */
-    --primary:            var(--color-accent);
-    --primary-foreground: var(--color-text);
+    --primary:                var(--color-accent,    var(--md-primary));
+    --primary-foreground:     #FFFFFF;
 
-    /* Secondary & muted follow tenant colors */
-    --secondary:           var(--color-primary, #FDE5C3);
-    --secondary-foreground:var(--color-text, #2B2B2B);
-    --muted:               var(--color-primary, #FDE5C3);
-    --muted-foreground:    var(--color-muted, #6B6B6B);
+    --secondary:              var(--color-primary,   var(--md-surface-container-low));
+    --secondary-foreground:   var(--color-text,      var(--md-on-surface));
+    --muted:                  var(--color-primary,   var(--md-surface-container-high));
+    --muted-foreground:       var(--color-muted,     var(--md-on-surface-variant));
+    --accent:                 var(--color-primary,   var(--md-primary-container));
+    --accent-foreground:      var(--color-text,      var(--md-on-primary-container));
 
-    /* Accent follows tenant accent */
-    --accent:              var(--color-accent, #FFBBBD);
-    --accent-foreground:   var(--color-text, #2B2B2B);
+    --border:                 var(--color-border,    var(--md-outline-variant));
+    --input:                  var(--color-border,    var(--md-outline-variant));
+    --ring:                   var(--color-accent,    var(--md-primary));
 
-    /* Borders & inputs follow tenant border color */
-    --border:  var(--color-border, #E9E2D6);
-    --input:   var(--color-border, #E9E2D6);
-    --ring:    var(--color-accent, #FFBBBD);
+    --destructive:            var(--color-error,     var(--md-error));
+    --destructive-foreground: #FFFFFF;
 
-    /* Destructive — fixed */
-    --destructive: oklch(0.55 0.22 27);
+    --success:                var(--color-success,   var(--md-success));
+    --success-container:      var(--md-success-container);
 
-    --radius: 0.625rem;
+    --radius: 0.75rem;
 
-    /* Charts */
     --chart-1: oklch(0.60 0.10 50);
     --chart-2: oklch(0.50 0.08 30);
     --chart-3: oklch(0.70 0.07 75);
     --chart-4: oklch(0.80 0.06 55);
     --chart-5: oklch(0.65 0.09 18);
 
-    /* Sidebar follows same logic */
-    --sidebar:                    var(--color-secondary, #FFF6E9);
-    --sidebar-foreground:         var(--color-text, #2B2B2B);
-    --sidebar-primary:            var(--color-accent, #FFBBBD);
-    --sidebar-primary-foreground: var(--color-text, #2B2B2B);
-    --sidebar-accent:             var(--color-primary, #FDE5C3);
-    --sidebar-accent-foreground:  var(--color-text, #2B2B2B);
-    --sidebar-border:             var(--color-border, #E9E2D6);
-    --sidebar-ring:               var(--color-accent, #FFBBBD);
+    --sidebar:                    var(--color-card,   var(--md-surface-container-low));
+    --sidebar-foreground:         var(--color-text,   var(--md-on-surface));
+    --sidebar-primary:            var(--color-accent, var(--md-primary));
+    --sidebar-primary-foreground: #FFFFFF;
+    --sidebar-accent:             var(--color-primary,var(--md-primary-container));
+    --sidebar-accent-foreground:  var(--color-text,   var(--md-on-primary-container));
+    --sidebar-border:             var(--color-border, var(--md-outline-variant));
+    --sidebar-ring:               var(--color-accent, var(--md-primary));
   }
 
-  /* Dark mode — use tenant dark-theme vars */
   .dark {
-    --background:         var(--color-dark-bg, #9c6849);
-    --foreground:         var(--color-dark-text, #FFFFFF);
-    --card:               var(--color-dark-card, #2A2A2A);
-    --card-foreground:    var(--color-dark-text, #FFFFFF);
-    --popover:            var(--color-dark-card, #2A2A2A);
-    --popover-foreground: var(--color-dark-text, #FFFFFF);
+    /* Dark semantic aliases → --color-dark-* with --md-* fallbacks */
+    --background:             var(--color-dark-bg,      var(--md-surface));
+    --foreground:             var(--color-dark-text,    var(--md-on-surface));
+    --card:                   var(--color-dark-card,    var(--md-surface-container-low));
+    --card-foreground:        var(--color-dark-text,    var(--md-on-surface));
+    --popover:                var(--color-dark-card,    var(--md-surface-container-low));
+    --popover-foreground:     var(--color-dark-text,    var(--md-on-surface));
 
-    /* In dark mode, primary = tenant dark accent */
-    --primary:            var(--color-dark-accent, var(--color-accent));
-    --primary-foreground: var(--color-dark-text, #FFFFFF);
+    --primary:                var(--color-dark-accent,  var(--md-primary));
+    --primary-foreground:     #3B0017;
 
-    --secondary:           var(--color-dark-primary, var(--color-primary));
-    --secondary-foreground:var(--color-dark-text, #FFFFFF);
-    --muted:               var(--color-dark-primary, var(--color-primary));
-    --muted-foreground:    var(--color-dark-muted, #D0D0D0);
-    --accent:              var(--color-dark-accent, var(--color-accent));
-    --accent-foreground:   var(--color-dark-text, #FFFFFF);
+    --secondary:              var(--color-dark-primary, var(--md-surface-container));
+    --secondary-foreground:   var(--color-dark-text,    var(--md-on-surface));
+    --muted:                  var(--color-dark-primary, var(--md-surface-container-high));
+    --muted-foreground:       var(--color-dark-muted,   var(--md-on-surface-variant));
+    --accent:                 var(--color-dark-primary, var(--md-primary-container));
+    --accent-foreground:      var(--color-dark-text,    var(--md-on-primary-container));
 
-    --border:  var(--color-dark-border, #7A4F35);
-    --input:   var(--color-dark-border, #7A4F35);
-    --ring:    var(--color-dark-muted, #D0D0D0);
+    --border:                 var(--color-dark-border,  var(--md-outline-variant));
+    --input:                  var(--color-dark-border,  var(--md-outline-variant));
+    --ring:                   var(--color-dark-accent,  var(--md-primary));
 
-    --destructive: oklch(0.65 0.18 22);
+    --destructive:            #FFB4AB;
+    --destructive-foreground: #690005;
 
     --chart-1: oklch(0.70 0.10 50);
     --chart-2: oklch(0.60 0.08 30);
@@ -460,14 +449,14 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     --chart-4: oklch(0.82 0.06 55);
     --chart-5: oklch(0.68 0.09 18);
 
-    --sidebar:                    var(--color-dark-card, #2A2A2A);
-    --sidebar-foreground:         var(--color-dark-text, #FFFFFF);
-    --sidebar-primary:            var(--color-dark-accent, var(--color-accent));
-    --sidebar-primary-foreground: var(--color-dark-text, #FFFFFF);
-    --sidebar-accent:             var(--color-dark-border, #7A4F35);
-    --sidebar-accent-foreground:  var(--color-dark-text, #FFFFFF);
-    --sidebar-border:             var(--color-dark-border, #7A4F35);
-    --sidebar-ring:               var(--color-dark-muted, #D0D0D0);
+    --sidebar:                    var(--color-dark-card,   var(--md-surface-container-low));
+    --sidebar-foreground:         var(--color-dark-text,   var(--md-on-surface));
+    --sidebar-primary:            var(--color-dark-accent, var(--md-primary));
+    --sidebar-primary-foreground: #3B0017;
+    --sidebar-accent:             var(--color-dark-primary,var(--md-primary-container));
+    --sidebar-accent-foreground:  var(--color-dark-text,   var(--md-on-primary-container));
+    --sidebar-border:             var(--color-dark-border, var(--md-outline-variant));
+    --sidebar-ring:               var(--color-dark-accent, var(--md-primary));
   }
 }
 

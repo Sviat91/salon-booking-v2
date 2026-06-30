@@ -1,7 +1,8 @@
+import '../styles/m3-tokens.css'
 import '../styles/globals.css'
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
-import { Inter } from 'next/font/google'
+import { Roboto } from 'next/font/google'
 import Providers from './providers'
 import Footer from '../components/Footer'
 import { getTenantConfig } from '@/lib/tenant'
@@ -9,7 +10,7 @@ import { cn } from "@/lib/utils"
 
 export const dynamic = 'force-dynamic'
 
-const inter = Inter({ subsets: ['latin'] })
+const roboto = Roboto({ subsets: ['latin'], weight: ['300', '400', '500', '700'], variable: '--font-sans', display: 'swap' })
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://somique.beauty'
 
@@ -52,7 +53,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   const config = await getTenantConfig()
 
   return (
-    <html lang="pl" className={cn("font-sans")}>
+    <html lang="pl" className={cn(roboto.variable, "font-sans")}>
       <head>
         <script
           dangerouslySetInnerHTML={{
@@ -145,7 +146,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           data-website-id="8b85b843-7c23-4ec0-8487-423567d0d111"
         />
       </head>
-      <body className={inter.className}>
+      <body>
         <Providers>
           <div className="min-h-screen flex flex-col text-foreground">
             <div className="flex-1 w-full mx-auto">
