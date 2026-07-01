@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from "react"
 import { format, addMonths, addWeeks, addDays, startOfMonth, endOfMonth, startOfWeek, endOfWeek } from "date-fns"
 import { ChevronLeft, ChevronRight, Edit3, Save, Calendar } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem, SelectItemText } from "@/components/ui/select"
 
 import MonthView from "./MonthView"
 import WeekView from "./WeekView"
@@ -195,20 +196,16 @@ export default function ModernCalendar({
 
         <div className="flex flex-wrap items-center gap-3">
           {view !== "Month" && (
-            <div className="relative">
-              <select
-                value={step}
-                onChange={(e) => setStep(Number(e.target.value))}
-                className="appearance-none bg-transparent hover:bg-muted text-card-foreground border border-border rounded-md px-3 py-1.5 pr-8 text-sm font-medium shadow-sm outline-none focus:ring-1 focus:ring-primary transition-colors cursor-pointer"
-              >
+            <Select value={String(step)} onValueChange={(v) => setStep(Number(v ?? step))}>
+              <SelectTrigger className="h-auto w-auto bg-transparent hover:bg-muted px-3 py-1.5 text-sm font-medium shadow-sm">
+                <SelectValue>{(v: string) => `${v} min`}</SelectValue>
+              </SelectTrigger>
+              <SelectContent>
                 {[5, 10, 15, 30, 60].map(s => (
-                  <option key={s} value={s} className="bg-card">{s} min</option>
+                  <SelectItem key={s} value={String(s)}><SelectItemText>{s} min</SelectItemText></SelectItem>
                 ))}
-              </select>
-              <div className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground">
-                <ChevronRight className="w-3 h-3 rotate-90" />
-              </div>
-            </div>
+              </SelectContent>
+            </Select>
           )}
 
           <div className="h-6 w-px bg-border mx-1" />

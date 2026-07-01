@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import PhoneInput from '../ui/PhoneInput'
+import { Textarea } from '@/components/ui/textarea'
 import { clientLog } from '@/lib/client-logger'
 import { useSelectedMaster } from '@/contexts/MasterContext'
 
@@ -142,13 +143,13 @@ export default function ContactMasterPanel({ onBack, onSuccess }: ContactMasterP
           <label className="block text-sm font-medium text-neutral-700 dark:text-dark-text mb-1">
             {t('management.messageForMaster')}
           </label>
-          <textarea
+          <Textarea
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder={t('management.messagePlaceholder')}
             rows={5}
             disabled={isSubmitting}
-            className="w-full max-w-full box-border px-3 py-2.5 rounded-lg border border-border bg-card text-sm text-card-foreground focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed resize-none"
+            className="max-w-full box-border rounded-lg bg-card resize-none"
           />
           <div className="text-xs text-neutral-500 dark:text-dark-muted mt-1">
             {t('management.minChars')}

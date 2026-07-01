@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query"
 import { useTranslation } from "react-i18next"
 import { formatTimeRange } from "@/lib/utils/date-formatters"
 import { DatePickerDropdown } from "@/components/DatePickerDropdown"
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem, SelectItemText } from "@/components/ui/select"
 
 type ProcedureOption = {
   id: string
@@ -163,20 +164,26 @@ export default function EditAppointmentModal({
             <label className="mb-1 block text-sm font-medium text-foreground">
               {t("booking.service", "Service")}
             </label>
-            <select
+            <Select
               value={selectedProcedureId}
-              onChange={(e) => {
-                setSelectedProcedureId(e.target.value)
+              onValueChange={(v) => {
+                setSelectedProcedureId(v ?? "")
                 setSelectedSlot(null)
               }}
-              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
             >
-              {(proceduresData?.items || []).map((procedure) => (
-                <option key={procedure.id} value={procedure.id}>
-                  {procedure.name_pl}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger>
+                <SelectValue>
+                  {(v: string) => proceduresData?.items?.find((p: any) => p.id === v)?.name_pl ?? v}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {(proceduresData?.items || []).map((procedure) => (
+                  <SelectItem key={procedure.id} value={procedure.id}>
+                    <SelectItemText>{procedure.name_pl}</SelectItemText>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div>

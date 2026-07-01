@@ -18,6 +18,8 @@
   --md-on-error-container: #410002;
   --md-success: #21A67A;
   --md-success-container: #B7F2DC;
+  --md-on-success-container: #00391D;
+  --md-scrim: rgba(60, 45, 46, 0.32);
   --md-surface: #FFF8F6;
   --md-on-surface: #211A1B;
   --md-surface-variant: #F4DDDE;

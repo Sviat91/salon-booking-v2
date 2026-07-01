@@ -7,6 +7,7 @@ import { Copy, Check, Upload, X, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 import { createMaster, updateMaster, resetMasterPassword, type MasterFormState } from "./actions"
 
 type Master = {
@@ -213,13 +214,13 @@ export default function MasterForm({ master, onSuccess }: MasterFormProps) {
       {/* Bio */}
       <div className="grid gap-1.5">
         <Label htmlFor="bio">Bio</Label>
-        <textarea
+        <Textarea
           id="bio"
           name="bio"
           rows={3}
           defaultValue={master?.masterProfile?.bio ?? ""}
           placeholder="Short description of specialties…"
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/50 resize-none"
+          className="resize-none"
         />
       </div>
 

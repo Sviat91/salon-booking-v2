@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react"
 import { format } from "date-fns"
 import { Button } from "@/components/ui/button"
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem, SelectItemText } from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
 import { X, Calendar as CalIcon, User, MapPin, Plus, Trash2 } from "lucide-react"
 import { DatePickerDropdown } from "@/components/DatePickerDropdown"
 import { TimePickerDropdown } from "@/components/TimePickerDropdown"
@@ -190,15 +192,21 @@ export default function AppointmentModal({ date, initialAppointment, mode, apiPr
               {isAdminView && (
                 <div className="bg-muted/50 p-4 rounded-lg border border-border mb-4">
                   <label className="text-sm font-medium mb-1.5 block">Select Master <span className="text-destructive">*</span></label>
-                  <select 
-                    value={formMasterId} 
-                    onChange={e => setFormMasterId(e.target.value)}
-                    className="w-full flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                  <Select
+                    value={formMasterId}
+                    onValueChange={(v) => setFormMasterId(v ?? "")}
                     disabled={mode === "edit"}
                   >
-                    <option value="">-- Choose Master --</option>
-                    {masters.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
-                  </select>
+                    <SelectTrigger className="h-10">
+                      <SelectValue>
+                        {(v: string) => v ? (masters.find(m => m.id === v)?.name ?? v) : "-- Choose Master --"}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value=""><SelectItemText>-- Choose Master --</SelectItemText></SelectItem>
+                      {masters.map(m => <SelectItem key={m.id} value={m.id}><SelectItemText>{m.name}</SelectItemText></SelectItem>)}
+                    </SelectContent>
+                  </Select>
                 </div>
               )}
 
@@ -212,14 +220,21 @@ export default function AppointmentModal({ date, initialAppointment, mode, apiPr
                   
                   <div className="space-y-1.5">
                     <label className="text-sm font-medium">Select Service</label>
-                    <select 
-                      value={serviceId} 
-                      onChange={e => setServiceId(e.target.value)}
-                      className="w-full flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                    >
-                      <option value="custom">-- Custom Service --</option>
-                      {services.map(s => <option key={s.id} value={s.id}>{s.name} ({s.duration}m)</option>)}
-                    </select>
+                    <Select value={serviceId} onValueChange={(v) => setServiceId(v ?? "custom")}>
+                      <SelectTrigger className="h-10">
+                        <SelectValue>
+                          {(v: string) => {
+                            if (v === "custom") return "-- Custom Service --"
+                            const s = services.find(sv => sv.id === v)
+                            return s ? `${s.name} (${s.duration}m)` : v
+                          }}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="custom"><SelectItemText>-- Custom Service --</SelectItemText></SelectItem>
+                        {services.map(s => <SelectItem key={s.id} value={s.id}><SelectItemText>{s.name} ({s.duration}m)</SelectItemText></SelectItem>)}
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   {serviceId === "custom" && (
@@ -244,16 +259,21 @@ export default function AppointmentModal({ date, initialAppointment, mode, apiPr
                   
                   <div className="space-y-1.5">
                     <label className="text-sm font-medium">Select Existing Client</label>
-                    <div className="relative">
-                      <select 
-                        value={clientId}
-                        onChange={e => setClientId(e.target.value)}
-                        className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary appearance-none"
-                      >
-                        <option value="custom">-- New Client / Guest --</option>
-                        {clients.map(c => <option key={c.id} value={c.id}>{c.name} {c.phone ? `(${c.phone})` : ''}</option>)}
-                      </select>
-                    </div>
+                    <Select value={clientId} onValueChange={(v) => setClientId(v ?? "custom")}>
+                      <SelectTrigger className="h-10">
+                        <SelectValue>
+                          {(v: string) => {
+                            if (v === "custom") return "-- New Client / Guest --"
+                            const c = clients.find(cl => cl.id === v)
+                            return c ? `${c.name ?? ''}${c.phone ? ` (${c.phone})` : ''}` : v
+                          }}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="custom"><SelectItemText>-- New Client / Guest --</SelectItemText></SelectItem>
+                        {clients.map(c => <SelectItem key={c.id} value={c.id}><SelectItemText>{c.name} {c.phone ? `(${c.phone})` : ''}</SelectItemText></SelectItem>)}
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   {clientId === "custom" && (
@@ -345,10 +365,10 @@ export default function AppointmentModal({ date, initialAppointment, mode, apiPr
               <div>
                  <div className="space-y-1.5">
                     <label className="text-sm font-medium">Notes (Optional)</label>
-                    <textarea 
+                    <Textarea
                       value={notes}
                       onChange={e => setNotes(e.target.value)}
-                      className="w-full flex min-h-[80px] rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary resize-none" 
+                      className="min-h-[80px] resize-none"
                       placeholder="Special requests or comments about this booking..."
                     />
                   </div>

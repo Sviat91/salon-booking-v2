@@ -4,6 +4,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Plus, Pencil, Trash2, Mail } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import {
   Sheet,
   SheetContent,
@@ -28,15 +29,9 @@ interface Props {
 
 function PermBadge({ label, granted }: { label: string; granted: boolean }) {
   return (
-    <span
-      className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${
-        granted
-          ? "bg-green-500/10 text-green-600 dark:text-green-400"
-          : "bg-muted text-muted-foreground"
-      }`}
-    >
+    <Badge variant={granted ? "success" : "muted"} className="text-[10px]">
       {label}
-    </span>
+    </Badge>
   )
 }
 

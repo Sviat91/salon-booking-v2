@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Badge } from "@/components/ui/badge"
 import type { AdminPermissions } from "@/lib/admin-permissions"
 
 type ConsentRow = {
@@ -32,10 +33,10 @@ function getStatus(record: ConsentRow) {
 
 function StatusBadge({ status }: { status: string }) {
   if (status === "Active")
-    return <span className="rounded-full bg-green-500/10 px-2 py-0.5 text-xs text-green-600 dark:text-green-400">Active</span>
+    return <Badge variant="success">Active</Badge>
   if (status === "Withdrawn")
-    return <span className="rounded-full bg-yellow-500/10 px-2 py-0.5 text-xs text-yellow-600 dark:text-yellow-400">Withdrawn</span>
-  return <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">Erased</span>
+    return <Badge variant="warning">Withdrawn</Badge>
+  return <Badge variant="muted">Erased</Badge>
 }
 
 export default function GdprTable({ records, permissions }: Props) {

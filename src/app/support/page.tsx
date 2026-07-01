@@ -5,6 +5,8 @@ import LanguageToggle from '../../components/LanguageToggle'
 import ConsentWithdrawalModal from '../../components/ConsentWithdrawalModal'
 import DataErasureModal from '../../components/DataErasureModal'
 import DataExportModal from '../../components/DataExportModal'
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem, SelectItemText } from '@/components/ui/select'
+import { Textarea } from '@/components/ui/textarea'
 import { useState, useRef, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
@@ -18,6 +20,15 @@ type SalonConfig = {
 
 export default function SupportPage() {
   const { t } = useTranslation()
+  const subjectLabels: Record<string, string> = {
+    '': t('form.selectTopic'),
+    booking: t('support.topics.booking'),
+    cancellation: t('support.topics.booking'),
+    payment: t('support.topics.other'),
+    technical: t('support.topics.technical'),
+    privacy: t('support.topics.privacy'),
+    other: t('support.topics.other'),
+  }
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -235,32 +246,36 @@ export default function SupportPage() {
                     <label className="block text-sm font-medium text-foreground mb-2">
                       {t('support.subject')} *
                     </label>
-                    <select
+                    <Select
                       required
                       value={formData.subject}
-                      onChange={(e) => handleInputChange('subject', e.target.value)}
-                      className="w-full rounded-xl border border-border bg-card px-4 py-3 text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                      onValueChange={(v) => handleInputChange('subject', v ?? '')}
                     >
-                      <option value="">{t('form.selectTopic')}</option>
-                      <option value="booking">{t('support.topics.booking')}</option>
-                      <option value="cancellation">{t('support.topics.booking')}</option>
-                      <option value="payment">{t('support.topics.other')}</option>
-                      <option value="technical">{t('support.topics.technical')}</option>
-                      <option value="privacy">{t('support.topics.privacy')}</option>
-                      <option value="other">{t('support.topics.other')}</option>
-                    </select>
+                      <SelectTrigger className="h-auto w-full rounded-xl px-4 py-3">
+                        <SelectValue>{(v: string) => subjectLabels[v] ?? v}</SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value=""><SelectItemText>{t('form.selectTopic')}</SelectItemText></SelectItem>
+                        <SelectItem value="booking"><SelectItemText>{t('support.topics.booking')}</SelectItemText></SelectItem>
+                        <SelectItem value="cancellation"><SelectItemText>{t('support.topics.booking')}</SelectItemText></SelectItem>
+                        <SelectItem value="payment"><SelectItemText>{t('support.topics.other')}</SelectItemText></SelectItem>
+                        <SelectItem value="technical"><SelectItemText>{t('support.topics.technical')}</SelectItemText></SelectItem>
+                        <SelectItem value="privacy"><SelectItemText>{t('support.topics.privacy')}</SelectItemText></SelectItem>
+                        <SelectItem value="other"><SelectItemText>{t('support.topics.other')}</SelectItemText></SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                   
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">
                       {t('form.message')} *
                     </label>
-                    <textarea
+                    <Textarea
                       required
                       rows={4}
                       value={formData.message}
                       onChange={(e) => handleInputChange('message', e.target.value)}
-                      className="w-full rounded-xl border border-border bg-card px-4 py-3 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none"
+                      className="rounded-xl px-4 py-3 resize-none"
                       placeholder="Opisz szczegółowo swój problem lub pytanie..."
                     />
                   </div>

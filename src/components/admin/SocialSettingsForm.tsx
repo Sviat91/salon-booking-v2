@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 import {
   Form,
   FormControl,
@@ -224,10 +225,10 @@ export default function SocialSettingsForm() {
                 <FormItem className="sm:col-span-2">
                   <FormLabel>Private Key (.p8 contents)</FormLabel>
                   <FormControl>
-                    <textarea 
-                      placeholder="-----BEGIN PRIVATE KEY-----&#10;...&#10;-----END PRIVATE KEY-----" 
-                      className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-h-[120px] font-mono"
-                      {...field} 
+                    <Textarea
+                      placeholder="-----BEGIN PRIVATE KEY-----&#10;...&#10;-----END PRIVATE KEY-----"
+                      className="min-h-[120px] font-mono"
+                      {...field}
                     />
                   </FormControl>
                   <FormDescription>Paste the entire contents of the .p8 file you downloaded. Encrypted on save.</FormDescription>
