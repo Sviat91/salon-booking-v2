@@ -17,7 +17,7 @@ function SelectIcon({ className, ...props }: SelectPrimitive.Icon.Props) {
       className={cn("shrink-0", className)}
       {...props}
     >
-      <ChevronDown className="size-4 text-muted-foreground" />
+      <ChevronDown className="size-4 text-muted-foreground transition-transform duration-150 group-data-[popup-open]/select-trigger:rotate-180" />
     </SelectPrimitive.Icon>
   )
 }
@@ -31,7 +31,7 @@ function SelectTrigger({
     <SelectPrimitive.Trigger
       data-slot="select-trigger"
       className={cn(
-        "flex h-8 w-full items-center justify-between gap-2 rounded-[--radius] border border-input bg-transparent px-3 text-sm transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
+        "group/select-trigger flex h-8 w-full items-center justify-between gap-2 rounded-[--radius] border border-input bg-transparent px-3 text-sm transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
         className
       )}
       {...props}
@@ -53,11 +53,15 @@ function SelectContent({
 }: SelectPrimitive.Popup.Props) {
   return (
     <SelectPrimitive.Portal>
-      <SelectPrimitive.Positioner sideOffset={4} data-slot="select-positioner">
+      <SelectPrimitive.Positioner
+        sideOffset={4}
+        alignItemWithTrigger={false}
+        data-slot="select-positioner"
+      >
         <SelectPrimitive.Popup
           data-slot="select-content"
           className={cn(
-            "z-50 min-w-[var(--anchor-width)] overflow-auto rounded-[--radius] border border-border bg-popover p-1 text-popover-foreground shadow-md outline-none duration-100 data-[side=bottom]:slide-in-from-top-2 data-[side=top]:slide-in-from-bottom-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[open]:animate-in data-[open]:fade-in-0 data-[open]:zoom-in-95 data-[closed]:animate-out data-[closed]:fade-out-0 data-[closed]:zoom-out-95",
+            "z-50 min-w-[var(--anchor-width)] origin-[var(--transform-origin)] overflow-auto rounded-[--radius] border border-border bg-popover p-1 text-popover-foreground shadow-md outline-none duration-150 data-[side=bottom]:slide-in-from-top-2 data-[side=top]:slide-in-from-bottom-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[open]:animate-in data-[open]:fade-in-0 data-[open]:zoom-in-90 data-[closed]:animate-out data-[closed]:fade-out-0 data-[closed]:zoom-out-90",
             className
           )}
           {...props}
