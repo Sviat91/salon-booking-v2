@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<!-- @dsCard group="Brand" name="Booking Flow" viewport="1280x800" -->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Somique Beauty — Book a visit</title>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    /* Brand */
+    --brand-bg: #7B4A30;
+    --brand-bg-dark: #5c3420;
+
+    /* M3 Surface on dark warm tone */
+    --surface: #2B1A12;
+    --surface-1: #341f15;
+    --surface-2: #3d2519;
+    --surface-3: #47291c;
+    --surface-container: #3a2218;
+    --surface-container-high: #422819;
+
+    /* M3 On-surface */
+    --on-surface: #f5e6de;
+    --on-surface-var: #c9a89a;
+
+    /* M3 Primary — derived from brand pink */
+    --primary: #F2AFAB;
+    --on-primary: #4a1010;
+    --primary-container: #6B2820;
+    --on-primary-container: #ffdad7;
+
+    /* M3 Secondary — lavender */
+    --secondary: #C4B3E8;
+    --on-secondary: #2c1f4a;
+    --secondary-container: #42396a;
+    --on-secondary-container: #e5deff;
+
+    /* M3 Outline */
+    --outline: #8c6e62;
+    --outline-var: #5a3d32;
+
+    /* Typography */
+    --font-display: 'Google Sans', 'Roboto', sans-serif;
+    --font-body: 'Roboto', sans-serif;
+
+    /* M3 Shape */
+    --shape-xs: 4px;
+    --shape-sm: 8px;
+    --shape-md: 12px;
+    --shape-lg: 16px;
+    --shape-xl: 28px;
+    --shape-full: 50px;
+  }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--brand-bg);
+    min-height: 100vh;
+    color: var(--on-surface);
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── NAV ── */
+  .top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 24px;
+    background: rgba(0,0,0,0.18);
+  }
+  .nav-left { display: flex; align-items: center; gap: 16px; }
+  .back-btn {
+    display: flex; align-items: center; gap: 4px;
+    background: rgba(255,255,255,0.1);
+    border: none; border-radius: var(--shape-full);
+    color: var(--on-surface);
+    font-family: var(--font-body); font-size: 13px; font-weight: 500;
+    padding: 8px 16px 8px 12px;
+    cursor: pointer; letter-spacing: 0.02em;
+    transition: background 0.2s;
+  }
+  .back-btn:hover { background: rgba(255,255,255,0.18); }
+  .logo { display: flex; flex-direction: column; line-height: 1.1; }
+  .logo-name { font-family: var(--font-display); font-size: 20px; letter-spacing: 0.14em; font-weight: 700; }
+  .logo-sub { font-size: 11px; letter-spacing: 0.22em; color: rgba(255,255,255,0.55); display: flex; align-items: center; gap: 5px; }
+  .logo-dot { width: 8px; height: 8px; background: var(--primary); border-radius: 50%; }
+  .nav-right { display: flex; align-items: center; gap: 8px; }
+  .lang-chip {
+    background: rgba(255,255,255,0.1); border: none; border-radius: var(--shape-full);
+    color: var(--on-surface); font-size: 13px; font-family: var(--font-body);
+    padding: 6px 14px; cursor: pointer; display: flex; align-items: center; gap: 4px;
+    transition: background 0.2s;
+  }
+  .lang-chip:hover { background: rgba(255,255,255,0.18); }
+  .avatar-sm {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-container), var(--secondary-container));
+    display: flex; align-items: center; justify-content: center; font-size: 18px;
+    border: 2px solid rgba(255,255,255,0.15);
+  }
+
+  /* ── PAGE ── */
+  .page {
+    flex: 1; display: flex; flex-direction: column; align-items: center;
+    padding: 24px 32px 40px;
+  }
+  .specialist-row { display: flex; flex-direction: column; align-items: center; margin-bottom: 20px; }
+  .specialist-avatar {
+    width: 60px; height: 60px; border-radius: 50%;
+    background: linear-gradient(135deg, #c9a0a8, #8B7FA8);
+    margin-bottom: 10px; font-size: 28px;
+    display: flex; align-items: center; justify-content: center;
+    border: 3px solid rgba(255,255,255,0.15);
+  }
+  .page-title {
+    font-family: var(--font-display); font-size: 32px; font-weight: 500;
+    letter-spacing: -0.01em; color: var(--on-surface);
+  }
+
+  .booking-layout {
+    display: flex; gap: 16px;
+    width: 100%; max-width: 740px;
+  }
+
+  /* ── M3 CARD ── */
+  .m3-card {
+    background: var(--surface-1);
+    border-radius: var(--shape-xl);
+    border: 1px solid var(--outline-var);
+  }
+
+  /* ── CALENDAR CARD ── */
+  .cal-card { flex: 1; padding: 20px; }
+  .cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .cal-month { font-family: var(--font-display); font-size: 15px; font-weight: 500; }
+  .cal-nav {
+    width: 40px; height: 40px; border-radius: 50%;
+    border: none; background: transparent; color: var(--on-surface);
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    font-size: 18px; transition: background 0.15s;
+  }
+  .cal-nav:hover { background: rgba(255,255,255,0.08); }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; text-align: center; }
+  .cal-dow { font-size: 11px; color: var(--on-surface-var); padding: 6px 0 10px; font-weight: 500; letter-spacing: 0.03em; }
+  .cal-day {
+    width: 34px; height: 34px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; margin: auto; cursor: default;
+    color: rgba(255,255,255,0.35); transition: all 0.15s;
+    font-family: var(--font-body);
+  }
+  .cal-day.available { color: var(--on-surface); cursor: pointer; }
+  .cal-day.available:hover { background: rgba(242,175,171,0.15); }
+  .cal-day.today {
+    background: transparent;
+    border: 2px solid var(--primary); color: var(--primary); font-weight: 500;
+  }
+  .cal-day.selected { background: var(--secondary); color: var(--on-secondary); font-weight: 500; }
+  .cal-day.has-slots::after {
+    content: ''; display: block; width: 4px; height: 4px; border-radius: 50%;
+    background: var(--primary); margin: -6px auto 0; position: relative; top: 6px;
+  }
+  .cal-footer { margin-top: 14px; font-size: 12px; color: var(--on-surface-var); }
+
+  /* ── RIGHT PANEL ── */
+  .right-col { display: flex; flex-direction: column; gap: 12px; flex: 1; }
+  .side-card { padding: 20px; }
+  .m3-label-lg { font-family: var(--font-display); font-size: 15px; font-weight: 500; margin-bottom: 12px; }
+  .m3-label-sm { font-size: 11px; letter-spacing: 0.08em; color: var(--on-surface-var); margin-bottom: 6px; text-transform: uppercase; }
+
+  /* M3 Filled Dropdown */
+  .m3-select-container { position: relative; }
+  .m3-select {
+    width: 100%; background: var(--surface-container);
+    border: 1px solid var(--outline); border-radius: var(--shape-sm);
+    color: var(--on-surface); font-family: var(--font-body); font-size: 14px;
+    padding: 14px 40px 14px 16px;
+    appearance: none; cursor: pointer; outline: none;
+    transition: border-color 0.2s;
+  }
+  .m3-select:focus { border-color: var(--primary); }
+  .m3-select-icon {
+    position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+    color: var(--on-surface-var); pointer-events: none; font-size: 20px;
+  }
+
+  /* M3 Filled Button */
+  .m3-btn-filled {
+    width: 100%; padding: 12px 24px;
+    border-radius: var(--shape-full); border: none;
+    background: var(--primary); color: var(--on-primary);
+    font-family: var(--font-body); font-size: 14px; font-weight: 500;
+    letter-spacing: 0.03em; cursor: pointer;
+    transition: box-shadow 0.2s, opacity 0.2s;
+    position: relative; overflow: hidden;
+  }
+  .m3-btn-filled:hover { box-shadow: 0 2px 8px rgba(242,175,171,0.35); opacity: 0.92; }
+  .m3-btn-filled:disabled { opacity: 0.38; cursor: default; box-shadow: none; }
+
+  /* M3 Tonal Button */
+  .m3-btn-tonal {
+    width: 100%; padding: 12px 24px;
+    border-radius: var(--shape-full); border: none;
+    background: var(--secondary-container); color: var(--on-secondary-container);
+    font-family: var(--font-body); font-size: 14px; font-weight: 500;
+    letter-spacing: 0.03em; cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .m3-btn-tonal:hover { opacity: 0.88; }
+
+  /* M3 Text Button */
+  .m3-btn-text {
+    width: 100%; padding: 12px 24px;
+    border-radius: var(--shape-full); border: none;
+    background: transparent; color: var(--primary);
+    font-family: var(--font-body); font-size: 14px; font-weight: 500;
+    letter-spacing: 0.03em; cursor: pointer;
+    transition: background 0.15s;
+  }
+  .m3-btn-text:hover { background: rgba(242,175,171,0.08); }
+
+  /* ── SCRIM ── */
+  .scrim {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 50;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.3s;
+  }
+  .scrim.open { opacity: 1; pointer-events: all; }
+
+  /* ── M3 DIALOG ── */
+  .m3-dialog {
+    position: fixed; z-index: 100;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -46%) scale(0.96);
+    background: var(--surface-2);
+    border-radius: var(--shape-xl);
+    width: 400px; max-width: calc(100vw - 40px);
+    max-height: 90vh; overflow-y: auto;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.55);
+    opacity: 0; pointer-events: none;
+    transition: all 0.28s cubic-bezier(.22,1,.36,1);
+  }
+  .m3-dialog.open {
+    opacity: 1; pointer-events: all;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  .m3-dialog-header { padding: 24px 24px 0; }
+  .m3-dialog-icon {
+    width: 48px; height: 48px; border-radius: 50%;
+    background: var(--primary-container);
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 16px;
+  }
+  .m3-dialog-icon .material-symbols-outlined { color: var(--on-primary-container); font-size: 24px; }
+  .m3-dialog-title { font-family: var(--font-display); font-size: 22px; font-weight: 500; margin-bottom: 4px; }
+  .m3-dialog-sub { font-size: 13px; color: var(--on-surface-var); margin-bottom: 4px; }
+  .m3-dialog-divider { height: 1px; background: var(--outline-var); margin: 16px 0 0; }
+  .m3-dialog-body { padding: 16px 24px; }
+  .m3-dialog-actions { padding: 8px 16px 20px; display: flex; flex-direction: column; gap: 4px; }
+
+  /* Time slots — M3 Filter Chip style */
+  .time-section-title {
+    font-size: 11px; letter-spacing: 0.08em; color: var(--on-surface-var);
+    text-transform: uppercase; margin: 12px 0 8px;
+  }
+  .chip-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+  .m3-chip {
+    padding: 8px 16px; border-radius: var(--shape-full);
+    border: 1px solid var(--outline);
+    background: transparent;
+    color: var(--on-surface); font-family: var(--font-body); font-size: 13px;
+    cursor: pointer; transition: all 0.15s; font-weight: 400;
+  }
+  .m3-chip:hover { background: rgba(255,255,255,0.06); border-color: var(--on-surface-var); }
+  .m3-chip.selected {
+    background: var(--secondary-container);
+    border-color: var(--secondary-container);
+    color: var(--on-secondary-container); font-weight: 500;
+  }
+  .m3-chip.unavailable { opacity: 0.3; cursor: not-allowed; text-decoration: line-through; }
+
+  /* Confirmation rows */
+  .info-row {
+    display: flex; align-items: flex-start; gap: 16px;
+    padding: 12px 0;
+  }
+  .info-row + .info-row { border-top: 1px solid var(--outline-var); }
+  .info-icon {
+    width: 40px; height: 40px; border-radius: var(--shape-md);
+    background: var(--surface-container-high);
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .info-icon .material-symbols-outlined { font-size: 20px; color: var(--primary); }
+  .info-key { font-size: 11px; color: var(--on-surface-var); letter-spacing: 0.06em; margin-bottom: 3px; }
+  .info-val { font-size: 14px; color: var(--on-surface); font-weight: 400; }
+  .info-note { font-size: 12px; color: var(--on-surface-var); margin-top: 2px; }
+
+  /* M3 Suggestion chip / badge */
+  .m3-badge {
+    display: inline-flex; align-items: center;
+    background: var(--secondary-container); color: var(--on-secondary-container);
+    font-size: 11px; font-weight: 500; padding: 2px 10px;
+    border-radius: var(--shape-full); margin-top: 4px;
+  }
+
+  /* Price summary */
+  .price-summary {
+    background: var(--surface-container);
+    border-radius: var(--shape-md); padding: 14px 16px;
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 8px;
+  }
+  .price-label { font-size: 13px; color: var(--on-surface-var); }
+  .price-val { font-family: var(--font-display); font-size: 22px; font-weight: 500; color: var(--on-surface); }
+
+  /* Step indicator */
+  .step-row { display: flex; gap: 6px; margin-bottom: 16px; }
+  .step-pip { height: 3px; border-radius: 3px; transition: all 0.25s; }
+  .step-pip.inactive { flex: 1; background: rgba(255,255,255,0.15); }
+  .step-pip.active { flex: 2; background: var(--primary); }
+  .step-pip.done { flex: 1; background: var(--secondary); }
+
+  /* Success */
+  .success-check {
+    width: 72px; height: 72px; border-radius: 50%;
+    background: var(--primary-container);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 16px;
+  }
+  .success-check .material-symbols-outlined { font-size: 36px; color: var(--on-primary-container); }
+  .ref-chip {
+    background: var(--surface-container); border-radius: var(--shape-md);
+    padding: 12px 16px; margin: 12px 0;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .ref-code { font-size: 20px; font-weight: 500; color: var(--primary); letter-spacing: 0.1em; }
+  .ref-label { font-size: 11px; color: var(--on-surface-var); margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.06em; }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<header class="top-bar">
+  <div class="nav-left">
+    <button class="back-btn">
+      <span class="material-symbols-outlined" style="font-size:18px;font-variation-settings:'FILL' 0,'wght' 400">arrow_back</span>
+      Back
+    </button>
+    <div class="logo">
+      <div class="logo-name">SOMIQUE</div>
+      <div class="logo-sub">beauty <div class="logo-dot"></div></div>
+    </div>
+  </div>
+  <div class="nav-right">
+    <button class="lang-chip">EN <span class="material-symbols-outlined" style="font-size:16px">expand_more</span></button>
+    <div class="avatar-sm">👩</div>
+  </div>
+</header>
+
+<!-- PAGE -->
+<div class="page">
+  <div class="specialist-row">
+    <div class="specialist-avatar">👩</div>
+    <h1 class="page-title">Book a visit</h1>
+  </div>
+
+  <div class="booking-layout">
+
+    <!-- CALENDAR -->
+    <div class="m3-card cal-card">
+      <div class="cal-header">
+        <button class="cal-nav">‹</button>
+        <span class="cal-month">April 2026</span>
+        <button class="cal-nav">›</button>
+      </div>
+      <div class="cal-grid">
+        <div class="cal-dow">Mo</div><div class="cal-dow">Tu</div><div class="cal-dow">We</div>
+        <div class="cal-dow">Th</div><div class="cal-dow">Fr</div><div class="cal-dow">Sa</div><div class="cal-dow">Su</div>
+
+        <div></div><div></div><div class="cal-day">1</div><div class="cal-day">2</div>
+        <div class="cal-day">3</div><div class="cal-day">4</div><div class="cal-day">5</div>
+        <div class="cal-day">6</div><div class="cal-day">7</div><div class="cal-day">8</div>
+        <div class="cal-day">9</div><div class="cal-day">10</div><div class="cal-day">11</div><div class="cal-day">12</div>
+        <div class="cal-day">13</div><div class="cal-day">14</div><div class="cal-day">15</div>
+        <div class="cal-day">16</div><div class="cal-day">17</div><div class="cal-day">18</div><div class="cal-day">19</div>
+        <div class="cal-day">20</div><div class="cal-day">21</div><div class="cal-day">22</div>
+        <div class="cal-day">23</div><div class="cal-day">24</div>
+        <div class="cal-day today">25</div>
+        <div class="cal-day selected has-slots" id="d26" onclick="pickDate(26,'Sunday, April 26')">26</div>
+        <div class="cal-day">27</div>
+        <div class="cal-day available has-slots" id="d28" onclick="pickDate(28,'Tuesday, April 28')">28</div>
+        <div class="cal-day available has-slots" id="d29" onclick="pickDate(29,'Wednesday, April 29')">29</div>
+        <div class="cal-day available has-slots" id="d30" onclick="pickDate(30,'Thursday, April 30')">30</div>
+      </div>
+      <div class="cal-footer">Select a date</div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="right-col">
+      <div class="m3-card side-card">
+        <div class="m3-label-lg">Service</div>
+        <div class="m3-label-sm">Service</div>
+        <div class="m3-select-container">
+          <select class="m3-select">
+            <option>Masaż twarzy Kobido — 60 min / 150 zł</option>
+            <option>Masaż relaksacyjny — 45 min / 110 zł</option>
+            <option>Peeling enzymatyczny — 30 min / 80 zł</option>
+          </select>
+          <span class="material-symbols-outlined m3-select-icon" style="font-variation-settings:'FILL' 0,'wght' 400">expand_more</span>
+        </div>
+      </div>
+      <div class="m3-card side-card">
+        <div class="m3-label-lg">Manage booking</div>
+        <button class="m3-btn-filled" onclick="openTime(28,'Tuesday, April 28')">
+          Click to manage your booking
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- SCRIM -->
+<div class="scrim" id="scrim" onclick="closeAll()"></div>
+
+<!-- ═══ DIALOG 1: TIME SELECTION ═══ -->
+<div class="m3-dialog" id="dlgTime">
+  <div class="m3-dialog-header">
+    <div class="step-row">
+      <div class="step-pip active" id="sp1a"></div>
+      <div class="step-pip inactive" id="sp1b"></div>
+      <div class="step-pip inactive" id="sp1c"></div>
+    </div>
+    <div class="m3-dialog-icon">
+      <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1,'wght' 400">schedule</span>
+    </div>
+    <div class="m3-dialog-title">Select a time</div>
+    <div class="m3-dialog-sub" id="dlgTimeSub">Tuesday, April 28</div>
+    <div class="m3-dialog-divider"></div>
+  </div>
+  <div class="m3-dialog-body">
+    <div class="time-section-title">Morning</div>
+    <div class="chip-grid">
+      <button class="m3-chip" onclick="pickTime(this)">09:00</button>
+      <button class="m3-chip unavailable">09:30</button>
+      <button class="m3-chip" onclick="pickTime(this)">10:00</button>
+      <button class="m3-chip unavailable">10:30</button>
+      <button class="m3-chip" onclick="pickTime(this)">11:00</button>
+      <button class="m3-chip" onclick="pickTime(this)">11:30</button>
+      <button class="m3-chip unavailable">12:00</button>
+      <button class="m3-chip" onclick="pickTime(this)">12:30</button>
+    </div>
+    <div class="time-section-title">Afternoon</div>
+    <div class="chip-grid">
+      <button class="m3-chip unavailable">13:00</button>
+      <button class="m3-chip" onclick="pickTime(this)">13:30</button>
+      <button class="m3-chip" onclick="pickTime(this)">14:00</button>
+      <button class="m3-chip unavailable">14:30</button>
+      <button class="m3-chip" onclick="pickTime(this)">15:00</button>
+      <button class="m3-chip" onclick="pickTime(this)">15:30</button>
+      <button class="m3-chip" onclick="pickTime(this)">16:00</button>
+      <button class="m3-chip unavailable">16:30</button>
+    </div>
+    <div class="time-section-title">Evening</div>
+    <div class="chip-grid">
+      <button class="m3-chip" onclick="pickTime(this)">17:00</button>
+      <button class="m3-chip" onclick="pickTime(this)">17:30</button>
+      <button class="m3-chip unavailable">18:00</button>
+      <button class="m3-chip" onclick="pickTime(this)">18:30</button>
+    </div>
+  </div>
+  <div class="m3-dialog-actions">
+    <button class="m3-btn-filled" id="btnNext1" disabled onclick="openConfirm()">Continue</button>
+    <button class="m3-btn-text" onclick="closeAll()">Cancel</button>
+  </div>
+</div>
+
+<!-- ═══ DIALOG 2: CONFIRM ═══ -->
+<div class="m3-dialog" id="dlgConfirm">
+  <div class="m3-dialog-header">
+    <div class="step-row">
+      <div class="step-pip done"></div>
+      <div class="step-pip active"></div>
+      <div class="step-pip inactive"></div>
+    </div>
+    <div class="m3-dialog-icon">
+      <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1,'wght' 400">event_available</span>
+    </div>
+    <div class="m3-dialog-title">Confirm booking</div>
+    <div class="m3-dialog-sub">Review your appointment details</div>
+    <div class="m3-dialog-divider"></div>
+  </div>
+  <div class="m3-dialog-body">
+    <div class="info-row">
+      <div class="info-icon">
+        <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1,'wght' 400">spa</span>
+      </div>
+      <div>
+        <div class="info-key">SERVICE</div>
+        <div class="info-val">Masaż twarzy Kobido</div>
+        <div class="m3-badge">60 min</div>
+      </div>
+    </div>
+    <div class="info-row">
+      <div class="info-icon">
+        <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1,'wght' 400">calendar_month</span>
+      </div>
+      <div>
+        <div class="info-key">DATE & TIME</div>
+        <div class="info-val" id="confirmDT">Tuesday, April 28 · 15:00</div>
+      </div>
+    </div>
+    <div class="info-row">
+      <div class="info-icon">
+        <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1,'wght' 400">location_on</span>
+      </div>
+      <div>
+        <div class="info-key">LOCATION</div>
+        <div class="info-val">Somique Beauty Studio</div>
+        <div class="info-note">ul. Piękna 12, Warszawa</div>
+      </div>
+    </div>
+    <div class="price-summary">
+      <div class="price-label">Total to pay</div>
+      <div class="price-val">150 zł</div>
+    </div>
+  </div>
+  <div class="m3-dialog-actions">
+    <button class="m3-btn-filled" onclick="openSuccess()">Confirm appointment</button>
+    <button class="m3-btn-tonal" onclick="backToTime()">Change time</button>
+    <button class="m3-btn-text" onclick="closeAll()">Cancel</button>
+  </div>
+</div>
+
+<!-- ═══ DIALOG 3: SUCCESS ═══ -->
+<div class="m3-dialog" id="dlgSuccess">
+  <div class="m3-dialog-header">
+    <div class="step-row">
+      <div class="step-pip done"></div>
+      <div class="step-pip done"></div>
+      <div class="step-pip active"></div>
+    </div>
+  </div>
+  <div class="m3-dialog-body" style="text-align:center;padding-top:8px">
+    <div class="success-check">
+      <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1,'wght' 500">check_circle</span>
+    </div>
+    <div class="m3-dialog-title" style="text-align:center">You're booked!</div>
+    <div class="m3-dialog-sub" style="text-align:center;margin-bottom:4px">Confirmation sent to your email</div>
+
+    <div class="ref-chip">
+      <div style="text-align:left">
+        <div class="ref-label">Booking reference</div>
+        <div class="ref-code">SQ-28042</div>
+      </div>
+      <span class="material-symbols-outlined" style="color:var(--on-surface-var);font-size:20px">content_copy</span>
+    </div>
+
+    <div style="text-align:left">
+      <div class="info-row" style="border-top:1px solid var(--outline-var)">
+        <div class="info-icon">
+          <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1,'wght' 400">calendar_month</span>
+        </div>
+        <div>
+          <div class="info-key">YOUR VISIT</div>
+          <div class="info-val" id="successDT">Tuesday, April 28 · 15:00</div>
+          <div class="info-note">Masaż twarzy Kobido · 60 min</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="m3-dialog-actions">
+    <button class="m3-btn-filled" onclick="closeAll()">Done</button>
+    <button class="m3-btn-tonal" onclick="closeAll()">Add to calendar</button>
+  </div>
+</div>
+
+<script>
+  let selDate = 28, selDateStr = 'Tuesday, April 28', selTime = null;
+
+  function openTime(day, str) {
+    selDate = day; selDateStr = str; selTime = null;
+    document.getElementById('dlgTimeSub').textContent = str;
+    document.getElementById('btnNext1').disabled = true;
+    document.querySelectorAll('.m3-chip.selected').forEach(c => c.classList.remove('selected'));
+    show('dlgTime');
+  }
+
+  function pickDate(day, str) {
+    document.querySelectorAll('.cal-day.selected').forEach(c => c.classList.remove('selected'));
+    const el = document.getElementById('d' + day);
+    if (el) el.classList.add('selected');
+    openTime(day, str);
+  }
+
+  function pickTime(el) {
+    document.querySelectorAll('.m3-chip.selected').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    selTime = el.textContent.trim();
+    document.getElementById('btnNext1').disabled = false;
+  }
+
+  function openConfirm() {
+    const dt = selDateStr + ' · ' + selTime;
+    document.getElementById('confirmDT').textContent = dt;
+    document.getElementById('successDT').textContent = dt;
+    hide('dlgTime'); show('dlgConfirm');
+  }
+
+  function backToTime() { hide('dlgConfirm'); show('dlgTime'); }
+
+  function openSuccess() { hide('dlgConfirm'); show('dlgSuccess'); }
+
+  function show(id) {
+    document.getElementById(id).classList.add('open');
+    document.getElementById('scrim').classList.add('open');
+  }
+  function hide(id) { document.getElementById(id).classList.remove('open'); }
+
+  function closeAll() {
+    ['dlgTime','dlgConfirm','dlgSuccess'].forEach(hide);
+    document.getElementById('scrim').classList.remove('open');
+  }
+</script>
+</body>
+</html>

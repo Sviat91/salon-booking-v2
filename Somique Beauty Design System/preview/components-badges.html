@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<!-- @dsCard group="Components" name="Badges & Status" subtitle="M3 tonal chips · status badges with dot — all color roles" viewport="700x140" -->
+<html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; padding: 16px 20px; font-family: 'Roboto', sans-serif; background: #FFF8F6; color: #211A1B; }
+  .section-title { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: .06em; color: #524344; margin-bottom: 8px; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
+
+  /* Assist/Input/Filter/Suggestion chips */
+  .chip { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 16px; border-radius: 8px; border: 1px solid #D8C2C3; color: #211A1B; font-size: 13px; font-weight: 500; font-family: 'Roboto', sans-serif; cursor: pointer; }
+  .chip-tonal { background: #FFDCCA; border-color: transparent; color: #2F1509; }
+  .chip-primary { background: #FFD9DC; border-color: transparent; color: #3B0017; }
+  .chip-tertiary { background: #FFDFA3; border-color: transparent; color: #271900; }
+  .chip-error { background: #FFDAD6; border-color: transparent; color: #410002; }
+  .chip-success { background: #B7F2DC; border-color: transparent; color: #002117; }
+
+  /* Status badges with dot */
+  .badge { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px; border-radius: 9999px; font-size: 12px; font-weight: 500; }
+  .dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .badge-confirmed { background: #B7F2DC; color: #002117; }
+  .badge-pending   { background: #FFDFA3; color: #271900; }
+  .badge-cancelled { background: #FFDAD6; color: #410002; }
+  .badge-master    { background: #FFD9DC; color: #3B0017; }
+</style>
+</head><body>
+  <div class="section-title">Assist / Filter Chips</div>
+  <div class="row">
+    <span class="chip">Default</span>
+    <span class="chip chip-primary">Primary tonal</span>
+    <span class="chip chip-tonal">Secondary tonal</span>
+    <span class="chip chip-tertiary">Tertiary tonal</span>
+    <span class="chip chip-error">Error</span>
+    <span class="chip chip-success">Success</span>
+  </div>
+  <div class="section-title">Status Badges</div>
+  <div class="row">
+    <span class="badge badge-confirmed"><span class="dot" style="background:#21A67A;"></span>Confirmed</span>
+    <span class="badge badge-pending"><span class="dot" style="background:#7A5900;"></span>Pending</span>
+    <span class="badge badge-cancelled"><span class="dot" style="background:#BA1A1A;"></span>Cancelled</span>
+    <span class="badge badge-master"><span class="dot" style="background:#8B4A58;"></span>Master</span>
+  </div>
+</body></html>

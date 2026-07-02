@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<!-- @dsCard group="UI Kit — Admin" name="Admin Panel UI Kit" subtitle="Full admin — Collapsible sidebar · Dark mode · Dashboard · Calendar · Services · Masters · Settings" viewport="1280x820" -->
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Somique Beauty — Admin Panel</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet" />
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body, #root { height: 100%; }
+  body { font-family: 'Roboto', sans-serif; }
+  button, input, select, textarea { font-family: 'Roboto', sans-serif; }
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(139,74,88,.2); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(139,74,88,.4); }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useEffect, useContext, createContext } = React;
+
+// ── THEME ─────────────────────────────────────────────────
+const AT = {
+  light: {
+    bg:      '#FFF8F6', nav:'rgba(255,248,246,.95)', sidebar:'#FFF0F1',
+    card:    '#FFFFFF', surface:'#F9E9EA', surfHi:'#F3E3E4',
+    border:  '#EDE1E1', text:'#211A1B', textSub:'#524344', textMut:'#857374',
+    primary: '#8B4A58', priCont:'#FFD9DC', onPri:'#FFFFFF', onPriCont:'#3B0017',
+    secCont: '#FFDCCA', onSecCont:'#2F1509', input:'#EDE1E1', outline:'#D8C2C3',
+    shadow:  '0 1px 3px rgba(0,0,0,.07)', shadow2:'0 2px 10px rgba(0,0,0,.1)',
+    success: '#21A67A', sucCont:'#B7F2DC', onSucc:'#002117',
+    err:     '#BA1A1A', errCont:'#FFDAD6', onErr:'#410002',
+    navActive:'rgba(139,74,88,.12)', navActiveTxt:'#8B4A58',
+    navHov:  'rgba(139,74,88,.06)', navHovTxt:'#211A1B',
+  },
+  dark: {
+    bg:      '#1C1210', nav:'rgba(20,12,9,.94)', sidebar:'#221610',
+    card:    '#2A1E16', surface:'#321E16', surfHi:'#3C2820',
+    border:  '#4A3028', text:'#FFEEE8', textSub:'#CCA898', textMut:'#906858',
+    primary: '#FFB2B8', priCont:'#723340', onPri:'#3B0017', onPriCont:'#FFD9DC',
+    secCont: '#634432', onSecCont:'#FFDCCA', input:'#3A2820', outline:'#5A3828',
+    shadow:  '0 2px 8px rgba(0,0,0,.3)', shadow2:'0 4px 16px rgba(0,0,0,.4)',
+    success: '#6EDDAC', sucCont:'#003824', onSucc:'#6EDDAC',
+    err:     '#FFB4AB', errCont:'#93000A', onErr:'#FFB4AB',
+    navActive:'rgba(255,178,184,.15)', navActiveTxt:'#FFB2B8',
+    navHov:  'rgba(255,178,184,.07)', navHovTxt:'#FFEEE8',
+  },
+};
+const ThCtx = createContext({ dark:false, toggle:()=>{}, t:AT.light });
+const useTh = () => useContext(ThCtx);
+
+function ThProvider({ children }) {
+  const [dark, setDark] = useState(() => { try { return localStorage.getItem('admin-theme')==='dark'; } catch { return false; }});
+  useEffect(() => { try { localStorage.setItem('admin-theme', dark?'dark':'light'); } catch {} }, [dark]);
+  return <ThCtx.Provider value={{ dark, toggle:()=>setDark(d=>!d), t:dark?AT.dark:AT.light }}>{children}</ThCtx.Provider>;
+}
+
+// ── ICONS ─────────────────────────────────────────────────
+const IC = {
+  dashboard: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg>,
+  calendar:  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>,
+  scissors:  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>,
+  users:     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
+  settings:  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>,
+  mail:      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>,
+  back:      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>,
+  logout:    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>,
+  menu:      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>,
+  sun:       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>,
+  moon:      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>,
+  plus:      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
+  more:      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>,
+  check:     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>,
+};
+
+const NAV = [
+  { id:'dashboard', label:'Dashboard', icon:'dashboard' },
+  { id:'calendar',  label:'Calendar',  icon:'calendar'  },
+  { id:'services',  label:'Services',  icon:'scissors'  },
+  { id:'masters',   label:'Masters',   icon:'users'     },
+  { id:'settings',  label:'Settings',  icon:'settings'  },
+  { id:'email',     label:'Email',     icon:'mail'      },
+];
+
+// ── SIDEBAR ───────────────────────────────────────────────
+function Sidebar({ open, page, onNav, onToggle }) {
+  const { t, dark, toggle } = useTh();
+  const W = open ? 240 : 72;
+
+  const navItem = ({ id, label, icon }) => {
+    const active = page === id;
+    return (
+      <button key={id} onClick={() => onNav(id)} title={!open ? label : ''} style={{
+        width:'100%', display:'flex', alignItems:'center', gap:12,
+        padding: open ? '10px 14px' : '10px 0', justifyContent: open ? 'flex-start' : 'center',
+        borderRadius:10, border:'none', cursor:'pointer',
+        background: active ? t.navActive : 'transparent',
+        color: active ? t.navActiveTxt : t.textSub,
+        fontWeight: active ? 500 : 400, fontSize:14,
+        transition:'all 150ms', position:'relative', overflow:'hidden',
+      }}>
+        <span style={{ flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center', width:22, color:'inherit' }}>{IC[icon]}</span>
+        {open && <span style={{ overflow:'hidden', whiteSpace:'nowrap', transition:'opacity 200ms', opacity: open?1:0 }}>{label}</span>}
+        {open && active && <svg style={{ marginLeft:'auto', flexShrink:0 }} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6"/></svg>}
+      </button>
+    );
+  };
+
+  return (
+    <aside style={{
+      width:W, minHeight:'100vh', display:'flex', flexDirection:'column',
+      background:t.sidebar, borderRight:`1px solid ${t.border}`, flexShrink:0,
+      transition:'width 200ms cubic-bezier(0.2,0,0,1)', overflow:'hidden',
+    }}>
+      {/* Header */}
+      <div style={{ height:64, display:'flex', alignItems:'center', justifyContent: open?'space-between':'center', padding: open?'0 14px 0 16px':'0', borderBottom:`1px solid ${t.border}`, flexShrink:0 }}>
+        {open && (
+          <div style={{ display:'flex', alignItems:'center', gap:10, minWidth:0 }}>
+            <div style={{ width:28, height:28, borderRadius:8, background:t.priCont, display:'flex', alignItems:'center', justifyContent:'center', color:t.onPriCont, flexShrink:0 }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>
+            </div>
+            <span style={{ fontSize:13, fontWeight:500, color:t.text, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>Somique Beauty</span>
+          </div>
+        )}
+        <button onClick={onToggle} style={{ width:32, height:32, borderRadius:8, border:'none', background:'transparent', cursor:'pointer', color:t.textSub, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>{IC.menu}</button>
+      </div>
+
+      {/* Nav */}
+      <nav style={{ flex:1, padding: open?'12px 10px':'12px 8px', overflowY:'auto', display:'flex', flexDirection:'column', gap:2 }}>
+        {NAV.map(navItem)}
+        <div style={{ height:1, background:t.border, margin:'8px 4px' }}></div>
+        <button onClick={() => onNav('site')} title={!open?'Back to site':''} style={{ width:'100%', display:'flex', alignItems:'center', gap:12, padding: open?'10px 14px':'10px 0', justifyContent: open?'flex-start':'center', borderRadius:10, border:'none', cursor:'pointer', background:'transparent', color:t.textSub, fontSize:14, transition:'all 150ms' }}>
+          <span style={{ flexShrink:0, display:'flex', alignItems:'center', justifyContent:'center', width:22 }}>{IC.back}</span>
+          {open && <span>Back to site</span>}
+        </button>
+      </nav>
+
+      {/* Footer */}
+      <div style={{ borderTop:`1px solid ${t.border}`, padding: open?'10px':'8px', display:'flex', flexDirection:'column', gap:6 }}>
+        {open ? (
+          <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+            <div style={{ flex:1, background:t.surface, borderRadius:8, padding:'6px 10px', minWidth:0 }}>
+              <div style={{ fontSize:12, fontWeight:500, color:t.text, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>admin@somique.beauty</div>
+              <div style={{ fontSize:11, color:t.textMut }}>SUPERADMIN</div>
+            </div>
+            <button onClick={toggle} style={{ width:30, height:30, borderRadius:8, border:`1px solid ${t.outline}`, background:'transparent', cursor:'pointer', color:t.textSub, display:'flex', alignItems:'center', justifyContent:'center' }}>{dark ? IC.sun : IC.moon}</button>
+          </div>
+        ) : (
+          <button onClick={toggle} style={{ width:'100%', height:32, borderRadius:8, border:`1px solid ${t.outline}`, background:'transparent', cursor:'pointer', color:t.textSub, display:'flex', alignItems:'center', justifyContent:'center' }}>{dark ? IC.sun : IC.moon}</button>
+        )}
+        <button style={{ display:'flex', alignItems:'center', gap:8, justifyContent: open?'flex-start':'center', padding: open?'6px 10px':'6px 0', borderRadius:8, border:'none', cursor:'pointer', background:'transparent', color:t.textSub, fontSize:12 }}>
+          {IC.logout}{open && 'Sign Out'}
+        </button>
+      </div>
+    </aside>
+  );
+}
+
+// ── TOP APP BAR ───────────────────────────────────────────
+function TopBar({ pageTitle }) {
+  const { t } = useTh();
+  return (
+    <div style={{ height:64, display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 24px', background:t.nav, borderBottom:`1px solid ${t.border}`, flexShrink:0, backdropFilter:'blur(8px)' }}>
+      <span style={{ fontSize:20, fontWeight:400, color:t.text }}>{pageTitle}</span>
+      <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+        <button style={{ width:36, height:36, borderRadius:9999, border:'none', background:'transparent', cursor:'pointer', color:t.textSub, display:'flex', alignItems:'center', justifyContent:'center' }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </button>
+        <button style={{ width:36, height:36, borderRadius:9999, border:'none', background:'transparent', cursor:'pointer', color:t.textSub, display:'flex', alignItems:'center', justifyContent:'center' }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        </button>
+        <div style={{ width:34, height:34, borderRadius:9999, background:'#8B4A58', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontSize:13, fontWeight:500, cursor:'pointer' }}>A</div>
+      </div>
+    </div>
+  );
+}
+
+// ── PAGES ─────────────────────────────────────────────────
+const APPTS = [
+  { time:'09:00', name:'Anna Kowalska',    svc:'Masaż twarzy 60 min', master:'Olga',   status:'confirmed', price:180 },
+  { time:'10:30', name:'Maria Wiśniewska', svc:'Drenaż limfatyczny',  master:'Yuliia', status:'confirmed', price:210 },
+  { time:'12:00', name:'Karolina Nowak',   svc:'Masaż twarzy 90 min', master:'Olga',   status:'pending',   price:240 },
+  { time:'14:00', name:'Zofia Dąbrowska',  svc:'Peeling enzymatyczny',master:'Yuliia', status:'confirmed', price:160 },
+  { time:'15:30', name:'Ewa Kamińska',     svc:'Masaż twarzy 60 min', master:'Olga',   status:'cancelled', price:180 },
+];
+
+const STAT_STATUS = {
+  confirmed: { bg:'#B7F2DC', color:'#002117', dot:'#21A67A' },
+  pending:   { bg:'#FFDFA3', color:'#271900', dot:'#7A5900' },
+  cancelled: { bg:'#FFDAD6', color:'#410002', dot:'#BA1A1A' },
+};
+
+function DashPage() {
+  const { t } = useTh();
+  const stats = [
+    { label:"Today's bookings", val:'5',     sub:'2 masters active',  cont:'#FFD9DC', valC:'#3B0017' },
+    { label:'This week',        val:'23',    sub:'+4 vs last week',   cont:'#FFDCCA', valC:'#2F1509' },
+    { label:'Revenue (PLN)',    val:'1 840', sub:'April total',       cont:'#FFDFA3', valC:'#271900' },
+    { label:'Active masters',   val:'2',     sub:'Olga · Yuliia',     cont:'#F3E3E4', valC:'#3B0017' },
+  ];
+  return (
+    <div style={{ padding:'28px 32px', maxWidth:900 }}>
+      <div style={{ marginBottom:24 }}>
+        <div style={{ fontSize:13, fontWeight:500, color:t.primary, letterSpacing:'.05em', textTransform:'uppercase', marginBottom:4 }}>Overview</div>
+        <p style={{ fontSize:13, color:t.textSub }}>Thursday, 24 April 2025</p>
+      </div>
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:12, marginBottom:28 }}>
+        {stats.map(s => (
+          <div key={s.label} style={{ background:s.cont, borderRadius:16, padding:'18px 20px' }}>
+            <div style={{ fontSize:12, color:s.valC, opacity:.7, marginBottom:6 }}>{s.label}</div>
+            <div style={{ fontSize:32, fontWeight:400, color:s.valC, lineHeight:1, letterSpacing:'-0.02em' }}>{s.val}</div>
+            <div style={{ fontSize:11, color:s.valC, opacity:.6, marginTop:5 }}>{s.sub}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{ background:t.card, borderRadius:16, overflow:'hidden', border:`1px solid ${t.border}`, boxShadow:t.shadow }}>
+        <div style={{ padding:'14px 20px', borderBottom:`1px solid ${t.border}`, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+          <span style={{ fontSize:15, fontWeight:500, color:t.text }}>Today's appointments</span>
+          <span style={{ fontSize:12, color:t.textMut }}>5 total</span>
+        </div>
+        <table style={{ width:'100%', borderCollapse:'collapse' }}>
+          <thead>
+            <tr style={{ borderBottom:`1px solid ${t.border}` }}>
+              {['Time','Client','Service','Master','Price','Status'].map(h => (
+                <th key={h} style={{ padding:'9px 16px', textAlign:'left', fontSize:11, fontWeight:500, color:t.textMut, letterSpacing:'.04em', textTransform:'uppercase' }}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {APPTS.map((a,i) => {
+              const s = STAT_STATUS[a.status];
+              return (
+                <tr key={i} style={{ borderBottom: i<APPTS.length-1 ? `1px solid ${t.border}` : 'none', transition:'background 150ms' }}
+                  onMouseEnter={e=>e.currentTarget.style.background=t.surface}
+                  onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
+                  <td style={{ padding:'11px 16px', fontSize:13, fontWeight:500, color:t.text }}>{a.time}</td>
+                  <td style={{ padding:'11px 16px', fontSize:13, color:t.text }}>{a.name}</td>
+                  <td style={{ padding:'11px 16px', fontSize:12, color:t.textSub }}>{a.svc}</td>
+                  <td style={{ padding:'11px 16px' }}>
+                    <span style={{ display:'inline-flex', alignItems:'center', height:24, padding:'0 10px', borderRadius:8, background:'#FFD9DC', color:'#3B0017', fontSize:11, fontWeight:500 }}>{a.master}</span>
+                  </td>
+                  <td style={{ padding:'11px 16px', fontSize:13, fontWeight:500, color:t.text }}>{a.price} zł</td>
+                  <td style={{ padding:'11px 16px' }}>
+                    <span style={{ display:'inline-flex', alignItems:'center', gap:5, height:24, padding:'0 10px', borderRadius:9999, background:s.bg, color:s.color, fontSize:11, fontWeight:500 }}>
+                      <span style={{ width:5, height:5, borderRadius:'50%', background:s.dot }}></span>
+                      {a.status.charAt(0).toUpperCase()+a.status.slice(1)}
+                    </span>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+const CAL_DAYS_H = ['Mon 28','Tue 29','Wed 30','Thu 1','Fri 2','Sat 3','Sun 4'];
+const CAL_HOURS  = ['09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00'];
+const CAL_EVTS   = [
+  {day:0,startH:9,dur:1,   name:'Anna K.',   svc:'Masaż 60m',  master:'Olga',   bg:'#FFD9DC',border:'#8B4A58'},
+  {day:0,startH:11,dur:1.5,name:'Maria W.',  svc:'Drenaż',     master:'Yuliia', bg:'#FFDCCA',border:'#7C5A47'},
+  {day:1,startH:10,dur:1,  name:'Karolina N.',svc:'Masaż 90m', master:'Olga',   bg:'#FFD9DC',border:'#8B4A58'},
+  {day:2,startH:14,dur:1,  name:'Zofia D.',  svc:'Peeling',    master:'Yuliia', bg:'#FFDCCA',border:'#7C5A47'},
+  {day:3,startH:9,dur:1,   name:'Ewa K.',    svc:'Masaż 60m',  master:'Olga',   bg:'#FFD9DC',border:'#8B4A58'},
+  {day:3,startH:11,dur:1,  name:'Natalia B.',svc:'Drenaż',     master:'Yuliia', bg:'#FFDCCA',border:'#7C5A47'},
+  {day:4,startH:10,dur:1.5,name:'Julia M.',  svc:'Masaż 90m',  master:'Olga',   bg:'#FFD9DC',border:'#8B4A58'},
+];
+const CELL_H=56, START_H=9;
+
+function CalPage() {
+  const { t } = useTh();
+  const [master,setMaster]=useState('All');
+  const evts = master==='All' ? CAL_EVTS : CAL_EVTS.filter(e=>e.master===master);
+  return (
+    <div style={{ padding:'24px 28px', height:'calc(100vh - 64px)', display:'flex', flexDirection:'column' }}>
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:20, flexShrink:0 }}>
+        <div>
+          <div style={{ fontSize:13, fontWeight:500, color:t.primary, letterSpacing:'.05em', textTransform:'uppercase', marginBottom:2 }}>Week view</div>
+          <p style={{ fontSize:13, color:t.textSub }}>April 28 – May 4, 2025</p>
+        </div>
+        <div style={{ display:'flex', gap:8 }}>
+          {['All','Olga','Yuliia'].map(m => (
+            <button key={m} onClick={()=>setMaster(m)} style={{ height:32, padding:'0 14px', borderRadius:8, fontFamily:'inherit', fontSize:12, fontWeight:500, cursor:'pointer', border:master===m?'none':`1px solid ${t.outline}`, background:master===m?t.priCont:'transparent', color:master===m?t.onPriCont:t.textSub, transition:'all 150ms' }}>{m}</button>
+          ))}
+          <button style={{ height:36, padding:'0 18px', borderRadius:9999, border:'none', background:t.primary, color:t.onPri, fontSize:13, fontWeight:500, cursor:'pointer', display:'flex', alignItems:'center', gap:6 }}>{IC.plus} New</button>
+        </div>
+      </div>
+      <div style={{ flex:1, background:t.card, borderRadius:16, overflow:'hidden', border:`1px solid ${t.border}`, boxShadow:t.shadow, display:'flex', flexDirection:'column' }}>
+        {/* Day headers */}
+        <div style={{ display:'grid', gridTemplateColumns:'56px repeat(7,1fr)', borderBottom:`1px solid ${t.border}`, background:t.surface, flexShrink:0 }}>
+          <div style={{ borderRight:`1px solid ${t.border}` }}></div>
+          {CAL_DAYS_H.map((d,i) => {
+            const isToday = i===3;
+            return (
+              <div key={i} style={{ padding:'10px 4px', textAlign:'center', borderRight:i<6?`1px solid ${t.border}`:'none' }}>
+                <div style={{ fontSize:9, fontWeight:500, color:isToday?t.primary:t.textMut, textTransform:'uppercase', letterSpacing:'.06em' }}>{d.split(' ')[0]}</div>
+                <div style={{ width:26, height:26, borderRadius:'50%', background:isToday?t.primary:'transparent', color:isToday?t.onPri:t.text, fontSize:13, fontWeight:isToday?500:400, display:'flex', alignItems:'center', justifyContent:'center', margin:'4px auto 0' }}>{d.split(' ')[1]}</div>
+              </div>
+            );
+          })}
+        </div>
+        {/* Body */}
+        <div style={{ flex:1, overflowY:'auto', position:'relative' }}>
+          {CAL_HOURS.map((h,hi) => (
+            <div key={h} style={{ display:'grid', gridTemplateColumns:'56px repeat(7,1fr)', height:CELL_H, borderBottom:hi<CAL_HOURS.length-1?`1px solid ${t.border}`:'none' }}>
+              <div style={{ borderRight:`1px solid ${t.border}`, padding:'4px 8px', fontSize:10, color:t.textMut, textAlign:'right', paddingTop:6 }}>{h}</div>
+              {CAL_DAYS_H.map((_,di) => <div key={di} style={{ borderRight:di<6?`1px solid ${t.border}`:'none', background:di===3?`${t.primary}06`:'transparent' }}></div>)}
+            </div>
+          ))}
+          {evts.map((ev,i) => (
+            <div key={i} style={{
+              position:'absolute',
+              top:(ev.startH-START_H)*CELL_H+2,
+              left:`calc(56px + ${ev.day}*(100% - 56px)/7 + 4px)`,
+              width:`calc((100% - 56px)/7 - 8px)`,
+              height:ev.dur*CELL_H-4,
+              background:ev.bg, borderRadius:8, padding:'5px 7px',
+              overflow:'hidden', cursor:'pointer',
+              borderLeft:`3px solid ${ev.border}`,
+              transition:'filter 150ms',
+            }}
+            onMouseEnter={e=>e.currentTarget.style.filter='brightness(.94)'}
+            onMouseLeave={e=>e.currentTarget.style.filter='none'}>
+              <div style={{ fontSize:11, fontWeight:600, color:'#211A1B', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{ev.name}</div>
+              <div style={{ fontSize:10, color:'rgba(33,26,27,.65)', marginTop:1 }}>{ev.svc}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const SERVICES = [
+  { name:'Masaż twarzy 60 min', duration:60, price:180, active:true  },
+  { name:'Masaż twarzy 90 min', duration:90, price:240, active:true  },
+  { name:'Drenaż limfatyczny',  duration:75, price:210, active:true  },
+  { name:'Peeling enzymatyczny',duration:50, price:160, active:false },
+];
+
+function ServicesPage() {
+  const { t } = useTh();
+  return (
+    <div style={{ padding:'28px 32px', maxWidth:800 }}>
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:24 }}>
+        <div>
+          <div style={{ fontSize:13, fontWeight:500, color:t.primary, letterSpacing:'.05em', textTransform:'uppercase', marginBottom:4 }}>Manage</div>
+          <p style={{ fontSize:13, color:t.textSub }}>Procedures, prices and durations</p>
+        </div>
+        <button style={{ display:'flex', alignItems:'center', gap:6, height:40, padding:'0 20px', borderRadius:9999, border:'none', background:t.primary, color:t.onPri, fontSize:13, fontWeight:500, cursor:'pointer' }}>{IC.plus} Add service</button>
+      </div>
+      <div style={{ background:t.card, borderRadius:16, overflow:'hidden', border:`1px solid ${t.border}`, boxShadow:t.shadow }}>
+        <table style={{ width:'100%', borderCollapse:'collapse' }}>
+          <thead>
+            <tr style={{ borderBottom:`1px solid ${t.border}`, background:t.surface }}>
+              {['Service','Duration','Price','Status',''].map(h => (
+                <th key={h} style={{ padding:'10px 16px', textAlign:'left', fontSize:11, fontWeight:500, color:t.textMut, letterSpacing:'.04em', textTransform:'uppercase' }}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {SERVICES.map((s,i) => (
+              <tr key={i} style={{ borderBottom:i<SERVICES.length-1?`1px solid ${t.border}`:'none' }}
+                onMouseEnter={e=>e.currentTarget.style.background=t.surface}
+                onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
+                <td style={{ padding:'13px 16px', fontSize:14, fontWeight:500, color:t.text }}>{s.name}</td>
+                <td style={{ padding:'13px 16px', fontSize:13, color:t.textSub }}>{s.duration} min</td>
+                <td style={{ padding:'13px 16px', fontSize:13, fontWeight:500, color:t.text }}>{s.price} zł</td>
+                <td style={{ padding:'13px 16px' }}>
+                  <span style={{ display:'inline-flex', alignItems:'center', gap:5, height:22, padding:'0 10px', borderRadius:9999, background:s.active?'#B7F2DC':'#EDE1E1', color:s.active?'#002117':t.textMut, fontSize:11, fontWeight:500 }}>
+                    <span style={{ width:5, height:5, borderRadius:'50%', background:s.active?'#21A67A':t.textMut }}></span>
+                    {s.active?'Active':'Inactive'}
+                  </span>
+                </td>
+                <td style={{ padding:'13px 16px', textAlign:'right' }}>
+                  <button style={{ width:30, height:30, borderRadius:8, border:`1px solid ${t.outline}`, background:'transparent', cursor:'pointer', color:t.textSub, display:'inline-flex', alignItems:'center', justifyContent:'center' }}>{IC.more}</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function MastersPage() {
+  const { t } = useTh();
+  const masters = [
+    { name:'Olga',   email:'olga@somique.beauty',   bookings:48, avatar:'../../assets/photo_master_olga.png' },
+    { name:'Yuliia', email:'yuliia@somique.beauty',  bookings:37, avatar:'../../assets/photo_master_yuliia.png' },
+  ];
+  return (
+    <div style={{ padding:'28px 32px', maxWidth:700 }}>
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:24 }}>
+        <div>
+          <div style={{ fontSize:13, fontWeight:500, color:t.primary, letterSpacing:'.05em', textTransform:'uppercase', marginBottom:4 }}>Staff</div>
+          <p style={{ fontSize:13, color:t.textSub }}>Manage accounts and permissions</p>
+        </div>
+        <button style={{ display:'flex', alignItems:'center', gap:6, height:40, padding:'0 20px', borderRadius:9999, border:'none', background:t.primary, color:t.onPri, fontSize:13, fontWeight:500, cursor:'pointer' }}>{IC.plus} Add master</button>
+      </div>
+      <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+        {masters.map((m,i) => (
+          <div key={i} style={{ background:t.card, border:`1px solid ${t.border}`, borderRadius:16, padding:'16px 20px', display:'flex', alignItems:'center', gap:16, boxShadow:t.shadow }}>
+            <img src={m.avatar} alt={m.name} style={{ width:52, height:52, borderRadius:'50%', objectFit:'cover', border:`3px solid ${t.priCont}`, flexShrink:0 }} />
+            <div style={{ flex:1 }}>
+              <div style={{ fontSize:15, fontWeight:500, color:t.text }}>{m.name}</div>
+              <div style={{ fontSize:12, color:t.textSub, marginTop:2 }}>{m.email}</div>
+            </div>
+            <div style={{ textAlign:'right' }}>
+              <div style={{ fontSize:13, color:t.textSub }}>{m.bookings} bookings</div>
+              <span style={{ display:'inline-block', marginTop:4, fontSize:11, fontWeight:500, padding:'2px 10px', borderRadius:9999, background:'#B7F2DC', color:'#002117' }}>Active</span>
+            </div>
+            <button style={{ width:32, height:32, borderRadius:8, border:`1px solid ${t.outline}`, background:'transparent', cursor:'pointer', color:t.textSub, display:'flex', alignItems:'center', justifyContent:'center' }}>{IC.more}</button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function SettingsPage() {
+  const { t } = useTh();
+  const sections = [
+    { title:'Brand', fields:[['Brand name','Somique Beauty'],['Website URL','https://somique.beauty']] },
+    { title:'Colors', fields:[['Primary color','#FDE5C3'],['Accent color','#FFBBBD'],['Dark background','#9C6849']] },
+  ];
+  return (
+    <div style={{ padding:'28px 32px', maxWidth:640 }}>
+      <div style={{ marginBottom:24 }}>
+        <div style={{ fontSize:13, fontWeight:500, color:t.primary, letterSpacing:'.05em', textTransform:'uppercase', marginBottom:4 }}>Configuration</div>
+        <p style={{ fontSize:13, color:t.textSub }}>Brand identity and colour theme</p>
+      </div>
+      {sections.map(sec => (
+        <div key={sec.title} style={{ background:t.card, border:`1px solid ${t.border}`, borderRadius:16, overflow:'hidden', marginBottom:16, boxShadow:t.shadow }}>
+          <div style={{ padding:'12px 20px', borderBottom:`1px solid ${t.border}`, background:t.surface }}>
+            <span style={{ fontSize:13, fontWeight:500, color:t.text }}>{sec.title}</span>
+          </div>
+          {sec.fields.map(([label,val],i) => (
+            <div key={label} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'14px 20px', borderBottom:i<sec.fields.length-1?`1px solid ${t.border}`:'none' }}>
+              <span style={{ fontSize:13, color:t.textSub }}>{label}</span>
+              <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                {val.startsWith('#') && <div style={{ width:20, height:20, borderRadius:5, background:val, border:`1px solid ${t.outline}` }}></div>}
+                <span style={{ fontSize:13, fontWeight:500, color:t.text, fontFamily:'monospace' }}>{val}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      ))}
+      <button style={{ height:44, padding:'0 28px', borderRadius:9999, border:'none', background:t.primary, color:t.onPri, fontSize:14, fontWeight:500, cursor:'pointer' }}>Save changes</button>
+    </div>
+  );
+}
+
+function PlaceholderPage({ title, desc }) {
+  const { t } = useTh();
+  return (
+    <div style={{ padding:'28px 32px' }}>
+      <div style={{ marginBottom:24 }}>
+        <div style={{ fontSize:13, fontWeight:500, color:t.primary, letterSpacing:'.05em', textTransform:'uppercase', marginBottom:4 }}>{title}</div>
+        <p style={{ fontSize:13, color:t.textSub }}>{desc}</p>
+      </div>
+      <div style={{ background:t.card, border:`1px solid ${t.border}`, borderRadius:16, padding:40, textAlign:'center', color:t.textMut, fontSize:13 }}>Coming soon in this UI kit</div>
+    </div>
+  );
+}
+
+const PAGES = {
+  dashboard: [DashPage,    'Dashboard'],
+  calendar:  [CalPage,     'Calendar'],
+  services:  [ServicesPage,'Services'],
+  masters:   [MastersPage, 'Masters'],
+  settings:  [SettingsPage,'Settings'],
+  email:     [() => <PlaceholderPage title="Email" desc="SMTP configuration and templates." />, 'Email'],
+};
+
+// ── ADMIN APP ─────────────────────────────────────────────
+function AdminApp() {
+  const [page,   setPage]   = useState('dashboard');
+  const [sideOpen, setSideOpen] = useState(true);
+
+  const [PageComp, pageTitle] = PAGES[page] || [() => <PlaceholderPage title={page} desc="" />, page];
+
+  return (
+    <ThProvider>
+      <AdminInner page={page} setPage={setPage} sideOpen={sideOpen} setSideOpen={setSideOpen} PageComp={PageComp} pageTitle={pageTitle} />
+    </ThProvider>
+  );
+}
+
+function AdminInner({ page, setPage, sideOpen, setSideOpen, PageComp, pageTitle }) {
+  const { t } = useTh();
+  return (
+    <div style={{ display:'flex', height:'100vh', overflow:'hidden', background:t.bg }}>
+      <Sidebar open={sideOpen} page={page} onNav={setPage} onToggle={() => setSideOpen(o => !o)} />
+      <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden' }}>
+        <TopBar pageTitle={pageTitle} />
+        <main style={{ flex:1, overflowY:'auto' }}>
+          <PageComp />
+        </main>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<AdminApp />);
+</script>
+</body>
+</html>

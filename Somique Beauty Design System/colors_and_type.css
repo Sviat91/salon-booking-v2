@@ -1,0 +1,413 @@
+/*
+ * Somique Beauty — Material Design 3 Token System
+ * Warm tonal palette derived from brand seed: Blush Rose #FFBBBD
+ * Typeface: Roboto (Google Fonts — canonical M3)
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Roboto+Flex:opsz,wght@8..144,300..700&display=swap');
+
+/* ─────────────────────────────────────────────
+   M3 TONAL PALETTE  — Light scheme
+   ───────────────────────────────────────────── */
+:root {
+  /* Primary — warm rose */
+  --md-primary:              #8B4A58;
+  --md-on-primary:           #FFFFFF;
+  --md-primary-container:    #FFD9DC;
+  --md-on-primary-container: #3B0017;
+
+  /* Secondary — warm sienna */
+  --md-secondary:              #7C5A47;
+  --md-on-secondary:           #FFFFFF;
+  --md-secondary-container:    #FFDCCA;
+  --md-on-secondary-container: #2F1509;
+
+  /* Tertiary — amber */
+  --md-tertiary:              #7A5900;
+  --md-on-tertiary:           #FFFFFF;
+  --md-tertiary-container:    #FFDFA3;
+  --md-on-tertiary-container: #271900;
+
+  /* Error */
+  --md-error:              #BA1A1A;
+  --md-on-error:           #FFFFFF;
+  --md-error-container:    #FFDAD6;
+  --md-on-error-container: #410002;
+
+  /* Success (custom) */
+  --md-success:              #21A67A;
+  --md-success-container:    #B7F2DC;
+  --md-on-success-container: #002117;
+
+  /* Surfaces */
+  --md-surface:          #FFF8F6;
+  --md-on-surface:       #211A1B;
+  --md-surface-variant:  #F4DDDE;
+  --md-on-surface-variant: #524344;
+  --md-outline:          #857374;
+  --md-outline-variant:  #D8C2C3;
+  --md-inverse-surface:      #372E2F;
+  --md-inverse-on-surface:   #FBEEEF;
+  --md-inverse-primary:      #FFB2B8;
+
+  /* Surface containers (elevation tones) */
+  --md-surface-dim:                #E6D6D7;
+  --md-surface-bright:             #FFF8F6;
+  --md-surface-container-lowest:   #FFFFFF;
+  --md-surface-container-low:      #FFF0F1;
+  --md-surface-container:          #F9E9EA;
+  --md-surface-container-high:     #F3E3E4;
+  --md-surface-container-highest:  #EDE1E1;
+
+  /* Scrim & shadow */
+  --md-scrim:  rgba(0,0,0,0.32);
+  --md-shadow: rgba(0,0,0,0.12);
+}
+
+/* ─────────────────────────────────────────────
+   M3 DARK SCHEME
+   ───────────────────────────────────────────── */
+.dark {
+  --md-primary:              #FFB2B8;
+  --md-on-primary:           #561D2A;
+  --md-primary-container:    #723340;
+  --md-on-primary-container: #FFD9DC;
+
+  --md-secondary:              #FFBBA0;
+  --md-on-secondary:           #4A2F1E;
+  --md-secondary-container:    #634432;
+  --md-on-secondary-container: #FFDCCA;
+
+  --md-tertiary:              #FFBA3F;
+  --md-on-tertiary:           #412D00;
+  --md-tertiary-container:    #5E4200;
+  --md-on-tertiary-container: #FFDFA3;
+
+  --md-error:              #FFB4AB;
+  --md-on-error:           #690005;
+  --md-error-container:    #93000A;
+  --md-on-error-container: #FFDAD6;
+
+  --md-surface:          #191112;
+  --md-on-surface:       #EDE1E1;
+  --md-surface-variant:  #524344;
+  --md-on-surface-variant: #D8C2C3;
+  --md-outline:          #A08C8D;
+  --md-outline-variant:  #524344;
+  --md-inverse-surface:      #EDE1E1;
+  --md-inverse-on-surface:   #372E2F;
+  --md-inverse-primary:      #8B4A58;
+
+  --md-surface-dim:                #191112;
+  --md-surface-bright:             #412638;
+  --md-surface-container-lowest:   #130D0E;
+  --md-surface-container-low:      #211A1B;
+  --md-surface-container:          #261E1F;
+  --md-surface-container-high:     #312829;
+  --md-surface-container-highest:  #3C3233;
+
+  --md-scrim:  rgba(0,0,0,0.5);
+  --md-shadow: rgba(0,0,0,0.3);
+}
+
+/* ─────────────────────────────────────────────
+   SEMANTIC ALIASES  (used in components)
+   ───────────────────────────────────────────── */
+:root {
+  --background:      var(--md-surface);
+  --foreground:      var(--md-on-surface);
+  --card:            var(--md-surface-container-low);
+  --card-foreground: var(--md-on-surface);
+  --border:          var(--md-outline-variant);
+  --ring:            var(--md-primary);
+  --primary:         var(--md-primary);
+  --primary-foreground: var(--md-on-primary);
+  --muted:           var(--md-surface-container-high);
+  --muted-foreground:var(--md-on-surface-variant);
+  --accent:          var(--md-primary-container);
+  --accent-foreground: var(--md-on-primary-container);
+  --destructive:     var(--md-error);
+}
+
+/* ─────────────────────────────────────────────
+   M3 SHAPE SCALE
+   ───────────────────────────────────────────── */
+:root {
+  --shape-none:        0px;
+  --shape-xs:          4px;   /* extra-small — chips */
+  --shape-sm:          8px;   /* small — menus, text fields */
+  --shape-md:          12px;  /* medium — cards */
+  --shape-lg:          16px;  /* large — navigation drawer */
+  --shape-xl:          28px;  /* extra-large — FAB, dialogs */
+  --shape-full:        9999px;/* full — pills, avatars */
+}
+
+/* ─────────────────────────────────────────────
+   M3 ELEVATION  (surface tones, not drop shadows)
+   ───────────────────────────────────────────── */
+:root {
+  --elevation-0: var(--md-surface);
+  --elevation-1: var(--md-surface-container-low);    /* cards, nav rail */
+  --elevation-2: var(--md-surface-container);         /* dropdowns */
+  --elevation-3: var(--md-surface-container-high);   /* modals */
+  --elevation-4: var(--md-surface-container-highest);/* dialogs */
+
+  /* Tinted shadow only for interactive lift */
+  --shadow-1: 0 1px 2px rgba(0,0,0,.1);
+  --shadow-2: 0 2px 6px rgba(0,0,0,.1), 0 1px 2px rgba(0,0,0,.08);
+  --shadow-3: 0 4px 12px rgba(0,0,0,.1), 0 2px 4px rgba(0,0,0,.08);
+}
+
+/* ─────────────────────────────────────────────
+   M3 TYPOGRAPHY SCALE
+   Typeface: Roboto  |  all sizes in rem/sp
+   ───────────────────────────────────────────── */
+:root {
+  --font-sans: 'Roboto', system-ui, -apple-system, sans-serif;
+
+  /* Display */
+  --type-display-lg-size:   3.5625rem;  /* 57px */
+  --type-display-lg-lh:     4rem;
+  --type-display-md-size:   2.8125rem;  /* 45px */
+  --type-display-md-lh:     3.25rem;
+  --type-display-sm-size:   2.25rem;    /* 36px */
+  --type-display-sm-lh:     2.75rem;
+
+  /* Headline */
+  --type-headline-lg-size:  2rem;       /* 32px */
+  --type-headline-lg-lh:    2.5rem;
+  --type-headline-md-size:  1.75rem;    /* 28px */
+  --type-headline-md-lh:    2.25rem;
+  --type-headline-sm-size:  1.5rem;     /* 24px */
+  --type-headline-sm-lh:    2rem;
+
+  /* Title */
+  --type-title-lg-size:     1.375rem;   /* 22px */
+  --type-title-lg-lh:       1.75rem;
+  --type-title-md-size:     1rem;       /* 16px */
+  --type-title-md-lh:       1.5rem;
+  --type-title-sm-size:     0.875rem;   /* 14px */
+  --type-title-sm-lh:       1.25rem;
+
+  /* Body */
+  --type-body-lg-size:      1rem;       /* 16px */
+  --type-body-lg-lh:        1.5rem;
+  --type-body-md-size:      0.875rem;   /* 14px */
+  --type-body-md-lh:        1.25rem;
+  --type-body-sm-size:      0.75rem;    /* 12px */
+  --type-body-sm-lh:        1rem;
+
+  /* Label */
+  --type-label-lg-size:     0.875rem;   /* 14px */
+  --type-label-lg-lh:       1.25rem;
+  --type-label-md-size:     0.75rem;    /* 12px */
+  --type-label-md-lh:       1rem;
+  --type-label-sm-size:     0.6875rem;  /* 11px */
+  --type-label-sm-lh:       1rem;
+}
+
+/* M3 type roles as classes */
+.md-display-lg { font-family: var(--font-sans); font-size: var(--type-display-lg-size); line-height: var(--type-display-lg-lh); font-weight: 400; letter-spacing: -0.025em; }
+.md-display-md { font-family: var(--font-sans); font-size: var(--type-display-md-size); line-height: var(--type-display-md-lh); font-weight: 400; letter-spacing: -0.016em; }
+.md-display-sm { font-family: var(--font-sans); font-size: var(--type-display-sm-size); line-height: var(--type-display-sm-lh); font-weight: 400; }
+.md-headline-lg { font-family: var(--font-sans); font-size: var(--type-headline-lg-size); line-height: var(--type-headline-lg-lh); font-weight: 400; }
+.md-headline-md { font-family: var(--font-sans); font-size: var(--type-headline-md-size); line-height: var(--type-headline-md-lh); font-weight: 400; }
+.md-headline-sm { font-family: var(--font-sans); font-size: var(--type-headline-sm-size); line-height: var(--type-headline-sm-lh); font-weight: 400; }
+.md-title-lg { font-family: var(--font-sans); font-size: var(--type-title-lg-size); line-height: var(--type-title-lg-lh); font-weight: 400; letter-spacing: 0; }
+.md-title-md { font-family: var(--font-sans); font-size: var(--type-title-md-size); line-height: var(--type-title-md-lh); font-weight: 500; letter-spacing: 0.009em; }
+.md-title-sm { font-family: var(--font-sans); font-size: var(--type-title-sm-size); line-height: var(--type-title-sm-lh); font-weight: 500; letter-spacing: 0.007em; }
+.md-body-lg { font-family: var(--font-sans); font-size: var(--type-body-lg-size); line-height: var(--type-body-lg-lh); font-weight: 400; letter-spacing: 0.031em; }
+.md-body-md { font-family: var(--font-sans); font-size: var(--type-body-md-size); line-height: var(--type-body-md-lh); font-weight: 400; letter-spacing: 0.018em; }
+.md-body-sm { font-family: var(--font-sans); font-size: var(--type-body-sm-size); line-height: var(--type-body-sm-lh); font-weight: 400; letter-spacing: 0.025em; }
+.md-label-lg { font-family: var(--font-sans); font-size: var(--type-label-lg-size); line-height: var(--type-label-lg-lh); font-weight: 500; letter-spacing: 0.007em; }
+.md-label-md { font-family: var(--font-sans); font-size: var(--type-label-md-size); line-height: var(--type-label-md-lh); font-weight: 500; letter-spacing: 0.031em; }
+.md-label-sm { font-family: var(--font-sans); font-size: var(--type-label-sm-size); line-height: var(--type-label-sm-lh); font-weight: 500; letter-spacing: 0.045em; }
+
+/* ─────────────────────────────────────────────
+   M3 SPACING (8dp grid)
+   ───────────────────────────────────────────── */
+:root {
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+}
+
+/* ─────────────────────────────────────────────
+   M3 STATE LAYERS  (opacity overlays)
+   ───────────────────────────────────────────── */
+:root {
+  --state-hover:    0.08;  /* 8% overlay of on-color */
+  --state-pressed:  0.12;  /* 12% */
+  --state-focused:  0.12;
+  --state-dragged:  0.16;
+  --state-disabled: 0.38;  /* 38% opacity for content; 12% for container */
+}
+
+/* ─────────────────────────────────────────────
+   M3 ANIMATION
+   ───────────────────────────────────────────── */
+:root {
+  --motion-standard:       cubic-bezier(0.2, 0, 0, 1);    /* standard */
+  --motion-decelerate:     cubic-bezier(0, 0, 0, 1);       /* decelerated */
+  --motion-accelerate:     cubic-bezier(0.3, 0, 1, 1);     /* accelerated */
+  --motion-emphasized:     cubic-bezier(0.2, 0, 0, 1);
+  --duration-short-1: 50ms;
+  --duration-short-2: 100ms;
+  --duration-short-3: 150ms;
+  --duration-short-4: 200ms;
+  --duration-medium-1: 250ms;
+  --duration-medium-2: 300ms;
+  --duration-medium-3: 350ms;
+  --duration-medium-4: 400ms;
+  --duration-long-1: 450ms;
+  --duration-long-4: 600ms;
+}
+
+/* ─────────────────────────────────────────────
+   M3 COMPONENT UTILITIES
+   ───────────────────────────────────────────── */
+
+/* Filled Button */
+.md-btn-filled {
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: 8px; height: 40px; padding: 0 24px;
+  border-radius: var(--shape-full); border: none; cursor: pointer;
+  background: var(--md-primary); color: var(--md-on-primary);
+  font-family: var(--font-sans); font-size: 0.875rem; font-weight: 500; letter-spacing: 0.007em;
+  transition: box-shadow var(--duration-short-4) var(--motion-standard);
+  position: relative; overflow: hidden;
+}
+.md-btn-filled::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit;
+  background: var(--md-on-primary); opacity: 0; transition: opacity var(--duration-short-4);
+}
+.md-btn-filled:hover::after  { opacity: var(--state-hover); }
+.md-btn-filled:active::after { opacity: var(--state-pressed); }
+.md-btn-filled:hover { box-shadow: var(--shadow-2); }
+
+/* Tonal Button */
+.md-btn-tonal {
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: 8px; height: 40px; padding: 0 24px;
+  border-radius: var(--shape-full); border: none; cursor: pointer;
+  background: var(--md-secondary-container); color: var(--md-on-secondary-container);
+  font-family: var(--font-sans); font-size: 0.875rem; font-weight: 500; letter-spacing: 0.007em;
+  transition: box-shadow var(--duration-short-4) var(--motion-standard);
+  position: relative; overflow: hidden;
+}
+.md-btn-tonal::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: var(--md-on-secondary-container); opacity: 0; transition: opacity var(--duration-short-4); }
+.md-btn-tonal:hover::after { opacity: var(--state-hover); }
+.md-btn-tonal:active::after { opacity: var(--state-pressed); }
+.md-btn-tonal:hover { box-shadow: var(--shadow-2); }
+
+/* Outlined Button */
+.md-btn-outlined {
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: 8px; height: 40px; padding: 0 24px;
+  border-radius: var(--shape-full); cursor: pointer;
+  background: transparent; color: var(--md-primary);
+  border: 1px solid var(--md-outline);
+  font-family: var(--font-sans); font-size: 0.875rem; font-weight: 500; letter-spacing: 0.007em;
+  transition: all var(--duration-short-4) var(--motion-standard);
+  position: relative; overflow: hidden;
+}
+.md-btn-outlined::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: var(--md-primary); opacity: 0; transition: opacity var(--duration-short-4); }
+.md-btn-outlined:hover::after { opacity: var(--state-hover); }
+.md-btn-outlined:active::after { opacity: var(--state-pressed); }
+
+/* Text Button */
+.md-btn-text {
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: 8px; height: 40px; padding: 0 12px;
+  border-radius: var(--shape-full); border: none; cursor: pointer;
+  background: transparent; color: var(--md-primary);
+  font-family: var(--font-sans); font-size: 0.875rem; font-weight: 500; letter-spacing: 0.007em;
+  position: relative; overflow: hidden;
+}
+.md-btn-text::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: var(--md-primary); opacity: 0; transition: opacity var(--duration-short-4); }
+.md-btn-text:hover::after { opacity: var(--state-hover); }
+.md-btn-text:active::after { opacity: var(--state-pressed); }
+
+/* Elevated Card */
+.md-card {
+  background: var(--md-surface-container-low);
+  border-radius: var(--shape-md);
+  box-shadow: var(--shadow-1);
+  transition: box-shadow var(--duration-medium-1) var(--motion-standard);
+  position: relative; overflow: hidden;
+}
+.md-card:hover { box-shadow: var(--shadow-2); }
+.md-card::after { content: ""; position: absolute; inset: 0; background: var(--md-on-surface); opacity: 0; transition: opacity var(--duration-short-4); pointer-events: none; }
+.md-card:hover::after { opacity: 0.04; }
+
+/* Filled Card */
+.md-card-filled {
+  background: var(--md-surface-container-highest);
+  border-radius: var(--shape-md);
+}
+
+/* Outlined Card */
+.md-card-outlined {
+  background: var(--md-surface);
+  border: 1px solid var(--md-outline-variant);
+  border-radius: var(--shape-md);
+}
+
+/* M3 Chip */
+.md-chip {
+  display: inline-flex; align-items: center; gap: 8px;
+  height: 32px; padding: 0 16px;
+  border-radius: var(--shape-sm); border: 1px solid var(--md-outline);
+  background: transparent; color: var(--md-on-surface-variant);
+  font-family: var(--font-sans); font-size: 0.875rem; font-weight: 500;
+  cursor: pointer; transition: all var(--duration-short-3);
+}
+.md-chip.selected {
+  background: var(--md-secondary-container);
+  border-color: transparent;
+  color: var(--md-on-secondary-container);
+}
+
+/* M3 FAB */
+.md-fab {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 56px; height: 56px;
+  border-radius: var(--shape-lg); border: none; cursor: pointer;
+  background: var(--md-primary-container); color: var(--md-on-primary-container);
+  box-shadow: var(--shadow-3);
+  transition: box-shadow var(--duration-short-4) var(--motion-standard);
+  position: relative; overflow: hidden;
+}
+.md-fab:hover { box-shadow: 0 6px 16px rgba(0,0,0,.14); }
+.md-fab::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: var(--md-on-primary-container); opacity: 0; transition: opacity var(--duration-short-4); }
+.md-fab:hover::after { opacity: var(--state-hover); }
+
+/* M3 Filled Text Field */
+.md-field {
+  position: relative; display: flex; flex-direction: column;
+}
+.md-field input {
+  height: 56px; padding: 20px 16px 8px;
+  background: var(--md-surface-container-highest);
+  border: none; border-bottom: 1px solid var(--md-on-surface-variant);
+  border-radius: var(--shape-xs) var(--shape-xs) 0 0;
+  font-family: var(--font-sans); font-size: 1rem; color: var(--md-on-surface);
+  outline: none; transition: border-color var(--duration-short-4);
+}
+.md-field input:focus { border-bottom: 2px solid var(--md-primary); }
+.md-field label {
+  position: absolute; top: 18px; left: 16px; pointer-events: none;
+  font-family: var(--font-sans); font-size: 1rem; color: var(--md-on-surface-variant);
+  transition: all var(--duration-short-4) var(--motion-standard);
+}
+.md-field input:focus ~ label,
+.md-field input:not(:placeholder-shown) ~ label {
+  top: 8px; font-size: 0.75rem; color: var(--md-primary);
+}

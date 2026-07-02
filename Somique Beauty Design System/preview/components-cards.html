@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<!-- @dsCard group="Components" name="Cards & Avatars" subtitle="Elevated · Filled · Outlined cards · Master tonal card + avatar ring" viewport="700x175" -->
+<html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; padding: 16px 20px; font-family: 'Roboto', sans-serif; background: #FFF8F6; color: #211A1B; }
+  .section-title { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: .06em; color: #524344; margin-bottom: 10px; }
+  .row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+
+  /* Elevated card */
+  .card-el { background: #FFF0F1; border-radius: 12px; box-shadow: 0 1px 2px rgba(0,0,0,.1); padding: 16px; width: 140px; position: relative; overflow: hidden; }
+  .card-el::after { content: ""; position: absolute; inset: 0; background: #211A1B; opacity: 0; transition: opacity 150ms; border-radius: inherit; }
+  .card-el:hover::after { opacity: .04; }
+
+  /* Filled card */
+  .card-filled { background: #EDE1E1; border-radius: 12px; padding: 16px; width: 140px; }
+
+  /* Outlined card */
+  .card-outlined { background: #FFF8F6; border: 1px solid #D8C2C3; border-radius: 12px; padding: 16px; width: 140px; }
+
+  /* Master card */
+  .master-card { display: flex; flex-direction: column; align-items: center; gap: 8px; background: #FFF0F1; border-radius: 16px; padding: 16px 12px; width: 110px; box-shadow: 0 1px 2px rgba(0,0,0,.1); cursor: pointer; transition: box-shadow 200ms; position: relative; overflow: hidden; }
+  .master-card::after { content: ""; position: absolute; inset: 0; background: #8B4A58; opacity: 0; transition: opacity 150ms; border-radius: inherit; }
+  .master-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,.12); }
+  .master-card:hover::after { opacity: .05; }
+  .avatar { width: 52px; height: 52px; border-radius: 50%; object-fit: cover; border: 2px solid #FFD9DC; }
+
+  .card-title { font-size: 13px; font-weight: 500; color: #211A1B; margin-bottom: 4px; }
+  .card-sub { font-size: 12px; color: #524344; }
+</style>
+</head><body>
+  <div class="section-title">Card Types</div>
+  <div class="row">
+    <div class="card-el">
+      <div class="card-title">Elevated</div>
+      <div class="card-sub">Surface container-low · shadow-1</div>
+    </div>
+    <div class="card-filled">
+      <div class="card-title">Filled</div>
+      <div class="card-sub">Surface container-highest · no shadow</div>
+    </div>
+    <div class="card-outlined">
+      <div class="card-title">Outlined</div>
+      <div class="card-sub">Surface · outline-variant border</div>
+    </div>
+  </div>
+  <div class="section-title">Master Card (Tonal + Avatar)</div>
+  <div class="row">
+    <div class="master-card">
+      <img src="../assets/photo_master_olga.png" class="avatar" alt="Olga" />
+      <div style="font-size:13px;font-weight:500;color:#211A1B;">Olga</div>
+      <div style="font-size:11px;color:#524344;">Facial massage</div>
+    </div>
+    <div class="master-card">
+      <img src="../assets/photo_master_yuliia.png" class="avatar" alt="Yuliia" />
+      <div style="font-size:13px;font-weight:500;color:#211A1B;">Yuliia</div>
+      <div style="font-size:11px;color:#524344;">Lymph drainage</div>
+    </div>
+  </div>
+</body></html>

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<!-- @dsCard group="UI Kit — Client" name="Client Booking UI Kit" subtitle="Full client app — Home · Booking (desktop 2-col) · Login · Register · Profile · Dark mode" viewport="1280x820" -->
+<html lang="pl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Somique Beauty — Client App</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet" />
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body, #root { height: 100%; }
+  body { font-family: 'Roboto', sans-serif; }
+  button, input, select { font-family: 'Roboto', sans-serif; }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(139,74,88,.25); border-radius: 3px; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" src="shared.jsx"></script>
+<script type="text/babel" src="pages.jsx"></script>
+<script type="text/babel">
+const { useState } = React;
+
+// pages: home | booking | login | register | profile
+function ClientApp() {
+  const [page, setPage] = useState('home');
+  const [master, setMaster] = useState(null);
+  const [isLoggedIn, setLoggedIn] = useState(false);
+
+  const go = (p, data) => { if (data?.master) setMaster(data.master); setPage(p); };
+
+  return (
+    <ThemeProvider>
+      {page === 'home'     && <HomePage onSelectMaster={m => go('booking', {master:m})} onLogin={() => go('login')} onProfile={() => go('profile')} isLoggedIn={isLoggedIn} />}
+      {page === 'booking'  && <BookingPage master={master} onBack={() => go('home')} onLogin={() => go('login')} onProfile={() => go('profile')} isLoggedIn={isLoggedIn} />}
+      {page === 'login'    && <LoginPage onBack={() => go('home')} onRegister={() => go('register')} onLoggedIn={() => { setLoggedIn(true); go('home'); }} />}
+      {page === 'register' && <RegisterPage onBack={() => go('login')} onLogin={() => { setLoggedIn(true); go('home'); }} />}
+      {page === 'profile'  && <ProfilePage onBack={() => go('home')} onLogout={() => { setLoggedIn(false); go('home'); }} />}
+    </ThemeProvider>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<ClientApp />);
+</script>
+</body>
+</html>

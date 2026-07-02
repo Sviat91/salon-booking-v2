@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<!-- @dsCard group="Colors" name="Semantic & Dark Colors" subtitle="Surface containers · tonal elevation · outline · feedback tokens" viewport="700x195" -->
+<html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; padding: 16px 20px; font-family: 'Roboto', sans-serif; background: #FFF8F6; }
+  .section-title { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: .08em; color: #524344; margin-bottom: 8px; }
+  .row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+  .chip { border-radius: 12px; overflow: hidden; min-width: 72px; }
+  .chip-color { height: 36px; }
+  .chip-info { padding: 5px 8px; }
+  .chip-name { font-size: 9px; font-weight: 500; color: #211A1B; }
+  .chip-hex { font-size: 9px; color: #524344; font-family: monospace; }
+  .surf-row { display: flex; gap: 4px; }
+  .surf { flex: 1; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 500; color: #211A1B; }
+</style>
+</head><body>
+  <div class="section-title">Surface Containers — Tonal Elevation</div>
+  <div class="surf-row" style="margin-bottom:14px;">
+    <div class="surf" style="background:#FFFFFF;">lowest</div>
+    <div class="surf" style="background:#FFF0F1;">low</div>
+    <div class="surf" style="background:#F9E9EA;">default</div>
+    <div class="surf" style="background:#F3E3E4;">high</div>
+    <div class="surf" style="background:#EDE1E1;">highest</div>
+  </div>
+  <div class="section-title">Content / Outline</div>
+  <div class="row">
+    <div class="chip" style="background:#F9E9EA;">
+      <div class="chip-color" style="background:#211A1B;"></div>
+      <div class="chip-info"><div class="chip-name">On Surface</div><div class="chip-hex">#211A1B</div></div>
+    </div>
+    <div class="chip" style="background:#F9E9EA;">
+      <div class="chip-color" style="background:#524344;"></div>
+      <div class="chip-info"><div class="chip-name">On Surf. Variant</div><div class="chip-hex">#524344</div></div>
+    </div>
+    <div class="chip" style="background:#F9E9EA;">
+      <div class="chip-color" style="background:#857374;"></div>
+      <div class="chip-info"><div class="chip-name">Outline</div><div class="chip-hex">#857374</div></div>
+    </div>
+    <div class="chip" style="background:#F9E9EA;">
+      <div class="chip-color" style="background:#D8C2C3;"></div>
+      <div class="chip-info"><div class="chip-name">Outline Variant</div><div class="chip-hex">#D8C2C3</div></div>
+    </div>
+    <div class="chip" style="background:#F9E9EA;">
+      <div class="chip-color" style="background:#21A67A;"></div>
+      <div class="chip-info"><div class="chip-name">Success</div><div class="chip-hex">#21A67A</div></div>
+    </div>
+    <div class="chip" style="background:#F9E9EA;">
+      <div class="chip-color" style="background:#BA1A1A;"></div>
+      <div class="chip-info"><div class="chip-name">Error</div><div class="chip-hex">#BA1A1A</div></div>
+    </div>
+  </div>
+</body></html>

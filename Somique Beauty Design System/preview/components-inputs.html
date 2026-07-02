@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<!-- @dsCard group="Components" name="Form Inputs" subtitle="M3 filled text fields · filter chips · consent checkboxes" viewport="700x230" -->
+<html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; padding: 16px 20px; font-family: 'Roboto', sans-serif; background: #FFF8F6; color: #211A1B; }
+  .section-title { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: .06em; color: #524344; margin-bottom: 10px; }
+  .row { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 16px; }
+
+  /* M3 Filled text field */
+  .field { position: relative; width: 160px; }
+  .field input {
+    width: 100%; height: 56px; padding: 20px 16px 8px;
+    background: #EDE1E1; border: none;
+    border-bottom: 1px solid #524344;
+    border-radius: 4px 4px 0 0;
+    font-family: 'Roboto', sans-serif; font-size: 14px; color: #211A1B;
+    outline: none; box-sizing: border-box;
+    transition: border-color 150ms;
+  }
+  .field input:focus { border-bottom: 2px solid #8B4A58; }
+  .field input.error { border-bottom: 2px solid #BA1A1A; }
+  .field label {
+    position: absolute; top: 18px; left: 16px; pointer-events: none;
+    font-family: 'Roboto', sans-serif; font-size: 14px; color: #524344;
+    transition: all 150ms;
+  }
+  .field input:focus ~ label,
+  .field input.has-value ~ label {
+    top: 8px; font-size: 11px; color: #8B4A58;
+  }
+  .field input.error ~ label { color: #BA1A1A; }
+  .field-helper { font-size: 11px; color: #524344; margin-top: 4px; padding-left: 16px; }
+  .field-helper.error { color: #BA1A1A; }
+
+  /* Chips */
+  .chip { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 16px; border-radius: 8px; border: 1px solid #D8C2C3; background: transparent; color: #524344; font-family: 'Roboto', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 150ms; }
+  .chip.selected { background: #FFDCCA; border-color: transparent; color: #2F1509; }
+  .chip.input-chip { border-radius: 8px; }
+
+  /* Checkbox */
+  .cb-row { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; color: #211A1B; line-height: 1.5; }
+  input[type=checkbox] { width: 18px; height: 18px; accent-color: #8B4A58; margin-top: 1px; flex-shrink: 0; }
+</style>
+</head><body>
+  <div class="section-title">Filled Text Fields (M3)</div>
+  <div class="row">
+    <div class="field">
+      <input type="text" value="Anna Kowalska" class="has-value" />
+      <label>Full name</label>
+    </div>
+    <div class="field">
+      <input type="text" placeholder="" />
+      <label>Phone number</label>
+    </div>
+    <div class="field">
+      <input type="text" value="bad@" class="has-value error" />
+      <label>Email</label>
+      <div class="field-helper error">Invalid email address</div>
+    </div>
+  </div>
+  <div class="section-title">Filter Chips</div>
+  <div class="row" style="margin-bottom:14px;">
+    <button class="chip selected">Olga</button>
+    <button class="chip">Yuliia</button>
+    <button class="chip">All Masters</button>
+    <button class="chip selected">This week</button>
+    <button class="chip">Confirmed</button>
+  </div>
+  <div class="section-title">Consent Checkboxes</div>
+  <div style="display:flex;flex-direction:column;gap:8px;">
+    <label class="cb-row"><input type="checkbox" checked /> Wyrażam zgodę na przetwarzanie moich danych osobowych *</label>
+    <label class="cb-row"><input type="checkbox" /> Akceptuję regulamin serwisu *</label>
+    <label class="cb-row"><input type="checkbox" /> Chcę otrzymywać powiadomienia</label>
+  </div>
+</body></html>

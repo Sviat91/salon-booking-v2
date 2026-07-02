@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<!-- @dsCard group="Components" name="Buttons" subtitle="Filled · Tonal · Outlined · Elevated · Text · FAB — M3 variants" viewport="700x170" -->
+<html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; padding: 16px 20px; font-family: 'Roboto', sans-serif; background: #FFF8F6; color: #211A1B; display: flex; flex-direction: column; gap: 16px; }
+  .section-title { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: .06em; color: #524344; margin-bottom: 8px; }
+  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+  /* State layer mixin via ::after */
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 40px; padding: 0 24px; border-radius: 9999px; border: none; cursor: pointer; font-family: 'Roboto', sans-serif; font-size: 14px; font-weight: 500; letter-spacing: .007em; position: relative; overflow: hidden; transition: box-shadow 200ms; }
+  .btn::after { content: ""; position: absolute; inset: 0; border-radius: inherit; opacity: 0; transition: opacity 150ms; }
+  .btn:hover::after { opacity: .08; }
+  .btn:active::after { opacity: .12; }
+
+  .btn-filled { background: #8B4A58; color: #fff; }
+  .btn-filled::after { background: #fff; }
+  .btn-filled:hover { box-shadow: 0 2px 6px rgba(0,0,0,.12); }
+
+  .btn-tonal { background: #FFDCCA; color: #2F1509; }
+  .btn-tonal::after { background: #2F1509; }
+  .btn-tonal:hover { box-shadow: 0 2px 6px rgba(0,0,0,.1); }
+
+  .btn-outlined { background: transparent; color: #8B4A58; border: 1px solid #857374; }
+  .btn-outlined::after { background: #8B4A58; }
+
+  .btn-text { background: transparent; color: #8B4A58; padding: 0 12px; }
+  .btn-text::after { background: #8B4A58; }
+
+  .btn-elevated { background: #FFF0F1; color: #8B4A58; box-shadow: 0 1px 2px rgba(0,0,0,.1); }
+  .btn-elevated::after { background: #8B4A58; }
+  .btn-elevated:hover { box-shadow: 0 2px 6px rgba(0,0,0,.12); }
+
+  .btn:disabled { opacity: .38; pointer-events: none; }
+  .btn-sm { height: 32px; padding: 0 16px; font-size: 13px; border-radius: 9999px; }
+
+  /* Icon button */
+  .icon-btn { width: 40px; height: 40px; padding: 0; border-radius: 9999px; }
+
+  /* FAB */
+  .fab { width: 56px; height: 56px; border-radius: 16px; border: none; cursor: pointer; font-family: 'Roboto', sans-serif; background: #FFD9DC; color: #3B0017; box-shadow: 0 4px 12px rgba(0,0,0,.12); display: inline-flex; align-items: center; justify-content: center; position: relative; overflow: hidden; transition: box-shadow 200ms; }
+  .fab::after { content: ""; position: absolute; inset: 0; background: #3B0017; opacity: 0; transition: opacity 150ms; border-radius: inherit; }
+  .fab:hover { box-shadow: 0 6px 16px rgba(0,0,0,.16); }
+  .fab:hover::after { opacity: .08; }
+
+  .fab-lg { width: 96px; height: 96px; border-radius: 28px; }
+</style>
+</head><body>
+  <div>
+    <div class="section-title">Button Variants</div>
+    <div class="row">
+      <button class="btn btn-filled">Filled</button>
+      <button class="btn btn-tonal">Tonal</button>
+      <button class="btn btn-outlined">Outlined</button>
+      <button class="btn btn-elevated">Elevated</button>
+      <button class="btn btn-text">Text</button>
+      <button class="btn btn-filled" disabled>Disabled</button>
+    </div>
+  </div>
+  <div>
+    <div class="section-title">Sizes &amp; FAB</div>
+    <div class="row">
+      <button class="btn btn-filled btn-sm">Small</button>
+      <button class="btn btn-filled">Default</button>
+      <button class="btn btn-filled icon-btn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+      <button class="fab">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+    </div>
+  </div>
+</body></html>

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<!-- @dsCard group="Spacing" name="Shadows & Elevation" subtitle="M3 tonal elevation · 5 surface container levels · hover shadows" viewport="700x230" -->
+<html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; padding: 16px 20px; font-family: 'Roboto', sans-serif; background: #FFF8F6; color: #211A1B; }
+  .section-title { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: .06em; color: #524344; margin-bottom: 8px; }
+  .row { display: flex; align-items: center; gap: 14px; margin-bottom: 10px; }
+  .el-box { width: 100px; height: 36px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 500; color: #211A1B; }
+  .meta { font-size: 10px; color: #524344; font-family: monospace; }
+</style>
+</head><body>
+  <div class="section-title">Tonal Elevation (M3 — color, not shadow)</div>
+  <div class="row"><div class="el-box" style="background:#FFFFFF;border:1px solid #EDE1E1;">Surface</div><div class="meta">elevation-0 · surface · #FFF8F6</div></div>
+  <div class="row"><div class="el-box" style="background:#FFF0F1;">Container Low</div><div class="meta">elevation-1 · cards, nav rail</div></div>
+  <div class="row"><div class="el-box" style="background:#F9E9EA;">Container</div><div class="meta">elevation-2 · dropdowns</div></div>
+  <div class="row"><div class="el-box" style="background:#F3E3E4;">Container High</div><div class="meta">elevation-3 · modals</div></div>
+  <div class="row"><div class="el-box" style="background:#EDE1E1;">Container Highest</div><div class="meta">elevation-4 · dialogs, text fields</div></div>
+  <div style="margin-top:8px;padding-top:8px;border-top:1px solid #EDE1E1;">
+    <div class="section-title">Interactive shadow (hover only)</div>
+    <div class="row">
+      <div class="el-box" style="background:#FFF0F1;box-shadow:0 1px 2px rgba(0,0,0,.1);">Shadow 1</div>
+      <div class="el-box" style="background:#FFF0F1;box-shadow:0 2px 6px rgba(0,0,0,.1),0 1px 2px rgba(0,0,0,.08);">Shadow 2</div>
+      <div class="el-box" style="background:#FFF0F1;box-shadow:0 4px 12px rgba(0,0,0,.1),0 2px 4px rgba(0,0,0,.08);">Shadow 3</div>
+    </div>
+  </div>
+</body></html>

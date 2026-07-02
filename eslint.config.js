@@ -5,7 +5,7 @@ import react from 'eslint-plugin-react'
 
 export default [
   {
-    ignores: ['**/node_modules/**', '**/.next/**', '**/dist/**'],
+    ignores: ['**/node_modules/**', '**/.next/**', '**/dist/**', 'Somique Beauty Design System/**'],
   },
   {
     settings: {
