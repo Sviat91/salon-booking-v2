@@ -1,0 +1,26 @@
+# AGENTS.md — prisma
+
+## Purpose
+
+Data model, migration history, and seed data for the SQLite (libSQL) database at `prisma/app.db`.
+
+## Ownership
+
+`schema.prisma` (models: `User`, `MasterProfile`, `Service`, `MasterService`, `ConsentRecord`, `Schedule`, `Appointment`, `DateOverride`, `TenantConfig`, `NotificationLog`, `PasswordResetToken`, `Account`), the `migrations/` history, and `seed.ts`/`seed.js`.
+
+## Local Contracts
+
+- SQLite has no native enums — role (`CLIENT|MASTER|ADMIN|SUPERADMIN`), appointment status, etc. are plain `String` columns validated at the application layer, not the DB layer. Don't add a Prisma `enum`.
+- `User.password`/`plainPassword`/OAuth tokens and `TenantConfig` SMTP/OAuth secrets must be written through `src/lib/encryption.ts` — never add a migration that stores a new secret field in plaintext.
+- `User` identity for clients is the `(phone, name)` pair (see schema comment on `User`) — two people sharing a phone get separate rows; email uniqueness for admin/master auth is enforced in the register endpoint, not a DB constraint.
+- Any schema change requires `npx prisma migrate dev --name <name>` — never hand-edit `migrations/` or `app.db` directly.
+
+## Work Guidance
+
+- After a migration that changes procedure/schedule-related tables, remember cache invalidation is a separate manual step in the calling code (`src/lib/cache.ts` keys) — Prisma migrations don't touch Redis.
+- Keep `seed.ts` (source) and `seed.js` (compiled/mirrored copy) in sync when editing seed data.
+
+## Verification
+
+- `npx prisma studio` to inspect data manually after a migration.
+- `tests/app/api/**` mock `@/lib/prisma` (see `vi.mock`) rather than hitting a real DB — a schema change needs the mocks updated to match the new shape, not just the migration.

@@ -1,0 +1,25 @@
+# AGENTS.md — src/app/admin
+
+## Purpose
+
+Salon management dashboard. Two role-scoped surfaces share this tree: full management for `ADMIN`/`SUPERADMIN` (masters, services, all schedules, all appointments, database/GDPR tools, tenant settings), and a restricted self-service view for `MASTER` under `admin/master/` (own schedule, own overrides, own appointments).
+
+## Ownership
+
+Dashboard page composition and role-gated views. Data mutations go through `src/app/api/admin/**` and `src/app/api/master/**`; this folder only renders and calls those endpoints.
+
+## Local Contracts
+
+- Every page here is a Server Component that calls `auth()` and redirects to `/auth/login` if `session.user.role` doesn't match what the page requires — `admin/master/*` pages check for `"MASTER"` specifically, top-level `admin/*` pages check for `"ADMIN"`/`"SUPERADMIN"`. `src/middleware.ts` provides a first-pass guard, but pages must not skip their own check.
+- Fine-grained ADMIN permissions (client data view/edit/delete, GDPR view/withdraw/erase) come from `src/lib/admin-permissions.ts` — gate UI affordances (buttons, tabs) on the parsed permission object, not on role alone.
+- `settings/` (email, notifications, social, OAuth/SMTP credentials) writes to the single `TenantConfig` row — encrypted fields (OAuth secrets, SMTP password) must pass through `src/lib/encryption.ts` before persisting; never render decrypted secrets back into the page.
+- `database/gdpr/` triggers erasure/withdrawal flows — these are irreversible for the affected user; confirm-before-submit UX must not be removed.
+
+## Work Guidance
+
+- Reuse `AdminSidebar` (`src/components/admin/AdminSidebar.tsx`) for navigation; don't hand-build a second sidebar for a new section.
+- Keep page files under 500 lines — split list/detail/form pieces into `src/components/admin/` or co-located client components as this folder already does (e.g. `admin/master/AppointmentsList.tsx`).
+
+## Verification
+
+- Manually verify role gating after auth changes: log in as `MASTER` and confirm `admin/*` (non-`master/`) routes redirect; log in as `ADMIN` without a permission and confirm the corresponding action is hidden/blocked.
