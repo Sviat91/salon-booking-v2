@@ -1,7 +1,8 @@
 import { redirect } from "next/navigation"
 import { auth } from "@/auth"
 import prisma from "@/lib/prisma"
-import { startOfDay, endOfDay, addDays } from "date-fns"
+import { startOfDay, endOfDay, addDays, format } from "date-fns"
+import StatCard from "@/components/admin/StatCard"
 import AppointmentsList from "./AppointmentsList"
 
 export default async function MasterDashboardPage() {
@@ -50,37 +51,16 @@ export default async function MasterDashboardPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground mt-2">Welcome back to your workspace</p>
+        <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+          Overview
+        </p>
+        <p className="mt-1 text-sm text-muted-foreground">{format(today, "EEEE, d MMMM yyyy")}</p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <div className="rounded-xl border bg-card text-card-foreground shadow-sm p-6">
-          <div className="flex flex-row items-center justify-between space-y-0 relative">
-            <h3 className="tracking-tight text-sm font-medium">Appointments Today</h3>
-          </div>
-          <div className="mt-4">
-            <div className="text-2xl font-bold">{todayAppointments.length}</div>
-          </div>
-        </div>
-
-        <div className="rounded-xl border bg-card text-card-foreground shadow-sm p-6">
-          <div className="flex flex-row items-center justify-between space-y-0 relative">
-            <h3 className="tracking-tight text-sm font-medium">Upcoming (7 days)</h3>
-          </div>
-          <div className="mt-4">
-            <div className="text-2xl font-bold">{weekCount}</div>
-          </div>
-        </div>
-
-        <div className="rounded-xl border bg-card text-card-foreground shadow-sm p-6">
-          <div className="flex flex-row items-center justify-between space-y-0 relative">
-            <h3 className="tracking-tight text-sm font-medium">Total Clients</h3>
-          </div>
-          <div className="mt-4">
-            <div className="text-2xl font-bold">{totalClients}</div>
-          </div>
-        </div>
+      <div className="grid gap-3 md:grid-cols-3">
+        <StatCard label="Appointments Today" value={todayAppointments.length} tone="primary" />
+        <StatCard label="Upcoming (7 days)" value={weekCount} tone="secondary" />
+        <StatCard label="Total Clients" value={totalClients} tone="tertiary" />
       </div>
 
       <div>

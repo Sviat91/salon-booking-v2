@@ -41,8 +41,14 @@
   --md-on-secondary: #4A2F1E;
   --md-secondary-container: #634432;
   --md-on-secondary-container: #FFDCCA;
+  --md-tertiary: #FFBA3F;
+  --md-on-tertiary: #412D00;
+  --md-tertiary-container: #5E4200;
+  --md-on-tertiary-container: #FFDFA3;
   --md-error: #FFB4AB;
   --md-on-error: #690005;
+  --md-error-container: #93000A;
+  --md-on-error-container: #FFDAD6;
   --md-surface: #191112;
   --md-on-surface: #EDE1E1;
   --md-surface-variant: #524344;

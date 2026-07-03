@@ -4,6 +4,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import AppointmentStatusBadge from "@/components/admin/AppointmentStatusBadge"
 import { Clock, Phone, User as UserIcon } from "lucide-react"
 
 type AppointmentProps = {
@@ -47,13 +48,6 @@ export default function AppointmentsList({ appointments }: { appointments: Appoi
     )
   }
 
-  function getStatusColor(status: string) {
-    if (status === "PENDING") return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
-    if (status === "CONFIRMED") return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-    if (status.includes("CANCELLED")) return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
-    return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200"
-  }
-
   return (
     <div className="space-y-4">
       {appointments.map((app) => {
@@ -64,9 +58,7 @@ export default function AppointmentsList({ appointments }: { appointments: Appoi
             <CardContent className="p-4 sm:p-6 flex flex-col sm:flex-row gap-4 sm:items-center justify-between">
               <div className="space-y-3 flex-1">
                 <div className="flex items-center gap-2">
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(app.status)}`}>
-                    {app.status}
-                  </span>
+                  <AppointmentStatusBadge status={app.status} />
                   <div className="flex items-center gap-1 text-sm font-medium text-muted-foreground">
                     <Clock className="w-4 h-4" />
                     {app.startTime} - {app.endTime} ({app.service.duration} min)

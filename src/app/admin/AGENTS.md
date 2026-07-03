@@ -20,6 +20,7 @@ Dashboard page composition and role-gated views. Data mutations go through `src/
 - Reuse `AdminSidebar` (`src/components/admin/AdminSidebar.tsx`) for navigation; don't hand-build a second sidebar for a new section. Nav items (label/href/icon/role) live in `src/components/admin/adminNavItems.ts` — add a new route there and both the sidebar and `AdminTopBar`'s page title pick it up automatically; don't hardcode a title in the page itself.
 - `src/app/admin/layout.tsx` renders `AdminSidebar` + `AdminTopBar` around `{children}`; the sidebar collapses (240px⇄72px) via its own local state, `AdminTopBar` needs no props and no wiring from individual pages.
 - Keep page files under 500 lines — split list/detail/form pieces into `src/components/admin/` or co-located client components as this folder already does (e.g. `admin/master/AppointmentsList.tsx`).
+- Dashboard stat cards use `src/components/admin/StatCard.tsx` (`tone: "primary" | "secondary" | "tertiary" | "surface-high"`, mapped to the raw `--md-*-container` vars, not the tenant-customizable `bg-primary`/`bg-accent`/etc). Appointment status pills use the shared `src/components/admin/AppointmentStatusBadge.tsx` everywhere a status is rendered (`admin/page.tsx`'s `TodaysAppointmentsTable` and `admin/master/AppointmentsList.tsx`) — don't hand-roll a new status→color mapping.
 
 ## Verification
 
