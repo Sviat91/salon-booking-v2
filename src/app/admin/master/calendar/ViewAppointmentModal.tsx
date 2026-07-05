@@ -114,9 +114,9 @@ export default function ViewAppointmentModal({ appointment, onClose, onDelete, o
            <Button variant="outline" className="flex-1 gap-2" onClick={() => onDuplicate(appointment)}>
              <Copy className="w-4 h-4" /> Copy
            </Button>
-           <Button 
-             variant="destructive" 
-             className="flex-1 gap-2 bg-red-500/10 text-red-600 hover:bg-red-500 hover:text-white border-none shadow-none" 
+           <Button
+             variant="destructive"
+             className="flex-1 gap-2"
              onClick={handleDelete}
              disabled={isDeleting}
            >

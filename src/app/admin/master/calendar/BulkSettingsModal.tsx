@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react"
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek, isSameMonth, addDays, getDay, isToday } from "date-fns"
 import { Button } from "@/components/ui/button"
-import { ChevronLeft, ChevronRight, X, Plus, Trash2, Info } from "lucide-react"
+import { ChevronLeft, ChevronRight, X, Plus, Trash2, Info, Users, Clock, User } from "lucide-react"
 import { TimePickerDropdown } from "@/components/TimePickerDropdown"
 
 type Interval = { start: string; end: string }
@@ -165,7 +165,7 @@ export default function BulkSettingsModal({ onClose, onSave, templates = [], api
               onClick={() => toggleDate(d)}
               className={`relative h-10 w-full rounded-md flex items-center justify-center text-sm transition-colors border border-transparent
                 ${isDisabled ? "text-muted-foreground opacity-30 cursor-not-allowed" : ""}
-                ${!isDisabled && isDayOffDay && !isSelected ? "text-red-500 bg-red-500/10 hover:bg-red-500/15 border-red-500/30" : ""}
+                ${!isDisabled && isDayOffDay && !isSelected ? "text-[var(--md-on-error-container)] bg-[var(--md-error-container)] hover:brightness-95" : ""}
                 ${!isDisabled && isTdy && !isSelected ? "ring-2 ring-primary bg-primary/10 font-bold" : ""}
                 ${isSelected ? "bg-primary text-primary-foreground hover:bg-primary/90 font-medium shadow-md" : !isDisabled ? "hover:bg-muted" : ""}
               `}
@@ -174,7 +174,7 @@ export default function BulkSettingsModal({ onClose, onSave, templates = [], api
 
               {/* Green dot = schedule exists for this day (override or template) */}
               {!isDisabled && hasSchedule && !isDayOffDay && (
-                <div className={`absolute bottom-0.5 w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-primary-foreground' : 'bg-green-500'}`} />
+                <div className={`absolute bottom-0.5 w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-primary-foreground' : 'bg-[var(--md-success)]'}`} />
               )}
             </button>
           )
@@ -262,9 +262,9 @@ export default function BulkSettingsModal({ onClose, onSave, templates = [], api
                   <span className="text-muted-foreground font-medium">Configuration:</span>
                   <span className="font-bold text-foreground">
                     {isDayOff ? (
-                      <span className="text-red-500 flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-500"></span> Day Off</span>
+                      <span className="text-destructive flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-destructive"></span> Day Off</span>
                     ) : (
-                      <span className="text-green-500 flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-green-500"></span> {intervals.length} Shift{intervals.length !== 1 ? 's' : ''}</span>
+                      <span className="text-[var(--md-success)] flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[var(--md-success)]"></span> {intervals.length} Shift{intervals.length !== 1 ? 's' : ''}</span>
                     )}
                   </span>
                 </div>
@@ -287,7 +287,7 @@ export default function BulkSettingsModal({ onClose, onSave, templates = [], api
             {isAdminView && (
               <div className="space-y-3">
                 <span className="text-sm font-semibold flex items-center gap-2">
-                  🏢 Apply To Masters
+                  <Users className="w-4 h-4" /> Apply To Masters
                 </span>
                 <div className="bg-muted/40 border border-border/50 rounded-xl p-4 shadow-sm">
                   <label className="flex items-center gap-3 cursor-pointer p-3 hover:bg-muted rounded-lg transition-colors border border-transparent shadow-sm hover:border-border/50">
@@ -309,7 +309,7 @@ export default function BulkSettingsModal({ onClose, onSave, templates = [], api
                           checked={targetMasterIds.has(m.id)}
                           onChange={() => toggleMaster(m.id)}
                         />
-                        <span>👤 {m.name}</span>
+                        <span className="flex items-center gap-1.5"><User className="w-3.5 h-3.5" />{m.name}</span>
                       </label>
                     ))}
                   </div>
@@ -319,7 +319,7 @@ export default function BulkSettingsModal({ onClose, onSave, templates = [], api
 
             <div className="space-y-3">
               <span className="text-sm font-semibold flex items-center gap-2">
-                🕒 Schedule Configuration
+                <Clock className="w-4 h-4" /> Schedule Configuration
               </span>
               <div className="bg-muted/40 border border-border/50 rounded-xl p-4 shadow-sm">
                 <label className="flex items-center gap-3 cursor-pointer p-3 hover:bg-muted rounded-lg transition-colors border border-transparent shadow-sm hover:border-border/50 mb-2">
@@ -330,7 +330,7 @@ export default function BulkSettingsModal({ onClose, onSave, templates = [], api
                     onChange={(e) => setIsDayOff(e.target.checked)}
                     className="h-4 w-4 accent-primary rounded cursor-pointer"
                   />
-                  <span className="font-semibold text-red-500">Mark as Day Off</span>
+                  <span className="font-semibold text-destructive">Mark as Day Off</span>
                 </label>
 
                 {!isDayOff && (

@@ -21,7 +21,7 @@ const M3_LIGHT_DEFAULTS = {
 const M3_DARK_DEFAULTS = {
   darkBgColor:      '#191112',
   darkPrimaryColor: '#261E1F',
-  darkCardColor:    '#211A1B',
+  darkCardColor:    '#22160f',
   darkAccentColor:  '#FFB2B8',
   darkTextColor:    '#EDE1E1',
   darkMutedColor:   '#D8C2C3',

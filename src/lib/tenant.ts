@@ -15,7 +15,7 @@ const DEFAULT_CONFIG = {
   darkBgColor: '#191112',
   darkPrimaryColor: '#261E1F',
   darkAccentColor: '#FFB2B8',
-  darkCardColor: '#211A1B',
+  darkCardColor: '#22160f',
   darkTextColor: '#EDE1E1',
   darkMutedColor: '#D8C2C3',
   darkBorderColor: '#524344',
