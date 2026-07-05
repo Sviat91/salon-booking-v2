@@ -1,8 +1,9 @@
 "use client"
 
 import { useState, useCallback, useTransition } from "react"
-import { Plus, Pencil, Trash2, Clock, DollarSign } from "lucide-react"
+import { Plus, Pencil, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import {
   Sheet,
   SheetContent,
@@ -51,18 +52,16 @@ export default function ServicesClient({
       {/* Header row */}
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Services</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {services.length} service{services.length !== 1 ? "s" : ""} total
-          </p>
+          <p className="text-xs font-medium uppercase tracking-wider text-primary">Manage</p>
+          <p className="mt-1 text-sm text-muted-foreground">Procedures, prices and durations</p>
         </div>
 
         <Sheet open={addOpen} onOpenChange={setAddOpen}>
           <SheetTrigger
             render={
-              <Button size="sm" className="gap-2">
+              <Button className="h-10 gap-2 px-5">
                 <Plus className="h-4 w-4" />
-                Add Service
+                Add service
               </Button>
             }
           />
@@ -79,51 +78,43 @@ export default function ServicesClient({
 
       {/* Table */}
       {services.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-16 text-center">
+        <div className="flex flex-col items-center justify-center rounded-[20px] border border-dashed border-border py-16 text-center">
           <p className="text-sm text-muted-foreground">No services yet.</p>
           <p className="text-xs text-muted-foreground mt-1">
             Click &ldquo;Add Service&rdquo; to create the first one.
           </p>
         </div>
       ) : (
-        <div className="rounded-xl border border-border overflow-hidden">
+        <div className="rounded-[20px] border border-border bg-card shadow-sm overflow-hidden">
           <table className="w-full text-sm">
             <thead className="bg-muted/50 text-muted-foreground">
               <tr>
-                <th className="px-4 py-3 text-left font-medium">Name</th>
-                <th className="px-4 py-3 text-left font-medium">
-                  <span className="flex items-center gap-1">
-                    <Clock className="h-3.5 w-3.5" /> Duration
-                  </span>
-                </th>
-                <th className="px-4 py-3 text-left font-medium">
-                  <span className="flex items-center gap-1">
-                    <DollarSign className="h-3.5 w-3.5" /> Price
-                  </span>
-                </th>
-                <th className="px-4 py-3 text-left font-medium">Special Prices</th>
-                <th className="px-4 py-3 text-right font-medium">Actions</th>
+                <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Name</th>
+                <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Duration</th>
+                <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Price</th>
+                <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Special Prices</th>
+                <th className="px-4 py-2.5 text-right text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {services.map((svc) => (
-                <tr key={svc.id} className="bg-background hover:bg-muted/30 transition-colors">
+                <tr key={svc.id} className="hover:bg-muted/40 transition-colors">
                   <td className="px-4 py-3 font-medium">{svc.name}</td>
                   <td className="px-4 py-3 text-muted-foreground">
                     {svc.duration} min
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground">
+                  <td className="px-4 py-3 font-medium text-foreground">
                     {svc.price.toFixed(2)} zł
                   </td>
                   <td className="px-4 py-3 text-xs text-muted-foreground">
                     {svc.masterServices && svc.masterServices.some((ms) => ms.priceOverride !== null) ? (
-                      <div className="space-y-1">
+                      <div className="flex flex-wrap gap-1">
                         {svc.masterServices
                           .filter((ms) => ms.priceOverride !== null)
                           .map((ms) => (
-                            <div key={ms.masterProfileId}>
+                            <Badge key={ms.masterProfileId} variant="muted" className="text-[11px]">
                               {(masterNameByProfileId.get(ms.masterProfileId) ?? "Unknown master")}: {ms.priceOverride!.toFixed(2)} zł
-                            </div>
+                            </Badge>
                           ))}
                       </div>
                     ) : (
@@ -131,7 +122,7 @@ export default function ServicesClient({
                     )}
                   </td>
                   <td className="px-4 py-3">
-                    <div className="flex items-center justify-end gap-1">
+                    <div className="flex items-center justify-end gap-0.5">
                       {/* Edit */}
                       <Sheet
                         open={editOpen && editTarget?.id === svc.id}
@@ -190,8 +181,6 @@ export default function ServicesClient({
           </table>
         </div>
       )}
-
-      {/* Edit Sheet (controlled externally when clicking row) */}
     </div>
   )
 }

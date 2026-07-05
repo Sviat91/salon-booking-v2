@@ -133,7 +133,7 @@ export default function ServiceForm({ service, masters, onSuccess }: ServiceForm
           <p className="text-xs text-muted-foreground -mt-1">
             Leave all unchecked = available for all masters at the default price.
           </p>
-          <div className="rounded-md border border-border divide-y divide-border overflow-hidden">
+          <div className="rounded-xl border border-border divide-y divide-border overflow-hidden">
             {masters.map((m) => {
               const checked = checkedMasters.has(m.masterProfileId)
               return (
