@@ -12,17 +12,17 @@ export default async function MasterSchedulePage() {
   }
 
   return (
-    <div className="flex flex-col gap-6 h-[calc(100vh-6rem)] min-h-[600px]">
+    <div className="flex flex-col gap-6 h-[calc(100vh-8rem)] min-h-[600px]">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Schedule & Calendar</h1>
         <p className="text-muted-foreground mt-2 text-sm">Manage your appointments, working hours, and set day-offs right from the calendar.</p>
       </div>
       
-      <div className="flex-1 bg-card border rounded-xl shadow-sm overflow-hidden flex flex-col relative min-h-[500px]">
+      <div className="flex-1 bg-card border rounded-[20px] shadow-sm overflow-hidden flex flex-col relative min-h-[500px]">
         <ModernCalendar 
           masterId={session.user.id} 
-          availableSlotColor={(config as any).availableSlotColor as string || "#22c55e"} 
-          dayOffColor={(config as any).dayOffColor as string || "#ef4444"} 
+          availableSlotColor={(config as any).availableSlotColor as string || "#21A67A"}
+          dayOffColor={(config as any).dayOffColor as string || "#BA1A1A"}
           workingHourStart={(config as any).workingHourStart as number ?? 8}
           workingHourEnd={(config as any).workingHourEnd as number ?? 21}
         />

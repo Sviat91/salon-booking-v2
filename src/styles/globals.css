@@ -159,6 +159,11 @@ body:has(.admin-layout)::before {
   background: #7A4F35;
 }
 
+.custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: var(--muted-foreground); }
+
 /* Mobile booking form animation */
 @keyframes fade-in-up {
   from {

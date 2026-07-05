@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react"
 import { format, addMonths, addWeeks, addDays, startOfMonth, endOfMonth, startOfWeek, endOfWeek } from "date-fns"
-import { ChevronLeft, ChevronRight, Edit3, Save, Calendar } from "lucide-react"
+import { ChevronLeft, ChevronRight, Edit3, Save, Calendar, Globe, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem, SelectItemText } from "@/components/ui/select"
 
@@ -32,8 +32,8 @@ export type Override = { date: string; isDayOff: boolean; intervals: Interval[] 
 
 export default function ModernCalendar({ 
   masterId: _masterId, 
-  availableSlotColor = "#22c55e", 
-  dayOffColor = "#ef4444",
+  availableSlotColor = "#21A67A",
+  dayOffColor = "#BA1A1A",
   workingHourStart = 8,
   workingHourEnd = 21,
   apiPrefix = "/api/master",
@@ -195,18 +195,16 @@ export default function ModernCalendar({
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          {view !== "Month" && (
-            <Select value={String(step)} onValueChange={(v) => setStep(Number(v ?? step))}>
-              <SelectTrigger className="h-auto w-auto bg-transparent hover:bg-muted px-3 py-1.5 text-sm font-medium shadow-sm">
-                <SelectValue>{(v: string) => `${v} min`}</SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                {[5, 10, 15, 30, 60].map(s => (
-                  <SelectItem key={s} value={String(s)}><SelectItemText>{s} min</SelectItemText></SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
+          <Select value={String(step)} onValueChange={(v) => setStep(Number(v ?? step))} disabled={view === "Month"}>
+            <SelectTrigger className="h-auto w-auto bg-transparent hover:bg-muted px-3 py-1.5 text-sm font-medium shadow-sm">
+              <SelectValue>{(v: string) => `${v} min`}</SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {[5, 10, 15, 30, 60].map(s => (
+                <SelectItem key={s} value={String(s)}><SelectItemText>{s} min</SelectItemText></SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
           <div className="h-6 w-px bg-border mx-1" />
 
@@ -229,16 +227,16 @@ export default function ModernCalendar({
 
           <div className="h-6 w-px bg-border mx-1" />
 
-          <div className="flex rounded-md border border-border bg-transparent">
-            {(["Month", "Week", "Day"] as ViewType[]).map((v, idx) => (
+          <div className="flex rounded-full border border-border bg-transparent p-0.5 gap-0.5">
+            {(["Month", "Week", "Day"] as ViewType[]).map((v) => (
               <button
                 key={v}
                 onClick={() => setView(v)}
-                className={`px-3 py-1.5 text-sm font-medium transition-colors ${
-                  view === v 
-                    ? "bg-primary text-primary-foreground" 
+                className={`px-3 py-1.5 text-sm font-medium transition-colors rounded-full ${
+                  view === v
+                    ? "bg-primary text-primary-foreground shadow-sm"
                     : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                } ${idx !== 2 ? 'border-r border-border' : ''} ${idx === 0 ? 'rounded-l-[5px]' : ''} ${idx === 2 ? 'rounded-r-[5px]' : ''}`}
+                }`}
               >
                 {v}
               </button>
@@ -251,7 +249,11 @@ export default function ModernCalendar({
                 onClick={() => setShowMasterSelect(!showMasterSelect)}
                 className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium bg-transparent hover:bg-muted rounded-md transition-colors border border-border"
               >
-                 {selectedMasterId === "all" ? "🌐 All Masters" : `👤 ${adminMastersList.find(m => m.id === selectedMasterId)?.name || 'Select'}`}
+                 {selectedMasterId === "all" ? (
+                   <span className="flex items-center gap-1.5"><Globe className="w-3.5 h-3.5" />All Masters</span>
+                 ) : (
+                   <span className="flex items-center gap-1.5"><User className="w-3.5 h-3.5" />{adminMastersList.find(m => m.id === selectedMasterId)?.name || 'Select'}</span>
+                 )}
                  <ChevronRight className={`w-3.5 h-3.5 opacity-50 transition-transform ${showMasterSelect ? "rotate-[270deg]" : "rotate-90"}`} />
               </button>
               {showMasterSelect && (
@@ -263,7 +265,7 @@ export default function ModernCalendar({
                          className={`w-full text-left px-4 py-3 text-sm hover:bg-muted transition-colors ${selectedMasterId === "all" ? 'bg-primary/20 text-primary font-medium' : ''}`}
                          onClick={() => { onMasterChange("all"); setShowMasterSelect(false); }}
                       >
-                        🌐 All Masters (Combined)
+                        <span className="flex items-center gap-1.5"><Globe className="w-3.5 h-3.5" />All Masters (Combined)</span>
                       </button>
                       <div className="h-px bg-border/60 w-full" />
                       {adminMastersList.map(m => (
@@ -272,7 +274,7 @@ export default function ModernCalendar({
                            className={`w-full text-left px-4 py-3 text-sm hover:bg-muted transition-colors border-b border-border/40 last:border-0 ${selectedMasterId === m.id ? 'bg-primary/20 text-primary font-medium' : ''}`}
                            onClick={() => { onMasterChange(m.id); setShowMasterSelect(false); }}
                         >
-                          👤 {m.name}
+                          <span className="flex items-center gap-1.5"><User className="w-3.5 h-3.5" />{m.name}</span>
                         </button>
                       ))}
                     </div>

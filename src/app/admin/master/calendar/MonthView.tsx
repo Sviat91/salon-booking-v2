@@ -109,7 +109,7 @@ export default function MonthView({ currentDate, appointments, templates, overri
   }
 
   return (
-    <div className="flex flex-col h-full overflow-hidden" ref={containerRef}>
+    <div className="flex flex-col h-full overflow-hidden animate-in fade-in duration-200" ref={containerRef}>
       <div className="grid grid-cols-7 border-b border-border shrink-0 bg-muted/20">
         {DAYS_OF_WEEK.map(d => (
           <div key={d} className="py-2 text-center text-xs font-semibold text-muted-foreground border-r last:border-r-0">
@@ -152,7 +152,7 @@ export default function MonthView({ currentDate, appointments, templates, overri
                   {format(day, "d")}
                 </span>
                 {status.isDayOff && (
-                  <span className="text-[10px] uppercase font-bold text-red-400">Off</span>
+                  <span className="text-[10px] uppercase font-bold text-destructive">Off</span>
                 )}
               </div>
 
@@ -164,8 +164,8 @@ export default function MonthView({ currentDate, appointments, templates, overri
                         <div 
                           key={a.id} 
                           onClick={(e) => { e.stopPropagation(); onAppointmentClick(a); setExpanded({ type: null, dateStr: null }); }}
-                          className="text-xs px-2 py-1.5 rounded text-white transition-colors cursor-pointer flex items-center gap-2 shadow-sm"
-                          style={{ backgroundColor: (a.master?.masterProfile?.color || "#166534") + "CC", borderColor: a.master?.masterProfile?.color || "#166534", borderWidth: '1px' }}
+                          className="text-xs px-2 py-1.5 rounded text-foreground transition-colors cursor-pointer flex items-center gap-2 shadow-sm"
+                          style={{ backgroundColor: (a.master?.masterProfile?.color || "#8B4A58") + "26", borderLeft: "3px solid " + (a.master?.masterProfile?.color || "#8B4A58") }}
                         >
                           <Clock className="w-3 h-3 shrink-0" />
                           <span className="font-medium">{a.startTime}</span>
@@ -178,14 +178,14 @@ export default function MonthView({ currentDate, appointments, templates, overri
                       onClick={(e) => { e.stopPropagation(); toggleExpand('appointments', dateStr); }}
                       className="w-full text-left transition-all duration-200"
                     >
-                      <div 
+                      <div
                         className="flex items-center gap-1 px-1.5 py-1 rounded transition-colors shadow-sm"
-                        style={{ backgroundColor: (dayAppts[0]?.master?.masterProfile?.color || "#166534") + "CC", borderColor: dayAppts[0]?.master?.masterProfile?.color || "#166534", borderWidth: '1px' }}
+                        style={{ backgroundColor: (dayAppts[0]?.master?.masterProfile?.color || "#8B4A58") + "26", borderLeft: "3px solid " + (dayAppts[0]?.master?.masterProfile?.color || "#8B4A58") }}
                       >
-                        <span className="text-[11px] truncate font-medium text-white">
+                        <span className="text-[11px] truncate font-medium text-foreground">
                           {apptsCount} {apptsCount === 1 ? 'booking' : 'bookings'}
                         </span>
-                        <ChevronDown className="w-3 h-3 text-white/80 shrink-0" />
+                        <ChevronDown className="w-3 h-3 text-muted-foreground shrink-0" />
                       </div>
                     </button>
                   )}
@@ -230,7 +230,7 @@ export default function MonthView({ currentDate, appointments, templates, overri
                       <div className="flex gap-2 pt-2 mt-2 border-t border-border/50">
                         <button 
                           onClick={e => { e.stopPropagation(); toggleOff(day, status); setExpanded({ type: null, dateStr: null }); }}
-                          className="flex-1 flex items-center justify-center py-2 gap-1 text-xs rounded font-medium transition-colors bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900/40 dark:text-red-400"
+                          className="flex-1 flex items-center justify-center py-2 gap-1 text-xs rounded font-medium transition-colors bg-[var(--md-error-container)] text-[var(--md-on-error-container)] hover:brightness-95"
                         >
                           <PowerOff className="w-3.5 h-3.5" /> Day Off
                         </button>
@@ -247,11 +247,11 @@ export default function MonthView({ currentDate, appointments, templates, overri
                       onClick={(e) => { e.stopPropagation(); toggleExpand('shifts', dateStr); }}
                       className="w-full text-left transition-all duration-200"
                     >
-                      <div className="flex items-center gap-1 px-1.5 py-1 rounded bg-green-500/10 border border-green-500/30 hover:bg-green-500/20 transition-colors">
-                        <span className="text-[11px] truncate font-medium text-green-600 dark:text-green-400">
+                      <div className="flex items-center gap-1 px-1.5 py-1 rounded bg-[var(--md-success-container)] hover:brightness-95 transition-colors">
+                        <span className="text-[11px] truncate font-medium text-[var(--md-on-success-container)]">
                           {shiftsCount} {shiftsCount === 1 ? 'shift' : 'shifts'}
                         </span>
-                        <ChevronDown className="w-3 h-3 text-green-600 dark:text-green-400 shrink-0" />
+                        <ChevronDown className="w-3 h-3 text-[var(--md-on-success-container)] shrink-0" />
                       </div>
                     </button>
                   )}
@@ -271,7 +271,7 @@ export default function MonthView({ currentDate, appointments, templates, overri
                 <div className="flex gap-1 mt-1">
                   <button 
                     onClick={e => { e.stopPropagation(); toggleOff(day, status); }}
-                    className="flex-1 flex items-center justify-center py-1 gap-1 text-[10px] rounded font-medium transition-colors bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900/40 dark:text-red-400"
+                    className="flex-1 flex items-center justify-center py-1 gap-1 text-[10px] rounded font-medium transition-colors bg-[var(--md-error-container)] text-[var(--md-on-error-container)] hover:brightness-95"
                   >
                     <PowerOff className="w-3 h-3" /> Off
                   </button>

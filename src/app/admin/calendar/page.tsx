@@ -25,15 +25,15 @@ export default function AdminCalendarPage() {
 
   if (loading) {
     return (
-      <div className="flex h-[calc(100vh-6rem)] min-h-[600px] items-center justify-center">
+      <div className="flex h-[calc(100vh-8rem)] min-h-[600px] items-center justify-center">
          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
       </div>
     )
   }
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] min-h-[600px] overflow-hidden -mx-4 -mt-4 bg-background">
-      <div className="flex-1 overflow-hidden flex flex-col relative w-full h-full border-t border-border">
+    <div className="flex h-[calc(100vh-8rem)] min-h-[600px] overflow-hidden bg-card border border-border rounded-[20px] shadow-sm">
+      <div className="flex-1 overflow-hidden flex flex-col relative w-full h-full">
         <ModernCalendar 
           masterId={selectedMasterId === "all" ? undefined : selectedMasterId}
           selectedMasterId={selectedMasterId}
@@ -41,8 +41,8 @@ export default function AdminCalendarPage() {
           adminMastersList={masters}
           isAdminView={true}
           apiPrefix="/api/admin/calendar"
-          availableSlotColor="#22c55e"
-          dayOffColor="#ef4444"
+          availableSlotColor="#21A67A"
+          dayOffColor="#BA1A1A"
           workingHourStart={8}
           workingHourEnd={21}
         />

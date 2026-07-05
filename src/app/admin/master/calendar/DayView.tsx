@@ -124,7 +124,7 @@ export default function DayView({ currentDate, appointments, templates, override
   const groups = groupOverlappingAppointments(dayAppts)
 
   return (
-    <div className="flex flex-col h-full overflow-hidden bg-background" ref={containerRef}>
+    <div className="flex flex-col h-full overflow-hidden bg-background animate-in fade-in duration-200" ref={containerRef}>
       <div className="flex border-b border-border shrink-0 bg-card pr-2">
         <div className="w-16 shrink-0 border-r border-border" /> 
         <div className="flex-1 py-3 px-4 flex justify-between items-center relative">
@@ -142,7 +142,7 @@ export default function DayView({ currentDate, appointments, templates, override
           {isEditMode && !isPastDay && (
             <div className="flex flex-wrap items-center gap-4 bg-muted/40 p-2 rounded-lg border border-border/50 shadow-inner ml-auto mr-4">
               {status.isDayOff ? (
-                <div className="text-sm font-medium text-red-500 dark:text-red-400 flex items-center gap-2 px-2">
+                <div className="text-sm font-medium text-destructive flex items-center gap-2 px-2">
                   <PowerOff className="w-4 h-4" /> Day Off
                 </div>
               ) : (
@@ -179,7 +179,7 @@ export default function DayView({ currentDate, appointments, templates, override
                 <button 
                   onClick={toggleOff} 
                   className={`flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-md font-medium transition-colors ${
-                    status.isDayOff ? 'bg-primary/20 text-primary hover:bg-primary/30' : 'bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900/40 dark:text-red-400'
+                    status.isDayOff ? 'bg-primary/20 text-primary hover:bg-primary/30' : 'bg-[var(--md-error-container)] text-[var(--md-on-error-container)] hover:brightness-95'
                   }`}
                 >
                   <PowerOff className="w-3.5 h-3.5" /> {status.isDayOff ? 'Work' : 'Day Off'}
@@ -199,7 +199,7 @@ export default function DayView({ currentDate, appointments, templates, override
           {!isEditMode && !isPastDay && !status.isDayOff && (
             <button 
               onClick={() => onAddClick(currentDate)}
-              className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md font-semibold text-sm hover:bg-primary/90 transition-colors shadow-sm ml-auto"
+              className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-full font-semibold text-sm hover:bg-primary/90 transition-colors shadow-sm ml-auto"
             >
               <Plus className="w-4 h-4" /> New Booking
             </button>
@@ -303,13 +303,13 @@ export default function DayView({ currentDate, appointments, templates, override
                     <div 
                       key={a.id} 
                       onClick={(e) => { e.stopPropagation(); onAppointmentClick(a); }}
-                      className="absolute w-[calc(100%-30px)] rounded-lg text-white p-3 shadow-md border-l-4 overflow-hidden hover:z-30 hover:shadow-xl transition-all cursor-pointer flex gap-4 backdrop-blur-sm"
-                      style={{ top: `${top}px`, minHeight: `${Math.max(height, 60)}px`, left: "8px", zIndex: 10, backgroundColor: (a.master?.masterProfile?.color || "#166534") + "CC", borderLeftColor: a.master?.masterProfile?.color || "#166534" }}
+                      className="absolute w-[calc(100%-30px)] rounded-lg text-foreground p-3 shadow-md border-l-[3px] overflow-hidden hover:z-30 hover:shadow-xl transition-all cursor-pointer flex gap-4 backdrop-blur-sm"
+                      style={{ top: `${top}px`, minHeight: `${Math.max(height, 60)}px`, left: "8px", zIndex: 10, backgroundColor: (a.master?.masterProfile?.color || "#8B4A58") + "26", borderLeftColor: a.master?.masterProfile?.color || "#8B4A58" }}
                     >
                       <div className="flex flex-col gap-1 w-[150px] shrink-0 border-r border-foreground/10 pr-4">
                         <div className="font-bold text-lg">{a.startTime}</div>
                         <div className="text-sm opacity-70">{a.endTime}</div>
-                        <div className="mt-auto text-xs font-semibold text-white/80 uppercase tracking-wider">{a.status}</div>
+                        <div className="mt-auto text-xs font-semibold text-muted-foreground uppercase tracking-wider">{a.status}</div>
                       </div>
                       
                       <div className="flex-1 flex flex-col gap-2 min-w-0">
@@ -349,7 +349,7 @@ export default function DayView({ currentDate, appointments, templates, override
                             key={a.id}
                             onClick={(e) => { e.stopPropagation(); onAppointmentClick(a); }}
                             className="p-3 border-b last:border-b-0 border-border hover:bg-muted/50 transition-colors cursor-pointer flex gap-4"
-                            style={{ borderLeft: `6px solid ${a.master?.masterProfile?.color || "#166534"}` }}
+                            style={{ borderLeft: `6px solid ${a.master?.masterProfile?.color || "#8B4A58"}` }}
                           >
                             <div className="flex flex-col gap-1 w-[100px] shrink-0">
                               <div className="font-bold text-lg">{a.startTime}</div>
@@ -380,8 +380,8 @@ export default function DayView({ currentDate, appointments, templates, override
                       </div>
                     ) : (
                       <div 
-                        className="backdrop-blur-sm text-white rounded-lg p-3 shadow-md"
-                        style={{ minHeight: `${Math.max(height, 60)}px`, backgroundColor: (group[0].master?.masterProfile?.color || "#166534") + "CC", borderColor: group[0].master?.masterProfile?.color || "#166534", borderWidth: '1px' }}
+                        className="backdrop-blur-sm text-foreground rounded-lg p-3 shadow-md"
+                        style={{ minHeight: `${Math.max(height, 60)}px`, backgroundColor: (group[0].master?.masterProfile?.color || "#8B4A58") + "26", borderLeft: "3px solid " + (group[0].master?.masterProfile?.color || "#8B4A58") }}
                       >
                         <div className="flex items-center gap-2 mb-2">
                           <Users className="w-4 h-4" />

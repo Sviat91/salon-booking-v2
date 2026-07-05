@@ -57,6 +57,7 @@ function SelectContent({
         sideOffset={4}
         alignItemWithTrigger={false}
         data-slot="select-positioner"
+        className="isolate z-50 outline-none"
       >
         <SelectPrimitive.Popup
           data-slot="select-content"

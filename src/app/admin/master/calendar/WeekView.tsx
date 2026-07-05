@@ -157,7 +157,7 @@ export default function WeekView({ currentDate, appointments, templates, overrid
   }
 
   return (
-    <div className="flex flex-col h-full overflow-hidden bg-background" ref={containerRef}>
+    <div className="flex flex-col h-full overflow-hidden bg-background animate-in fade-in duration-200" ref={containerRef}>
       <div className="flex border-b border-border shrink-0 bg-card pr-2">
         <div className="w-16 shrink-0 border-r border-border" /> 
         <div className="flex-1 grid grid-cols-7">
@@ -182,10 +182,10 @@ export default function WeekView({ currentDate, appointments, templates, overrid
                   <button
                     onClick={() => setEditingDay({ dateStr })}
                     className={`mt-2 w-full text-[10px] px-2 py-1 rounded font-medium transition-colors ${
-                      status.isDayOff 
-                        ? 'bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-400' 
+                      status.isDayOff
+                        ? 'bg-[var(--md-error-container)] text-[var(--md-on-error-container)]'
                         : status.intervals.length > 0
-                          ? 'bg-green-500/20 text-green-600 dark:text-green-400'
+                          ? 'bg-[var(--md-success-container)] text-[var(--md-on-success-container)]'
                           : 'bg-muted hover:bg-muted/80'
                     }`}
                   >
@@ -236,9 +236,9 @@ export default function WeekView({ currentDate, appointments, templates, overrid
                       <button 
                         onClick={() => { toggleOff(day, status); }}
                         className={`flex-1 flex items-center justify-center py-2 gap-1 text-xs rounded font-medium transition-colors ${
-                          status.isDayOff 
-                            ? 'bg-primary/20 text-primary' 
-                            : 'bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900/40 dark:text-red-400'
+                          status.isDayOff
+                            ? 'bg-primary/20 text-primary'
+                            : 'bg-[var(--md-error-container)] text-[var(--md-on-error-container)] hover:brightness-95'
                         }`}
                       >
                         <PowerOff className="w-3.5 h-3.5" /> {status.isDayOff ? 'Working' : 'Day Off'}
@@ -321,10 +321,10 @@ export default function WeekView({ currentDate, appointments, templates, overrid
                       const height = (e - s) * PIXELS_PER_MINUTE
                       if (top + height < 0 || top > containerHeight) return null
                       return (
-                        <div 
-                          key={idx} 
-                          className="absolute w-[calc(100%-2px)] bg-green-500/10 pointer-events-none shadow-sm border-l-4 border-green-500" 
-                          style={{ left: "1px", top: `${Math.max(0, top)}px`, height: `${Math.min(height, containerHeight - Math.max(0, top))}px` }} 
+                        <div
+                          key={idx}
+                          className="absolute w-[calc(100%-2px)] pointer-events-none shadow-sm border-l-[3px]"
+                          style={{ left: "1px", top: `${Math.max(0, top)}px`, height: `${Math.min(height, containerHeight - Math.max(0, top))}px`, backgroundColor: availableSlotColor + '1A', borderLeftColor: availableSlotColor }}
                         />
                       )
                     })}
@@ -373,8 +373,8 @@ export default function WeekView({ currentDate, appointments, templates, overrid
                           <div 
                             key={a.id} 
                             onClick={(e) => { e.stopPropagation(); onAppointmentClick(a); }}
-                            className="absolute w-[calc(100%-8px)] rounded-md p-1 text-xs overflow-hidden hover:z-30 hover:shadow-md hover:ring-2 ring-green-500/50 transition-all cursor-pointer backdrop-blur-sm text-white"
-                            style={{ top: `${top}px`, minHeight: `${Math.max(height, 24)}px`, left: "4px", zIndex: 10, backgroundColor: (a.master?.masterProfile?.color || "#166534") + "CC", borderColor: (a.master?.masterProfile?.color || "#166534") + "80", borderWidth: '1px' }}
+                            className="absolute w-[calc(100%-8px)] rounded-md p-1 text-xs overflow-hidden hover:z-30 hover:shadow-md hover:ring-2 ring-primary/40 transition-all cursor-pointer backdrop-blur-sm text-foreground"
+                            style={{ top: `${top}px`, minHeight: `${Math.max(height, 24)}px`, left: "4px", zIndex: 10, backgroundColor: (a.master?.masterProfile?.color || "#8B4A58") + "26", borderLeft: "3px solid " + (a.master?.masterProfile?.color || "#8B4A58") }}
                           >
                             <div className="font-semibold leading-tight truncate">{a.client.name || 'Client'}</div>
                             <div className="opacity-90 leading-tight truncate mt-0.5">{a.service.name}</div>
@@ -400,7 +400,7 @@ export default function WeekView({ currentDate, appointments, templates, overrid
                                   key={a.id}
                                   onClick={(e) => { e.stopPropagation(); onAppointmentClick(a); }}
                                   className="p-2 border-b last:border-b-0 border-border hover:bg-muted/50 transition-colors cursor-pointer"
-                                  style={{ borderLeft: `4px solid ${a.master?.masterProfile?.color || "#166534"}` }}
+                                  style={{ borderLeft: `4px solid ${a.master?.masterProfile?.color || "#8B4A58"}` }}
                                 >
                                   <div className="flex items-center gap-2">
                                     <Clock className="w-3 h-3 text-muted-foreground shrink-0" />
@@ -413,8 +413,8 @@ export default function WeekView({ currentDate, appointments, templates, overrid
                             </div>
                           ) : (
                             <div 
-                              className="backdrop-blur-sm text-white rounded-md p-1.5 shadow-md"
-                              style={{ backgroundColor: (group[0].master?.masterProfile?.color || "#166534") + "CC", borderColor: (group[0].master?.masterProfile?.color || "#166534") + "80", borderWidth: '1px' }}
+                              className="backdrop-blur-sm text-foreground rounded-md p-1.5 shadow-md"
+                              style={{ backgroundColor: (group[0].master?.masterProfile?.color || "#8B4A58") + "26", borderLeft: "3px solid " + (group[0].master?.masterProfile?.color || "#8B4A58") }}
                             >
                               <div className="flex items-center gap-1.5">
                                 <Users className="w-3.5 h-3.5" />
