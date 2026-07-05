@@ -38,7 +38,7 @@ function CredentialForm({
   }
 
   return (
-    <div className="rounded-xl border border-border bg-card p-5">
+    <div className="rounded-[20px] border border-border bg-card p-5">
       <h3 className="text-sm font-semibold mb-4">{title}</h3>
       <form onSubmit={handleSubmit} className="flex flex-col gap-3">
         {fields.map((f) => (
@@ -48,7 +48,7 @@ function CredentialForm({
           </div>
         ))}
         {status && (
-          <p className={`text-sm ${status.ok ? "text-green-600 dark:text-green-400" : "text-destructive"}`}>
+          <p className={`text-sm ${status.ok ? "text-[var(--md-success)]" : "text-destructive"}`}>
             {status.message}
           </p>
         )}

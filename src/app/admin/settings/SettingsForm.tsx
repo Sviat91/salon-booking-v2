@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label"
 import { saveSettings, type SettingsFormState } from "./actions"
 import LogoEditor from "./LogoEditor"
 import BackgroundSection from "./BackgroundSection"
-import { ColorRow, ImageUploadField, SubmitButton } from "./FormFields"
+import { ColorRow, ImageUploadField, SubmitButton, SettingsSection } from "./FormFields"
 
 const M3_LIGHT_DEFAULTS = {
   primaryColor:  '#FFF0F1',
@@ -188,12 +188,7 @@ export default function SettingsForm({ config }: { config: TenantConfig }) {
       onChange={() => setIsDirty(true)}
     >
 
-      <section className="flex flex-col gap-6 bg-card border border-border p-6 rounded-xl shadow-sm">
-        <div>
-          <h2 className="text-base font-semibold">Brand</h2>
-          <p className="text-xs text-muted-foreground mt-0.5">Salon name and visual identity</p>
-        </div>
-
+      <SettingsSection title="Brand" description="Salon name and visual identity">
         <div className="grid gap-1.5 max-w-sm">
           <Label htmlFor="brandName">Salon Name</Label>
           <Input
@@ -249,17 +244,13 @@ export default function SettingsForm({ config }: { config: TenantConfig }) {
           uploading={faviconUploading}
           uploadError={faviconError}
         />
-      </section>
+      </SettingsSection>
 
       {/* ── Salon Contact Info ────────────────────────────────────────── */}
-      <section className="flex flex-col gap-6 bg-card border border-border p-6 rounded-xl shadow-sm">
-        <div>
-          <h2 className="text-base font-semibold">Salon Contact Info</h2>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Address, phone, email and legal details. Displayed on booking confirmation, support page, terms and privacy policy.
-          </p>
-        </div>
-
+      <SettingsSection
+        title="Salon Contact Info"
+        description="Address, phone, email and legal details. Displayed on booking confirmation, support page, terms and privacy policy."
+      >
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="grid gap-1.5">
             <Label htmlFor="salonCompanyName">Company Name</Label>
@@ -341,16 +332,10 @@ export default function SettingsForm({ config }: { config: TenantConfig }) {
             <p className="text-xs text-muted-foreground">Public contact email</p>
           </div>
         </div>
-      </section>
+      </SettingsSection>
 
       {/* ── Calendar Settings ────────────────────────────────────────── */}
-      <section className="flex flex-col gap-6 bg-card border border-border p-6 rounded-xl shadow-sm">
-        <div>
-          <h2 className="text-base font-semibold">Calendar Settings</h2>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Colors used in the booking calendar
-          </p>
-        </div>
+      <SettingsSection title="Calendar Settings" description="Colors used in the booking calendar">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <ColorRow
             field={{ name: "availableSlotColor", label: "Available Slot", description: "Color for open working intervals" }}
@@ -361,16 +346,10 @@ export default function SettingsForm({ config }: { config: TenantConfig }) {
             defaultValue={config.dayOffColor}
           />
         </div>
-      </section>
+      </SettingsSection>
 
       {/* ── Business Hours ────────────────────────────────────────── */}
-      <section className="flex flex-col gap-6 bg-card border border-border p-6 rounded-xl shadow-sm">
-        <div>
-          <h2 className="text-base font-semibold">Business Hours</h2>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Global salon opening and closing hours
-          </p>
-        </div>
+      <SettingsSection title="Business Hours" description="Global salon opening and closing hours">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <div className="grid gap-1.5">
             <Label htmlFor="workingHourStart">Open Hour (Start)</Label>
@@ -383,17 +362,13 @@ export default function SettingsForm({ config }: { config: TenantConfig }) {
             <p className="text-xs text-muted-foreground">Salon closes (e.g. 21 for 9:00 PM)</p>
           </div>
         </div>
-      </section>
+      </SettingsSection>
 
       {/* ── Light theme ──────────────────────────────────────────── */}
-      <section className="flex flex-col gap-6 bg-card border border-border p-6 rounded-xl shadow-sm">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h2 className="text-base font-semibold">Light Theme</h2>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Colors used when the light theme is active
-            </p>
-          </div>
+      <SettingsSection
+        title="Light Theme"
+        description="Colors used when the light theme is active"
+        action={
           <button
             type="button"
             onClick={resetLightToM3}
@@ -401,7 +376,8 @@ export default function SettingsForm({ config }: { config: TenantConfig }) {
           >
             Reset to M3 defaults
           </button>
-        </div>
+        }
+      >
         <BackgroundSection
           config={{
             bgType: config.bgType,
@@ -423,17 +399,13 @@ export default function SettingsForm({ config }: { config: TenantConfig }) {
             />
           ))}
         </div>
-      </section>
+      </SettingsSection>
 
       {/* ── Dark theme ───────────────────────────────────────────── */}
-      <section className="flex flex-col gap-6 bg-card border border-border p-6 rounded-xl shadow-sm">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h2 className="text-base font-semibold">Dark Theme Colors</h2>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Colors used when the dark theme is active
-            </p>
-          </div>
+      <SettingsSection
+        title="Dark Theme Colors"
+        description="Colors used when the dark theme is active"
+        action={
           <button
             type="button"
             onClick={resetDarkToM3}
@@ -441,7 +413,8 @@ export default function SettingsForm({ config }: { config: TenantConfig }) {
           >
             Reset to M3 defaults
           </button>
-        </div>
+        }
+      >
         <BackgroundSection
           config={{
             bgType: config.darkBgType || 'solid',
@@ -464,10 +437,10 @@ export default function SettingsForm({ config }: { config: TenantConfig }) {
             />
           ))}
         </div>
-      </section>
+      </SettingsSection>
 
       {state.error && <p className="text-sm text-destructive">{state.error}</p>}
-      {state.success && <p className="text-sm text-green-600 dark:text-green-400">Settings saved.</p>}
+      {state.success && <p className="text-sm text-[var(--md-success)]">Settings saved.</p>}
     </form>
   )
 }

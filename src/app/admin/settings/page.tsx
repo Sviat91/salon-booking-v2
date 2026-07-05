@@ -36,9 +36,9 @@ export default async function SettingsPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Salon Settings</h1>
+        <p className="text-xs font-medium uppercase tracking-wider text-primary">Configuration</p>
         <p className="mt-1 text-sm text-muted-foreground">
-          Brand name, logo, favicon and colors.
+          Brand, colours, contact details and business hours
         </p>
       </div>
 
