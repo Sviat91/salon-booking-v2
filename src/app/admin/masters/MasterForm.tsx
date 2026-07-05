@@ -103,8 +103,8 @@ export default function MasterForm({ master, onSuccess }: MasterFormProps) {
   if (state.success && state.generatedPassword) {
     return (
       <div className="flex flex-col gap-4">
-        <div className="rounded-lg border border-green-500/30 bg-green-500/10 p-4">
-          <p className="text-sm font-medium text-green-700 dark:text-green-400">
+        <div className="rounded-lg bg-[var(--md-success-container)] p-4">
+          <p className="text-sm font-medium text-[var(--md-on-success-container)]">
             Master created successfully!
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
@@ -259,7 +259,7 @@ export default function MasterForm({ master, onSuccess }: MasterFormProps) {
       </div>
 
       {state.error && <p className="text-sm text-destructive">{state.error}</p>}
-      {state.success && master && <div className="rounded border border-green-500/30 bg-green-500/10 p-2 text-center text-xs font-medium text-green-600 dark:text-green-400">Settings saved successfully!</div>}
+      {state.success && master && <div className="rounded bg-[var(--md-success-container)] p-2 text-center text-xs font-medium text-[var(--md-on-success-container)]">Settings saved successfully!</div>}
 
       <SubmitButton label={master ? "Save Changes" : "Create Master"} />
     </form>
@@ -295,8 +295,8 @@ export default function MasterForm({ master, onSuccess }: MasterFormProps) {
           </Button>
           
           {resetPasswordState.success && (
-            <div className="mt-4 rounded-lg border border-green-500/30 bg-green-500/10 p-4">
-              <p className="text-sm font-medium text-green-700 dark:text-green-400">
+            <div className="mt-4 rounded-lg bg-[var(--md-success-container)] p-4">
+              <p className="text-sm font-medium text-[var(--md-on-success-container)]">
                 Password successfully updated!
               </p>
               <div className="mt-2 flex gap-2">

@@ -2,8 +2,9 @@
 
 import { useState, useCallback, useTransition } from "react"
 import Image from "next/image"
-import { Plus, Pencil, Trash2, Mail, Eye, EyeOff, User } from "lucide-react"
+import { Plus, Pencil, Trash2, Eye, EyeOff, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import {
   Sheet,
   SheetContent,
@@ -37,22 +38,24 @@ export default function MastersClient({ masters }: { masters: Master[] }) {
   }, [])
 
   return (
-    <div>
+    <div className="mx-auto max-w-3xl">
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Masters</h1>
+          <p className="text-xs font-medium uppercase tracking-wider text-primary">
+            Staff
+          </p>
           <p className="mt-1 text-sm text-muted-foreground">
-            {masters.length} master{masters.length !== 1 ? "s" : ""} registered
+            Manage accounts and permissions
           </p>
         </div>
 
         <Sheet open={addOpen} onOpenChange={setAddOpen}>
           <SheetTrigger
             render={
-              <Button size="sm" className="gap-2">
+              <Button className="h-10 gap-2 px-5">
                 <Plus className="h-4 w-4" />
-                Add Master
+                Add master
               </Button>
             }
           />
@@ -68,122 +71,118 @@ export default function MastersClient({ masters }: { masters: Master[] }) {
       </div>
 
       {masters.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-16 text-center">
+        <div className="flex flex-col items-center justify-center rounded-[20px] border border-dashed border-border py-16 text-center">
           <p className="text-sm text-muted-foreground">No masters yet.</p>
           <p className="text-xs text-muted-foreground mt-1">
             Click &ldquo;Add Master&rdquo; to register the first one.
           </p>
         </div>
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="flex flex-col gap-3">
           {masters.map((master) => (
             <div
               key={master.id}
-              className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4"
+              className="flex items-center gap-4 rounded-[20px] border border-border bg-card p-4 shadow-sm"
             >
-              {/* Avatar + name */}
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3">
-                  {/* Avatar */}
-                  <div className="relative h-10 w-10 rounded-full overflow-hidden border border-border bg-muted shrink-0 flex items-center justify-center">
-                    {master.masterProfile?.avatarUrl ? (
-                      <Image
-                        src={master.masterProfile.avatarUrl}
-                        alt={master.name ?? ""}
-                        fill
-                        className="object-cover"
-                      />
-                    ) : (
-                      <User className="h-5 w-5 text-muted-foreground" />
-                    )}
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-1.5">
-                      <p className="font-medium text-sm leading-tight">
-                        {master.name ?? "—"}
-                      </p>
-                      {/* Homepage visibility badge */}
-                      {master.masterProfile?.showOnHomepage ? (
-                        <span className="flex items-center gap-0.5 rounded-full bg-green-500/10 px-1.5 py-0.5 text-[10px] font-medium text-green-600 dark:text-green-400">
-                          <Eye className="h-2.5 w-2.5" />Visible
-                        </span>
-                      ) : (
-                        <span className="flex items-center gap-0.5 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
-                          <EyeOff className="h-2.5 w-2.5" />Hidden
-                        </span>
-                      )}
-                      {/* Color indicator */}
-                      <div 
-                        className="w-3.5 h-3.5 ml-1 rounded shadow-sm border border-border shrink-0" 
-                        style={{ backgroundColor: master.masterProfile?.color || "#166534" }} 
-                        title="Appointment Color"
-                      />
-                    </div>
-                    <p className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
-                      <Mail className="h-3 w-3" />
-                      {master.email}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Actions */}
-                <div className="flex gap-1">
-                  <Sheet
-                    open={editOpen && editTarget?.id === master.id}
-                    onOpenChange={(o) => {
-                      setEditOpen(o)
-                      if (!o) setEditTarget(null)
-                    }}
-                  >
-                    <SheetTrigger
-                      render={
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          onClick={() => {
-                            setEditTarget(master)
-                            setEditOpen(true)
-                          }}
-                        >
-                          <Pencil className="h-3.5 w-3.5" />
-                        </Button>
-                      }
-                    />
-                    <SheetContent side="right">
-                      <SheetHeader>
-                        <SheetTitle>Edit Master</SheetTitle>
-                      </SheetHeader>
-                      <div className="px-4 pb-4">
-                        {editTarget && (
-                          <MasterForm
-                            master={editTarget}
-                            onSuccess={() => {
-                              setEditOpen(false)
-                              setEditTarget(null)
-                            }}
-                          />
-                        )}
-                      </div>
-                    </SheetContent>
-                  </Sheet>
-
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    className="hover:text-destructive"
-                    onClick={() => handleDelete(master.id, master.name)}
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
+              {/* Avatar (ringed in the master's own color) */}
+              <div
+                className="relative h-[52px] w-[52px] shrink-0 overflow-hidden rounded-full bg-muted flex items-center justify-center"
+                style={{
+                  boxShadow: `0 0 0 3px ${master.masterProfile?.color ?? "#166534"}`,
+                }}
+              >
+                {master.masterProfile?.avatarUrl ? (
+                  <Image
+                    src={master.masterProfile.avatarUrl}
+                    alt={master.name ?? ""}
+                    fill
+                    className="object-cover"
+                  />
+                ) : (
+                  <User className="h-6 w-6 text-muted-foreground" />
+                )}
               </div>
 
-              {/* Bio */}
-              {master.masterProfile?.bio && (
-                <p className="text-xs text-muted-foreground line-clamp-2 border-t border-border pt-2">
-                  {master.masterProfile.bio}
+              {/* Name / email / bio */}
+              <div className="flex-1 min-w-0">
+                <p className="truncate text-[15px] font-medium text-foreground">
+                  {master.name ?? "—"}
                 </p>
-              )}
+                <p className="truncate text-xs text-muted-foreground mt-0.5">
+                  {master.email}
+                </p>
+                {master.masterProfile?.bio && (
+                  <p className="truncate text-xs text-muted-foreground/80 mt-0.5">
+                    {master.masterProfile.bio}
+                  </p>
+                )}
+              </div>
+
+              {/* Visibility pill */}
+              <div className="shrink-0">
+                {master.masterProfile?.showOnHomepage ? (
+                  <Badge variant="success" className="gap-1">
+                    <Eye className="h-3 w-3" />
+                    Visible
+                  </Badge>
+                ) : (
+                  <Badge variant="muted" className="gap-1">
+                    <EyeOff className="h-3 w-3" />
+                    Hidden
+                  </Badge>
+                )}
+              </div>
+
+              {/* Actions */}
+              <div className="flex items-center gap-1 shrink-0">
+                <Sheet
+                  open={editOpen && editTarget?.id === master.id}
+                  onOpenChange={(o) => {
+                    setEditOpen(o)
+                    if (!o) setEditTarget(null)
+                  }}
+                >
+                  <SheetTrigger
+                    render={
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        onClick={() => {
+                          setEditTarget(master)
+                          setEditOpen(true)
+                        }}
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                    }
+                  />
+                  <SheetContent side="right">
+                    <SheetHeader>
+                      <SheetTitle>Edit Master</SheetTitle>
+                    </SheetHeader>
+                    <div className="px-4 pb-4">
+                      {editTarget && (
+                        <MasterForm
+                          master={editTarget}
+                          onSuccess={() => {
+                            setEditOpen(false)
+                            setEditTarget(null)
+                          }}
+                        />
+                      )}
+                    </div>
+                  </SheetContent>
+                </Sheet>
+
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  className="hover:text-destructive"
+                  onClick={() => handleDelete(master.id, master.name)}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              </div>
             </div>
           ))}
         </div>
