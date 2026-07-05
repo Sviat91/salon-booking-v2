@@ -23,6 +23,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { SettingsSection } from "@/app/admin/settings/FormFields"
 import { toast } from "sonner"
 
 const formSchema = z.object({
@@ -141,7 +142,8 @@ export default function EmailSettingsForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 max-w-2xl bg-card border border-border p-6 rounded-xl">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="max-w-2xl">
+        <SettingsSection title="SMTP Server" description="Server credentials used to send transactional email.">
         <div className="grid sm:grid-cols-2 gap-4">
           <FormField
             control={form.control}
@@ -222,11 +224,11 @@ export default function EmailSettingsForm() {
           control={form.control}
           name="smtpSecure"
           render={({ field }) => (
-            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+            <FormItem className="flex flex-row items-center justify-between rounded-[20px] border border-border bg-muted/30 p-4">
               <div className="space-y-0.5">
                 <FormLabel className="text-base">Secure Connection (SSL)</FormLabel>
                 <FormDescription>
-                  Enable this if your port is 465. Keep disabled (flase) for port 587 (STARTTLS).
+                  Enable this if your port is 465. Keep disabled (false) for port 587 (STARTTLS).
                 </FormDescription>
               </div>
               <FormControl>
@@ -254,6 +256,7 @@ export default function EmailSettingsForm() {
             {isTesting ? "Sending Test..." : "Save & Send Test Email"}
           </Button>
         </div>
+        </SettingsSection>
       </form>
 
       <Dialog open={testEmailDialogOpen} onOpenChange={setTestEmailDialogOpen}>

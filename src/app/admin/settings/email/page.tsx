@@ -11,7 +11,7 @@ export default function EmailSettingsPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Email Settings (SMTP)</h1>
+        <p className="text-xs font-medium uppercase tracking-wider text-primary">Configuration</p>
         <p className="mt-1 text-sm text-muted-foreground">
           Configure how the application sends emails for password resets, booking confirmations, and other notifications.
         </p>
