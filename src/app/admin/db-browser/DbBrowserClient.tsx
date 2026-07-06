@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { ChevronLeft, ChevronRight, Trash2 } from "lucide-react"
 
 const TABLES = [
@@ -89,7 +90,7 @@ export default function DbBrowserClient() {
   const columns = data?.rows[0] ? Object.keys(data.rows[0]) : []
 
   return (
-    <div className="rounded-xl border border-border bg-card overflow-hidden" style={{ minHeight: "calc(100vh - 10rem)" }}>
+    <div className="rounded-[20px] border border-border bg-card shadow-sm overflow-hidden" style={{ minHeight: "calc(100vh - 10rem)" }}>
       <div className="flex h-full" style={{ minHeight: "calc(100vh - 10rem)" }}>
         {/* Table selector sidebar */}
         <aside className="w-44 shrink-0 border-r border-border bg-muted/30 flex flex-col">
@@ -124,9 +125,7 @@ export default function DbBrowserClient() {
                 <p className="text-xs text-muted-foreground">{data.total} rows total</p>
               )}
             </div>
-            <span className="rounded-full bg-yellow-500/10 px-2.5 py-0.5 text-xs font-medium text-yellow-600 dark:text-yellow-400">
-              SUPERADMIN only
-            </span>
+            <Badge variant="warning">SUPERADMIN only</Badge>
           </div>
 
           {/* Body */}
@@ -150,26 +149,26 @@ export default function DbBrowserClient() {
             )}
 
             {!loading && data && data.rows.length > 0 && (
-              <div className="rounded-lg border border-border overflow-auto">
+              <div className="rounded-[20px] border border-border overflow-auto">
                 <table className="w-full text-xs">
                   <thead className="bg-muted/50 border-b border-border sticky top-0">
                     <tr>
                       {columns.map((col) => (
                         <th
                           key={col}
-                          className="px-3 py-2 text-left font-medium text-muted-foreground whitespace-nowrap"
+                          className="px-3 py-2 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground whitespace-nowrap"
                         >
                           {col}
                         </th>
                       ))}
-                      <th className="px-3 py-2 text-left font-medium text-muted-foreground">
+                      <th className="px-3 py-2 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
                         Actions
                       </th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="divide-y divide-border">
                     {data.rows.map((row, i) => (
-                      <tr key={i} className={i % 2 === 0 ? "bg-card" : "bg-muted/20"}>
+                      <tr key={i} className="hover:bg-muted/40 transition-colors">
                         {columns.map((col) => {
                           const val = row[col]
                           const display =

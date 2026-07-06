@@ -48,10 +48,12 @@ export default function AdminsClient({ admins }: Props) {
   }
 
   return (
-    <div>
+    <div className="mx-auto max-w-3xl">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Admins</h1>
+          <p className="text-xs font-medium uppercase tracking-wider text-primary">
+            Access
+          </p>
           <p className="mt-1 text-sm text-muted-foreground">
             {admins.length} admin{admins.length !== 1 ? "s" : ""} registered
           </p>
@@ -60,7 +62,7 @@ export default function AdminsClient({ admins }: Props) {
         <Sheet open={addOpen} onOpenChange={setAddOpen}>
           <SheetTrigger
             render={
-              <Button size="sm" className="gap-2">
+              <Button className="h-10 gap-2 px-5">
                 <Plus className="h-4 w-4" />
                 Add Admin
               </Button>
@@ -78,20 +80,20 @@ export default function AdminsClient({ admins }: Props) {
       </div>
 
       {admins.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-16 text-center">
+        <div className="flex flex-col items-center justify-center rounded-[20px] border border-dashed border-border py-16 text-center">
           <p className="text-sm text-muted-foreground">No admins yet.</p>
           <p className="text-xs text-muted-foreground mt-1">
             Click &ldquo;Add Admin&rdquo; to create the first one.
           </p>
         </div>
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="flex flex-col gap-3">
           {admins.map((admin) => {
             const perms = parseAdminPermissions(admin.adminPermissions)
             return (
               <div
                 key={admin.id}
-                className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4"
+                className="flex flex-col gap-3 rounded-[20px] border border-border bg-card p-4 shadow-sm"
               >
                 <div className="flex items-start justify-between">
                   <div>

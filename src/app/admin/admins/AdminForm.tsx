@@ -81,8 +81,8 @@ export default function AdminForm({ admin, onSuccess }: Props) {
   if (created) {
     return (
       <div className="flex flex-col gap-4">
-        <div className="rounded-lg border border-green-500/30 bg-green-500/10 p-4">
-          <p className="text-sm font-medium text-green-700 dark:text-green-400">
+        <div className="rounded-lg bg-[var(--md-success-container)] p-4">
+          <p className="text-sm font-medium text-[var(--md-on-success-container)]">
             Admin created successfully!
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
