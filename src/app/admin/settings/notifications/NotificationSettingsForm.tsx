@@ -17,7 +17,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { SettingsSection } from '@/app/admin/settings/FormFields'
 
 const formSchema = z.object({
   notifEmailEnabled: z.boolean(),
@@ -146,148 +146,144 @@ export default function NotificationSettingsForm() {
       <form id="settings-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
 
         {/* Email channel */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Email</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <FormField
-              control={form.control}
-              name="notifEmailEnabled"
-              render={({ field }) => (
-                <FormItem>
-                  <ToggleRow
-                    label="Send email notifications"
-                    description={
-                      smtpConfigured
-                        ? 'Booking confirmations and reminders sent via email.'
-                        : <span className="text-destructive font-medium">SMTP not configured — go to <a href="/admin/settings/email" className="underline">Email Settings</a> first.</span>
-                    }
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                    disabled={!smtpConfigured}
-                  />
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </CardContent>
-        </Card>
+        <SettingsSection
+          title="Email"
+          description="Send booking confirmations and reminders by email. Requires SMTP configured under Email Settings."
+        >
+          <FormField
+            control={form.control}
+            name="notifEmailEnabled"
+            render={({ field }) => (
+              <FormItem>
+                <ToggleRow
+                  label="Send email notifications"
+                  description={
+                    smtpConfigured
+                      ? 'Booking confirmations and reminders sent via email.'
+                      : <span className="text-destructive font-medium">SMTP not configured — go to <a href="/admin/settings/email" className="underline">Email Settings</a> first.</span>
+                  }
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                  disabled={!smtpConfigured}
+                />
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </SettingsSection>
 
         {/* Telegram channel */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Telegram</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <FormField
-              control={form.control}
-              name="notifTelegramEnabled"
-              render={({ field }) => (
-                <FormItem>
-                  <ToggleRow
-                    label="Send Telegram notifications"
-                    description="Admin alerts for new bookings and contact form submissions."
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
+        <SettingsSection
+          title="Telegram"
+          description="Admin alerts for new bookings and contact form submissions via a Telegram bot."
+        >
+          <FormField
+            control={form.control}
+            name="notifTelegramEnabled"
+            render={({ field }) => (
+              <FormItem>
+                <ToggleRow
+                  label="Send Telegram notifications"
+                  description="Admin alerts for new bookings and contact form submissions."
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="telegramBotToken"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Bot Token</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="1234567890:ABCdef..."
+                    type="password"
+                    autoComplete="off"
+                    {...field}
                   />
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                </FormControl>
+                <FormDescription>
+                  Get it from <code>@BotFather</code> → /newbot or /mybots.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-            <FormField
-              control={form.control}
-              name="telegramBotToken"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Bot Token</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="1234567890:ABCdef..."
-                      type="password"
-                      autoComplete="off"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    Get it from <code>@BotFather</code> → /newbot or /mybots.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="notifAdminChatId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Admin Chat ID</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g. 123456789" {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    Send <code>/start</code> to your bot, then message <code>@userinfobot</code> to get your Chat ID.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </CardContent>
-        </Card>
+          <FormField
+            control={form.control}
+            name="notifAdminChatId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Admin Chat ID</FormLabel>
+                <FormControl>
+                  <Input placeholder="e.g. 123456789" {...field} />
+                </FormControl>
+                <FormDescription>
+                  Send <code>/start</code> to your bot, then message <code>@userinfobot</code> to get your Chat ID.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </SettingsSection>
 
         {/* Reminders */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Reminders</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {!anyChannelEnabled && (
-              <p className="text-sm text-muted-foreground">
-                Enable at least one channel above to activate reminders.
-              </p>
+        <SettingsSection
+          title="Reminders"
+          description="Automated appointment reminders, sent on the channels enabled above."
+        >
+          {!anyChannelEnabled && (
+            <p className="text-sm text-muted-foreground">
+              Enable at least one channel above to activate reminders.
+            </p>
+          )}
+
+          <FormField
+            control={form.control}
+            name="notifReminder24hEnabled"
+            render={({ field }) => (
+              <FormItem>
+                <ToggleRow
+                  label="24-hour reminder"
+                  description="Remind clients one day before their appointment."
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                  disabled={!anyChannelEnabled}
+                />
+                <FormMessage />
+              </FormItem>
             )}
+          />
 
-            <FormField
-              control={form.control}
-              name="notifReminder24hEnabled"
-              render={({ field }) => (
-                <FormItem>
-                  <ToggleRow
-                    label="24-hour reminder"
-                    description="Remind clients one day before their appointment."
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                    disabled={!anyChannelEnabled}
-                  />
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          <FormField
+            control={form.control}
+            name="notifReminder2hEnabled"
+            render={({ field }) => (
+              <FormItem>
+                <ToggleRow
+                  label="2-hour reminder"
+                  description="Remind clients two hours before their appointment."
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                  disabled={!anyChannelEnabled}
+                />
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </SettingsSection>
 
-            <FormField
-              control={form.control}
-              name="notifReminder2hEnabled"
-              render={({ field }) => (
-                <FormItem>
-                  <ToggleRow
-                    label="2-hour reminder"
-                    description="Remind clients two hours before their appointment."
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                    disabled={!anyChannelEnabled}
-                  />
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </CardContent>
-        </Card>
-
-        <Button type="submit" disabled={isSaving || !formState.isDirty}>
-          {isSaving ? 'Saving…' : 'Save Settings'}
-        </Button>
+        <div className="flex border-t pt-4">
+          <Button type="submit" disabled={isSaving || !formState.isDirty}>
+            {isSaving ? 'Saving…' : 'Save Settings'}
+          </Button>
+        </div>
       </form>
     </Form>
   )

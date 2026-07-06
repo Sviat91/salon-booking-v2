@@ -17,7 +17,7 @@ export default async function NotificationSettingsPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Notification Settings</h1>
+        <p className="text-xs font-medium uppercase tracking-wider text-primary">Configuration</p>
         <p className="mt-1 text-sm text-muted-foreground">
           Configure email and Telegram channels for booking confirmations, reminders, and contact form alerts.
         </p>
