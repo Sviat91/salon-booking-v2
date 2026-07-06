@@ -10,7 +10,7 @@ export default function SocialSettingsPage() {
   return (
     <div className="flex flex-col gap-6 max-w-4xl">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Social Login (OAuth)</h1>
+        <p className="text-xs font-medium uppercase tracking-wider text-primary">Configuration</p>
         <p className="mt-1 text-sm text-muted-foreground">
           Fill in keys to automatically enable social logins. Leave everything blank to disable a provider.
           Secrets are encrypted securely in the database.

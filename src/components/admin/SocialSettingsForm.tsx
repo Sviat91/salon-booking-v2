@@ -15,7 +15,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { SettingsSection } from "@/app/admin/settings/FormFields"
 import { toast } from "sonner"
 
 const formSchema = z.object({
@@ -106,12 +106,11 @@ export default function SocialSettingsForm() {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         
         {/* Google */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Google Auth</CardTitle>
-            <CardDescription>Get these credentials from the Google Cloud Console (APIs & Services -&gt; Credentials).</CardDescription>
-          </CardHeader>
-          <CardContent className="grid sm:grid-cols-2 gap-4">
+        <SettingsSection
+          title="Google Auth"
+          description="Get these credentials from the Google Cloud Console (APIs & Services -> Credentials)."
+        >
+          <div className="grid sm:grid-cols-2 gap-4">
             <FormField
               control={form.control}
               name="googleClientId"
@@ -136,16 +135,15 @@ export default function SocialSettingsForm() {
                 </FormItem>
               )}
             />
-          </CardContent>
-        </Card>
+          </div>
+        </SettingsSection>
 
         {/* Telegram */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Telegram Auth</CardTitle>
-            <CardDescription>Talk to @BotFather in Telegram, create a bot and map your domain via /setdomain.</CardDescription>
-          </CardHeader>
-          <CardContent className="grid sm:grid-cols-2 gap-4">
+        <SettingsSection
+          title="Telegram Auth"
+          description="Talk to @BotFather in Telegram, create a bot and map your domain via /setdomain."
+        >
+          <div className="grid sm:grid-cols-2 gap-4">
             <FormField
               control={form.control}
               name="telegramBotUsername"
@@ -172,16 +170,15 @@ export default function SocialSettingsForm() {
                 </FormItem>
               )}
             />
-          </CardContent>
-        </Card>
+          </div>
+        </SettingsSection>
 
         {/* Apple */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Apple Auth</CardTitle>
-            <CardDescription>Requires an active Apple Developer Program membership.</CardDescription>
-          </CardHeader>
-          <CardContent className="grid sm:grid-cols-2 gap-4">
+        <SettingsSection
+          title="Apple Auth"
+          description="Requires an active Apple Developer Program membership."
+        >
+          <div className="grid sm:grid-cols-2 gap-4">
             <FormField
               control={form.control}
               name="appleClientId"
@@ -235,8 +232,8 @@ export default function SocialSettingsForm() {
                 </FormItem>
               )}
             />
-          </CardContent>
-        </Card>
+          </div>
+        </SettingsSection>
 
         <div className="flex border-t pt-4">
           <Button type="submit" disabled={isSaving || isLoading}>
