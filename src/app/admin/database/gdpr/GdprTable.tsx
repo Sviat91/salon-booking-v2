@@ -86,29 +86,29 @@ export default function GdprTable({ records, permissions }: Props) {
       </div>
 
       {filtered.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-16 text-center">
+        <div className="flex flex-col items-center justify-center rounded-[20px] border border-dashed border-border py-16 text-center">
           <p className="text-sm text-muted-foreground">No records found.</p>
         </div>
       ) : (
-        <div className="rounded-xl border border-border overflow-hidden">
+        <div className="rounded-[20px] border border-border bg-card shadow-sm overflow-hidden">
           <table className="w-full text-sm">
-            <thead className="bg-muted/50 border-b border-border">
+            <thead className="bg-muted/50 text-muted-foreground">
               <tr>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Name</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Phone</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Consent Date</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Status</th>
+                <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Name</th>
+                <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Phone</th>
+                <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Consent Date</th>
+                <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Status</th>
                 {(permissions.gdpr.withdraw || permissions.gdpr.erase) && (
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">Actions</th>
+                  <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Actions</th>
                 )}
               </tr>
             </thead>
-            <tbody>
-              {filtered.map((record, i) => {
+            <tbody className="divide-y divide-border">
+              {filtered.map((record) => {
                 const status = getStatus(record)
                 const maskedPhone = "****" + record.phoneDigits.slice(-4)
                 return (
-                  <tr key={record.id} className={i % 2 === 0 ? "bg-card" : "bg-muted/20"}>
+                  <tr key={record.id} className="hover:bg-muted/40 transition-colors">
                     <td className="px-4 py-3">{record.fullName}</td>
                     <td className="px-4 py-3 font-mono text-muted-foreground">{maskedPhone}</td>
                     <td className="px-4 py-3 text-muted-foreground">

@@ -6,6 +6,7 @@ import { Search, Pencil, Trash2, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Badge } from "@/components/ui/badge"
 import {
   Dialog,
   DialogContent,
@@ -104,29 +105,29 @@ export default function ClientsTable({ clients: initialClients, permissions }: P
       </div>
 
       {filtered.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-16 text-center">
+        <div className="flex flex-col items-center justify-center rounded-[20px] border border-dashed border-border py-16 text-center">
           <p className="text-sm text-muted-foreground">No clients found.</p>
         </div>
       ) : (
-        <div className="rounded-xl border border-border overflow-hidden">
+        <div className="rounded-[20px] border border-border bg-card shadow-sm overflow-hidden">
           <table className="w-full text-sm">
-            <thead className="bg-muted/50 border-b border-border">
+            <thead className="bg-muted/50 text-muted-foreground">
               <tr>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Name</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Phone</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Email</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Registered</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Type</th>
+                <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Name</th>
+                <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Phone</th>
+                <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Email</th>
+                <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Registered</th>
+                <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Type</th>
                 {(permissions.clients.edit || permissions.clients.delete) && (
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">Actions</th>
+                  <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Actions</th>
                 )}
               </tr>
             </thead>
-            <tbody>
-              {filtered.map((client, i) => (
+            <tbody className="divide-y divide-border">
+              {filtered.map((client) => (
                 <tr
                   key={client.id}
-                  className={i % 2 === 0 ? "bg-card" : "bg-muted/20"}
+                  className="hover:bg-muted/40 transition-colors"
                 >
                   <td className="px-4 py-3 flex items-center gap-2">
                     <User className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
@@ -139,9 +140,9 @@ export default function ClientsTable({ clients: initialClients, permissions }: P
                   </td>
                   <td className="px-4 py-3">
                     {client.isGuest ? (
-                      <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">Guest</span>
+                      <Badge variant="muted">Guest</Badge>
                     ) : (
-                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">Registered</span>
+                      <Badge variant="success">Registered</Badge>
                     )}
                   </td>
                   {(permissions.clients.edit || permissions.clients.delete) && (
