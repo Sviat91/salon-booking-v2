@@ -133,13 +133,13 @@ export default function EditProfilePage() {
       </div>
 
       <div className="mx-auto w-full max-w-lg mt-8 space-y-6">
-        <h1 className="text-2xl font-bold text-text dark:text-dark-text text-center">
+        <h1 className="text-2xl font-semibold text-foreground text-center">
           {t("profile.editTitle", "Edit Profile")}
         </h1>
 
         <Card className="!px-4 !py-6">
           <form onSubmit={handleProfileSubmit} className="space-y-4">
-            <h2 className="text-lg font-semibold text-text dark:text-dark-text mb-4">
+            <h2 className="text-lg font-semibold text-foreground mb-4">
               {t("profile.personalData", "Personal Data")}
             </h2>
             
@@ -189,7 +189,7 @@ export default function EditProfilePage() {
 
         <Card className="!px-4 !py-6">
           <form onSubmit={handlePasswordSubmit} className="space-y-4">
-            <h2 className="text-lg font-semibold text-text dark:text-dark-text mb-4">
+            <h2 className="text-lg font-semibold text-foreground mb-4">
               {t("profile.changePassword", "Change Password")}
             </h2>
             

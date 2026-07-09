@@ -91,11 +91,11 @@ export default function ProfilePage() {
 
   const statusColor = (status: string) => {
     switch (status) {
-      case "CONFIRMED": return "text-green-600 dark:text-green-400"
-      case "PENDING": return "text-yellow-600 dark:text-yellow-400"
-      case "CANCELLED": return "text-red-500 dark:text-red-400 line-through"
-      case "COMPLETED": return "text-muted dark:text-dark-muted"
-      default: return "text-text dark:text-dark-text"
+      case "CONFIRMED": return "bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300"
+      case "PENDING": return "bg-yellow-100 text-yellow-700 dark:bg-yellow-950 dark:text-yellow-300"
+      case "CANCELLED": return "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300"
+      case "COMPLETED": return "bg-muted text-muted-foreground"
+      default: return "bg-muted text-muted-foreground"
     }
   }
 
@@ -175,7 +175,7 @@ export default function ProfilePage() {
       </div>
 
       <div className="mx-auto w-full max-w-lg mt-8 space-y-6">
-        <h1 className="text-2xl font-bold text-text dark:text-dark-text text-center">
+        <h1 className="text-2xl font-semibold text-foreground text-center">
           {t("profile.title", "My Appointments")}
         </h1>
 
@@ -192,16 +192,16 @@ export default function ProfilePage() {
         <Card className="!px-4 !py-4 space-y-4">
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-lg font-medium text-text dark:text-dark-text">
+              <p className="text-lg font-medium text-foreground">
                 {t("profile.hello", "Hello")}, {user.name}!
               </p>
-              <div className="text-sm text-muted dark:text-dark-muted mt-1 space-y-1">
+              <div className="text-sm text-muted-foreground mt-1 space-y-1">
                 <p>✉️ {user.email}</p>
                 <p>📱 {user.phone || t('profile.noPhone', 'Phone not provided')}</p>
               </div>
             </div>
           </div>
-          <div className="flex gap-2 pt-2 border-t border-border dark:border-dark-border">
+          <div className="flex gap-2 pt-2 border-t border-border">
             <Link href="/profile/edit" className="btn btn-outline text-sm flex-1 text-center py-2">
               {t('profile.editProfile', 'Edit Profile')}
             </Link>
@@ -213,28 +213,28 @@ export default function ProfilePage() {
 
         {upcomingWithFlags.length > 0 && (
           <div className="space-y-3">
-            <h2 className="text-lg font-semibold text-text dark:text-dark-text">
+            <h2 className="text-lg font-semibold text-foreground">
               {t("profile.upcoming", "Upcoming")}
             </h2>
             {upcomingWithFlags.map((a) => (
               <Card key={a.id} className="!px-4 !py-3 space-y-3">
                 <div className="flex justify-between items-start">
                   <div className="space-y-1">
-                    <div className="font-medium text-text dark:text-dark-text">
+                    <div className="font-medium text-foreground">
                       {a.service.name}
                     </div>
-                    <div className="text-sm text-muted dark:text-dark-muted">
+                    <div className="text-sm text-muted-foreground">
                       {formatDate(a.date)} - {a.startTime}-{a.endTime}
                     </div>
-                    <div className="text-sm text-muted dark:text-dark-muted">
+                    <div className="text-sm text-muted-foreground">
                       {t("profile.master", "Specialist")}: {a.master.name}
                     </div>
-                    <div className={`text-xs font-medium ${statusColor(a.status)}`}>
+                    <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${statusColor(a.status)}`}>
                       {statusLabel(a.status)}
-                    </div>
+                    </span>
                   </div>
                   {a.service.price > 0 && (
-                    <div className="text-sm font-medium text-text dark:text-dark-text whitespace-nowrap ml-3">
+                    <div className="text-sm font-medium text-foreground whitespace-nowrap ml-3">
                       {a.service.price} zł
                     </div>
                   )}
@@ -272,12 +272,12 @@ export default function ProfilePage() {
         )}
 
         {past.length > 0 && (
-          <div className="space-y-3">
+          <Card className="!px-4 !py-4">
             <button
               onClick={() => setShowPast(!showPast)}
               className="flex items-center justify-between w-full py-2 group text-left"
             >
-              <h2 className="text-lg font-semibold text-text dark:text-dark-text group-hover:opacity-80 transition-opacity">
+              <h2 className="text-lg font-semibold text-foreground group-hover:opacity-80 transition-opacity">
                 {t("profile.past", "Past")}
               </h2>
               <svg
@@ -297,41 +297,29 @@ export default function ProfilePage() {
             </button>
 
             {showPast && (
-              <div className="space-y-3 animate-fade-in-up">
+              <div className="mt-3 space-y-2 animate-fade-in-up">
                 {past.map((a) => (
-                  <Card key={a.id} className="!px-4 !py-3">
-                    <div className="flex justify-between items-start">
-                      <div className="space-y-1">
-                        <div className="font-medium text-text dark:text-dark-text opacity-70">
-                          {a.service.name}
-                        </div>
-                        <div className="text-sm text-muted dark:text-dark-muted">
-                          {formatDate(a.date)} - {a.startTime}-{a.endTime}
-                        </div>
-                        <div className="text-sm text-muted dark:text-dark-muted">
-                          {t("profile.master", "Specialist")}: {a.master.name}
-                        </div>
-                        <div className={`text-xs font-medium ${statusColor(a.status)}`}>
-                          {statusLabel(a.status)}
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => handleRepeat(a.master.id)}
-                        className="btn btn-outline text-xs !px-3 !py-1.5 whitespace-nowrap ml-3 shrink-0"
-                      >
-                        {t("profile.repeat", "Book again")}
-                      </button>
+                  <div key={a.id} className="flex items-center justify-between gap-3 rounded-lg border border-border px-3 py-2.5">
+                    <div className="min-w-0">
+                      <div className="font-medium text-foreground truncate">{a.service.name}</div>
+                      <div className="text-sm text-muted-foreground">{formatDate(a.date)}</div>
                     </div>
-                  </Card>
+                    <button
+                      onClick={() => handleRepeat(a.master.id)}
+                      className="btn btn-outline text-xs !px-3 !py-1.5 whitespace-nowrap shrink-0"
+                    >
+                      {t("profile.repeat", "Book again")}
+                    </button>
+                  </div>
                 ))}
               </div>
             )}
-          </div>
+          </Card>
         )}
 
         {upcomingWithFlags.length === 0 && past.length === 0 && (
           <Card className="!px-4 !py-6 text-center">
-            <p className="text-muted dark:text-dark-muted mb-4">
+            <p className="text-muted-foreground mb-4">
               {t("profile.noAppointmentsAuth", "You don't have any appointments yet.")}
             </p>
             <Link href="/" className="btn btn-primary inline-block">
