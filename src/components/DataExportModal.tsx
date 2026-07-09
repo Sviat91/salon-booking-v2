@@ -369,16 +369,16 @@ export default function DataExportModal({
       >
         <div className="mb-4 flex items-start justify-between gap-4">
           <div>
-            <h2 id="export-modal-title" className="text-xl font-semibold text-text dark:text-dark-text">
+            <h2 id="export-modal-title" className="text-xl font-semibold text-foreground">
               {t('gdpr.export.title')}
             </h2>
-            <p className="mt-1 text-sm text-neutral-600 dark:text-dark-muted">
+            <p className="mt-1 text-sm text-muted-foreground">
               {t('gdpr.export.subtitle')}
             </p>
           </div>
           <button
             onClick={handleClose}
-            className="rounded-full p-2 text-neutral-500 transition hover:bg-neutral-200/70 dark:text-dark-muted dark:hover:bg-dark-border"
+            className="rounded-full p-2 text-muted-foreground transition hover:bg-muted"
             aria-label="Zamknij"
           >
             ×
@@ -452,7 +452,7 @@ export default function DataExportModal({
             {!isAuth && (
               <>
                 <div className="flex flex-col gap-2">
-                  <label className="text-sm font-medium text-text dark:text-dark-text" htmlFor="export-name">
+                  <label className="text-sm font-medium text-foreground" htmlFor="export-name">
                   {t('form.name')}
                 </label>
                   <input
@@ -468,7 +468,7 @@ export default function DataExportModal({
                 </div>
 
                 <div className="flex flex-col gap-2">
-                  <label className="text-sm font-medium text-text dark:text-dark-text" htmlFor="export-phone">
+                  <label className="text-sm font-medium text-foreground" htmlFor="export-phone">
                   {t('form.phone')}
                 </label>
                   <PhoneInput
@@ -480,8 +480,8 @@ export default function DataExportModal({
                 </div>
 
                 <div className="flex flex-col gap-2">
-                  <label className="text-sm font-medium text-text dark:text-dark-text" htmlFor="export-email">
-                  {t('form.email')} <span className="text-xs text-neutral-500 dark:text-dark-muted">({t('gdpr.export.emailOptional')})</span>
+                  <label className="text-sm font-medium text-foreground" htmlFor="export-email">
+                  {t('form.email')} <span className="text-xs text-muted-foreground">({t('gdpr.export.emailOptional')})</span>
                   </label>
                   <input
                     id="export-email"

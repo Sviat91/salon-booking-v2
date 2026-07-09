@@ -61,23 +61,23 @@ export default function TermsPage() {
             )}
             
             <section className="mb-8">
-              <h2 className="text-xl font-semibold text-text dark:text-dark-text mb-4">§ 1. POSTANOWIENIA OGÓLNE</h2>
-              <p className="text-neutral-700 dark:text-dark-text mb-4">
+              <h2 className="text-xl font-semibold text-foreground mb-4">§ 1. POSTANOWIENIA OGÓLNE</h2>
+              <p className="text-foreground mb-4">
                 Niniejszy regulamin określa zasady korzystania z usług świadczonych przez <strong>{companyName}</strong>
                 {nip && <>, NIP: {nip}</>}
                 {legalAddress && <>, z siedzibą przy {legalAddress}</>}
                 {email && <>, Email: {email}</>}. 
               </p>
-              <p className="text-neutral-700 dark:text-dark-text mb-4">
+              <p className="text-foreground mb-4">
                 Regulamin stanowi integralną część umowy o świadczenie usług zawartej między Usługodawcą a Klientem.
               </p>
-              <p className="text-neutral-700 dark:text-dark-text mb-4">
+              <p className="text-foreground mb-4">
                 Skorzystanie z systemu rezerwacji online oznacza akceptację niniejszego regulaminu oraz Polityki Prywatności.
               </p>
-              <p className="text-neutral-700 dark:text-dark-text mb-4">
+              <p className="text-foreground mb-4">
                 Usługodawca świadczy usługi w zakresie:
               </p>
-              <ul className="list-disc pl-6 mb-4 text-neutral-700 dark:text-dark-text">
+              <ul className="list-disc pl-6 mb-4 text-foreground">
                 <li>Masażu terapeutycznego i relaksacyjnego</li>
                 <li>Zabiegów kosmetycznych</li>
                 <li>Osteopatii</li>
@@ -85,8 +85,8 @@ export default function TermsPage() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-xl font-semibold text-text dark:text-dark-text mb-4">§ 2. DEFINICJE</h2>
-              <ul className="space-y-2 text-neutral-700 dark:text-dark-text">
+              <h2 className="text-xl font-semibold text-foreground mb-4">§ 2. DEFINICJE</h2>
+              <ul className="space-y-2 text-foreground">
                 <li><strong>Klient</strong> – osoba fizyczna korzystająca z usług Salonu</li>
                 <li><strong>Usługodawca</strong> – {companyName}</li>
                 <li><strong>Rezerwacja</strong> – zarezerwowanie terminu zabiegu przez system online</li>
@@ -96,38 +96,38 @@ export default function TermsPage() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-xl font-semibold text-text dark:text-dark-text mb-4">§ 3. ZASADY REZERWACJI</h2>
-              <p className="text-neutral-700 dark:text-dark-text mb-4">
+              <h2 className="text-xl font-semibold text-foreground mb-4">§ 3. ZASADY REZERWACJI</h2>
+              <p className="text-foreground mb-4">
                 Rezerwacji można dokonać online na stronie internetowej, wybierając:
               </p>
-              <ul className="list-disc pl-6 mb-4 text-neutral-700 dark:text-dark-text">
+              <ul className="list-disc pl-6 mb-4 text-foreground">
                 <li>Rodzaj zabiegu z dostępnej listy usług</li>
                 <li>Dostępny termin w kalendarzu (do 90 dni naprzód)</li>
                 <li>Podając wymagane dane: imię, nazwisko i numer telefonu</li>
               </ul>
-              <p className="text-neutral-700 dark:text-dark-text mb-4">
+              <p className="text-foreground mb-4">
                 Rezerwacja jest potwierdzona automatycznie po wypełnieniu formularza i udzieleniu wymaganych zgód.
               </p>
-              <p className="text-neutral-700 dark:text-dark-text mb-4">
+              <p className="text-foreground mb-4">
                 Minimalna długość zabiegu wynosi 30 minut, sloty dostępne są co 30 minut zgodnie z grafikiem pracy.
               </p>
               
-              <h3 className="text-lg font-medium text-text dark:text-dark-text mt-6 mb-3">Zarządzanie zgodami w procesie rezerwacji:</h3>
-              <ul className="list-disc pl-6 mb-4 text-neutral-700 dark:text-dark-text">
+              <h3 className="text-lg font-medium text-foreground mt-6 mb-3">Zarządzanie zgodami w procesie rezerwacji:</h3>
+              <ul className="list-disc pl-6 mb-4 text-foreground">
                 <li>Przy pierwszej rezerwacji system wyświetli formularz zgód na przetwarzanie danych</li>
                 <li>Informacje o udzielonych zgodach przechowujemy w bezpiecznej bazie danych</li>
                 <li>Stali klienci nie muszą ponownie akceptować warunków przy kolejnych rezerwacjach</li>
                 <li>System ponownie wyświetli formularz zgód tylko w przypadku aktualizacji dokumentów</li>
               </ul>
               
-              <p className="text-neutral-700 dark:text-dark-text">
+              <p className="text-foreground">
                 Dostępność terminów jest obliczana w czasie rzeczywistym na podstawie kalendarza i może ulec zmianie.
               </p>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-xl font-semibold text-text dark:text-dark-text mb-4">§ 4. ANULOWANIE I ZMIANY REZERWACJI</h2>
-              <ul className="space-y-3 text-neutral-700 dark:text-dark-text">
+              <h2 className="text-xl font-semibold text-foreground mb-4">§ 4. ANULOWANIE I ZMIANY REZERWACJI</h2>
+              <ul className="space-y-3 text-foreground">
                 <li>Anulowanie lub zmiana rezerwacji możliwa jest do <strong>24 godzin</strong> przed planowanym zabiegiem poprzez kontakt telefoniczny.</li>
                 <li>W przypadku anulowania w krótszym terminie niż 24 godziny, Usługodawca zastrzega sobie prawo do naliczenia opłaty w wysokości <strong>50%</strong> wartości zabiegu.</li>
                 <li>Brak stawienia się na umówiony zabieg bez uprzedzenia skutkuje naliczeniem <strong>100%</strong> wartości zabiegu.</li>
@@ -137,36 +137,36 @@ export default function TermsPage() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-xl font-semibold text-text dark:text-dark-text mb-4">§ 5. CENY I PŁATNOŚCI</h2>
-              <p className="text-neutral-700 dark:text-dark-text mb-4">
+              <h2 className="text-xl font-semibold text-foreground mb-4">§ 5. CENY I PŁATNOŚCI</h2>
+              <p className="text-foreground mb-4">
                 Aktualny cennik dostępny jest na stronie internetowej i może ulec zmianie z 7-dniowym wyprzedzeniem.
               </p>
-              <p className="text-neutral-700 dark:text-dark-text mb-4">
+              <p className="text-foreground mb-4">
                 Płatność następuje po wykonaniu zabiegu w jednej z następujących form:
               </p>
-              <ul className="list-disc pl-6 mb-4 text-neutral-700 dark:text-dark-text">
+              <ul className="list-disc pl-6 mb-4 text-foreground">
                 <li>Gotówka</li>
                 <li>Karta płatnicza (Visa, Mastercard)</li>
                 <li>BLIK</li>
                 <li>Przelew bankowy (dla firm)</li>
               </ul>
-              <p className="text-neutral-700 dark:text-dark-text mb-4">
+              <p className="text-foreground mb-4">
                 Wszystkie ceny są podane w złotych polskich (PLN) i zawierają podatek VAT zgodnie z obowiązującymi przepisami.
               </p>
-              <p className="text-neutral-700 dark:text-dark-text">
+              <p className="text-foreground">
                 W przypadku zabiegów wieloetapowych możliwa jest płatność ratalna po uprzednim uzgodnieniu.
               </p>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-xl font-semibold text-text dark:text-dark-text mb-4">§ 12. KONTAKT</h2>
+              <h2 className="text-xl font-semibold text-foreground mb-4">§ 12. KONTAKT</h2>
               <div className="bg-muted/30 rounded-lg p-6">
-                <h3 className="font-medium text-text dark:text-dark-text mb-3">{companyName}</h3>
-                <div className="space-y-2 text-neutral-700 dark:text-dark-text">
+                <h3 className="font-medium text-foreground mb-3">{companyName}</h3>
+                <div className="space-y-2 text-foreground">
                   {legalAddress && <p><strong>Adres:</strong> {legalAddress}</p>}
                   {email && <p><strong>Email:</strong> {email}</p>}
                   {nip && <p><strong>NIP:</strong> {nip}</p>}
-                  <p><strong>Strona wsparcia:</strong> <Link href="/support" className="text-primary hover:text-primary/80 dark:text-accent dark:hover:text-accent/80">Centrum pomocy</Link></p>
+                  <p><strong>Strona wsparcia:</strong> <Link href="/support" className="text-primary hover:text-primary/80">Centrum pomocy</Link></p>
                 </div>
               </div>
             </section>

@@ -283,16 +283,16 @@ export default function DataErasureModal({
       >
         <div className="mb-4 flex items-start justify-between gap-4">
           <div>
-            <h2 id="erase-modal-title" className="text-xl font-semibold text-text dark:text-dark-text">
+            <h2 id="erase-modal-title" className="text-xl font-semibold text-foreground">
               {t('gdpr.erase.title')}
             </h2>
-            <p className="mt-1 text-sm text-neutral-600 dark:text-dark-muted">
+            <p className="mt-1 text-sm text-muted-foreground">
               {t('gdpr.erase.subtitle')}
             </p>
           </div>
           <button
             onClick={handleClose}
-            className="rounded-full p-2 text-neutral-500 transition hover:bg-neutral-200/70 dark:text-dark-muted dark:hover:bg-dark-border"
+            className="rounded-full p-2 text-muted-foreground transition hover:bg-muted"
             aria-label={t('gdpr.erase.close')}
           >
             ×
@@ -367,7 +367,7 @@ export default function DataErasureModal({
             {!isAuth && (
               <>
                 <div className="flex flex-col gap-2">
-                  <label className="text-sm font-medium text-text dark:text-dark-text" htmlFor="erase-name">
+                  <label className="text-sm font-medium text-foreground" htmlFor="erase-name">
                   {t('form.name')}
                 </label>
                   <input
@@ -383,7 +383,7 @@ export default function DataErasureModal({
                 </div>
 
                 <div className="flex flex-col gap-2">
-                  <label className="text-sm font-medium text-text dark:text-dark-text" htmlFor="erase-phone">
+                  <label className="text-sm font-medium text-foreground" htmlFor="erase-phone">
                   {t('form.phone')}
                 </label>
                   <PhoneInput
@@ -395,8 +395,8 @@ export default function DataErasureModal({
                 </div>
 
                 <div className="flex flex-col gap-2">
-                  <label className="text-sm font-medium text-text dark:text-dark-text" htmlFor="erase-email">
-                  {t('form.email')} <span className="text-xs text-neutral-500 dark:text-dark-muted">({t('gdpr.export.emailOptional')})</span>
+                  <label className="text-sm font-medium text-foreground" htmlFor="erase-email">
+                  {t('form.email')} <span className="text-xs text-muted-foreground">({t('gdpr.export.emailOptional')})</span>
                   </label>
                   <input
                     id="erase-email"
@@ -413,7 +413,7 @@ export default function DataErasureModal({
             <label className="flex items-start gap-3 rounded-xl border border-border/70 bg-muted/25 p-4 text-sm text-card-foreground transition">
               <input
                 type="checkbox"
-                className="mt-1 h-4 w-4 rounded border-border text-primary focus:ring-primary dark:border-dark-border"
+                className="mt-1 h-4 w-4 rounded border-border text-primary focus:ring-primary"
                 checked={acknowledged}
                 onChange={(event) => setAcknowledged(event.target.checked)}
                 required
