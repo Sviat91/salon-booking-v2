@@ -67,16 +67,16 @@ export default function LanguageToggle() {
     <div ref={dropdownRef} className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="p-2 hover:opacity-80 transition-opacity duration-300 flex items-center gap-1"
+        className="px-3 py-2 rounded-full border border-border bg-transparent hover:bg-primary/10 hover:border-primary/40 transition-colors flex items-center gap-1"
         aria-label={LANGUAGE_NAMES[displayLanguage]}
         aria-expanded={isOpen}
         aria-haspopup="listbox"
       >
-        <span className="text-sm font-medium text-text dark:text-dark-text">
+        <span className="text-sm font-medium text-foreground">
           {displayCode}
         </span>
         <svg
-          className={`w-3 h-3 text-muted dark:text-dark-muted transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+          className={`w-3 h-3 text-muted-foreground transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -87,7 +87,7 @@ export default function LanguageToggle() {
 
       {isOpen && (
         <div 
-          className="absolute right-0 top-full mt-1 bg-card border border-border rounded-xl shadow-lg py-1 min-w-[120px] z-50"
+          className="absolute right-0 top-full mt-1 bg-card border border-border rounded-xl shadow-lg p-1 min-w-[120px] z-50"
           role="listbox"
           aria-label="Select language"
         >
@@ -95,18 +95,18 @@ export default function LanguageToggle() {
             <button
               key={lang}
               onClick={() => handleLanguageSelect(lang)}
-              className={`w-full px-3 py-2 flex items-center justify-between hover:bg-primary/30 dark:hover:bg-dark-border/50 transition-colors ${
-                lang === language ? 'bg-primary/20 dark:bg-dark-border/30' : ''
+              className={`w-full px-3 py-2 flex items-center justify-between rounded-md transition-colors hover:bg-primary hover:text-primary-foreground ${
+                lang === language ? 'bg-primary/15 text-primary font-medium' : 'text-foreground'
               }`}
               role="option"
               aria-selected={lang === language}
             >
-              <span className="text-sm text-text dark:text-dark-text">
+              <span className="text-sm">
                 {LANGUAGE_NAMES[lang]}
               </span>
               {lang === language && (
                 <svg
-                  className="w-4 h-4 text-accent"
+                  className="w-4 h-4 text-primary"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"

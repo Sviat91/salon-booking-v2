@@ -80,7 +80,7 @@ export default function ReviewsMarquee({ initialReviews }: ReviewsMarqueeProps) 
               transition: { duration: 0.2 }
             }}
           >
-            <div className="relative overflow-hidden rounded-xl border-[3px] border-border shadow-sm hover:shadow-md transition-all duration-300 bg-card">
+            <div className="relative overflow-hidden rounded-2xl border border-border shadow-sm hover:shadow-md transition-all duration-300 bg-card">
               <Image
                 src={review.url}
                 alt="Review"
