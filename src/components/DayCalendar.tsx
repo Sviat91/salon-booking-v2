@@ -160,7 +160,7 @@ export default function DayCalendar({ procedureId, onChange }: { procedureId?: s
   }
 
   // Стили для кнопок навигации
-  const buttonBase = "flex h-8 w-8 items-center justify-center rounded-full border border-neutral-300 dark:border-dark-muted text-sm font-medium text-neutral-700 dark:text-dark-text transition-all duration-200 hover:bg-neutral-100 dark:hover:bg-dark-muted hover:border-neutral-400 dark:hover:border-dark-text hover:scale-110 hover:shadow-lg disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:scale-100 disabled:hover:shadow-none"
+  const buttonBase = "flex h-8 w-8 items-center justify-center rounded-full border border-border text-sm font-medium text-foreground transition-all duration-200 hover:bg-muted hover:border-muted-foreground hover:scale-110 hover:shadow-lg disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:scale-100 disabled:hover:shadow-none"
 
   return (
     <div className="relative overflow-visible w-full max-w-full box-border" onClick={handleContainerClick}>
@@ -182,7 +182,7 @@ export default function DayCalendar({ procedureId, onChange }: { procedureId?: s
         </button>
         <div className="relative flex-1 text-center">
           <div className="h-6 overflow-hidden">
-            <span className="inline-block text-base font-medium text-neutral-800 dark:text-dark-text">
+            <span className="inline-block text-base font-medium text-foreground">
               {capitalizeFirst(month.toLocaleDateString(language === 'uk' ? 'uk-UA' : language === 'en' ? 'en-US' : 'pl-PL', { month: 'long', year: 'numeric' }))}
             </span>
           </div>
@@ -228,7 +228,7 @@ export default function DayCalendar({ procedureId, onChange }: { procedureId?: s
             month: 'space-y-2',
             // table-fixed + explicit column widths = constant 7×40px grid regardless of locale text length
             table: 'w-full table-fixed border-collapse',
-            head_cell: 'w-10 text-center font-normal text-xs text-neutral-400 dark:text-dark-muted overflow-hidden',
+            head_cell: 'w-10 text-center font-normal text-xs text-muted-foreground overflow-hidden',
             cell: 'w-10 text-center p-0',
           }}
           formatters={{
@@ -243,8 +243,8 @@ export default function DayCalendar({ procedureId, onChange }: { procedureId?: s
           className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-2xl bg-card/80 backdrop-blur-sm"
           onClick={(event) => event.stopPropagation()}
         >
-          <div className="h-10 w-10 animate-spin rounded-full border-2 border-neutral-300 border-t-neutral-500 dark:border-dark-muted dark:border-t-dark-text" />
-          <p className="mt-3 text-sm font-medium text-neutral-600 dark:text-dark-text">{t('calendar.searchingDays', 'Wyszukujemy dostępne dni…')}</p>
+          <div className="h-10 w-10 animate-spin rounded-full border-2 border-muted border-t-primary" />
+          <p className="mt-3 text-sm font-medium text-muted-foreground">{t('calendar.searchingDays', 'Wyszukujemy dostępne dni…')}</p>
         </div>
       )}
     </div>

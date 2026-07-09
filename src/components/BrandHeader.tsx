@@ -68,7 +68,7 @@ export default function BrandHeader({ onLogoClick }: BrandHeaderProps) {
       </div>
       
       <h1
-        className={`text-4xl font-semibold tracking-tight${logoClickable ? ' cursor-pointer' : ''}`}
+        className={`text-3xl font-normal tracking-tight${logoClickable ? ' cursor-pointer' : ''}`}
         onClick={onLogoClick}
       >
         {t('booking.bookVisit')}

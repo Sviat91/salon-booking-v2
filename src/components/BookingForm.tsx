@@ -309,8 +309,8 @@ export default function BookingForm({
 
   return (
     <div className="space-y-3">
-      <div className="text-neutral-700 dark:text-dark-muted">
-        <div className="font-medium text-text dark:text-dark-text mb-0.5">{selectedProcedureName}</div>
+      <div className="text-muted-foreground">
+        <div className="font-medium text-foreground mb-0.5">{selectedProcedureName}</div>
         <div className="text-sm">{terminLabel}</div>
       </div>
 
@@ -344,7 +344,7 @@ export default function BookingForm({
           ) : (
             <div className="space-y-3">
               <input
-                className="w-full rounded-xl border border-border bg-transparent px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary dark:border-dark-border dark:placeholder-dark-muted"
+                className="w-full rounded-xl border border-border bg-transparent px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                 value={editName}
                 onChange={(e) => setEditName(e.target.value)}
                 placeholder={t('form.name', 'Full name')}
@@ -357,7 +357,7 @@ export default function BookingForm({
               />
 
               <input
-                className="w-full rounded-xl border border-border bg-transparent px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary dark:border-dark-border dark:placeholder-dark-muted"
+                className="w-full rounded-xl border border-border bg-transparent px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                 value={editEmail}
                 onChange={(e) => setEditEmail(e.target.value)}
                 placeholder={t('form.email', 'E-mail')}
@@ -410,7 +410,7 @@ export default function BookingForm({
         <div className="space-y-2">
           <div>
             <input
-              className={`w-full rounded-xl border ${nameError ? 'border-red-500' : 'border-border'} bg-transparent px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary dark:border-dark-border dark:placeholder-dark-muted`}
+              className={`w-full rounded-xl border ${nameError ? 'border-red-500' : 'border-border'} bg-transparent px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary`}
               placeholder={t('form.name')}
               value={name}
               onChange={(e) => {
@@ -446,7 +446,7 @@ export default function BookingForm({
 
           <div>
             <input
-              className={`w-full rounded-xl border ${emailError ? 'border-red-500' : 'border-border'} bg-transparent px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary dark:border-dark-border dark:placeholder-dark-muted`}
+              className={`w-full rounded-xl border ${emailError ? 'border-red-500' : 'border-border'} bg-transparent px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary`}
               placeholder={t('form.emailOptional')}
               value={email}
               onChange={(e) => {

@@ -36,12 +36,12 @@ export default function BookingConsentModal({
   
   return (
     <div className="transition-all duration-300 ease-out">
-      <div className="text-lg font-medium mb-4 dark:text-dark-text">{t('consent.beforeBooking')}</div>
-      
+      <div className="text-lg font-medium mb-4 text-foreground">{t('consent.beforeBooking')}</div>
+
       {/* Booking summary */}
       <div className="mb-4 rounded-lg border border-border/70 bg-card/60 p-3">
-        <div className="text-sm text-neutral-600 dark:text-dark-muted">
-          <strong className="text-text dark:text-dark-text">{procedureName}</strong>
+        <div className="text-sm text-muted-foreground">
+          <strong className="text-foreground">{procedureName}</strong>
           <br />
           {terminLabel}
         </div>
@@ -55,11 +55,11 @@ export default function BookingConsentModal({
             type="checkbox"
             checked={termsConsent}
             onChange={(e) => onTermsChange(e.target.checked)}
-            className="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-2 focus:ring-primary dark:border-dark-border dark:bg-dark-card dark:checked:bg-accent"
+            className="mt-1 h-4 w-4 rounded border-border text-primary focus:ring-2 focus:ring-primary"
           />
-          <span className="text-sm text-neutral-700 dark:text-dark-muted flex-1">
+          <span className="text-sm text-muted-foreground flex-1">
             {t('consent.termsCheckbox')}{' '}
-            <Link href="/terms" target="_blank" className="text-primary hover:underline dark:text-accent">
+            <Link href="/terms" target="_blank" className="text-primary hover:underline">
               {t('consent.termsLink')}
             </Link>{' '}
             <span className="text-red-500">*</span>
@@ -72,11 +72,11 @@ export default function BookingConsentModal({
             type="checkbox"
             checked={dataProcessingConsent}
             onChange={(e) => onDataProcessingChange(e.target.checked)}
-            className="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-2 focus:ring-primary dark:border-dark-border dark:bg-dark-card dark:checked:bg-accent"
+            className="mt-1 h-4 w-4 rounded border-border text-primary focus:ring-2 focus:ring-primary"
           />
-          <span className="text-sm text-neutral-700 dark:text-dark-muted flex-1">
+          <span className="text-sm text-muted-foreground flex-1">
             {t('consent.privacyCheckbox')}{' '}
-            <Link href="/privacy" target="_blank" className="text-primary hover:underline dark:text-accent">
+            <Link href="/privacy" target="_blank" className="text-primary hover:underline">
               {t('consent.privacyLink')}
             </Link>{' '}
             <span className="text-red-500">*</span>
@@ -89,9 +89,9 @@ export default function BookingConsentModal({
             type="checkbox"
             checked={notificationsConsent}
             onChange={(e) => onNotificationsChange(e.target.checked)}
-            className="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-2 focus:ring-primary dark:border-dark-border dark:bg-dark-card dark:checked:bg-accent"
+            className="mt-1 h-4 w-4 rounded border-border text-primary focus:ring-2 focus:ring-primary"
           />
-          <span className="text-sm text-neutral-700 dark:text-dark-muted flex-1">
+          <span className="text-sm text-muted-foreground flex-1">
             {t('consent.notificationsCheckbox')}
           </span>
         </label>
@@ -117,7 +117,7 @@ export default function BookingConsentModal({
           type="button"
           onClick={onConfirm}
           disabled={!canConfirm}
-          className="flex-1 rounded-lg bg-primary px-4 py-3 text-sm font-medium text-white transition-all hover:bg-primary/90 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed dark:bg-accent dark:hover:bg-accent/90 flex items-center justify-center gap-2"
+          className="flex-1 rounded-lg bg-primary px-4 py-3 text-sm font-medium text-primary-foreground transition-all hover:bg-primary/90 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           {loading ? (
             <>

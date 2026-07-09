@@ -27,7 +27,7 @@ export default function GuestConversionBanner({ show }: GuestConversionBannerPro
           transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1], delay: 0.3 }}
           className="w-full max-w-sm mx-auto lg:max-w-none lg:mx-0"
         >
-          <div className="rounded-2xl border border-primary/25 bg-card dark:bg-dark-card p-5 shadow-sm">
+          <div className="rounded-2xl border border-primary/25 bg-card p-5 shadow-sm">
             {/* Icon + heading row */}
             <div className="flex items-start gap-3 mb-3">
               <span
@@ -37,10 +37,10 @@ export default function GuestConversionBanner({ show }: GuestConversionBannerPro
                 ✨
               </span>
               <div>
-                <p className="text-sm font-semibold text-foreground dark:text-dark-text leading-snug">
+                <p className="text-sm font-semibold text-foreground leading-snug">
                   {t('success.guestBannerTitle')}
                 </p>
-                <p className="text-xs text-neutral-500 dark:text-dark-muted mt-0.5 leading-relaxed">
+                <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
                   {t('success.guestBannerDesc')}
                 </p>
               </div>

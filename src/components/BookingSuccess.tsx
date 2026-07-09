@@ -37,17 +37,17 @@ export default function BookingSuccess({
 
   return (
     <div className="transition-all duration-300 ease-out">
-      <div className="text-lg font-medium mb-3 dark:text-dark-text">{t('success.title')}</div>
+      <div className="text-lg font-medium mb-3 text-foreground">{t('success.title')}</div>
       
       <div className="space-y-1 mb-4">
-        <div className="text-sm text-neutral-600 dark:text-dark-muted">
+        <div className="text-sm text-muted-foreground">
           <strong>{t('success.serviceLabel')}</strong> {procedureName ?? t('common.noData')}
         </div>
-        <div className="text-sm text-neutral-600 dark:text-dark-muted">
+        <div className="text-sm text-muted-foreground">
           <strong>{t('success.dateLabel')}</strong> {terminLabel}
         </div>
         {procedurePrice && (
-          <div className="text-sm text-neutral-600 dark:text-dark-muted">
+          <div className="text-sm text-muted-foreground">
             <strong>{t('success.priceLabel')}</strong> {procedurePrice} zł
           </div>
         )}
@@ -55,8 +55,8 @@ export default function BookingSuccess({
       
       {hasAddress && (
         <div className="mb-4 rounded-lg border border-border/70 bg-card/60 p-3">
-          <div className="text-sm text-neutral-600 dark:text-dark-muted">
-            <strong className="text-text dark:text-dark-text">{t('success.addressLabel')}</strong><br />
+          <div className="text-sm text-muted-foreground">
+            <strong className="text-foreground">{t('success.addressLabel')}</strong><br />
             {tenantConfig.salonAddress && <>{tenantConfig.salonAddress}<br /></>}
             {tenantConfig.salonCity && <>{tenantConfig.salonCity}<br /></>}
             {tenantConfig.salonPhone && <>{tenantConfig.salonPhone}</>}
@@ -71,10 +71,10 @@ export default function BookingSuccess({
           <div className="flex items-start gap-3">
             <span className="mt-0.5 text-primary text-lg leading-none select-none" aria-hidden="true">✨</span>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-foreground dark:text-dark-text mb-0.5">
+              <p className="text-sm font-semibold text-foreground mb-0.5">
                 {t('success.guestBannerTitle')}
               </p>
-              <p className="text-xs text-neutral-500 dark:text-dark-muted mb-3 leading-relaxed">
+              <p className="text-xs text-muted-foreground mb-3 leading-relaxed">
                 {t('success.guestBannerDesc')}
               </p>
               <div className="flex flex-col gap-2">
@@ -99,7 +99,7 @@ export default function BookingSuccess({
       <button
         type="button"
         onClick={onClose}
-        className="w-full rounded-lg bg-neutral-800 px-4 py-3 text-sm font-medium text-white transition-all duration-200 hover:bg-neutral-900 hover:shadow-md dark:bg-neutral-700 dark:hover:bg-neutral-600"
+        className="btn btn-outline w-full"
       >
         {t('success.close')}
       </button>

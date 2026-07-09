@@ -39,21 +39,21 @@ export default function SlotsList({ date, procedureId, selected, onPick }: { dat
 
   return (
     <div>
-      {!procedureId && <div className="text-sm text-neutral-500 dark:text-dark-muted">{t('slots.selectServiceFirst', 'Najpierw wybierz usługę')}</div>}
-      {procedureId && !dateISO && <div className="text-sm text-neutral-500 dark:text-dark-muted">{t('booking.selectDate')}</div>}
+      {!procedureId && <div className="text-sm text-muted-foreground">{t('slots.selectServiceFirst', 'Najpierw wybierz usługę')}</div>}
+      {procedureId && !dateISO && <div className="text-sm text-muted-foreground">{t('booking.selectDate')}</div>}
       <div className={`relative overflow-x-hidden transition-[max-height,opacity] duration-300 ease-out ${panelState}`}>
-        <div className={`relative rounded-2xl border border-border bg-card text-card-foreground p-4 dark:border-dark-border ${ready ? 'max-h-[24rem]' : ''}`}>
+        <div className={`relative rounded-2xl border border-border bg-card text-card-foreground p-4 ${ready ? 'max-h-[24rem]' : ''}`}>
           {ready && (
             <>
               {isFetching && (
                 <div className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-2xl bg-card/80 backdrop-blur-sm">
-                  <div className="h-9 w-9 animate-spin rounded-full border-2 border-neutral-300 border-t-neutral-500" />
-                  <p className="mt-3 text-sm font-medium text-neutral-600 dark:text-dark-text">{t('slots.searching', 'Wyszukujemy wolne godziny…')}</p>
+                  <div className="h-9 w-9 animate-spin rounded-full border-2 border-muted border-t-primary" />
+                  <p className="mt-3 text-sm font-medium text-muted-foreground">{t('slots.searching', 'Wyszukujemy wolne godziny…')}</p>
                 </div>
               )}
               {error && <div className="text-sm text-red-600 dark:text-red-400">{t('slots.loadError', 'Błąd ładowania terminów')}</div>}
               {!error && slots.length === 0 && !isFetching && (
-                <div className="text-sm text-neutral-500 dark:text-dark-muted">{t('slots.noAvailable', 'Brak dostępnych terminów')}</div>
+                <div className="text-sm text-muted-foreground">{t('slots.noAvailable', 'Brak dostępnych terminów')}</div>
               )}
               {!error && slots.length > 0 && (
                 <div className="grid max-h-[18rem] grid-cols-2 gap-2 overflow-y-auto pr-1">

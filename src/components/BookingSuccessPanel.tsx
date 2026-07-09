@@ -59,17 +59,17 @@ export default function BookingSuccessPanel({ slot, procedureId, onClose }: Book
 
   return (
     <div className="transition-all duration-300 ease-out">
-      <div className="text-lg font-medium mb-3 dark:text-dark-text">{t('success.title')}</div>
+      <div className="text-lg font-medium mb-3 text-foreground">{t('success.title')}</div>
       
       <div className="space-y-1 mb-4">
-        <div className="text-sm text-neutral-600 dark:text-dark-muted">
+        <div className="text-sm text-muted-foreground">
           <strong>{t('success.serviceLabel')}</strong> {selectedProcedureName ?? t('common.noData')}
         </div>
-        <div className="text-sm text-neutral-600 dark:text-dark-muted">
+        <div className="text-sm text-muted-foreground">
           <strong>{t('success.dateLabel')}</strong> {terminLabel}
         </div>
         {selectedProcedure?.price_pln && (
-          <div className="text-sm text-neutral-600 dark:text-dark-muted">
+          <div className="text-sm text-muted-foreground">
             <strong>{t('success.priceLabel')}</strong> {selectedProcedure.price_pln} zł
           </div>
         )}
@@ -77,8 +77,8 @@ export default function BookingSuccessPanel({ slot, procedureId, onClose }: Book
       
       {hasAddress && (
         <div className="mb-4 rounded-lg border border-border/70 bg-card/60 p-3">
-          <div className="text-sm text-neutral-600 dark:text-dark-muted">
-            <strong className="text-text dark:text-dark-text">{t('success.addressLabel')}</strong><br />
+          <div className="text-sm text-muted-foreground">
+            <strong className="text-foreground">{t('success.addressLabel')}</strong><br />
             {tenantConfig.salonAddress && <>{tenantConfig.salonAddress}<br /></>}
             {tenantConfig.salonCity && <>{tenantConfig.salonCity}<br /></>}
             {tenantConfig.salonPhone && <>{tenantConfig.salonPhone}</>}
@@ -91,7 +91,7 @@ export default function BookingSuccessPanel({ slot, procedureId, onClose }: Book
       <button
         type="button"
         onClick={onClose}
-        className="w-full rounded-lg bg-neutral-800 px-4 py-3 text-sm font-medium text-white transition-all duration-200 hover:bg-neutral-900 hover:shadow-md dark:bg-neutral-700 dark:hover:bg-neutral-600"
+        className="btn btn-outline w-full"
       >
         {t('success.close')}
       </button>
