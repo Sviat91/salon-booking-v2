@@ -60,21 +60,21 @@ export default function EditProcedurePanel({
 
   return (
     <div className="overflow-y-auto space-y-4 pr-1 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent" role="dialog" aria-label={t('management.changeProcedureBtn')}>
-      <div className="text-sm text-neutral-600 dark:text-dark-muted">
+      <div className="text-sm text-muted-foreground">
         {t('management.selectNewProcedure')}
       </div>
 
       <div className="space-y-2">
         {/* Current procedure info */}
         <div className="rounded-xl border border-border bg-muted/30 p-3">
-          <div className="text-xs text-neutral-500 dark:text-dark-muted mb-1">{t('management.currentProcedure')}</div>
-          <div className="text-sm font-medium dark:text-dark-text">
+          <div className="text-xs text-muted-foreground mb-1">{t('management.currentProcedure')}</div>
+          <div className="text-sm font-medium text-foreground">
             {booking.procedureName}
           </div>
-          <div className="text-xs text-neutral-500 dark:text-dark-muted mt-1">
+          <div className="text-xs text-muted-foreground mt-1">
             {currentDuration} min • {booking.price}zł
           </div>
-          <div className="text-xs text-neutral-500 dark:text-dark-muted mt-1">
+          <div className="text-xs text-muted-foreground mt-1">
             {new Intl.DateTimeFormat('pl-PL', {
               weekday: 'short',
               day: 'numeric',
@@ -90,27 +90,27 @@ export default function EditProcedurePanel({
           <button
             type="button"
             onClick={() => setIsOpen(o => !o)}
-            className="relative w-full rounded-xl border border-border bg-transparent text-foreground px-3 py-2.5 text-left focus:outline-none focus:ring-2 focus:ring-primary dark:border-dark-border"
+            className="relative w-full rounded-xl border border-border bg-transparent text-foreground px-3 py-2.5 text-left focus:outline-none focus:ring-2 focus:ring-primary"
           >
             {selectedProcedure ? (
               <span className="block whitespace-normal break-words text-sm">
                 {selectedProcedure.name_pl} • {selectedProcedure.duration_min} min • {selectedProcedure.price_pln}zł
               </span>
             ) : (
-              <span className="text-neutral-500 dark:text-dark-muted text-sm">{t('management.selectNewProcedurePlaceholder')}</span>
+              <span className="text-muted-foreground text-sm">{t('management.selectNewProcedurePlaceholder')}</span>
             )}
             <span
               className={`absolute right-3 top-1/2 -translate-y-1/2 transition-transform ${isOpen ? 'rotate-180' : ''}`}
               aria-hidden
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-neutral-500 dark:text-dark-muted">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground">
                 <polyline points="6 9 12 15 18 9" />
               </svg>
             </span>
           </button>
           
           <div
-            className={`overflow-hidden transition-all duration-200 ease-out ${isOpen ? 'max-h-60 opacity-100 mt-2' : 'max-h-0 opacity-0'} bg-card text-card-foreground border border-border rounded-xl dark:border-dark-border`}
+            className={`overflow-hidden transition-all duration-200 ease-out ${isOpen ? 'max-h-60 opacity-100 mt-2' : 'max-h-0 opacity-0'} bg-card text-card-foreground border border-border rounded-xl`}
           >
             <ul className="max-h-60 overflow-auto p-1">
               {procedures.map((procedure) => {
@@ -121,12 +121,12 @@ export default function EditProcedurePanel({
                     <button
                       type="button"
                       disabled={isCurrent}
-                      className={`w-full text-left px-3 py-2 rounded-lg transition-colors whitespace-normal break-words dark:text-dark-text ${
+                      className={`w-full text-left px-3 py-2 rounded-lg transition-colors whitespace-normal break-words text-foreground ${
                         isCurrent
-                          ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed dark:bg-dark-border/50 dark:text-dark-muted'
+                          ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed dark:bg-muted dark:text-muted-foreground'
                           : isSelected
-                            ? 'bg-primary/20 text-primary dark:bg-accent/20 dark:text-accent'
-                            : 'hover:bg-primary/10 focus:bg-primary/10 focus:outline-none dark:hover:bg-dark-border/60'
+                            ? 'bg-primary/20 text-primary'
+                            : 'hover:bg-primary/10 focus:bg-primary/10 focus:outline-none'
                       }`}
                       onClick={() => {
                         if (!isCurrent) {
@@ -137,7 +137,7 @@ export default function EditProcedurePanel({
                     >
                       <div className="flex items-center justify-between gap-2">
                         <span className="text-sm">{procedure.name_pl}</span>
-                        <span className="text-xs text-neutral-500 dark:text-dark-muted whitespace-nowrap">
+                        <span className="text-xs text-muted-foreground whitespace-nowrap">
                           {procedure.duration_min} min • {procedure.price_pln}zł{isCurrent ? ` ${t('management.current')}` : ''}
                         </span>
                       </div>
@@ -273,7 +273,7 @@ export default function EditProcedurePanel({
                   type="button" 
                   onClick={onConfirmSameTime}
                   disabled={isSubmitting || !selectedProcedure}
-                  className="flex-1 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white transition-all duration-200 hover:bg-primary/90 hover:shadow-md dark:bg-accent dark:hover:bg-accent/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="flex-1 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-all duration-200 hover:bg-primary/90 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {isSubmitting ? (
                     <>
@@ -362,7 +362,7 @@ export default function EditProcedurePanel({
                   <button 
                     type="button" 
                     onClick={onRequestNewTime} 
-                    className="flex-1 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white transition-all duration-200 hover:bg-primary/90 hover:shadow-md dark:bg-accent dark:hover:bg-accent/90"
+                    className="flex-1 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-all duration-200 hover:bg-primary/90 hover:shadow-md"
                   >
                     {t('management.selectNewTerm')}
                   </button>
@@ -373,7 +373,7 @@ export default function EditProcedurePanel({
                       type="button" 
                       onClick={onCheckAvailability}
                       disabled={isChecking}
-                      className="flex-1 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white transition-all duration-200 hover:bg-primary/90 hover:shadow-md dark:bg-accent dark:hover:bg-accent/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      className="flex-1 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-all duration-200 hover:bg-primary/90 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
                       {isChecking ? (
                         <>
@@ -410,7 +410,7 @@ export default function EditProcedurePanel({
           </button>
         </div>
       ) : (
-        <div className="text-xs text-neutral-500 dark:text-dark-muted text-center py-2">
+        <div className="text-xs text-muted-foreground text-center py-2">
           {t('management.selectProcedureFromList')}
         </div>
       )}

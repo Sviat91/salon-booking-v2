@@ -80,10 +80,10 @@ export default function ContactMasterPanel({ onBack, onSuccess }: ContactMasterP
   return (
     <div className="overflow-y-auto space-y-4 pr-1 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
       <div>
-        <h3 className="text-lg font-semibold text-neutral-800 dark:text-dark-text">
+        <h3 className="text-lg font-semibold text-foreground">
           {t('management.contactMasterBtn')}
         </h3>
-        <p className="text-sm text-neutral-600 dark:text-dark-muted mt-1">
+        <p className="text-sm text-muted-foreground mt-1">
           {t('management.masterName', { name: selectedMaster?.name || 'Master' })}
         </p>
       </div>
@@ -97,7 +97,7 @@ export default function ContactMasterPanel({ onBack, onSuccess }: ContactMasterP
       <div className="space-y-3">
         {/* Full Name */}
         <div>
-          <label className="block text-sm font-medium text-neutral-700 dark:text-dark-text mb-1">
+          <label className="block text-sm font-medium text-foreground mb-1">
             {t('management.fullNameLabel')}
           </label>
           <input
@@ -112,7 +112,7 @@ export default function ContactMasterPanel({ onBack, onSuccess }: ContactMasterP
         
         {/* Phone */}
         <div>
-          <label className="block text-sm font-medium text-neutral-700 dark:text-dark-text mb-1">
+          <label className="block text-sm font-medium text-foreground mb-1">
             {t('management.phoneLabel')}
           </label>
           <PhoneInput
@@ -125,7 +125,7 @@ export default function ContactMasterPanel({ onBack, onSuccess }: ContactMasterP
         
         {/* Email */}
         <div>
-          <label className="block text-sm font-medium text-neutral-700 dark:text-dark-text mb-1">
+          <label className="block text-sm font-medium text-foreground mb-1">
             {t('management.emailOptionalLabel')}
           </label>
           <input
@@ -140,7 +140,7 @@ export default function ContactMasterPanel({ onBack, onSuccess }: ContactMasterP
         
         {/* Message */}
         <div>
-          <label className="block text-sm font-medium text-neutral-700 dark:text-dark-text mb-1">
+          <label className="block text-sm font-medium text-foreground mb-1">
             {t('management.messageForMaster')}
           </label>
           <Textarea
@@ -151,7 +151,7 @@ export default function ContactMasterPanel({ onBack, onSuccess }: ContactMasterP
             disabled={isSubmitting}
             className="max-w-full box-border rounded-lg bg-card resize-none"
           />
-          <div className="text-xs text-neutral-500 dark:text-dark-muted mt-1">
+          <div className="text-xs text-muted-foreground mt-1">
             {t('management.minChars')}
           </div>
         </div>
@@ -171,7 +171,7 @@ export default function ContactMasterPanel({ onBack, onSuccess }: ContactMasterP
           type="button"
           onClick={handleSubmit}
           disabled={!canSubmit || isSubmitting}
-          className="flex-1 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white transition-all hover:bg-primary/90 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed dark:bg-accent dark:hover:bg-accent/90 flex items-center justify-center gap-2"
+          className="flex-1 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-all hover:bg-primary/90 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           {isSubmitting ? (
             <>

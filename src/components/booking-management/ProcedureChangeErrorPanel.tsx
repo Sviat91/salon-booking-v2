@@ -82,7 +82,7 @@ export default function ProcedureChangeErrorPanel({
           <button
             type="button"
             onClick={onRetry}
-            className="flex-1 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white transition-all duration-200 hover:bg-primary/90 hover:shadow-md dark:bg-accent dark:hover:bg-accent/90"
+            className="flex-1 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-all duration-200 hover:bg-primary/90 hover:shadow-md"
           >
             {t('management.tryAgain')}
           </button>

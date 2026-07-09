@@ -13,10 +13,10 @@ export default function NoResultsPanel({ onRetry, onContactMaster }: NoResultsPa
     <div className="overflow-y-auto space-y-4 pr-1 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
       <div className="text-center py-6">
         <div className="text-2xl mb-2">😔</div>
-        <div className="text-lg font-medium text-neutral-700 dark:text-dark-text mb-2">
+        <div className="text-lg font-medium text-foreground mb-2">
           {t('management.noBookingsFound')}
         </div>
-        <div className="text-sm text-neutral-600 dark:text-dark-muted">
+        <div className="text-sm text-muted-foreground">
           {t('management.checkDataAndRetry')}<br/>
           {t('management.useSameDataAsBooking')}
         </div>

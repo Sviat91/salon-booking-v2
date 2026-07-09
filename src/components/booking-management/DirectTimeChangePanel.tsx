@@ -73,10 +73,10 @@ export default function DirectTimeChangePanel({
     <div className="space-y-4">
       {/* Header */}
       <div className="text-center">
-        <h3 className="text-lg font-semibold text-neutral-800 dark:text-dark-text">
+        <h3 className="text-lg font-semibold text-foreground">
           {t('management.termChange')}
         </h3>
-        <p className="text-sm text-neutral-600 dark:text-dark-muted mt-1">
+        <p className="text-sm text-muted-foreground mt-1">
           {t('management.selectNewDateAndTimeInCalendar')}
         </p>
       </div>
@@ -85,18 +85,18 @@ export default function DirectTimeChangePanel({
       <div className="rounded-xl border border-border bg-muted/25 p-4">
         {newProcedure ? (
           <div className="mb-3">
-            <div className="text-xs text-neutral-500 dark:text-dark-muted mb-1">{t('management.procedureChange')}</div>
+            <div className="text-xs text-muted-foreground mb-1">{t('management.procedureChange')}</div>
             <div className="flex items-center gap-2">
               <span className="text-sm text-neutral-600 dark:text-neutral-400 line-through">{bookingProcedureName}</span>
               <span className="text-neutral-400 dark:text-neutral-500">→</span>
-              <span className="font-medium text-neutral-800 dark:text-dark-text">{newProcedureName}</span>
+              <span className="font-medium text-foreground">{newProcedureName}</span>
             </div>
-            <div className="text-xs text-neutral-500 dark:text-dark-muted mt-1">
+            <div className="text-xs text-muted-foreground mt-1">
               {newProcedure.duration_min} min • {newProcedure.price_pln}zł
             </div>
           </div>
         ) : (
-          <div className="font-medium text-neutral-800 dark:text-dark-text mb-3">
+          <div className="font-medium text-foreground mb-3">
             {bookingProcedureName}
           </div>
         )}
@@ -170,7 +170,7 @@ export default function DirectTimeChangePanel({
           type="button"
           onClick={onConfirm}
           disabled={isSubmitting || !canConfirm}
-          className="flex-1 rounded-lg bg-primary px-4 py-3 text-sm font-medium text-white transition-all duration-200 hover:bg-primary/90 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed dark:bg-accent dark:hover:bg-accent/90"
+          className="flex-1 rounded-lg bg-primary px-4 py-3 text-sm font-medium text-primary-foreground transition-all duration-200 hover:bg-primary/90 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isSubmitting ? (
             <div className="flex items-center justify-center space-x-2">

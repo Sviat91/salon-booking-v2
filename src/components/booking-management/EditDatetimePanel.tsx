@@ -50,15 +50,15 @@ export default function EditDatetimePanel({
 
   return (
     <div className="overflow-y-auto space-y-4 pr-1 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
-      <div className="text-sm text-neutral-600 dark:text-dark-muted">
+      <div className="text-sm text-muted-foreground">
         {t('management.selectNewDatetime')}
       </div>
 
       <div className="space-y-2">
         <div className="rounded-xl border border-border bg-muted/30 p-3">
-          <div className="text-xs text-neutral-500 dark:text-dark-muted mb-1">{t('management.currentBooking')}</div>
-          <div className="text-sm font-medium dark:text-dark-text">{booking.procedureName}</div>
-          <div className="text-xs text-neutral-500 dark:text-dark-muted">
+          <div className="text-xs text-muted-foreground mb-1">{t('management.currentBooking')}</div>
+          <div className="text-sm font-medium text-foreground">{booking.procedureName}</div>
+          <div className="text-xs text-muted-foreground">
             {currentDateLabel} • {currentTimeLabel}
           </div>
         </div>
@@ -82,20 +82,20 @@ export default function EditDatetimePanel({
 
       {selectedDateLabel ? (
         <div className="rounded-xl border border-border bg-muted/30 p-3">
-          <div className="text-xs text-neutral-500 dark:text-dark-muted mb-1">{t('management.selectedDate')}</div>
-          <div className="text-sm font-medium dark:text-dark-text">{selectedDateLabel}</div>
+          <div className="text-xs text-muted-foreground mb-1">{t('management.selectedDate')}</div>
+          <div className="text-sm font-medium text-foreground">{selectedDateLabel}</div>
           {selectedTimeLabel ? (
-            <div className="text-xs text-neutral-500 dark:text-dark-muted mt-1">
+            <div className="text-xs text-muted-foreground mt-1">
               {t('management.hour')} {selectedTimeLabel}
             </div>
           ) : (
-            <div className="text-xs text-neutral-500 dark:text-dark-muted mt-1">
+            <div className="text-xs text-muted-foreground mt-1">
               {t('management.selectHourFromList')}
             </div>
           )}
         </div>
       ) : (
-        <div className="text-center py-4 text-neutral-500 dark:text-dark-muted text-sm">
+        <div className="text-center py-4 text-muted-foreground text-sm">
           {t('management.selectDateInCalendar')}
         </div>
       )}

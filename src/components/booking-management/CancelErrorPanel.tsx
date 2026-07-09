@@ -93,7 +93,7 @@ export default function CancelErrorPanel({ booking, errorMessage, onBackToResult
           <button
             type="button"
             onClick={onContactMaster}
-            className="text-xs text-neutral-500 hover:text-neutral-700 dark:text-dark-muted dark:hover:text-dark-text"
+            className="text-xs text-muted-foreground hover:text-foreground"
           >
             {t('management.contactMaster')}
           </button>

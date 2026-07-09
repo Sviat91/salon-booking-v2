@@ -39,7 +39,7 @@ export default function EditSelectionPanel({
     <div className="space-y-4">
       {/* Header */}
       <div className="text-center">
-        <h3 className="text-lg font-semibold text-neutral-800 dark:text-dark-text">
+        <h3 className="text-lg font-semibold text-foreground">
           {t('management.selectChangeType')}
         </h3>
       </div>
@@ -47,8 +47,8 @@ export default function EditSelectionPanel({
       {/* Booking info */}
       <div className="rounded-xl border border-border bg-muted/25 p-4">
         <div className="space-y-1">
-          <div className="font-medium text-neutral-800 dark:text-dark-text">{procedureName}</div>
-          <div className="text-sm text-neutral-600 dark:text-dark-muted">
+          <div className="font-medium text-foreground">{procedureName}</div>
+          <div className="text-sm text-muted-foreground">
             {dateStr} • {timeStr}
           </div>
         </div>
@@ -64,10 +64,10 @@ export default function EditSelectionPanel({
           <div className="flex items-center space-x-3">
             <div className="text-2xl">🕐</div>
             <div>
-              <div className="font-medium text-neutral-800 dark:text-dark-text">
+              <div className="font-medium text-foreground">
                 {t('management.changeTerm')}
               </div>
-              <div className="text-sm text-neutral-600 dark:text-dark-muted">
+              <div className="text-sm text-muted-foreground">
                 {t('management.selectOtherDateOrTime')}
               </div>
             </div>
@@ -82,10 +82,10 @@ export default function EditSelectionPanel({
           <div className="flex items-center space-x-3">
             <div className="text-2xl">💆‍♀️</div>
             <div>
-              <div className="font-medium text-neutral-800 dark:text-dark-text">
+              <div className="font-medium text-foreground">
                 {t('management.changeProcedureBtn')}
               </div>
-              <div className="text-sm text-neutral-600 dark:text-dark-muted">
+              <div className="text-sm text-muted-foreground">
                 {t('management.selectNewProcedureOrBack')}
               </div>
             </div>

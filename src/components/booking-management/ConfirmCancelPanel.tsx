@@ -35,7 +35,7 @@ export default function ConfirmCancelPanel({
 
   return (
     <div className="overflow-y-auto space-y-4 pr-1 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
-      <div className="text-sm text-neutral-600 dark:text-dark-muted">
+      <div className="text-sm text-muted-foreground">
         {t('management.cancelConfirm')}
       </div>
 

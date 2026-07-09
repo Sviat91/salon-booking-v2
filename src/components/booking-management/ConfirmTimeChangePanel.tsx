@@ -52,17 +52,17 @@ export default function ConfirmTimeChangePanel({
     <div className="space-y-4">
       {/* Header */}
       <div className="text-center">
-        <h3 className="text-lg font-semibold text-neutral-800 dark:text-dark-text">
+        <h3 className="text-lg font-semibold text-foreground">
           {t('management.termChangeConfirmation')}
         </h3>
-        <p className="text-sm text-neutral-600 dark:text-dark-muted mt-1">
+        <p className="text-sm text-muted-foreground mt-1">
           {t('management.checkDetailsBeforeConfirm')}
         </p>
       </div>
 
       {/* Procedure info */}
       <div className="rounded-xl border border-border bg-muted/25 p-4">
-        <div className="font-medium text-neutral-800 dark:text-dark-text mb-3">
+        <div className="font-medium text-foreground mb-3">
           {procedureName}
         </div>
         
@@ -117,7 +117,7 @@ export default function ConfirmTimeChangePanel({
           type="button"
           onClick={onConfirm}
           disabled={isSubmitting}
-          className="flex-1 rounded-lg bg-primary px-4 py-3 text-sm font-medium text-white transition-all duration-200 hover:bg-primary/90 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed dark:bg-accent dark:hover:bg-accent/90"
+          className="flex-1 rounded-lg bg-primary px-4 py-3 text-sm font-medium text-primary-foreground transition-all duration-200 hover:bg-primary/90 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isSubmitting ? (
             <div className="flex items-center justify-center space-x-2">

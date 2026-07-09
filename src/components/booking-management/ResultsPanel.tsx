@@ -59,17 +59,17 @@ export default function ResultsPanel({
   return (
     <div className="overflow-y-auto space-y-4 pr-1 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
       <div className="space-y-2">
-        <div className="text-sm text-neutral-700 dark:text-dark-text font-medium">
+        <div className="text-sm text-foreground font-medium">
           {t('management.foundBookingsFor')} <span className="text-primary dark:text-accent">{displayName}</span>, {t('management.phone')} <span className="text-primary dark:text-accent">{displayPhone}</span>
         </div>
-        <div className="text-sm text-neutral-600 dark:text-dark-muted">
+        <div className="text-sm text-muted-foreground">
           {t('management.total')} <strong>{results.length}</strong> {getBookingCountText(results.length)}
         </div>
-        <div className="text-xs text-neutral-500 dark:text-dark-muted bg-muted/30 rounded-lg p-2">
+        <div className="text-xs text-muted-foreground bg-muted/30 rounded-lg p-2">
           ℹ️ {t('management.onlineBookingsNote')}
         </div>
       </div>
-      <div className="rounded-2xl border border-border bg-card text-card-foreground p-4 dark:border-dark-border">
+      <div className="rounded-2xl border border-border bg-card text-card-foreground p-4">
         <div className="space-y-3">
           {results.map((booking) => {
             const isSelected = booking.eventId === selectedBookingId
@@ -89,16 +89,16 @@ export default function ResultsPanel({
                 className={`relative cursor-pointer rounded-xl border transition-all duration-200 ${
                   isSelected
                     ? 'border-primary bg-primary/10 dark:border-accent dark:bg-accent/10'
-                    : 'border-border bg-transparent text-foreground hover:bg-muted dark:border-dark-border dark:hover:bg-dark-border/30'
+                    : 'border-border bg-transparent text-foreground hover:bg-muted'
                 }`}
                 onClick={() => onSelect(isSelected ? null : booking)}
               >
                 <div className="space-y-1 p-3">
-                  <div className="text-sm font-medium dark:text-dark-text">{procedureName}</div>
+                  <div className="text-sm font-medium text-foreground">{procedureName}</div>
 
                   {/* Master name badge — shown when there are bookings across multiple masters */}
                   {booking.masterName && (
-                    <div className="inline-flex items-center gap-1 text-xs font-medium text-primary/80 dark:text-accent/80 bg-primary/8 dark:bg-accent/10 rounded-md px-1.5 py-0.5">
+                    <div className="inline-flex items-center gap-1 text-xs font-medium text-primary/80 bg-primary/8 rounded-md px-1.5 py-0.5">
                       <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                       </svg>
@@ -106,10 +106,10 @@ export default function ResultsPanel({
                     </div>
                   )}
 
-                  <div className="text-xs text-neutral-600 dark:text-dark-muted">
+                  <div className="text-xs text-muted-foreground">
                     {dateStr} • {timeStr}
                   </div>
-                  <div className="text-xs text-neutral-500 dark:text-dark-muted">{t('management.price')} {booking.price}zł</div>
+                  <div className="text-xs text-muted-foreground">{t('management.price')} {booking.price}zł</div>
 
                   {!booking.canModify && (
                     <div className="mt-2 text-xs font-medium text-amber-600 dark:text-amber-400">
@@ -143,7 +143,7 @@ export default function ResultsPanel({
                   ) : null}
 
                   {isSelected && !booking.canModify ? (
-                    <div className="mt-3 text-xs text-neutral-500 dark:text-dark-muted">
+                    <div className="mt-3 text-xs text-muted-foreground">
                       {t('management.cannotModifyOnline')}
                     </div>
                   ) : null}

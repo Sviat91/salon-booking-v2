@@ -29,13 +29,13 @@ export default function SearchPanel({
 
   return (
     <div className="overflow-y-auto space-y-4 pr-1 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
-      <div className="text-sm text-neutral-600 dark:text-dark-muted">
+      <div className="text-sm text-muted-foreground">
         {t('management.enterDataToFind')}
       </div>
 
       <div className="space-y-3">
         <input
-          className="w-full max-w-full box-border rounded-xl border border-border bg-transparent text-foreground px-3 py-2 dark:border-dark-border dark:placeholder-dark-muted"
+          className="w-full max-w-full box-border rounded-xl border border-border bg-transparent text-foreground px-3 py-2 placeholder:text-muted-foreground"
           placeholder={t('form.name')}
           value={form.fullName}
           onChange={(event) => onFormChange({ fullName: event.target.value })}
@@ -50,7 +50,7 @@ export default function SearchPanel({
         />
 
         <input
-          className="w-full max-w-full box-border rounded-xl border border-border bg-transparent text-foreground px-3 py-2 dark:border-dark-border dark:placeholder-dark-muted"
+          className="w-full max-w-full box-border rounded-xl border border-border bg-transparent text-foreground px-3 py-2 placeholder:text-muted-foreground"
           placeholder={t('form.emailOptional')}
           type="email"
           value={form.email}
@@ -62,7 +62,7 @@ export default function SearchPanel({
       {turnstileNode ? <div className="mt-2">{turnstileNode}</div> : null}
 
       {turnstileRequired ? (
-        <div className="text-xs text-neutral-500 dark:text-dark-muted">
+        <div className="text-xs text-muted-foreground">
           {t('management.turnstileRequired')}
         </div>
       ) : null}
