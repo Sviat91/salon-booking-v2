@@ -195,9 +195,11 @@ export default function BulkSettingsModal({ onClose, onSave, templates = [], api
     setSaving(true)
     try {
       await onSave(Array.from(selectedDates), isDayOff, isDayOff ? [] : intervals, isAdminView ? Array.from(targetMasterIds) : undefined)
-      onClose()
+      setSelectedDates(new Set())
+      await fetchMonthOverrides(currentMonth)
     } catch (e: any) {
       alert("Error saving: " + e.message)
+    } finally {
       setSaving(false)
     }
   }

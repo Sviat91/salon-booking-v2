@@ -14,6 +14,9 @@ interface MonthViewProps {
   isEditMode: boolean
   availableSlotColor: string
   dayOffColor: string
+  apiPrefix?: string
+  isAdminView?: boolean
+  selectedMasterId?: string
   onDayClick: (d: Date) => void
   onAppointmentClick: (a: Appointment) => void
   onDataChange: () => void
@@ -26,7 +29,7 @@ interface ExpandedState {
   dateStr: string | null
 }
 
-export default function MonthView({ currentDate, appointments, templates, overrides, isEditMode, availableSlotColor, dayOffColor, onDayClick, onAppointmentClick, onDataChange }: MonthViewProps) {
+export default function MonthView({ currentDate, appointments, templates, overrides, isEditMode, availableSlotColor, dayOffColor, apiPrefix = "/api/master", selectedMasterId = "all", onDayClick, onAppointmentClick, onDataChange }: MonthViewProps) {
   const monthStart = startOfMonth(currentDate)
   const monthEnd = endOfMonth(monthStart)
   const startDate = startOfWeek(monthStart, { weekStartsOn: 1 })
@@ -70,10 +73,10 @@ export default function MonthView({ currentDate, appointments, templates, overri
     const dateStr = format(date, "yyyy-MM-dd")
     setSavingDate(dateStr)
     try {
-      await fetch("/api/master/schedule/overrides/bulk", {
+      await fetch(`${apiPrefix}/schedule/overrides/bulk`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ dates: [dateStr], isDayOff, intervals }),
+        body: JSON.stringify({ dates: [dateStr], isDayOff, intervals, masterId: selectedMasterId !== "all" ? selectedMasterId : undefined }),
       })
       onDataChange()
     } finally {

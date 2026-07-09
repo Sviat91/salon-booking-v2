@@ -17,6 +17,9 @@ interface WeekViewProps {
   isEditMode: boolean
   availableSlotColor: string
   dayOffColor: string
+  apiPrefix?: string
+  isAdminView?: boolean
+  selectedMasterId?: string
   onDayClick: (d: Date) => void
   onAppointmentClick: (a: Appointment) => void
   onDataChange: () => void
@@ -65,7 +68,7 @@ interface EditingDayState {
   dateStr: string | null
 }
 
-export default function WeekView({ currentDate, appointments, templates, overrides, step, startHour, endHour, isEditMode, availableSlotColor, dayOffColor, onDayClick, onAppointmentClick, onDataChange }: WeekViewProps) {
+export default function WeekView({ currentDate, appointments, templates, overrides, step, startHour, endHour, isEditMode, availableSlotColor, dayOffColor, apiPrefix = "/api/master", selectedMasterId = "all", onDayClick, onAppointmentClick, onDataChange }: WeekViewProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const totalHours = endHour - startHour
   const PIXELS_PER_MINUTE = 1.5 
@@ -118,10 +121,10 @@ export default function WeekView({ currentDate, appointments, templates, overrid
     const dateStr = format(date, "yyyy-MM-dd")
     setSavingDate(dateStr)
     try {
-      await fetch("/api/master/schedule/overrides/bulk", {
+      await fetch(`${apiPrefix}/schedule/overrides/bulk`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ dates: [dateStr], isDayOff, intervals }),
+        body: JSON.stringify({ dates: [dateStr], isDayOff, intervals, masterId: selectedMasterId !== "all" ? selectedMasterId : undefined }),
       })
       onDataChange()
     } finally {

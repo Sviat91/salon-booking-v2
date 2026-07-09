@@ -17,6 +17,9 @@ interface DayViewProps {
   isEditMode: boolean
   availableSlotColor: string
   dayOffColor: string
+  apiPrefix?: string
+  isAdminView?: boolean
+  selectedMasterId?: string
   onAddClick: (d: Date) => void
   onAppointmentClick: (a: Appointment) => void
   onDataChange: () => void
@@ -56,7 +59,7 @@ function groupOverlappingAppointments(appointments: Appointment[]): Appointment[
   return groups
 }
 
-export default function DayView({ currentDate, appointments, templates, overrides, step, startHour, endHour, isEditMode, availableSlotColor, dayOffColor, onAddClick, onAppointmentClick, onDataChange }: DayViewProps) {
+export default function DayView({ currentDate, appointments, templates, overrides, step, startHour, endHour, isEditMode, availableSlotColor, dayOffColor, apiPrefix = "/api/master", selectedMasterId = "all", onAddClick, onAppointmentClick, onDataChange }: DayViewProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const totalHours = endHour - startHour
   const PIXELS_PER_MINUTE = 2 
@@ -101,10 +104,10 @@ export default function DayView({ currentDate, appointments, templates, override
     const dStr = format(date, "yyyy-MM-dd")
     setSavingDate(dStr)
     try {
-      await fetch("/api/master/schedule/overrides/bulk", {
+      await fetch(`${apiPrefix}/schedule/overrides/bulk`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ dates: [dStr], isDayOff, intervals }),
+        body: JSON.stringify({ dates: [dStr], isDayOff, intervals, masterId: selectedMasterId !== "all" ? selectedMasterId : undefined }),
       })
       onDataChange()
     } finally {

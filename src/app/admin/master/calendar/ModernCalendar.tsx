@@ -297,6 +297,9 @@ export default function ModernCalendar({
             isEditMode={isEditMode}
             availableSlotColor={availableSlotColor}
             dayOffColor={dayOffColor}
+            apiPrefix={apiPrefix}
+            isAdminView={isAdminView}
+            selectedMasterId={selectedMasterId}
             onDayClick={(d) => { setView("Day"); setCurrentDate(d); }}
             onAppointmentClick={(a) => setViewingAppointment(a)}
             onDataChange={fetchData}
@@ -314,6 +317,9 @@ export default function ModernCalendar({
             isEditMode={isEditMode}
             availableSlotColor={availableSlotColor}
             dayOffColor={dayOffColor}
+            apiPrefix={apiPrefix}
+            isAdminView={isAdminView}
+            selectedMasterId={selectedMasterId}
             onDayClick={(d) => { setView("Day"); setCurrentDate(d); }}
             onAppointmentClick={(a) => setViewingAppointment(a)}
             onDataChange={fetchData}
@@ -331,6 +337,9 @@ export default function ModernCalendar({
             isEditMode={isEditMode}
             availableSlotColor={availableSlotColor}
             dayOffColor={dayOffColor}
+            apiPrefix={apiPrefix}
+            isAdminView={isAdminView}
+            selectedMasterId={selectedMasterId}
             onAddClick={(d) => setBookingDate(d)}
             onAppointmentClick={(a) => setViewingAppointment(a)}
             onDataChange={fetchData}
