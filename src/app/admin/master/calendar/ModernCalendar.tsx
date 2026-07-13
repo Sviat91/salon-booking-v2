@@ -191,7 +191,7 @@ export default function ModernCalendar({
           </div>
           <h2 className="text-xl font-semibold min-w-[150px]">{headerDisplay}</h2>
           
-          {loading && <div className="h-4 w-4 rounded-full border-2 border-primary border-t-transparent animate-spin ml-2"></div>}
+          <div className={`h-4 w-4 rounded-full border-2 border-primary border-t-transparent animate-spin ml-2 transition-opacity ${loading ? 'opacity-100' : 'opacity-0'}`}></div>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
@@ -217,7 +217,7 @@ export default function ModernCalendar({
             className={`gap-2 transition-all ${isEditMode ? 'bg-primary text-primary-foreground shadow shadow-primary/20' : 'bg-transparent border-border hover:bg-muted'}`}
           >
             {isEditMode ? <Save className="w-4 h-4" /> : <Edit3 className="w-4 h-4" />}
-            <span className="hidden sm:inline">{isEditMode ? 'Done Editing' : 'Редактор графика'}</span>
+            <span className="hidden sm:inline">{isEditMode ? 'Done Editing' : 'Edit Schedule'}</span>
           </Button>
 
           <Button variant="outline" size="sm" onClick={() => setShowBulkModal(true)} className="gap-2 shrink-0 bg-transparent border-border hover:bg-muted">

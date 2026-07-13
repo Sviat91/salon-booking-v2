@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useLayoutEffect } from "react"
+import { createPortal } from "react-dom"
 import { Clock } from "lucide-react"
 
 interface TimePickerDropdownProps {
@@ -22,11 +23,15 @@ export function TimePickerDropdown({
   const ref = useRef<HTMLDivElement>(null)
   const btnRef = useRef<HTMLButtonElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
+  const dropdownRef = useRef<HTMLDivElement>(null)
   const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({})
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (ref.current && !ref.current.contains(event.target as Node)) {
+      const target = event.target as Node
+      const insideTrigger = ref.current && ref.current.contains(target)
+      const insideDropdown = dropdownRef.current && dropdownRef.current.contains(target)
+      if (!insideTrigger && !insideDropdown) {
         setOpen(false)
       }
     }
@@ -34,8 +39,11 @@ export function TimePickerDropdown({
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [open])
 
-  // Position the dropdown using fixed coordinates from the button
-  useEffect(() => {
+  // Position the dropdown using fixed coordinates from the button.
+  // useLayoutEffect (not useEffect) so the correct position is committed
+  // before the browser paints — otherwise the dropdown briefly renders
+  // unpositioned in normal document flow, causing a visible flash/jump.
+  useLayoutEffect(() => {
     if (open && btnRef.current) {
       const rect = btnRef.current.getBoundingClientRect()
       const dropdownHeight = 200
@@ -91,12 +99,18 @@ export function TimePickerDropdown({
         <Clock className="w-4 h-4 text-muted-foreground" />
       </button>
 
-      {open && (
-        <div 
-          style={dropdownStyle} 
+      {open && createPortal(
+        <div
+          ref={dropdownRef}
+          style={dropdownStyle}
+          // Portaled outside any ancestor container, so its own mousedown must not
+          // bubble to document — otherwise ancestor "click outside" listeners (e.g.
+          // the day-edit panel this picker lives in) see it as an outside click and
+          // close the panel before the selection's onClick can fire.
+          onMouseDown={(e) => e.stopPropagation()}
           className="bg-card border border-border shadow-xl rounded-lg overflow-hidden"
         >
-          <div 
+          <div
             ref={listRef}
             className="max-h-[200px] overflow-y-auto"
           >
@@ -112,7 +126,8 @@ export function TimePickerDropdown({
               </button>
             ))}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )
