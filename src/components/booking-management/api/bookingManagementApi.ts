@@ -131,10 +131,11 @@ export async function updateBooking(
   turnstileToken?: string, // Not used anymore - kept for compatibility
   masterId?: string,
 ): Promise<{ startTime?: string; endTime?: string; procedure?: string }> {
-  // NO USER DATA - user already validated during search
-  // We trust the eventId and only send changes
-  const body: Record<string, unknown> = {}
-  
+  // Server verifies ownership via phone (last 9 digits) — see /api/bookings/[id]
+  const body: Record<string, unknown> = {
+    phone: booking.phone,
+  }
+
   if (changes.newProcedureId) {
     body.newProcedureId = changes.newProcedureId
   }

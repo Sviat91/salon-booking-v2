@@ -43,6 +43,7 @@ export async function PATCH(
     newStartISO?: string
     newEndISO?: string
     masterId?: string
+    phone?: string
   }
 
   try {
@@ -54,7 +55,7 @@ export async function PATCH(
     )
   }
 
-  const { newProcedureId, newStartISO, newEndISO } = body
+  const { newProcedureId, newStartISO, newEndISO, phone } = body
 
   // At least one change must be provided
   if (!newProcedureId && !newStartISO) {
@@ -64,12 +65,29 @@ export async function PATCH(
     )
   }
 
+  if (!phone) {
+    return NextResponse.json(
+      { error: "phone is required", code: "MISSING_PARAMS" },
+      { status: 400 }
+    )
+  }
+
+  const searchPhoneDigits = phone.replace(/\D/g, "")
+  if (searchPhoneDigits.length < 9) {
+    return NextResponse.json(
+      { error: "Phone number too short", code: "INVALID_PHONE" },
+      { status: 400 }
+    )
+  }
+  const searchLast9 = searchPhoneDigits.slice(-9)
+
   try {
     // ── Find appointment ───────────────────────────────────────────────────
     const appointment = await prisma.appointment.findUnique({
       where: { id: appointmentId },
       include: {
         service: { select: { name: true } },
+        client: { select: { phone: true } },
       },
     })
 
@@ -84,6 +102,19 @@ export async function PATCH(
       return NextResponse.json(
         { error: "Rezerwacja jest już anulowana.", code: "ALREADY_CANCELLED" },
         { status: 409 }
+      )
+    }
+
+    // ── Verify ownership — phone (last 9 digits) ───────────────────────────
+    const clientPhoneDigits = (appointment.client.phone ?? "").replace(/\D/g, "")
+    const phoneMatch =
+      clientPhoneDigits.length >= 9 &&
+      clientPhoneDigits.slice(-9) === searchLast9
+
+    if (!phoneMatch) {
+      return NextResponse.json(
+        { error: "Weryfikacja nie powiodła się. Sprawdź poprawność danych.", code: "VERIFICATION_FAILED" },
+        { status: 403 }
       )
     }
 
