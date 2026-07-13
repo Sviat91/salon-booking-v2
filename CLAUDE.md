@@ -12,7 +12,7 @@ npm run test         # Run Vitest tests
 npx vitest run tests/some.test.ts  # Run a single test file
 npx prisma migrate dev --name <name>  # Create and apply a migration
 npx prisma studio    # Open Prisma database browser
-npx tsx scripts/consent-cli.ts       # GDPR admin CLI
+npx tsx scripts/create-admin.ts --email=... --password=... --name="..."  # Bootstrap the first SUPERADMIN
 ```
 
 ## Important

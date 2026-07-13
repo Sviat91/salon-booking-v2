@@ -2,11 +2,11 @@
 
 ## Purpose
 
-Data model, migration history, and seed data for the SQLite (libSQL) database at `prisma/app.db`.
+Data model and migration history for the SQLite (libSQL) database at `prisma/app.db`.
 
 ## Ownership
 
-`schema.prisma` (models: `User`, `MasterProfile`, `Service`, `MasterService`, `ConsentRecord`, `Schedule`, `Appointment`, `DateOverride`, `TenantConfig`, `NotificationLog`, `PasswordResetToken`, `Account`), the `migrations/` history, and `seed.ts`/`seed.js`.
+`schema.prisma` (models: `User`, `MasterProfile`, `Service`, `MasterService`, `ConsentRecord`, `Schedule`, `Appointment`, `DateOverride`, `TenantConfig`, `NotificationLog`, `PasswordResetToken`, `Account`) and the `migrations/` history.
 
 ## Local Contracts
 
@@ -18,7 +18,7 @@ Data model, migration history, and seed data for the SQLite (libSQL) database at
 ## Work Guidance
 
 - After a migration that changes procedure/schedule-related tables, remember cache invalidation is a separate manual step in the calling code (`src/lib/cache.ts` keys) — Prisma migrations don't touch Redis.
-- Keep `seed.ts` (source) and `seed.js` (compiled/mirrored copy) in sync when editing seed data.
+- There is no seed script (removed 2026-07-13 — `seed.ts`/`seed.js` hardcoded a `admin@somique.com`/`password123` SUPERADMIN plus a demo master account, unused by any automated path but a landmine if ever run against a real deployment). To bootstrap the first admin, use `scripts/create-admin.ts` (see `../scripts/AGENTS.md`); create a demo master through the admin panel after that.
 
 ## Verification
 

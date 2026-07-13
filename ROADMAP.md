@@ -25,9 +25,8 @@
 
 ## 🟠 Приоритет 2 — Перед реальным запуском/продажей (блокеры)
 
-5. **Создание первого админа (SUPERADMIN) при установке.**
-   Сейчас — вручную через `npx prisma studio`. В seed-скрипте вообще есть дефолтный логин/пароль (`admin@somique.com / password123`) — это дыра, если он попадёт в продакшн.
-   → Нужен CLI-скрипт (`scripts/create-admin.ts`, по образцу `consent-cli.ts`) с флагами `--email --password --name`, который поднимает SUPERADMIN без ручного лазания в базу.
+5. ~~Создание первого админа (SUPERADMIN) при установке.~~ — **сделано (2026-07-13).** Новый `scripts/create-admin.ts` — `npx tsx scripts/create-admin.ts --email=... --password=... --name="..."`, валидация через zod, bcrypt cost 12 (как у живых admin-эндпоинтов), отказывается работать, если SUPERADMIN уже есть. Заменил собой старый `scripts/create-superadmin.ts` с захардкоженными `admin@salon.local`/`Admin1234!` (удалён).
+   > **Дополнено:** `prisma/seed.ts`/`seed.js` (тот же риск — захардкоженный `admin@somique.com`/`password123` + демо-мастер `master@somique.com`/`master123`) удалены целиком по просьбе пользователя. Первого админа теперь поднимаем только через `scripts/create-admin.ts`; демо-мастера — вручную через админку после этого.
 
 6. ~~Загрузка файлов пишется на диск сервера~~ — **неактуально.** Хостинг на обычном VPS (не Vercel/serverless), файлы на диске между деплоями не пропадают. Оставляем как есть.
 
@@ -89,3 +88,4 @@
 - Разобраны и закрыты пункты 4, 6, 7, 8 из Приоритета 1/2 выше (см. пометки).
 - Удалён мёртвый код: `ScheduleManager.tsx`, `ConfirmChangePanel.tsx`, `src/config/masters.ts`, `src/config/masters.server.ts`, плюс 8 тестовых файлов, тестировавших уже несуществующий код (мастера/Google Calendar/Sheets). Почищены мёртвые Google-переменные из `.env.example` и `tests/setup/env.ts`. Build и типы проверены — чисто.
 - **Приоритет 1 полностью закрыт** (пункты 1, 2, 3 — см. пометки выше). Удалён публичный `/api/debug-db`; `PATCH /api/bookings/[id]` теперь проверяет владельца по телефону перед любым изменением; удалён мёртвый и уязвимый `GET /api/client/appointments?phone=`. `tsc`/`build`/`lint` чистые, план+ревью в `handoff/priority1-security-fixes_plan.md` / `_feedback.md`.
+- **Приоритет 2, пункт 5 закрыт** — `scripts/create-admin.ts` (флаги, zod-валидация, bcrypt cost 12, отказ если SUPERADMIN уже есть). Удалены оба источника захардкоженных дефолтных админ/мастер-паролей: старый `scripts/create-superadmin.ts` и `prisma/seed.ts`/`seed.js`. `tsc`/`build`/`lint` чистые, скрипт вручную проверен (ошибки валидации и guard от повторного создания оба отработали корректно).
