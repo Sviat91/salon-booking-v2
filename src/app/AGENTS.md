@@ -11,7 +11,6 @@ Routing, page composition, and server/client component boundaries for everything
 ## Local Contracts
 
 - `src/middleware.ts` (repo root of `src/`, not under this folder) enforces auth guards on `/admin`, `/profile`, and login redirects — route-level access control changes belong there, not in page components.
-- Pages that need master-specific Google resource IDs must go through `src/config/masters.server.ts` and stay server-only — see [../config/AGENTS.md](../config/AGENTS.md).
 - Route handlers under `api/` follow the contract in [api/AGENTS.md](api/AGENTS.md).
 - Admin/master dashboard pages follow the contract in [admin/AGENTS.md](admin/AGENTS.md).
 - Files must stay under 500 lines (root constraint) — split page components into `src/components/` pieces rather than growing a single `page.tsx`.
@@ -19,7 +18,7 @@ Routing, page composition, and server/client component boundaries for everything
 ## Work Guidance
 
 - Prefer Server Components for data-fetching pages; mark `"use client"` only where interactivity requires it.
-- `[masterId]/` is the per-master booking flow entry point — master IDs resolve through `src/config/masters.ts`, never hardcoded.
+- `[masterId]/` is the per-master booking flow entry point — master IDs are validated dynamically against `GET /api/masters` (DB-backed), never hardcoded.
 
 ## Verification
 
