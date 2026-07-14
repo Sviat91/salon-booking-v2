@@ -45,6 +45,11 @@ export async function createMaster(
   _prev: MasterFormState,
   formData: FormData
 ): Promise<MasterFormState> {
+  const session = await auth()
+  if (!session?.user || !["SUPERADMIN", "ADMIN"].includes(session.user.role ?? "")) {
+    return { error: "Unauthorized" }
+  }
+
   const raw = {
     name:           formData.get("name"),
     email:          formData.get("email"),
@@ -99,6 +104,11 @@ export async function updateMaster(
   _prev: MasterFormState,
   formData: FormData
 ): Promise<MasterFormState> {
+  const session = await auth()
+  if (!session?.user || !["SUPERADMIN", "ADMIN"].includes(session.user.role ?? "")) {
+    return { error: "Unauthorized" }
+  }
+
   const raw = {
     name:           formData.get("name"),
     bio:            formData.get("bio") || undefined,
@@ -146,6 +156,11 @@ export async function updateMaster(
 }
 
 export async function deleteMaster(id: string): Promise<void> {
+  const session = await auth()
+  if (!session?.user || !["SUPERADMIN", "ADMIN"].includes(session.user.role ?? "")) {
+    throw new Error("Unauthorized")
+  }
+
   await prisma.user.delete({ where: { id } })
   revalidatePath("/admin/masters")
   revalidatePath("/")
@@ -155,6 +170,11 @@ export async function resetMasterPassword(
   id: string,
   newPassword?: string
 ): Promise<{ success: boolean; newPassword?: string; error?: string }> {
+  const session = await auth()
+  if (!session?.user || !["SUPERADMIN", "ADMIN"].includes(session.user.role ?? "")) {
+    return { success: false, error: "Unauthorized" }
+  }
+
   try {
     const passwordToSet = newPassword || generatePassword()
     const hashedPassword = await bcrypt.hash(passwordToSet, 10)
