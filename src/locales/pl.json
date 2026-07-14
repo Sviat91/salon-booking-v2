@@ -69,7 +69,6 @@
     "selectSubtitle": "Zarezerwuj wizytę u wybranego specjalisty",
     "bookWith": "Zarezerwuj wizytę u {{name}}",
     "bookVisit": "Zarezerwuj wizytę",
-    "choiceRemembered": "Twój wybór zostanie zapamiętany dla wygodniejszego korzystania z systemu rezerwacji",
     "yearsExperience": "lat doświadczenia"
   },
   "booking": {

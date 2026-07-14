@@ -59,12 +59,24 @@ export default function HomeClient({ initialReviews, config, isPreview }: HomeCl
 
   return (
     <main className="flex-1 flex flex-col relative pb-4">
-      <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
+      {/* Desktop: all three icons together on the right — unchanged from before */}
+      <div className="hidden lg:flex absolute top-4 right-4 z-20 items-center gap-2">
         <UserDropdown />
         <LanguageToggle />
         <ThemeToggle />
       </div>
-      
+
+      {/* Mobile: split so nothing crowds the centered logo below — theme toggle stays top-right */}
+      <div className="flex lg:hidden absolute top-4 right-4 z-20 items-center">
+        <ThemeToggle />
+      </div>
+
+      {/* Mobile: account + language move to top-left */}
+      <div className="flex lg:hidden absolute top-4 left-4 z-20 items-center gap-2">
+        <UserDropdown />
+        <LanguageToggle />
+      </div>
+
       {showLogo && (config.logoUrl || config.darkLogoUrl) && (
         <div className="hidden lg:block z-10" style={logoStyle}>
           <Image

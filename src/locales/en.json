@@ -69,7 +69,6 @@
     "selectSubtitle": "Book a visit with your chosen specialist",
     "bookWith": "Book a visit with {{name}}",
     "bookVisit": "Book a visit",
-    "choiceRemembered": "Your choice will be remembered for a more convenient booking experience",
     "yearsExperience": "years of experience"
   },
   "booking": {

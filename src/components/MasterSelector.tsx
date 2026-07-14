@@ -114,8 +114,8 @@ export default function MasterSelector() {
           className="flex gap-4 sm:gap-6 w-full overflow-x-auto snap-x snap-mandatory px-4 pb-8 pt-4 before:m-auto after:m-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
         >
           {masters.map((master, index) => (
+          <div key={master.id} className="flex flex-col items-center shrink-0 snap-center w-[160px] sm:w-[200px]">
           <motion.button
-            key={master.id}
             initial={prefersReducedMotion ? {} : { opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={prefersReducedMotion ? { duration: 0 } : {
@@ -131,7 +131,7 @@ export default function MasterSelector() {
             whileTap={prefersReducedMotion ? {} : { scale: 0.95 }}
             onClick={() => handleMasterSelect(master)}
             aria-label={t('master.bookWith', { name: master.name })}
-            className="group relative shrink-0 w-[160px] h-[160px] sm:w-[200px] sm:h-[200px] snap-center rounded-3xl overflow-hidden focus:outline-none hover:ring-4 hover:ring-secondary/50 transition-all duration-300"
+            className="group relative w-full h-[160px] sm:h-[200px] rounded-3xl overflow-hidden focus:outline-none hover:ring-4 hover:ring-secondary/50 transition-all duration-300"
           >
             {/* Master Photo */}
             <motion.div
@@ -197,6 +197,12 @@ export default function MasterSelector() {
               transition={{ duration: 0.5, ease: "easeOut" }}
             />
           </motion.button>
+          {master.bio && (
+            <p className="mt-2 w-full text-center text-xs sm:text-sm text-muted-foreground line-clamp-2 px-1">
+              {master.bio}
+            </p>
+          )}
+          </div>
         ))}
         </div>
 
@@ -211,17 +217,6 @@ export default function MasterSelector() {
           </button>
         )}
       </div>
-
-      {/* Subtle hint text */}
-      <motion.p
-        initial={prefersReducedMotion ? {} : { opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={prefersReducedMotion ? {} : { opacity: 0 }}
-        transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.6, ease: "easeOut", delay: 0 }}
-        className="mt-4 text-xs sm:text-sm text-muted-foreground text-center max-w-md px-4"
-      >
-        {t('master.choiceRemembered', 'Twój wybór zostanie zapamiętany dla wygodniejszego korzystania z systemu rezerwacji')}
-      </motion.p>
     </div>
   )
 }
