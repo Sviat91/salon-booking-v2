@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
-const { mockPrisma, mockHash, mockGetRequestIp, mockSaveConsentRecord } = vi.hoisted(() => ({
+const { mockPrisma, mockHash, mockGetRequestIp, mockSaveConsentRecord, mockRateLimit } = vi.hoisted(() => ({
   mockPrisma: {
     user: {
       findFirst: vi.fn(),
@@ -19,6 +19,7 @@ const { mockPrisma, mockHash, mockGetRequestIp, mockSaveConsentRecord } = vi.hoi
   mockHash: vi.fn(),
   mockGetRequestIp: vi.fn(),
   mockSaveConsentRecord: vi.fn(),
+  mockRateLimit: vi.fn(),
 }))
 
 vi.mock("@/lib/prisma", () => ({
@@ -34,6 +35,10 @@ vi.mock("@/lib/consent-service", () => ({
   saveConsentRecord: (...args: unknown[]) => mockSaveConsentRecord(...args),
 }))
 
+vi.mock("@/lib/cache", () => ({
+  rateLimit: (...args: unknown[]) => mockRateLimit(...args),
+}))
+
 import { POST } from "../../../../src/app/api/auth/register/route"
 
 function createRequest(body: unknown) {
@@ -47,6 +52,7 @@ describe("POST /api/auth/register", () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockGetRequestIp.mockReturnValue("127.0.0.1")
+    mockRateLimit.mockResolvedValue({ allowed: true, count: 1 })
     mockHash.mockResolvedValue("hashed_password")
     mockPrisma.$transaction.mockImplementation(async (fn: any) => fn(mockPrisma))
     mockPrisma.user.findFirst.mockResolvedValue(null)

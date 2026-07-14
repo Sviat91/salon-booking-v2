@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import bcrypt from "bcryptjs"
 import prisma from "@/lib/prisma"
 import { getRequestIp, saveConsentRecord } from "@/lib/consent-service"
+import { rateLimit } from "@/lib/cache"
 import { z } from "zod"
 
 const registerSchema = z.object({
@@ -23,6 +24,15 @@ const registerSchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
+    const ip = getRequestIp(req)
+    const { allowed } = await rateLimit(`rate:register:${ip}`, 5, 900)
+    if (!allowed) {
+      return NextResponse.json(
+        { error: "Too many requests. Please try again later." },
+        { status: 429 }
+      )
+    }
+
     const raw = await req.json()
     const parsed = registerSchema.safeParse(raw)
 
