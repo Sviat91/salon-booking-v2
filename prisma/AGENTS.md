@@ -11,7 +11,7 @@ Data model and migration history for the SQLite (libSQL) database at `prisma/app
 ## Local Contracts
 
 - SQLite has no native enums — role (`CLIENT|MASTER|ADMIN|SUPERADMIN`), appointment status, etc. are plain `String` columns validated at the application layer, not the DB layer. Don't add a Prisma `enum`.
-- `User.password`/`plainPassword`/OAuth tokens and `TenantConfig` SMTP/OAuth secrets must be written through `src/lib/encryption.ts` — never add a migration that stores a new secret field in plaintext.
+- `User.password`/OAuth tokens, `User.passwordEncrypted`, and `TenantConfig` SMTP/OAuth secrets must be written through `src/lib/encryption.ts` — never add a migration that stores a new secret field in plaintext. (`User.passwordEncrypted` — added 2026-07-14 — stores each master's current password **encrypted at rest** via `encrypt()`, alongside the bcrypt `password` hash used for login; decryptable on demand by ADMIN/SUPERADMIN via the `getMasterPassword` server action in `src/app/admin/masters/actions.ts`.)
 - `User` identity for clients is the `(phone, name)` pair (see schema comment on `User`) — two people sharing a phone get separate rows; email uniqueness for admin/master auth is enforced in the register endpoint, not a DB constraint.
 - Any schema change requires `npx prisma migrate dev --name <name>` — never hand-edit `migrations/` or `app.db` directly.
 

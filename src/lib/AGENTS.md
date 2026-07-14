@@ -12,7 +12,7 @@ Anything framework-agnostic: DB access via Prisma, external service clients (ema
 
 - `cache.ts` wraps Upstash Redis with an in-memory TTL fallback (`cacheGet`/`cacheSet`/`cacheDel`/`rateLimit`/`cacheSetNX`) — always invalidate **both** layers when mutating procedures or schedule data; a stale in-memory hit survives a Redis-only invalidation.
 - `availability.ts` is the single source of truth for bookable slots — combines `Schedule`, `DateOverride`, and existing `Appointment` rows. Don't recompute availability logic elsewhere.
-- `encryption.ts` is mandatory for any secret at rest (OAuth client secrets, SMTP password) — never store or log a plaintext secret from `TenantConfig`.
+- `encryption.ts` is mandatory for any secret at rest (OAuth client secrets, SMTP password, `User.passwordEncrypted` for master password recovery) — never store or log a plaintext secret from `TenantConfig`. It **requires** `AUTH_SECRET` and throws at import if missing/empty (no insecure fallback key).
 - `notifications/` (`index.ts` dispatcher + `email.ts` + `telegram.ts`): public functions never throw — failures are caught and written to `NotificationLog`, not surfaced to the caller. Keep that contract when adding a new notification type.
 - `validation/`: `client-validators.ts` has zero dependencies (safe for client bundles); `api-schemas.ts` (Zod) is server-only and is what route handlers should parse request bodies with.
 - `admin-permissions.ts` is the only place that parses/grants the `clients`/`gdpr` permission JSON on `User.adminPermissions` — route handlers and admin pages call `getPermissionsForRole()`, they don't parse the JSON themselves.

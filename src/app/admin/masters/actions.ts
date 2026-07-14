@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache"
 import { z } from "zod"
 import bcrypt from "bcryptjs"
 import prisma from "@/lib/prisma"
+import { encrypt, decrypt } from "@/lib/encryption"
+import { auth } from "@/auth"
 
 // Avatar/logo paths are relative: "/uploads/filename.jpg" — not absolute URLs
 const pathOrEmpty = z.string().optional().default("")
@@ -71,7 +73,7 @@ export async function createMaster(
         name:  parsed.data.name,
         email: parsed.data.email,
         password: hashedPassword,
-        plainPassword: plainPassword,
+        passwordEncrypted: encrypt(plainPassword),
         role: "MASTER",
         masterProfile: {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -159,11 +161,31 @@ export async function resetMasterPassword(
 
     await prisma.user.update({
       where: { id },
-      data: { password: hashedPassword, plainPassword: passwordToSet },
+      data: { password: hashedPassword, passwordEncrypted: encrypt(passwordToSet) },
     })
 
     return { success: true, newPassword: passwordToSet }
   } catch {
     return { success: false, error: "Failed to reset password. Please try again." }
   }
+}
+
+export async function getMasterPassword(
+  masterId: string
+): Promise<{ password?: string; error?: string }> {
+  const session = await auth()
+  if (!session?.user || !["SUPERADMIN", "ADMIN"].includes(session.user.role ?? "")) {
+    return { error: "Unauthorized" }
+  }
+  const user = await prisma.user.findUnique({
+    where: { id: masterId },
+    select: { passwordEncrypted: true },
+  })
+  if (!user) return { error: "Master not found" }
+  if (!user.passwordEncrypted) {
+    return { error: "No stored password yet — use \"Generate new password\" to set one." }
+  }
+  const password = decrypt(user.passwordEncrypted)
+  if (!password) return { error: "Failed to decrypt password." }
+  return { password }
 }

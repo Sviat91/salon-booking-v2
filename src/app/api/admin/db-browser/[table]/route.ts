@@ -21,7 +21,7 @@ const ALLOWED_TABLES = [
 type AllowedTable = (typeof ALLOWED_TABLES)[number]
 
 const MASKED_FIELDS: Record<string, string[]> = {
-  user: ["password", "plainPassword"],
+  user: ["password", "passwordEncrypted"],
   tenantConfig: ["smtpPass", "googleClientSecret", "applePrivateKey", "telegramBotToken"],
 }
 

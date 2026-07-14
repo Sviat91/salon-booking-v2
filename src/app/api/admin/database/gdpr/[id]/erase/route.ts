@@ -66,7 +66,7 @@ export async function POST(
           phone: null,
           name: "Deleted User",
           password: null,
-          plainPassword: null,
+          passwordEncrypted: null,
           isGuest: true,
         },
       })

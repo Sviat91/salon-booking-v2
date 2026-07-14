@@ -2,8 +2,11 @@ import crypto from 'crypto'
 
 const ALGORITHM = 'aes-256-gcm'
 
-// Use AUTH_SECRET as the root, fallback for dev only
-const secret = process.env.AUTH_SECRET || 'fallback-secret-development-only'
+// Use AUTH_SECRET as the root — required, no insecure fallback
+const secret = process.env.AUTH_SECRET
+if (!secret) {
+  throw new Error('AUTH_SECRET environment variable is required and must not be empty — refusing to start with an insecure default encryption key.')
+}
 
 // 32-byte key derived via SHA-256 to guarantee valid length for aes-256
 const ENCRYPTION_KEY = crypto.createHash('sha256').update(secret).digest()

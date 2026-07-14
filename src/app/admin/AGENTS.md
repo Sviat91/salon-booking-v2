@@ -13,6 +13,7 @@ Dashboard page composition and role-gated views. Data mutations go through `src/
 - Every page here is a Server Component that calls `auth()` and redirects to `/auth/login` if `session.user.role` doesn't match what the page requires — `admin/master/*` pages check for `"MASTER"` specifically, top-level `admin/*` pages check for `"ADMIN"`/`"SUPERADMIN"`. `src/middleware.ts` provides a first-pass guard, but pages must not skip their own check.
 - Fine-grained ADMIN permissions (client data view/edit/delete, GDPR view/withdraw/erase) come from `src/lib/admin-permissions.ts` — gate UI affordances (buttons, tabs) on the parsed permission object, not on role alone.
 - `settings/` (email, notifications, social, OAuth/SMTP credentials) writes to the single `TenantConfig` row — encrypted fields (OAuth secrets, SMTP password) must pass through `src/lib/encryption.ts` before persisting; never render decrypted secrets back into the page.
+- `masters/`: master passwords are stored encrypted (`User.passwordEncrypted`, via `src/lib/encryption.ts`) and can be revealed on explicit admin request through the `getMasterPassword` server action (`masters/actions.ts`), which enforces its own ADMIN/SUPERADMIN check independent of the page guard. This is an intentional, scoped exception to the "never render decrypted secrets back into the page" rule above, which applies to `settings/`.
 - `database/gdpr/` triggers erasure/withdrawal flows — these are irreversible for the affected user; confirm-before-submit UX must not be removed.
 
 ## Work Guidance

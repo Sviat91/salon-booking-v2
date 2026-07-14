@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { useFormState, useFormStatus } from "react-dom"
 import Image from "next/image"
 import { Copy, Check, Upload, X, User } from "lucide-react"
@@ -8,13 +8,12 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { createMaster, updateMaster, resetMasterPassword, type MasterFormState } from "./actions"
+import { createMaster, updateMaster, resetMasterPassword, getMasterPassword, type MasterFormState } from "./actions"
 
 type Master = {
   id: string
   name: string | null
   email: string | null
-  plainPassword: string | null
   masterProfile: { bio: string | null; avatarUrl: string | null; showOnHomepage: boolean; color: string | null } | null
 }
 
@@ -52,7 +51,22 @@ export default function MasterForm({ master, onSuccess }: MasterFormProps) {
 
   const [resetPasswordState, setResetPasswordState] = useState<{ password?: string, success?: boolean, error?: string, copied?: boolean }>({})
   const [isResetting, setIsResetting] = useState(false)
-  const [customPassword, setCustomPassword] = useState(master?.plainPassword || "")
+  const [customPassword, setCustomPassword] = useState("")
+
+  const [shownPassword, setShownPassword] = useState<string | null>(null)
+  const [showError, setShowError] = useState<string | null>(null)
+  const [isLoadingPassword, setIsLoadingPassword] = useState(false)
+  const [shownCopied, setShownCopied] = useState(false)
+
+  async function handleShowPassword() {
+    if (!master) return
+    setIsLoadingPassword(true)
+    setShowError(null)
+    const res = await getMasterPassword(master.id)
+    if (res.password) setShownPassword(res.password)
+    else setShowError(res.error ?? "Failed to load password")
+    setIsLoadingPassword(false)
+  }
 
   async function handleResetPassword() {
     if (!master) return
@@ -73,11 +87,6 @@ export default function MasterForm({ master, onSuccess }: MasterFormProps) {
     const generated = Array.from({ length: 10 }, () => chars[Math.floor(Math.random() * chars.length)]).join("")
     setCustomPassword(generated)
   }
-
-  useEffect(() => {
-    // For Create: close modal. For Edit: Keep open!
-    if (state.success && !master) onSuccess()
-  }, [state.success, master, onSuccess])
 
   async function handleAvatarUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -270,7 +279,40 @@ export default function MasterForm({ master, onSuccess }: MasterFormProps) {
           <h3 className="text-lg font-semibold">Access Recovery</h3>
           <p className="text-sm text-muted-foreground">Replace the master's password if lost.</p>
         </div>
-        
+
+        <div className="grid gap-2 max-w-sm">
+          <Label>Current password</Label>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleShowPassword}
+            disabled={isLoadingPassword}
+            className="w-fit"
+          >
+            {isLoadingPassword ? "Loading…" : "Show current password"}
+          </Button>
+
+          {shownPassword && (
+            <div className="mt-2 flex gap-2">
+              <Input readOnly value={shownPassword} className="font-mono" />
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="shrink-0"
+                onClick={() => {
+                  navigator.clipboard.writeText(shownPassword)
+                  setShownCopied(true)
+                  setTimeout(() => setShownCopied(false), 2000)
+                }}
+              >
+                {shownCopied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+              </Button>
+            </div>
+          )}
+          {showError && <p className="text-sm text-destructive">{showError}</p>}
+        </div>
+
         <div className="grid gap-2 max-w-sm">
           <Label htmlFor="newPassword">Current / New Password</Label>
           <div className="flex gap-2">
@@ -287,11 +329,11 @@ export default function MasterForm({ master, onSuccess }: MasterFormProps) {
           <Button 
             type="button" 
             onClick={handleResetPassword} 
-            disabled={isResetting || (!customPassword && !resetPasswordState.success) || (customPassword === master?.plainPassword)}
+            disabled={isResetting || (!customPassword && !resetPasswordState.success)}
             className="mt-2 w-full sm:w-auto"
             variant="secondary"
           >
-            {isResetting ? "Saving..." : (customPassword && customPassword !== master?.plainPassword ? "Save New Password" : "Auto-Generate & Save")}
+            {isResetting ? "Saving..." : (customPassword ? "Save New Password" : "Auto-Generate & Save")}
           </Button>
           
           {resetPasswordState.success && (

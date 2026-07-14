@@ -437,7 +437,7 @@ export async function eraseConsentData(
               phone: null,
               image: null,
               password: null,
-              plainPassword: null,
+              passwordEncrypted: null,
               isGuest: true,
             },
           })
