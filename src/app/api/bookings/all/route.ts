@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { formatInTimeZone } from "date-fns-tz"
 import prisma from "@/lib/prisma"
+import { phonesMatchE164 } from "@/lib/utils/phone-normalization"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -17,7 +18,7 @@ const TZ = "Europe/Warsaw"
  * bookings are shown first, the rest are grouped by master.
  *
  * Security rules:
- *  1. Phone last-9-digits must match
+ *  1. Phone full E.164 number must match
  *  2. First name must match (case-insensitive, trimmed)
  *  3. Last name structure must match (both present → exact, one missing → reject)
  */
@@ -44,7 +45,6 @@ export async function GET(req: NextRequest) {
       { status: 400 }
     )
   }
-  const searchLast9 = searchPhoneDigits.slice(-9)
 
   // Name: split into firstName / lastName
   const nameParts   = rawName.trim().split(/\s+/)
@@ -108,10 +108,8 @@ export async function GET(req: NextRequest) {
     const matchingAppointments = appointments.filter((appt) => {
       const client = appt.client
 
-      // Phone check — last 9 digits
-      const clientPhoneDigits = (client.phone ?? "").replace(/\D/g, "")
-      if (clientPhoneDigits.length < 9) return false
-      if (clientPhoneDigits.slice(-9) !== searchLast9) return false
+      // Phone check — full normalized E.164 number
+      if (!phonesMatchE164(rawPhone, client.phone)) return false
 
       // Name check
       const clientParts = (client.name ?? "").trim().split(/\s+/)

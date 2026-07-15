@@ -38,60 +38,6 @@ export interface UserAccessCriteria {
 }
 
 /**
- * Verify user has access to modify this booking.
- * Works with DB appointment data (client name, phone, email).
- */
-export function verifyBookingAccess(
-  bookingData: { firstName?: string; lastName?: string; name?: string; phone?: string; email?: string } | null,
-  userCriteria: UserAccessCriteria
-): boolean {
-  if (!bookingData) return false
-
-  // Normalize user input
-  const userFirstName = normalizeString(userCriteria.firstName)
-  const userLastName = normalizeString(userCriteria.lastName)
-  const userPhone = normalizePhone(userCriteria.phone)
-  const userEmail = userCriteria.email ? userCriteria.email.toLowerCase().trim() : ''
-
-  // Normalize booking data — support both firstName/lastName and combined name
-  let bookingFirstName = ''
-  let bookingLastName = ''
-  if (bookingData.firstName) {
-    bookingFirstName = normalizeString(bookingData.firstName)
-    bookingLastName = normalizeString(bookingData.lastName || '')
-  } else if (bookingData.name) {
-    const parts = bookingData.name.trim().split(/\s+/)
-    bookingFirstName = normalizeString(parts[0] || '')
-    bookingLastName = normalizeString(parts.slice(1).join(' '))
-  }
-  const bookingPhone = normalizePhone(bookingData.phone || '')
-  const bookingEmail = bookingData.email ? bookingData.email.toLowerCase().trim() : ''
-
-  // Check name match
-  const firstNameMatch = bookingFirstName === userFirstName
-  const lastNameMatch = !userLastName || !bookingLastName || bookingLastName === userLastName
-  
-  // Phone matching - support partial matches for international numbers
-  let phoneMatch = false
-  if (userPhone.length >= 6 && bookingPhone.length >= 6) {
-    phoneMatch = bookingPhone.includes(userPhone.slice(-9)) || 
-                 userPhone.includes(bookingPhone.slice(-9))
-  } else {
-    phoneMatch = userPhone === bookingPhone
-  }
-
-  if (!firstNameMatch || !lastNameMatch || !phoneMatch) {
-    return false
-  }
-
-  if (bookingEmail && userEmail && bookingEmail !== userEmail) {
-    return false
-  }
-
-  return true
-}
-
-/**
  * Booking modification result
  */
 export interface BookingModificationCheck {
@@ -120,67 +66,6 @@ export function canModifyBooking(startTime: Date): BookingModificationCheck {
     canModify: true,
     hoursRemaining: hoursUntilAppointment
   }
-}
-
-/**
- * Check if booking matches search criteria for search API
- */
-export function matchesSearchCriteria(
-  bookingData: any, // parsed booking data
-  searchCriteria: UserAccessCriteria
-): boolean {
-  if (!bookingData) return false
-
-  // Normalize search criteria
-  const searchFirstName = normalizeString(searchCriteria.firstName)
-  const searchLastName = normalizeString(searchCriteria.lastName)
-  const searchPhone = normalizePhone(searchCriteria.phone)
-  const searchEmail = searchCriteria.email ? searchCriteria.email.toLowerCase().trim() : ''
-
-  // Normalize booking data
-  const bookingFirstName = normalizeString(bookingData.firstName)
-  const bookingLastName = normalizeString(bookingData.lastName)
-  const bookingPhone = normalizePhone(bookingData.phone)
-  const bookingEmail = bookingData.email ? bookingData.email.toLowerCase().trim() : ''
-
-  // Name matching (first name must match, last name only if provided)
-  const firstNameMatch = bookingFirstName.includes(searchFirstName) || searchFirstName.includes(bookingFirstName)
-  
-  if (!firstNameMatch) {
-    return false
-  }
-  
-  // Last name matching: only check if both search and booking have last names
-  if (searchLastName && bookingLastName) {
-    const lastNameMatch = bookingLastName.includes(searchLastName) || searchLastName.includes(bookingLastName)
-    if (!lastNameMatch) {
-      return false
-    }
-  }
-
-  // Phone matching (must match significant part of phone number)
-  if (searchPhone.length >= 6 && bookingPhone.length >= 6) {
-    // For longer phones, check if one contains the other
-    const phoneMatch = bookingPhone.includes(searchPhone.slice(-9)) || 
-                      searchPhone.includes(bookingPhone.slice(-9))
-    if (!phoneMatch) {
-      return false
-    }
-  } else {
-    // For shorter phones, exact match required
-    if (searchPhone !== bookingPhone) {
-      return false
-    }
-  }
-
-  // Email matching (if provided in search and in booking)
-  if (searchEmail && bookingEmail) {
-    if (searchEmail !== bookingEmail) {
-      return false
-    }
-  }
-
-  return true
 }
 
 /**

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { formatInTimeZone } from "date-fns-tz"
 import prisma from "@/lib/prisma"
+import { phonesMatchE164 } from "@/lib/utils/phone-normalization"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -28,7 +29,7 @@ const wDateFormatter = new Intl.DateTimeFormat("en-CA", {
  * POST /api/bookings/update-time
  *
  * Updates the date/time of an existing appointment.
- * Validates ownership (phone last-9-digits) and checks for time conflicts.
+ * Validates ownership (full E.164 phone number) and checks for time conflicts.
  *
  * Body: {
  *   eventId, procedureName?, firstName, lastName, phone, email?,
@@ -75,7 +76,6 @@ export async function POST(req: NextRequest) {
       { status: 400 }
     )
   }
-  const searchLast9 = searchPhoneDigits.slice(-9)
 
   // Parse new start/end into Date objects
   const newStartDate = new Date(newStartISO)
@@ -116,12 +116,8 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // ── Verify ownership — phone (last 9 digits) ───────────────────────────
-    const clientPhoneDigits = (appointment.client.phone ?? "").replace(/\D/g, "")
-    const phoneMatch =
-      clientPhoneDigits.length >= 9 &&
-      clientPhoneDigits.slice(-9) === searchLast9
-
+    // ── Verify ownership — full E.164 phone number ─────────────────────────
+    const phoneMatch = phonesMatchE164(phone, appointment.client.phone)
     if (!phoneMatch) {
       return NextResponse.json(
         { error: "Weryfikacja nie powiodła się. Sprawdź poprawność danych.", code: "VERIFICATION_FAILED" },
@@ -148,34 +144,32 @@ export async function POST(req: NextRequest) {
     // Use the appointment's masterId (canonical source of truth)
     const targetMasterId = appointment.masterId
 
-    const conflicting = await prisma.appointment.findFirst({
-      where: {
-        masterId: targetMasterId,
-        date: new Date(newDate),
-        status: { not: "CANCELLED" },
-        id: { not: eventId }, // exclude current appointment
-        // Overlap condition: existing.start < new.end AND existing.end > new.start
-        startTime: { lt: newEndTime },
-        endTime: { gt: newStartTime },
-      },
+    const hasConflict = await prisma.$transaction(async (tx) => {
+      const conflicting = await tx.appointment.findFirst({
+        where: {
+          masterId: targetMasterId,
+          date: new Date(newDate),
+          status: { not: "CANCELLED" },
+          id: { not: eventId }, // exclude current appointment
+          // Overlap condition: existing.start < new.end AND existing.end > new.start
+          startTime: { lt: newEndTime },
+          endTime: { gt: newStartTime },
+        },
+      })
+      if (conflicting) return true
+      await tx.appointment.update({
+        where: { id: eventId },
+        data: { date: new Date(newDate), startTime: newStartTime, endTime: newEndTime },
+      })
+      return false
     })
 
-    if (conflicting) {
+    if (hasConflict) {
       return NextResponse.json(
         { error: "Wybrany termin jest już zajęty.", code: "CONFLICT" },
         { status: 409 }
       )
     }
-
-    // ── Update appointment ─────────────────────────────────────────────────
-    await prisma.appointment.update({
-      where: { id: eventId },
-      data: {
-        date: new Date(newDate),
-        startTime: newStartTime,
-        endTime: newEndTime,
-      },
-    })
 
     return NextResponse.json({ success: true })
   } catch (error) {

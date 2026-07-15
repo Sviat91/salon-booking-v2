@@ -40,3 +40,6 @@ TASK.md
 *.db-journal
 
 /src/generated/prisma
+
+# Runtime uploads
+public/uploads/

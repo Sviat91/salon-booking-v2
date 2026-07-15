@@ -65,8 +65,8 @@ export default function EditDatetimePanel({
 
         {selectedProcedure ? (
           <div className="rounded-xl border border-primary bg-primary/10 p-3 dark:border-accent dark:bg-accent/10">
-            <div className="text-xs text-primary dark:text-accent mb-1">{t('management.newProcedureLabel')}</div>
-            <div className="text-sm font-medium text-primary dark:text-accent">
+            <div className="text-xs text-primary mb-1">{t('management.newProcedureLabel')}</div>
+            <div className="text-sm font-medium text-primary">
               {selectedProcedure.name_pl} ({selectedProcedure.duration_min} min)
             </div>
           </div>
@@ -74,8 +74,8 @@ export default function EditDatetimePanel({
       </div>
 
       <div className="rounded-xl border border-primary bg-primary/10 p-3 dark:border-accent dark:bg-accent/10">
-        <div className="text-sm text-primary dark:text-accent mb-1">{t('management.selectDateAndTimeLabel')}</div>
-        <div className="text-xs text-primary/80 dark:text-accent/80">
+        <div className="text-sm text-primary mb-1">{t('management.selectDateAndTimeLabel')}</div>
+        <div className="text-xs text-primary/80">
           {t('management.useCalendarToSelect')}
         </div>
       </div>

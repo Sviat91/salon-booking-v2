@@ -1,7 +1,7 @@
 # Plan: Roadmap Priority 3 bundle (5 items) — phone verification, git leaks, security headers, double-booking race, hardcoded RU placeholder
 
 **Date:** 2026-07-14
-**Status:** In Progress
+**Status:** Complete
 **Mode:** FULL (planner-written; architectural decisions on phone-match semantics, CSP trade-off, and first-ever use of `$transaction`)
 
 ## Goal
@@ -57,7 +57,7 @@ Close five unrelated Roadmap Priority-3 items in one combined pass: (1) verify g
 
 ### Group A — Item 1: full-number phone verification + dead-code removal
 
-- [ ] **A1 — Add the shared `phonesMatchE164` helper**
+- [x] **A1 — Add the shared `phonesMatchE164` helper**
   - Files: `src/lib/utils/phone-normalization.ts`
   - Append a new exported function (uses the existing `normalizePhoneToE164` in the same file):
     ```ts
@@ -79,7 +79,7 @@ Close five unrelated Roadmap Priority-3 items in one combined pass: (1) verify g
     }
     ```
 
-- [ ] **A2 — `bookings/cancel/route.ts`**
+- [x] **A2 — `bookings/cancel/route.ts`**
   - Files: `src/app/api/bookings/cancel/route.ts`
   - Add import: `import { phonesMatchE164 } from "@/lib/utils/phone-normalization"`.
   - Keep lines 46-52 (`searchPhoneDigits` + `length < 9` → 400 guard). Delete line 53 (`const searchLast9 = …`).
@@ -95,19 +95,19 @@ Close five unrelated Roadmap Priority-3 items in one combined pass: (1) verify g
     ```
     (Remove the now-unused `clientPhoneDigits` line.)
 
-- [ ] **A3 — `bookings/update-time/route.ts`**
+- [x] **A3 — `bookings/update-time/route.ts`**
   - Files: `src/app/api/bookings/update-time/route.ts`
   - Same pattern as A2: add the import, keep lines 71-77 guard, delete line 78 (`searchLast9`), replace the verify block (lines 119-130) with the `phonesMatchE164(phone, appointment.client.phone)` check. Also update the stale doc-comment at line 31 ("phone last-9-digits") to "full E.164 number" — surgical one-line comment fix only.
 
-- [ ] **A4 — `bookings/update-procedure/route.ts`**
+- [x] **A4 — `bookings/update-procedure/route.ts`**
   - Files: `src/app/api/bookings/update-procedure/route.ts`
   - Same pattern: add the import, keep lines 55-61 guard, delete line 62 (`searchLast9`), replace the verify block (lines 87-98) with the `phonesMatchE164(phone, appointment.client.phone)` check.
 
-- [ ] **A5 — `bookings/[id]/route.ts` (PATCH)**
+- [x] **A5 — `bookings/[id]/route.ts` (PATCH)**
   - Files: `src/app/api/bookings/[id]/route.ts`
   - Same pattern: add the import, keep lines 75-81 guard, delete line 82 (`searchLast9`), replace the verify block (lines 108-119) with the `phonesMatchE164(phone, appointment.client.phone)` check. (Item 4 also edits this file — see D3; the two edits are in different regions and don't conflict.)
 
-- [ ] **A6 — `bookings/all/route.ts` (GET)**
+- [x] **A6 — `bookings/all/route.ts` (GET)**
   - Files: `src/app/api/bookings/all/route.ts`
   - Add the import. Keep lines 40-46 guard, delete line 47 (`searchLast9`). In the `matchingAppointments` filter, replace the phone check (lines 111-114) with:
     ```ts
@@ -116,7 +116,7 @@ Close five unrelated Roadmap Priority-3 items in one combined pass: (1) verify g
     ```
     Leave the name-matching logic (lines 116-131) untouched. Update the stale header comment (lines 19-23 / "Phone last-9-digits must match") to "full E.164 number".
 
-- [ ] **A7 — Normalize guest phone at storage time in `book/route.ts`**
+- [x] **A7 — Normalize guest phone at storage time in `book/route.ts`**
   - Files: `src/app/api/book/route.ts`
   - Add import: `import { normalizePhoneToE164 } from "@/lib/utils/phone-normalization"`.
   - Immediately after the guest-phone validation (after line 46, still OUTSIDE the `try` at line 72), compute the normalized value with a proper 400 on garbage:
@@ -135,28 +135,28 @@ Close five unrelated Roadmap Priority-3 items in one combined pass: (1) verify g
     ```
   - In the guest branch (lines 128-147): change the `findFirst` lookup from `phone` to `normalizedGuestPhone` (both the `phone ?` ternary condition and the `where: { phone }`), and change the create's `phone: phone || null` to `phone: normalizedGuestPhone`. Leave the consent calls (`evaluateConsentStatus`, `saveConsentRecord`) receiving the original raw `phone` — they normalize internally, so behavior is unchanged.
 
-- [ ] **A8 — Delete dead helpers from `booking-helpers.ts`**
+- [x] **A8 — Delete dead helpers from `booking-helpers.ts`**
   - Files: `src/lib/booking-helpers.ts`
   - Delete `verifyBookingAccess()` (lines 40-92) and `matchesSearchCriteria()` (lines 125-184) in full, including their leading doc-comments.
   - **Leave untouched:** `normalizeString`/`normalizePhone` (deprecated exported wrappers — still exported, no lint error), the `UserAccessCriteria` interface (exported), `canModifyBooking`, `BookingModificationCheck`, `TimeSlot`, `getAvailableSlotsForRebooking`, `getProcedureDuration`, `BookingErrors`, and the top-of-file imports (lines 1-5). Do NOT cascade-delete these.
 
-- [ ] **A9 — Trim the stale test file**
+- [x] **A9 — Trim the stale test file**
   - Files: `tests/lib/booking-helpers.test.ts`
   - Change the import (line 2) to `import { canModifyBooking } from '@/lib/booking-helpers'`.
   - Delete the `describe('verifyBookingAccess', …)` block (lines 5-105) and the `describe('matchesSearchCriteria', …)` block (lines 173-276). Keep the `describe('canModifyBooking', …)` block and the outer `describe('booking-helpers', …)` wrapper.
   - (Note: the remaining `canModifyBooking` tests use a stale signature and are already part of the failing baseline — that is pre-existing and out of scope. Goal here is only to remove tests for the deleted functions and keep the import resolvable.)
 
-- [ ] **A10 — Unit test for the new helper**
+- [x] **A10 — Unit test for the new helper**
   - Files: `tests/lib/utils/phone-match.test.ts` (new)
   - Add focused tests for `phonesMatchE164` covering: same `+48` number formatted differently (`+48123456789` vs `123 456 789`) → true; bare-9-digit stored vs `+48`-prefixed input (the no-backfill regression case) → true; different country codes sharing last 9 digits (`+48123456789` vs `+380…123456789`-style) → false; `null`/empty either side → false; garbage input → false. Put it in a NEW file (the existing `tests/lib/utils/phone-normalization.test.ts` has a pre-existing broken import and fails on load — do not entangle with it).
 
 ### Group B — Item 2: stop tracking `app.db` + `public/uploads/`
 
-- [ ] **B1 — `.gitignore`**
+- [x] **B1 — `.gitignore`**
   - Files: `.gitignore`
   - Add `public/uploads/` (a good spot is right after the `node_modules/` / build block, or under a new `# Runtime uploads` comment). Do NOT add an `app.db` line — `*.db` (existing line 39) already covers it.
 
-- [ ] **B2 — Untrack the leaked files (working tree preserved)**
+- [x] **B2 — Untrack the leaked files (working tree preserved)**
   - Run (repo root): first `git ls-files app.db public/uploads` to CONFIRM exactly what is tracked, then:
     - `git rm --cached app.db`
     - `git rm --cached public/uploads/*` (the 21 tracked `.png`/`.jpeg` files)
@@ -164,7 +164,7 @@ Close five unrelated Roadmap Priority-3 items in one combined pass: (1) verify g
 
 ### Group C — Item 3: security headers in `next.config.mjs`
 
-- [ ] **C1 — Add `headers()` to `next.config.mjs`**
+- [x] **C1 — Add `headers()` to `next.config.mjs`**
   - Files: `next.config.mjs`
   - Add an `async headers()` method to the `nextConfig` object (alongside `experimental`, `images`, `reactStrictMode` — leave those untouched). Apply to all paths via `source: '/:path*'`. The CSP value MUST be a single-line string (no raw newlines in a header value); build it by joining directives with `"; "`:
     ```js
@@ -201,7 +201,7 @@ Close five unrelated Roadmap Priority-3 items in one combined pass: (1) verify g
 
 ### Group D — Item 4: close the double-booking race with `$transaction`
 
-- [ ] **D1 — `book/route.ts` (create path)**
+- [x] **D1 — `book/route.ts` (create path)**
   - Files: `src/app/api/book/route.ts`
   - Leave the early conflict check (lines 97-113) as a fast-fail. Replace the final create (lines 194-204) + the two lines after it (206-208) with an atomic transaction that re-checks the conflict using `tx` and returns `null` on conflict:
     ```ts
@@ -240,7 +240,7 @@ Close five unrelated Roadmap Priority-3 items in one combined pass: (1) verify g
     return NextResponse.json({ eventId: created.id })
     ```
 
-- [ ] **D2 — `bookings/update-time/route.ts`**
+- [x] **D2 — `bookings/update-time/route.ts`**
   - Files: `src/app/api/bookings/update-time/route.ts`
   - Wrap the conflict `findFirst` (lines 151-161) + the `update` (lines 171-178) in one `$transaction`, signalling conflict via a boolean and translating to the existing 409 outside the tx:
     ```ts
@@ -273,7 +273,7 @@ Close five unrelated Roadmap Priority-3 items in one combined pass: (1) verify g
     return NextResponse.json({ success: true })
     ```
 
-- [ ] **D3 — `bookings/[id]/route.ts` (PATCH)**
+- [x] **D3 — `bookings/[id]/route.ts` (PATCH)**
   - Files: `src/app/api/bookings/[id]/route.ts`
   - Restructure so the conflict re-check and the update are atomic (this file's Item-1 edit A5 is in the verify block above and is independent):
     - In the time-change block (lines 126-166): keep parse/validate and the `updateData.date/startTime/endTime` + `changes` assignments, but REMOVE the inline conflict check (lines 142-158). Capture the conflict window in a hoisted var, e.g. add after the `updateData`/`changes` assignments: `conflictWindow = { date: new Date(newDate), startTime: newStartTime, endTime: newEndTime }` where `let conflictWindow: { date: Date; startTime: string; endTime: string } | null = null` is declared just above line 122 (near `updateData`).
@@ -310,20 +310,20 @@ Close five unrelated Roadmap Priority-3 items in one combined pass: (1) verify g
 
 ### Group E — Item 5: replace hardcoded RU placeholder
 
-- [ ] **E1 — `book/route.ts` fallback service string**
+- [x] **E1 — `book/route.ts` fallback service string**
   - Files: `src/app/api/book/route.ts`
   - In the fallback create (lines 185-190), change `name: "Консультация"` to `name: "General Service"`. Leave `duration: 60`, `price: 0`, the surrounding "reuse generic else create" logic, and the comment intent unchanged (optionally update the comment "placeholder 'Consultation'" to match, but do not change behavior).
 
 ### Group F — DOX + verification
 
-- [ ] **F1 — DOX pass**
+- [x] **F1 — DOX pass**
   - `src/lib/AGENTS.md`: add a Local Contract note that guest phone verification/matching uses full-E.164 comparison via `phonesMatchE164` (phone-normalization.ts), not last-9-digits; note that `booking-helpers.ts` no longer holds the dead `verifyBookingAccess`/`matchesSearchCriteria` access helpers.
   - `src/app/api/AGENTS.md`: add a Local Contract note that booking mutation routes (`book`, `bookings/update-time`, `bookings/[id]`) wrap the conflict check + write in a single `prisma.$transaction` (no DB-level uniqueness), and that ownership verification is full-E.164.
   - `tests/AGENTS.md`: note the removed `verifyBookingAccess`/`matchesSearchCriteria` blocks from `booking-helpers.test.ts` and the new `tests/lib/utils/phone-match.test.ts`.
   - `ROADMAP.md`: mark the five addressed Priority-3 items done (phone last-9-digits; `app.db`+uploads in git; security headers; double-booking race; hardcoded "Консультация") — keep the 6th (pl/ru error-text) OPEN. Add a "Уже сделано (сессия 2026-07-14)" entry summarizing this bundle. Record the two explicit trade-offs: CSP uses `unsafe-inline` (nonce hardening deferred) and git history still contains the old leaked bytes (full scrub deferred).
   - Root `CLAUDE.md` / `next.config.mjs` have no owning child AGENTS.md for the headers/gitignore infra changes — recording them in `ROADMAP.md` is sufficient; do not invent a new AGENTS.md.
 
-- [ ] **F2 — Verify**
+- [x] **F2 — Verify**
   - `npx tsc --noEmit` clean.
   - `npm run lint` — no NEW problems vs. the established non-zero baseline.
   - `npm run build` succeeds (this is where the new `next.config.mjs headers()` and CSP string are validated).
@@ -335,12 +335,12 @@ Close five unrelated Roadmap Priority-3 items in one combined pass: (1) verify g
   - `git ls-files app.db public/uploads` — returns nothing (untracked); `ls app.db public/uploads` — files still present on disk.
 
 ## Acceptance Criteria
-- [ ] **Item 1:** all 5 routes (`cancel`, `update-time`, `update-procedure`, `bookings/[id]`, `bookings/all`) verify ownership via `phonesMatchE164` (full E.164), no `.slice(-9)` remains; `book/route.ts` stores new guest `User.phone` as E.164 and looks guests up by the same normalized value; the two dead helpers are deleted and the test file trimmed; `phonesMatchE164` has passing unit tests including the no-country-code non-regression case and the cross-country-code rejection.
-- [ ] **Item 2:** `app.db` and the 21 `public/uploads/*` files are `git rm --cached`'d (untracked) but still on disk; `.gitignore` has `public/uploads/` (no redundant `app.db` line); `Somique Beauty Design System/uploads/` and `prisma/app.db` untouched; no history rewrite.
-- [ ] **Item 3:** `next.config.mjs` sets CSP (`unsafe-inline` script/style, analytics + Google-image + same-origin-frame allowlists), `X-Frame-Options: SAMEORIGIN`, `X-Content-Type-Options: nosniff`, `Referrer-Policy`, `Permissions-Policy` globally; `middleware.ts`/`layout.tsx` untouched; `HomepagePreview` iframe and analytics still function (manual check).
-- [ ] **Item 4:** `book`, `bookings/update-time`, `bookings/[id]` perform their conflict check + write inside one `prisma.$transaction`; no `@@unique`/migration added.
-- [ ] **Item 5:** fallback service is named `"General Service"`; the reuse/auto-create mechanism, duration 60, price 0 are unchanged.
-- [ ] `tsc`/`build` clean; `lint`/`test` no new failures vs. baseline; DOX (`src/lib/AGENTS.md`, `src/app/api/AGENTS.md`, `tests/AGENTS.md`, `ROADMAP.md`) updated; the 6th Priority-3 item left OPEN.
+- [x] **Item 1:** all 5 routes (`cancel`, `update-time`, `update-procedure`, `bookings/[id]`, `bookings/all`) verify ownership via `phonesMatchE164` (full E.164), no `.slice(-9)` remains; `book/route.ts` stores new guest `User.phone` as E.164 and looks guests up by the same normalized value; the two dead helpers are deleted and the test file trimmed; `phonesMatchE164` has passing unit tests including the no-country-code non-regression case and the cross-country-code rejection.
+- [x] **Item 2:** `app.db` and the 21 `public/uploads/*` files are `git rm --cached`'d (untracked) but still on disk; `.gitignore` has `public/uploads/` (no redundant `app.db` line); `Somique Beauty Design System/uploads/` and `prisma/app.db` untouched; no history rewrite.
+- [x] **Item 3:** `next.config.mjs` sets CSP (`unsafe-inline` script/style, analytics + Google-image + same-origin-frame allowlists), `X-Frame-Options: SAMEORIGIN`, `X-Content-Type-Options: nosniff`, `Referrer-Policy`, `Permissions-Policy` globally; `middleware.ts`/`layout.tsx` untouched; `HomepagePreview` iframe and analytics still function (manual check).
+- [x] **Item 4:** `book`, `bookings/update-time`, `bookings/[id]` perform their conflict check + write inside one `prisma.$transaction`; no `@@unique`/migration added.
+- [x] **Item 5:** fallback service is named `"General Service"`; the reuse/auto-create mechanism, duration 60, price 0 are unchanged.
+- [x] `tsc`/`build` clean; `lint`/`test` no new failures vs. baseline; DOX (`src/lib/AGENTS.md`, `src/app/api/AGENTS.md`, `tests/AGENTS.md`, `ROADMAP.md`) updated; the 6th Priority-3 item left OPEN.
 
 ## Constraints & Risks
 - **History not scrubbed (Item 2):** past commits still contain the old `app.db` bytes (a real but empty SQLite file — 0 rows in `User`, schema/migration state only, no live PII) and all previously-uploaded images. Removing them from history is a separate, riskier, explicitly-requested task (filter-repo/BFG + force-push) — NOT in this pass.

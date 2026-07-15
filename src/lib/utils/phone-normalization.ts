@@ -103,3 +103,20 @@ export function formatPhoneForDisplay(phone: string): string {
   
   return withPlus
 }
+
+/**
+ * Compare two phone numbers by full normalized E.164 value.
+ * Returns true only if both normalize to the same E.164 number.
+ * Null/empty/invalid inputs never match (returns false).
+ */
+export function phonesMatchE164(
+  a: string | null | undefined,
+  b: string | null | undefined
+): boolean {
+  if (!a || !b) return false
+  let na: string
+  let nb: string
+  try { na = normalizePhoneToE164(a) } catch { return false }
+  try { nb = normalizePhoneToE164(b) } catch { return false }
+  return na.length > 0 && na === nb
+}

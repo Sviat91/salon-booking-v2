@@ -14,6 +14,7 @@ Test files only. Fixtures/mocks are inline per-file (`vi.mock(...)`), no shared 
 - Route handler tests mock `@/lib/prisma` rather than hitting a real DB — see [../prisma/AGENTS.md](../prisma/AGENTS.md).
 - New route tests should follow the `tests/app/api/**` mirror path, not `tests/api/`.
 - (2026-07-13) Removed `tests/config/`, `tests/api/multi-master.test.ts`, `tests/lib/google-sheets.procedures.test.ts`, and `tests/lib/google/*.test.ts` — all covered code (`src/config/masters*.ts`, `src/lib/google/*`) had already been deleted from `src/`, so these suites only ever failed on import. ~11 other files still fail for unrelated, pre-existing reasons (real code, stale/broken test bodies) — not yet triaged, see `ROADMAP.md` Priority 4.
+- (2026-07-14) `tests/lib/booking-helpers.test.ts` had its `verifyBookingAccess`/`matchesSearchCriteria` describe blocks removed (the two functions were deleted from `src/lib/booking-helpers.ts` as dead code) — only the `canModifyBooking` block remains (still part of the pre-existing failing baseline, stale signature). New `tests/lib/utils/phone-match.test.ts` covers the new `phonesMatchE164()` helper.
 
 ## Work Guidance
 

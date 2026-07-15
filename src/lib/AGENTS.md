@@ -18,6 +18,7 @@ Anything framework-agnostic: DB access via Prisma, external service clients (ema
 - `admin-permissions.ts` is the only place that parses/grants the `clients`/`gdpr` permission JSON on `User.adminPermissions` — route handlers and admin pages call `getPermissionsForRole()`, they don't parse the JSON themselves.
 - `api/error-handler.ts` + `api/error-responses.ts` are the shared error contract for route handlers — see [../app/api/AGENTS.md](../app/api/AGENTS.md).
 - Files must stay under 500 lines — `consent-service.ts` (13KB), `booking-helpers.ts` (10KB), `notifications/index.ts` (13KB) are the largest; split further growth into new files rather than extending these.
+- Guest phone ownership verification/matching uses full-E.164 comparison via `phonesMatchE164()` in `utils/phone-normalization.ts` (normalizes both sides, never last-9-digits suffix matching). `booking-helpers.ts` no longer holds the dead `verifyBookingAccess`/`matchesSearchCriteria` access helpers — they were unused in production and have been removed.
 
 ## Work Guidance
 

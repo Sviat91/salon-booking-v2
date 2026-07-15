@@ -5,6 +5,7 @@ import { evaluateConsentStatus, getRequestIp, saveConsentRecord } from "@/lib/co
 import { z } from "zod"
 import { auth } from "@/auth"
 import { notifyBookingConfirmation } from "@/lib/notifications"
+import { normalizePhoneToE164 } from "@/lib/utils/phone-normalization"
 
 export const runtime = "nodejs"
 
@@ -43,6 +44,18 @@ export async function POST(req: NextRequest) {
 
   if (!isAuth && (!phone || phone.trim().length < 5)) {
     return NextResponse.json({ error: "Phone number is required for booking", code: "VALIDATION_ERROR" }, { status: 400 })
+  }
+
+  let normalizedGuestPhone: string | null = null
+  if (!isAuth && phone) {
+    try {
+      normalizedGuestPhone = normalizePhoneToE164(phone)
+    } catch {
+      return NextResponse.json(
+        { error: "Invalid phone number", code: "INVALID_PHONE" },
+        { status: 400 }
+      )
+    }
   }
 
   // Parse start/end times from ISO strings
@@ -125,10 +138,10 @@ export async function POST(req: NextRequest) {
     } else {
       // Identity = (phone + name) — a couple sharing the same phone get separate records.
       const normalizedName = name.trim()
-      clientUser = phone
+      clientUser = normalizedGuestPhone
         ? await prisma.user.findFirst({
             where: {
-              phone,
+              phone: normalizedGuestPhone,
               name: normalizedName,
               isGuest: true
             },
@@ -139,7 +152,7 @@ export async function POST(req: NextRequest) {
         clientUser = await prisma.user.create({
           data: {
             name: normalizedName,
-            phone: phone || null,
+            phone: normalizedGuestPhone,
             email: email || null,
             role: "CLIENT",
             isGuest: true,
@@ -184,28 +197,46 @@ export async function POST(req: NextRequest) {
       } else {
         // Create a placeholder "Consultation" service
         const placeholder = await prisma.service.create({
-          data: { name: "Консультация", duration: 60, price: 0 },
+          data: { name: "General Service", duration: 60, price: 0 },
         })
         serviceId = placeholder.id
       }
     }
 
-    // 5. Create the appointment
-    const appointment = await prisma.appointment.create({
-      data: {
-        clientId: clientUser.id,
-        masterId,
-        serviceId,
-        date: new Date(dateOnly),
-        startTime,
-        endTime,
-        status: "CONFIRMED",
-      },
+    // 5. Create the appointment — re-check conflict atomically to close the race window
+    const created = await prisma.$transaction(async (tx) => {
+      const conflict = await tx.appointment.findFirst({
+        where: {
+          masterId,
+          date: new Date(dateOnly),
+          status: { not: "CANCELLED" },
+          startTime: { lt: endTime },
+          endTime: { gt: startTime },
+        },
+      })
+      if (conflict) return null
+      return tx.appointment.create({
+        data: {
+          clientId: clientUser.id,
+          masterId,
+          serviceId,
+          date: new Date(dateOnly),
+          startTime,
+          endTime,
+          status: "CONFIRMED",
+        },
+      })
     })
 
-    notifyBookingConfirmation(appointment.id).catch(console.error)
+    if (!created) {
+      return NextResponse.json(
+        { error: "Time slot is already booked", code: "CONFLICT" },
+        { status: 409 }
+      )
+    }
 
-    return NextResponse.json({ eventId: appointment.id })
+    notifyBookingConfirmation(created.id).catch(console.error)
+    return NextResponse.json({ eventId: created.id })
   } catch (error) {
     console.error("Error creating booking:", error)
     return NextResponse.json(

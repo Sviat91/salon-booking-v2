@@ -60,7 +60,7 @@ export default function ResultsPanel({
     <div className="overflow-y-auto space-y-4 pr-1 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
       <div className="space-y-2">
         <div className="text-sm text-foreground font-medium">
-          {t('management.foundBookingsFor')} <span className="text-primary dark:text-accent">{displayName}</span>, {t('management.phone')} <span className="text-primary dark:text-accent">{displayPhone}</span>
+          {t('management.foundBookingsFor')} <span className="text-primary">{displayName}</span>, {t('management.phone')} <span className="text-primary">{displayPhone}</span>
         </div>
         <div className="text-sm text-muted-foreground">
           {t('management.total')} <strong>{results.length}</strong> {getBookingCountText(results.length)}

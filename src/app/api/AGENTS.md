@@ -15,6 +15,7 @@ Request parsing, auth/role checks, and response shaping. Business logic (availab
 - Errors: prefer `handleApiError()` / `ErrorResponses` from `src/lib/api/error-handler.ts` and `error-responses.ts` for consistent status codes, logging, and Sentry reporting. Some older routes (e.g. `book/route.ts`) still return `NextResponse.json` manually — match the file you're editing, but use the shared handler for new routes.
 - Mutations to procedures or schedule data must invalidate both cache layers per `src/lib/cache.ts` (`procedures:v2:<masterId>`, `availability:<masterId>:<dates>`) — see [../../lib/AGENTS.md](../../lib/AGENTS.md).
 - `cron/reminders` is invoked by an external scheduler, not a user — don't add session-based auth to it; check its existing token/secret guard before changing.
+- Booking mutation routes (`book`, `bookings/update-time`, `bookings/[id]`) wrap their conflict re-check + write in a single `prisma.$transaction` to close the double-booking race window — there is no DB-level uniqueness constraint (an overlapping-range conflict check can't be expressed as a unique index). Guest/client ownership verification across all booking routes (`cancel`, `update-time`, `update-procedure`, `bookings/[id]`, `bookings/all`) is full-E.164 phone comparison via `phonesMatchE164()`, not last-9-digits.
 
 ## Work Guidance
 
