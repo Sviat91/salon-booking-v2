@@ -30,6 +30,10 @@ vi.mock("../../../../src/lib/consent-service", () => ({
   withdrawConsentRecord: (...args: unknown[]) => withdrawConsentRecord(...args),
 }))
 
+vi.mock("@/auth", () => ({
+  auth: vi.fn().mockResolvedValue(null),
+}))
+
 let postHandler: (req: Request) => Promise<Response>
 
 describe("POST /api/consents/withdraw", () => {

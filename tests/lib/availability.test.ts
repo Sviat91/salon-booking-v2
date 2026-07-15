@@ -1,203 +1,113 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { calculateDaySchedule, isDayOff, getAvailableSlots } from '@/lib/availability'
+import type { Mock } from 'vitest'
+
+vi.mock('@/lib/schedule-utils', async (importActual) => {
+  const actual = await importActual<any>()
+  return {
+    ...actual,
+    readWeeklyFromDb: vi.fn(),
+    readOverridesFromDb: vi.fn(),
+    fetchBusyRanges: vi.fn(),
+  }
+})
+
+import { getAvailableDays, getDaySlots } from '@/lib/availability'
+import { readWeeklyFromDb, readOverridesFromDb, fetchBusyRanges } from '@/lib/schedule-utils'
+
+const MASTER_ID = 'master_1'
+// Fixed dates far from "today" so the getDaySlots past-slot-trimming logic
+// (which compares against the real current date in Europe/Warsaw) never engages.
+const WORKING_DAY = '2027-03-08' // Monday
+const DAY_OFF = '2027-03-07' // Sunday
 
 describe('availability', () => {
-  describe('isDayOff', () => {
-    it('should return true for Sundays', () => {
-      const sunday = new Date('2025-10-05') // Sunday
-      expect(isDayOff(sunday)).toBe(true)
-    })
+  beforeEach(() => {
+    vi.clearAllMocks()
 
-    it('should return false for weekdays', () => {
-      const monday = new Date('2025-10-06') // Monday
-      const wednesday = new Date('2025-10-08') // Wednesday
-      const friday = new Date('2025-10-10') // Friday
+    const weekly = new Map([
+      [0, { isDayOff: true, intervals: [] }], // Sunday
+      [1, { isDayOff: false, intervals: [{ start: '09:00', end: '18:00' }] }],
+      [2, { isDayOff: false, intervals: [{ start: '09:00', end: '18:00' }] }],
+      [3, { isDayOff: false, intervals: [{ start: '09:00', end: '18:00' }] }],
+      [4, { isDayOff: false, intervals: [{ start: '09:00', end: '18:00' }] }],
+      [5, { isDayOff: false, intervals: [{ start: '09:00', end: '18:00' }] }],
+      [6, { isDayOff: false, intervals: [{ start: '09:00', end: '18:00' }] }],
+    ])
 
-      expect(isDayOff(monday)).toBe(false)
-      expect(isDayOff(wednesday)).toBe(false)
-      expect(isDayOff(friday)).toBe(false)
-    })
-
-    it('should return false for Saturdays', () => {
-      const saturday = new Date('2025-10-04') // Saturday
-      expect(isDayOff(saturday)).toBe(false)
-    })
-
-    it('should handle public holidays', () => {
-      // Polish public holidays
-      const newYear = new Date('2025-01-01')
-      const christmas = new Date('2025-12-25')
-      
-      // Note: Actual implementation may or may not handle holidays
-      // Adjust expectations based on actual code
-      expect(typeof isDayOff(newYear)).toBe('boolean')
-      expect(typeof isDayOff(christmas)).toBe('boolean')
-    })
-
-    it('should handle leap year dates', () => {
-      const leapDay = new Date('2024-02-29')
-      expect(typeof isDayOff(leapDay)).toBe('boolean')
-    })
+    ;(readWeeklyFromDb as unknown as Mock).mockResolvedValue(weekly)
+    ;(readOverridesFromDb as unknown as Mock).mockResolvedValue(new Map())
+    ;(fetchBusyRanges as unknown as Mock).mockResolvedValue([])
   })
 
-  describe('calculateDaySchedule', () => {
-    it('should return schedule for a working day', () => {
-      const monday = new Date('2025-10-06') // Monday
-      const schedule = calculateDaySchedule(monday)
+  describe('getDaySlots', () => {
+    it('returns non-empty step-aligned slots on a working day', async () => {
+      const { slots } = await getDaySlots(WORKING_DAY, 60, 15, MASTER_ID)
 
-      expect(schedule).toBeDefined()
-      expect(schedule.dayOff).toBe(false)
-      expect(schedule.slots).toBeDefined()
-      expect(Array.isArray(schedule.slots)).toBe(true)
-    })
-
-    it('should return day off schedule for Sunday', () => {
-      const sunday = new Date('2025-10-05') // Sunday
-      const schedule = calculateDaySchedule(sunday)
-
-      expect(schedule).toBeDefined()
-      expect(schedule.dayOff).toBe(true)
-      expect(schedule.slots).toEqual([])
-    })
-
-    it('should include standard working hours', () => {
-      const monday = new Date('2025-10-06')
-      const schedule = calculateDaySchedule(monday)
-
-      // Typical working hours: 9:00 - 18:00
-      if (!schedule.dayOff && schedule.slots.length > 0) {
-        const firstSlot = schedule.slots[0]
-        const lastSlot = schedule.slots[schedule.slots.length - 1]
-
-        expect(firstSlot.startISO).toContain('T09:')
-        expect(lastSlot.endISO).toContain('T18:')
-      }
-    })
-
-    it('should generate slots with correct duration', () => {
-      const monday = new Date('2025-10-06')
-      const schedule = calculateDaySchedule(monday, 60) // 60 min procedure
-
-      if (!schedule.dayOff && schedule.slots.length > 0) {
-        const slot = schedule.slots[0]
+      expect(slots.length).toBeGreaterThan(0)
+      expect(slots[0].startISO).toContain('T09:')
+      for (const slot of slots) {
         const start = new Date(slot.startISO)
         const end = new Date(slot.endISO)
-        const durationMin = (end.getTime() - start.getTime()) / 60000
-
-        expect(durationMin).toBe(60)
+        expect((end.getTime() - start.getTime()) / 60000).toBe(60)
+        expect(start.getMinutes() % 15).toBe(0)
       }
     })
 
-    it('should handle custom procedure duration', () => {
-      const monday = new Date('2025-10-06')
-      const schedule30 = calculateDaySchedule(monday, 30)
-      const schedule90 = calculateDaySchedule(monday, 90)
-
-      // More slots for shorter procedures
-      if (!schedule30.dayOff && !schedule90.dayOff) {
-        expect(schedule30.slots.length).toBeGreaterThan(schedule90.slots.length)
-      }
-    })
-  })
-
-  describe('getAvailableSlots', () => {
-    beforeEach(() => {
-      vi.clearAllMocks()
-    })
-
-    it('should return available slots for a free day', async () => {
-      const monday = new Date('2025-10-06')
-      const busySlots: any[] = [] // No bookings
-
-      const slots = await getAvailableSlots(monday, 60, busySlots)
-
-      expect(Array.isArray(slots)).toBe(true)
-      expect(slots.length).toBeGreaterThan(0)
-    })
-
-    it('should exclude busy time slots', async () => {
-      const monday = new Date('2025-10-06')
-      const busySlots = [
-        {
-          start: '2025-10-06T10:00:00Z',
-          end: '2025-10-06T11:00:00Z',
-        },
-      ]
-
-      const slots = await getAvailableSlots(monday, 60, busySlots)
-
-      // Should not include 10:00-11:00 slot
-      const conflictSlot = slots.find(
-        (s) => s.startISO.includes('T10:00') && s.endISO.includes('T11:00')
-      )
-      expect(conflictSlot).toBeUndefined()
-    })
-
-    it('should handle overlapping busy periods', async () => {
-      const monday = new Date('2025-10-06')
-      const busySlots = [
-        {
-          start: '2025-10-06T09:30:00Z',
-          end: '2025-10-06T10:30:00Z',
-        },
-        {
-          start: '2025-10-06T10:00:00Z',
-          end: '2025-10-06T11:00:00Z',
-        },
-      ]
-
-      const slots = await getAvailableSlots(monday, 60, busySlots)
-
-      expect(Array.isArray(slots)).toBe(true)
-      // Slots between 09:30-11:00 should be excluded
-    })
-
-    it('should return empty array for day off', async () => {
-      const sunday = new Date('2025-10-05')
-      const busySlots: any[] = []
-
-      const slots = await getAvailableSlots(sunday, 60, busySlots)
-
+    it('returns empty for a day-off (Sunday template)', async () => {
+      const { slots } = await getDaySlots(DAY_OFF, 60, 15, MASTER_ID)
       expect(slots).toEqual([])
     })
 
-    it('should handle past dates', async () => {
-      const pastDate = new Date('2024-01-01')
-      const busySlots: any[] = []
-
-      const slots = await getAvailableSlots(pastDate, 60, busySlots)
-
-      // Past dates should return empty or filtered slots
-      expect(Array.isArray(slots)).toBe(true)
+    it('returns empty when masterId is missing', async () => {
+      const { slots } = await getDaySlots(WORKING_DAY, 60, 15, undefined)
+      expect(slots).toEqual([])
+      expect(readWeeklyFromDb).not.toHaveBeenCalled()
     })
 
-    it('should respect procedure duration in availability check', async () => {
-      const monday = new Date('2025-10-06')
-      const busySlots = [
-        {
-          start: '2025-10-06T10:30:00Z',
-          end: '2025-10-06T11:00:00Z',
-        },
-      ]
+    it('excludes a slot overlapping a busy range', async () => {
+      ;(fetchBusyRanges as unknown as Mock).mockResolvedValue([{ start: 10 * 60, end: 11 * 60 }])
 
-      // 60 min procedure starting at 10:00 would overlap with busy 10:30-11:00
-      const slots60 = await getAvailableSlots(monday, 60, busySlots)
-      const slot10am = slots60.find((s) => s.startISO.includes('T10:00'))
+      const { slots } = await getDaySlots(WORKING_DAY, 60, 15, MASTER_ID)
 
-      expect(slot10am).toBeUndefined()
+      const conflicting = slots.find((s) => s.startISO.includes('T10:00'))
+      expect(conflicting).toBeUndefined()
     })
 
-    it('should return slots in chronological order', async () => {
-      const monday = new Date('2025-10-06')
-      const busySlots: any[] = []
+    it('does not start a slot where minDuration would overlap the busy block', async () => {
+      ;(fetchBusyRanges as unknown as Mock).mockResolvedValue([{ start: 10 * 60 + 30, end: 11 * 60 }])
 
-      const slots = await getAvailableSlots(monday, 60, busySlots)
+      const { slots } = await getDaySlots(WORKING_DAY, 60, 15, MASTER_ID)
+
+      // A 60-min slot starting at 10:00 would run until 11:00, overlapping 10:30-11:00 busy.
+      const overlapping = slots.find((s) => s.startISO.includes('T10:00'))
+      expect(overlapping).toBeUndefined()
+    })
+
+    it('returns slots in chronological order', async () => {
+      const { slots } = await getDaySlots(WORKING_DAY, 60, 15, MASTER_ID)
 
       for (let i = 1; i < slots.length; i++) {
         const prevStart = new Date(slots[i - 1].startISO)
         const currStart = new Date(slots[i].startISO)
         expect(currStart.getTime()).toBeGreaterThan(prevStart.getTime())
       }
+    })
+  })
+
+  describe('getAvailableDays', () => {
+    it('marks a working day as hasWindow:true and a day-off as hasWindow:false', async () => {
+      const { days } = await getAvailableDays(DAY_OFF, WORKING_DAY, 60, { masterId: MASTER_ID })
+
+      const sunday = days.find((d: { date: string }) => d.date === DAY_OFF)
+      const monday = days.find((d: { date: string }) => d.date === WORKING_DAY)
+
+      expect(sunday?.hasWindow).toBe(false)
+      expect(monday?.hasWindow).toBe(true)
+    })
+
+    it('returns no days when masterId is missing', async () => {
+      const { days } = await getAvailableDays(DAY_OFF, WORKING_DAY, 60, {})
+      expect(days).toEqual([])
     })
   })
 })

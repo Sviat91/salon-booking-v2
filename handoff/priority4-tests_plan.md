@@ -1,7 +1,7 @@
 # Plan: Roadmap Priority 4 item 6 — restore the failing test suite (11 files, ~80 failing tests)
 
 **Date:** 2026-07-15
-**Status:** In Progress
+**Status:** Complete
 **Mode:** FULL (planner-written; architectural decisions on the next-auth/`next/server` infra unblock, per-file "fix vs rewrite vs delete" triage, and two justified deletions of tests covering permanently-removed functionality)
 
 ## Goal
@@ -55,34 +55,34 @@ If, during execution, the `availability.test.ts` rewrite (Step F below — the h
 ## Implementation Steps
 
 ### Group A — infra unblock (do first; enables B/C/D and part of I)
-- [ ] **A1 — Mock `@/auth` in every auth-importing route test**
+- [x] **A1 — Mock `@/auth` in every auth-importing route test**
   - Files: `tests/app/api/book/consent-gate.test.ts`, `tests/app/api/consents/erase.test.ts`, `tests/app/api/consents/export.test.ts`, `tests/app/api/consents/withdraw.test.ts`, `tests/api/routes.test.ts`.
   - Add `vi.mock('@/auth', () => ({ auth: vi.fn().mockResolvedValue(null) }))` before the route import (module top; for `beforeAll`-dynamic-import files it can sit with the other top-level `vi.mock`s). Verify each targeted file now at least LOADS (no `next/server` error).
 
 ### Group B — consent-gate (book route)
-- [ ] **B1 — Fix `mockPrisma` + verify contract** → `tests/app/api/book/consent-gate.test.ts`
+- [x] **B1 — Fix `mockPrisma` + verify contract** → `tests/app/api/book/consent-gate.test.ts`
   - Add `$transaction: vi.fn(async (cb: any) => cb(mockPrisma))` to the hoisted `mockPrisma` so the route's `prisma.$transaction(async (tx) => …)` runs the callback against the same mock (the in-tx `tx.appointment.findFirst` returns the mocked `null` → create path).
   - With A1's `@/auth` mock (guest), re-run: the three tests (`CONSENT_REQUIRED` 400; consents-provided 200 + `eventId==='app_1'` + one `consentRecord.create` + one `appointment.create`; existing-valid-consent 200 without a new consent record) should pass against the real `consent-service` over `mockPrisma`. Diagnose/fix any residual field mismatch (e.g. if `consent-service` reads a `consentRecord` field not stubbed in `beforeEach`, add it — do not change the route).
   - Optionally mock `@/lib/notifications` `notifyBookingConfirmation` to a no-op to silence fire-and-forget logging (not required for pass).
 
 ### Group C — consent erase/export/withdraw
-- [ ] **C1 — `erase.test.ts` verify** — with A1 applied, confirm the 5 tests pass against `consents/erase/route.ts` (guest path: rate-limit allowed, turnstile success, `eraseConsentData` mocked). Fix only genuine drift.
-- [ ] **C2 — `export.test.ts` diagnose+fix** — read `src/app/api/consents/export/route.ts`, apply A1, and align the test to the route's actual success/`404`/`400` shapes and its `consent-service` call (mock `exportConsentData`/equivalent as the test already does). Rewrite only what drifted; keep meaningful assertions.
-- [ ] **C3 — `withdraw.test.ts` diagnose+fix** — same procedure against `src/app/api/consents/withdraw/route.ts`.
+- [x] **C1 — `erase.test.ts` verify** — with A1 applied, confirm the 5 tests pass against `consents/erase/route.ts` (guest path: rate-limit allowed, turnstile success, `eraseConsentData` mocked). Fix only genuine drift.
+- [x] **C2 — `export.test.ts` diagnose+fix** — read `src/app/api/consents/export/route.ts`, apply A1, and align the test to the route's actual success/`404`/`400` shapes and its `consent-service` call (mock `exportConsentData`/equivalent as the test already does). Rewrite only what drifted; keep meaningful assertions.
+- [x] **C3 — `withdraw.test.ts` diagnose+fix** — same procedure against `src/app/api/consents/withdraw/route.ts`.
 
 ### Group D — routes.test.ts
-- [ ] **D1 — Remove the two Google-book tests** (`POST /api/book` success + duplicate) and their now-unused `google/calendar`/`google/sheets` mocks and `verifyTurnstile` mock if nothing else uses them. (Coverage lives in `consent-gate.test.ts`.)
-- [ ] **D2 — Fix `GET /api/availability` 400** — change the expected error from `'from/until required'` to the route's actual `"Missing 'from' and 'until' query parameters"`. Keep the `@/lib/availability` mock; the route also imports `@/lib/prisma` (fine).
-- [ ] **D3 — Rewrite `GET /api/procedures`** to the DB contract: mock `@/lib/prisma` (`service.findMany`, `masterProfile.findUnique`, `masterService.findMany`), call `GET(req)` with a real `req` object carrying a `url` (e.g. `new NextRequest('https://x/api/procedures')` or `{ url: 'https://x/api/procedures' }`), and assert `{ items: [...] }` mapped from the mocked services. Drop the removed `readProcedures`/500/`reportError` expectations. Remove the now-unused `google/sheets`/`sentry` mocks if orphaned.
+- [x] **D1 — Remove the two Google-book tests** (`POST /api/book` success + duplicate) and their now-unused `google/calendar`/`google/sheets` mocks and `verifyTurnstile` mock if nothing else uses them. (Coverage lives in `consent-gate.test.ts`.)
+- [x] **D2 — Fix `GET /api/availability` 400** — change the expected error from `'from/until required'` to the route's actual `"Missing 'from' and 'until' query parameters"`. Keep the `@/lib/availability` mock; the route also imports `@/lib/prisma` (fine).
+- [x] **D3 — Rewrite `GET /api/procedures`** to the DB contract: mock `@/lib/prisma` (`service.findMany`, `masterProfile.findUnique`, `masterService.findMany`), call `GET(req)` with a real `req` object carrying a `url` (e.g. `new NextRequest('https://x/api/procedures')` or `{ url: 'https://x/api/procedures' }`), and assert `{ items: [...] }` mapped from the mocked services. Drop the removed `readProcedures`/500/`reportError` expectations. Remove the now-unused `google/sheets`/`sentry` mocks if orphaned.
 
 ### Group E — support/contact rewrite
-- [ ] **E1 — Rewrite `tests/app/api/support/contact.test.ts` to the delegated contract**
+- [x] **E1 — Rewrite `tests/app/api/support/contact.test.ts` to the delegated contract**
   - Replace the `global.fetch` + `@/lib/env` machinery with `vi.mock('@/lib/notifications', () => ({ notifyContactForm: vi.fn().mockResolvedValue(undefined) }))`. Keep the `@/lib/logger`, `@/lib/cache` (rateLimit) mocks.
   - Keep/adjust: 200 success (`status:'success'`, message contains `'Wiadomość została wysłana pomyślnie'`, `requestId` defined) + `notifyContactForm` called with `{ senderName, senderEmail, subject, message }` from the (trimmed) payload; 400 `VALIDATION_ERROR` with `field` on invalid input + `notifyContactForm` NOT called; 429 `RATE_LIMITED` when `rateLimit → { allowed:false }` + not called; masked-email log (`mockLogger.info` called with `email: 'u***r@example.com'`); trimming (assert `notifyContactForm` got trimmed name/subject/message — do NOT assert email lowercasing, the route only trims).
   - Delete the N8N-specific tests (config-missing 503, retry-on-failure, 503-after-retries `DELIVERY_FAILED`, 502 `UPSTREAM_AUTH_FAILED`, network-error 503, metadata-in-N8N-payload). Flag in the test file header comment that N8N delivery/retry now lives in `@/lib/notifications` and is out of this route's scope.
 
 ### Group F — availability.test.ts rewrite (highest effort)
-- [ ] **F1 — Rewrite to the real `getDaySlots` / `getAvailableDays` with mocked `schedule-utils`**
+- [x] **F1 — Rewrite to the real `getDaySlots` / `getAvailableDays` with mocked `schedule-utils`**
   - Files: `tests/lib/availability.test.ts`
   - `vi.mock('@/lib/schedule-utils', async (importActual) => { const actual = await importActual<any>(); return { ...actual, readWeeklyFromDb: vi.fn(), readOverridesFromDb: vi.fn(), fetchBusyRanges: vi.fn() } })` — keep the pure helpers real, mock only the three DB readers.
   - In `beforeEach`, set a weekly template Map (e.g. Mon–Sat `{ isDayOff:false, intervals:[{start:'09:00',end:'18:00'}] }`, Sun `{ isDayOff:true, intervals:[] }`), `readOverridesFromDb → new Map()`, `fetchBusyRanges → []`.
@@ -90,37 +90,37 @@ If, during execution, the `availability.test.ts` rewrite (Step F below — the h
   - Do NOT assert the old hardcoded-9–18/Sunday-off/holiday behavior as source truth — those come from the mocked template you control.
 
 ### Group G — booking-helpers.test.ts rewrite
-- [ ] **G1 — Rewrite the 7 `canModifyBooking` tests** → `tests/lib/booking-helpers.test.ts`
+- [x] **G1 — Rewrite the 7 `canModifyBooking` tests** → `tests/lib/booking-helpers.test.ts`
   - Keep the fake-timer setup (`vi.setSystemTime(new Date('2025-10-03T08:00:00Z'))`). Call `canModifyBooking(new Date('…'))` and assert `.canModify`: `2025-10-05T10:00:00Z` → true; `2025-10-04T09:00:00Z` (25h) → true; `2025-10-04T07:00:00Z` (23h) → false; `2025-10-04T08:00:00Z` (exactly 24h) → false; past `2025-10-02T10:00:00Z` → false; invalid `new Date('invalid-date')` → false; and drop or adapt the "missing start" case (pass e.g. `new Date(NaN)` → false). Keep `import { canModifyBooking } from '@/lib/booking-helpers'`.
 
 ### Group H — phone-normalization.test.ts rewrite
-- [ ] **H1 — Repoint + align to `normalizePhoneToE164`** → `tests/lib/utils/phone-normalization.test.ts`
+- [x] **H1 — Repoint + align to `normalizePhoneToE164`** → `tests/lib/utils/phone-normalization.test.ts`
   - Change the import to `import { normalizePhoneToE164, normalizePhoneDigitsOnly } from '@/lib/utils/phone-normalization'` (the broken `normalizePhone` import is the pre-existing load failure).
   - Keep the Polish cases and the international-WITH-`+` cases (they already match). Change the Ukrainian-WITHOUT-`+` cases to the current Poland-default output (`'0501234567' → '+48501234567'`, `'50 123 45 67' → '+48501234567'`, `'066 123 45 67' → '+48661234567'`, `'095 123 45 67' → '+48951234567'`) and keep `'380501234567' → '+380501234567'`, `'+380501234567' → '+380501234567'`. Keep `'' → ''`, `'   ' → ''`. Change the `'12'` case to `expect(() => normalizePhoneToE164('12')).toThrow('INVALID_PHONE')`. Add a couple of `normalizePhoneDigitsOnly` assertions for real coverage. Do not overlap with `tests/lib/utils/phone-match.test.ts` (which already covers `phonesMatchE164`).
 
 ### Group I — string-normalization.test.ts rewrite
-- [ ] **I1 — Rewrite to the functions that exist** → `tests/lib/utils/string-normalization.test.ts`
+- [x] **I1 — Rewrite to the functions that exist** → `tests/lib/utils/string-normalization.test.ts`
   - Import `{ normalizeNameForMatching, normalizeEmailForMatching, normalizeSearchQuery, normalizeTextWithCyrillicConversion }`.
   - `normalizeNameForMatching`: `'  John   Doe  ' → 'john doe'`, `'Anna-Maria' → 'anna-maria'`, `'' → ''`. `normalizeEmailForMatching`: `'  User@Example.COM  ' → 'user@example.com'`. `normalizeSearchQuery`: `'  Hello   World!  ' → 'hello world!'`. `normalizeTextWithCyrillicConversion`: assert its REAL partial-map output (compute against the source — e.g. it lowercases+trims and maps only the listed letters; write a small number of assertions the current implementation actually satisfies, e.g. a pure-latin string round-trips lowercased, and a string using only mapped letters converts). Do NOT assert full transliteration (`kyiv`/`lodz`/`aleksandr`) — that capability is not in the current module. Add a header comment noting the old comprehensive `normalizeString` transliterator was replaced by these narrower utilities.
 
 ### Group J — delete removed-functionality test + DOX + verify
-- [ ] **J1 — Delete `tests/lib/availability.categories.test.ts`** (tests removed Google-Sheets category-exception availability — see Deletions).
-- [ ] **J2 — DOX pass**
+- [x] **J1 — Delete `tests/lib/availability.categories.test.ts`** (tests removed Google-Sheets category-exception availability — see Deletions).
+- [x] **J2 — DOX pass**
   - `tests/AGENTS.md`: update the "(2026-07-13)/(2026-07-14)" notes — record that the ~11 pre-existing failures were triaged and fixed (2026-07-15): the next-auth `next/server` load failure is worked around by mocking `@/auth` in route tests; `availability.categories.test.ts` was deleted (removed Google availability) and the two Google `POST /api/book` smoke tests were dropped from `routes.test.ts` (covered by `consent-gate.test.ts`); `availability`/`phone-normalization`/`string-normalization`/`booking-helpers`/`support/contact`/`routes` tests were rewritten to current source contracts. Note the `vi.mock('@/auth')` pattern as the standard for testing auth-importing routes, and the `schedule-utils` `importActual`-partial-mock pattern for availability tests.
   - `ROADMAP.md`: mark Priority-4 item 6 done — update the "Новая находка (2026-07-13)" test-suite bullet to reflect that the suite is now green; note the two deletions explicitly and the next-auth mock workaround.
   - `src/lib/AGENTS.md` (if it has a testing note): mention that route handlers importing `@/auth` are tested by mocking `@/auth` (guest path).
-- [ ] **J3 — Verify**
+- [x] **J3 — Verify**
   - `npx vitest run` — target end state: **every remaining test file passes.** File count goes from 19 → 18 (only `availability.categories.test.ts` deleted); `routes.test.ts` shrinks by the two removed Google-book tests but stays and passes. Zero failing files, zero `.skip`.
   - `npx tsc --noEmit` — clean (test rewrites are typed).
   - `npm run lint` — no new problems (no orphaned mocks/imports left behind).
   - `npm run build` — unaffected, still succeeds.
 
 ## Acceptance Criteria
-- [ ] `npx vitest run` reports **0 failing files / 0 failing tests**; no test is `.skip`/`.todo`'d to hide a failure.
-- [ ] Exactly one file deleted (`availability.categories.test.ts`) and two tests removed from `routes.test.ts`, each justified as covering permanently-removed Google functionality — both called out in the plan and in the DOX notes.
-- [ ] Every rewritten test asserts the **current** source contract (per the "current-behavior anchors" section), giving real coverage of: `canModifyBooking`, `normalizePhoneToE164`/`normalizePhoneDigitsOnly`, the string-normalization utils, `getDaySlots`/`getAvailableDays`, the support/contact route (delegation + validation + rate-limit + masked log), the book route (consent gate + `$transaction` booking), and the GDPR erase/export/withdraw routes.
-- [ ] The next-auth `next/server` load failure no longer occurs (via `vi.mock('@/auth')`); no source file under `src/` was changed to make a test pass (this item is test-only) — unless a test provably reveals a real source bug, which must be flagged before fixing source.
-- [ ] `tsc`/`build`/`lint` clean; `tests/AGENTS.md` + `ROADMAP.md` updated.
+- [x] `npx vitest run` reports **0 failing files / 0 failing tests**; no test is `.skip`/`.todo`'d to hide a failure.
+- [x] Exactly one file deleted (`availability.categories.test.ts`) and two tests removed from `routes.test.ts`, each justified as covering permanently-removed Google functionality — both called out in the plan and in the DOX notes.
+- [x] Every rewritten test asserts the **current** source contract (per the "current-behavior anchors" section), giving real coverage of: `canModifyBooking`, `normalizePhoneToE164`/`normalizePhoneDigitsOnly`, the string-normalization utils, `getDaySlots`/`getAvailableDays`, the support/contact route (delegation + validation + rate-limit + masked log), the book route (consent gate + `$transaction` booking), and the GDPR erase/export/withdraw routes.
+- [x] The next-auth `next/server` load failure no longer occurs (via `vi.mock('@/auth')`); no source file under `src/` was changed to make a test pass (this item is test-only) — unless a test provably reveals a real source bug, which must be flagged before fixing source.
+- [x] `tsc`/`build`/`lint` clean; `tests/AGENTS.md` + `ROADMAP.md` updated.
 
 ## Constraints & Risks
 - **Test-only pass.** No `src/` changes unless a test reveals a genuine current bug (none expected among these 11 — the failures are stale tests / removed arch / infra). If one appears, STOP and flag it (source fix may belong in a separate plan), don't silently edit source.

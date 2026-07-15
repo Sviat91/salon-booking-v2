@@ -26,6 +26,10 @@ vi.mock("../../../../src/lib/consent-service", () => ({
   eraseConsentData: (...args: unknown[]) => eraseConsentData(...args),
 }))
 
+vi.mock("@/auth", () => ({
+  auth: vi.fn().mockResolvedValue(null),
+}))
+
 let postHandler: (req: Request) => Promise<Response>
 
 describe("POST /api/consents/erase", () => {

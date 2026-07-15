@@ -2,8 +2,8 @@
 
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { mockPrisma } = vi.hoisted(() => ({
-  mockPrisma: {
+const { mockPrisma } = vi.hoisted(() => {
+  const mockPrisma: any = {
     consentRecord: {
       findMany: vi.fn(),
       create: vi.fn(),
@@ -14,6 +14,7 @@ const { mockPrisma } = vi.hoisted(() => ({
     },
     user: {
       findUnique: vi.fn(),
+      findFirst: vi.fn(),
       create: vi.fn(),
       update: vi.fn(),
     },
@@ -21,11 +22,17 @@ const { mockPrisma } = vi.hoisted(() => ({
       findFirst: vi.fn(),
       create: vi.fn(),
     },
-  },
-}))
+  }
+  mockPrisma.$transaction = vi.fn(async (cb: any) => cb(mockPrisma))
+  return { mockPrisma }
+})
 
 vi.mock('@/lib/prisma', () => ({
   default: mockPrisma,
+}))
+
+vi.mock('@/auth', () => ({
+  auth: vi.fn().mockResolvedValue(null),
 }))
 
 import { POST } from '../../../../src/app/api/book/route'
@@ -58,6 +65,7 @@ describe('POST /api/book consent gate', () => {
     mockPrisma.appointment.create.mockResolvedValue({ id: 'app_1' })
 
     mockPrisma.user.findUnique.mockResolvedValue(null)
+    mockPrisma.user.findFirst.mockResolvedValue(null)
     mockPrisma.user.create.mockResolvedValue({
       id: 'user_1',
       name: baseBody.name,

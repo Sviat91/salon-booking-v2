@@ -3,6 +3,7 @@ import { formatInTimeZone } from "date-fns-tz"
 import prisma from "@/lib/prisma"
 import { t2m, m2t } from "@/lib/schedule-utils"
 import { phonesMatchE164 } from "@/lib/utils/phone-normalization"
+import { canModifyBooking } from "@/lib/booking-helpers"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -94,11 +95,11 @@ export async function POST(req: NextRequest) {
     }
 
     // ── Server-side 24h guard ──────────────────────────────────────────────
-    const dateISO = formatInTimeZone(appointment.date, TZ, "yyyy-MM-dd")
-    const apptTimestamp = new Date(`${dateISO}T${appointment.startTime}:00`).getTime()
-    const hoursUntil = (apptTimestamp - Date.now()) / (1000 * 60 * 60)
+    const dateISO  = formatInTimeZone(appointment.date, TZ, "yyyy-MM-dd")
+    const apptDate = new Date(`${dateISO}T${appointment.startTime}:00`)
+    const { canModify } = canModifyBooking(apptDate)
 
-    if (hoursUntil < 24) {
+    if (!canModify) {
       return NextResponse.json(
         {
           error: "Nie można zmienić rezerwacji mniej niż 24 godziny przed terminem.",

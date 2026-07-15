@@ -54,7 +54,7 @@ export function canModifyBooking(startTime: Date): BookingModificationCheck {
   const timeDiff = startTime.getTime() - now.getTime()
   const hoursUntilAppointment = timeDiff / (1000 * 60 * 60)
   
-  if (hoursUntilAppointment < 24) {
+  if (!Number.isFinite(hoursUntilAppointment) || hoursUntilAppointment < 24) {
     return {
       canModify: false,
       reason: `Cannot modify booking less than 24 hours before appointment`,

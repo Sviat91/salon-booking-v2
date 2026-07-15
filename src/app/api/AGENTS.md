@@ -25,4 +25,5 @@ Request parsing, auth/role checks, and response shaping. Business logic (availab
 ## Verification
 
 - `npm run test` — route-level tests live in `tests/app/api/` mirroring this tree, see [../../../tests/AGENTS.md](../../../tests/AGENTS.md).
+- Any route handler that imports `@/auth` needs `vi.mock('@/auth', () => ({ auth: vi.fn().mockResolvedValue(null) }))` in its test file (targets the guest path) — otherwise Vitest's `node` environment fails to resolve next-auth's internal `next/server` import.
 - `npm run lint` (zero warnings).
