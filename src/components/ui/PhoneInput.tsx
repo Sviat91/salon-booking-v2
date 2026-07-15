@@ -189,7 +189,7 @@ export default function PhoneInput({
     <div className="relative w-full max-w-full box-border" ref={dropdownRef}>
       <div className="flex w-full max-w-full">
         {/* Country selector */}
-        <div className="flex items-center gap-2 px-3 py-2 rounded-l-xl border border-r-0 border-border bg-transparent text-foreground dark:border-dark-border transition-all duration-200">
+        <div className="flex items-center gap-2 px-3 py-2 rounded-l-xl border border-r-0 border-border bg-transparent text-foreground transition-all duration-200">
           <span className="text-lg">{isCustomMode ? '🌍' : selectedCountry?.flag}</span>
           
           {isCustomMode ? (
@@ -201,10 +201,10 @@ export default function PhoneInput({
               onFocus={handleCodeFocus}
               onBlur={handleFieldBlur}
               placeholder="+ kod kraju"
-              className="country-code-input w-20 text-sm font-medium dark:text-dark-text dark:placeholder-dark-muted bg-transparent border-none outline-none"
+              className="country-code-input w-20 text-sm font-medium dark:placeholder-dark-muted bg-transparent border-none outline-none"
             />
           ) : (
-            <span className="text-sm font-medium dark:text-dark-text">
+            <span className="text-sm font-medium">
               {selectedCountry?.phoneCode}
             </span>
           )}
@@ -235,8 +235,8 @@ export default function PhoneInput({
           placeholder={placeholder}
           disabled={disabled}
           className={`
-            flex-1 min-w-0 px-3 py-2 rounded-r-xl border border-border 
-            bg-transparent text-foreground dark:border-dark-border 
+            flex-1 min-w-0 px-3 py-2 rounded-r-xl border border-border
+            bg-transparent text-foreground
             dark:placeholder-dark-muted
             focus:outline-none focus:ring-2 focus:ring-primary/20
             transition-all duration-200 box-border
@@ -249,7 +249,7 @@ export default function PhoneInput({
       {/* Dropdown */}
       {isOpen && (
         <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-card border border-border rounded-xl shadow-lg max-h-60 overflow-hidden max-w-full">
-          <div className="p-2 border-b border-border dark:border-dark-border">
+          <div className="p-2 border-b border-border">
             <input
               type="text"
               value={searchQuery}
@@ -270,14 +270,14 @@ export default function PhoneInput({
                   w-full flex items-center gap-3 px-3 py-2 text-left 
                   transition-colors duration-150
                   ${selectedCountry?.code === country.code
-                    ? 'bg-primary/30 dark:bg-primary/30 hover:bg-primary/40 dark:hover:bg-primary/40' 
+                    ? 'bg-primary/30 hover:bg-primary/40'
                     : 'hover:bg-primary/60 dark:hover:bg-dark-border/60'
                   }
                 `}
               >
                 <span className="text-lg">{country.flag}</span>
                 <div className="flex-1">
-                  <div className="text-sm font-medium dark:text-dark-text">{country.name}</div>
+                  <div className="text-sm font-medium">{country.name}</div>
                   <div className="text-xs text-gray-500 dark:text-dark-muted">{country.phoneCode}</div>
                 </div>
                 {selectedCountry?.code === country.code && (
@@ -293,16 +293,16 @@ export default function PhoneInput({
               onClick={handleCustomCodeSelect}
               className={`
                 w-full flex items-center gap-3 px-3 py-2 text-left 
-                transition-colors duration-150 border-t border-border dark:border-dark-border
-                ${isCustomMode 
-                  ? 'bg-primary/30 dark:bg-primary/30 hover:bg-primary/40 dark:hover:bg-primary/40' 
+                transition-colors duration-150 border-t border-border
+                ${isCustomMode
+                  ? 'bg-primary/30 hover:bg-primary/40'
                   : 'hover:bg-primary/60 dark:hover:bg-dark-border/60'
                 }
               `}
             >
               <span className="text-lg">🌍</span>
               <div className="flex-1">
-                <div className="text-sm font-medium dark:text-dark-text">Inny kraj</div>
+                <div className="text-sm font-medium">Inny kraj</div>
                 <div className="text-xs text-gray-500 dark:text-dark-muted">Wprowadź kod ręcznie</div>
               </div>
               {isCustomMode && (

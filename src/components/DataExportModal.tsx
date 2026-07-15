@@ -6,131 +6,13 @@ import { useCurrentLanguage } from "@/contexts/LanguageContext";
 import PhoneInput from "./ui/PhoneInput";
 import { clientLog } from "@/lib/client-logger";
 import { useSession } from "next-auth/react";
-
-type ModalState =
-  | "idle"
-  | "loading"
-  | "success"
-  | "not-found"
-  | "error";
+import type { ModalState, ApiError, UserDataExport } from "./data-export/types";
+import { generateRequestId, generateCSV, generateJSON, downloadFile } from "./data-export/exportFormat";
+import ExportResultView from "./data-export/ExportResultView";
 
 type DataExportModalProps = {
   isOpen: boolean;
   onClose: () => void;
-};
-
-interface ApiError {
-  error: string;
-  code?: string;
-  hints?: string[];
-}
-
-interface UserDataExport {
-  personalData: {
-    name: string;
-    phone: string;
-    email?: string;
-  };
-  consentHistory: {
-    consentDate: string;
-    ipHash: string;
-    privacyV10: boolean;
-    termsV10: boolean;
-    notificationsV10: boolean;
-    withdrawnDate?: string;
-    withdrawalMethod?: string;
-  }[];
-  isAnonymized: boolean;
-  exportTimestamp: string;
-}
-
-const generateRequestId = () => {
-  if (typeof window !== "undefined" && window.crypto?.randomUUID) {
-    return window.crypto.randomUUID();
-  }
-  return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-};
-
-const formatDate = (dateString: string) => {
-  try {
-    const date = new Date(dateString);
-    return date.toLocaleString('pl-PL', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  } catch {
-    return dateString;
-  }
-};
-
-const generateCSV = (data: UserDataExport): string => {
-  const rows = [
-    ['Typ danych', 'Wartość', 'Data'],
-    ['Imię i nazwisko', data.personalData.name, data.exportTimestamp],
-    ['Telefon', data.personalData.phone, data.exportTimestamp],
-    ['E-mail', data.personalData.email || 'Brak', data.exportTimestamp],
-    ['', '', ''], // Empty row
-    ['Historia zgód', '', ''],
-  ];
-
-  data.consentHistory.forEach((consent, index) => {
-    rows.push([
-      `Zgoda ${index + 1} - Data udzielenia`, 
-      formatDate(consent.consentDate), 
-      consent.consentDate
-    ]);
-    rows.push([
-      `Zgoda ${index + 1} - Polityka Prywatności v1.0`, 
-      consent.privacyV10 ? 'Wyrażono' : 'Nie wyrażono', 
-      consent.consentDate
-    ]);
-    rows.push([
-      `Zgoda ${index + 1} - Warunki Korzystania v1.0`, 
-      consent.termsV10 ? 'Wyrażono' : 'Nie wyrażono', 
-      consent.consentDate
-    ]);
-    rows.push([
-      `Zgoda ${index + 1} - Powiadomienia`, 
-      consent.notificationsV10 ? 'Wyrażono' : 'Nie wyrażono', 
-      consent.consentDate
-    ]);
-    if (consent.withdrawnDate) {
-      rows.push([
-        `Zgoda ${index + 1} - Data wycofania`, 
-        formatDate(consent.withdrawnDate), 
-        consent.withdrawnDate
-      ]);
-      rows.push([
-        `Zgoda ${index + 1} - Sposób wycofania`, 
-        consent.withdrawalMethod || 'Nieznany', 
-        consent.withdrawnDate
-      ]);
-    }
-    rows.push(['', '', '']); // Empty row between consents
-  });
-
-  return rows.map(row => 
-    row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')
-  ).join('\n');
-};
-
-const generateJSON = (data: UserDataExport): string => {
-  return JSON.stringify(data, null, 2);
-};
-
-const downloadFile = (content: string, filename: string, mimeType: string) => {
-  const blob = new Blob([content], { type: mimeType });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
 };
 
 export default function DataExportModal({
@@ -386,67 +268,12 @@ export default function DataExportModal({
         </div>
 
         {state === "success" && exportData ? (
-          <div className="space-y-5">
-            <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-800 dark:border-emerald-500/40 dark:bg-emerald-900/30 dark:text-emerald-100">
-              <h3 className="flex items-center gap-2 text-lg font-semibold">
-                <span aria-hidden="true">✓</span>
-                {t('gdpr.export.successTitle')}
-              </h3>
-              
-              <div className="mt-4 space-y-4 text-sm">
-                <p>Dane zostały wyeksportowane: {formatDate(exportData.exportTimestamp)}</p>
-                
-                <div className="border-t border-emerald-300/50 pt-4">
-                  <h4 className="font-semibold mb-2">📋 DANE OSOBOWE</h4>
-                  <div className="space-y-1">
-                    <div><strong>Imię i nazwisko:</strong> {exportData.personalData.name}</div>
-                    <div><strong>Numer telefonu:</strong> {exportData.personalData.phone}</div>
-                    <div><strong>Adres e-mail:</strong> {exportData.personalData.email || 'Brak'}</div>
-                  </div>
-                </div>
-                
-                <div className="border-t border-emerald-300/50 pt-4">
-                  <h4 className="font-semibold mb-2">🔒 HISTORIA ZGÓD</h4>
-                  {exportData.consentHistory.map((consent, index) => (
-                    <div key={index} className="mb-3 p-2 bg-emerald-100/50 rounded">
-                      <div><strong>Zgoda udzielona:</strong> {formatDate(consent.consentDate)}</div>
-                      <div>• Polityka Prywatności v1.0: {consent.privacyV10 ? '✅ Wyrażono' : '❌ Nie wyrażono'}</div>
-                      <div>• Warunki Korzystania v1.0: {consent.termsV10 ? '✅ Wyrażono' : '❌ Nie wyrażono'}</div>
-                      <div>• Powiadomienia: {consent.notificationsV10 ? '✅ Wyrażono' : '❌ Nie wyrażono'}</div>
-                      {consent.withdrawnDate && (
-                        <div className="mt-1 text-orange-700">
-                          <strong>Wycofano:</strong> {formatDate(consent.withdrawnDate)} ({consent.withdrawalMethod})
-                        </div>
-                      )}
-                      <div><strong>Adres IP (zamaskowany):</strong> {consent.ipHash}</div>
-                    </div>
-                  ))}
-                </div>
-                
-                <div className="border-t border-emerald-300/50 pt-4">
-                  <p><strong>ⓘ</strong> To wszystkie dane osobowe które nam przekazałeś/aś i które przechowujemy w naszym systemie.</p>
-                </div>
-              </div>
-            </div>
-            
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <button 
-                onClick={handleDownloadCSV}
-                className="btn btn-outline flex-1"
-              >
-                Pobierz jako plik CSV
-              </button>
-              <button 
-                onClick={handleDownloadJSON}
-                className="btn btn-outline flex-1"
-              >
-                Pobierz jako plik JSON
-              </button>
-              <button className="btn btn-primary flex-1" onClick={handleClose}>
-                Zamknij
-              </button>
-            </div>
-          </div>
+          <ExportResultView
+            exportData={exportData}
+            onDownloadCSV={handleDownloadCSV}
+            onDownloadJSON={handleDownloadJSON}
+            onClose={handleClose}
+          />
         ) : (
           <form className="space-y-5" onSubmit={handleSubmit}>
             {!isAuth && (

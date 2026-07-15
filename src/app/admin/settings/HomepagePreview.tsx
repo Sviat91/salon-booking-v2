@@ -30,6 +30,7 @@ export default function HomepagePreview({
 }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [scale, setScale] = useState(0.25)
+  const [isDark, setIsDark] = useState(() => typeof document !== 'undefined' && document.documentElement.classList.contains('dark'))
 
   useEffect(() => {
     const el = containerRef.current
@@ -40,6 +41,13 @@ export default function HomepagePreview({
     })
     observer.observe(el)
     return () => observer.disconnect()
+  }, [])
+
+  useEffect(() => {
+    const el = document.documentElement
+    const obs = new MutationObserver(() => setIsDark(el.classList.contains('dark')))
+    obs.observe(el, { attributes: true, attributeFilter: ['class'] })
+    return () => obs.disconnect()
   }, [])
 
   const scaledLogoW = Math.round(logoWidth * scale)
@@ -53,6 +61,7 @@ export default function HomepagePreview({
       style={{ height: containerHeight || visibleHeight }}
     >
       <iframe
+        key={isDark ? 'preview-dark' : 'preview-light'}
         src="/?preview=1"
         title="Homepage preview"
         className="origin-top-left pointer-events-none"
