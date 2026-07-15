@@ -5,7 +5,7 @@
  * Pure function, no React/i18next dependency — safe to call from non-React modules
  * (e.g. `bookingManagementApi.ts`). Callers render the result with `t()`.
  */
-const KNOWN_ERROR_CODES = new Set([
+export const KNOWN_ERROR_CODES = new Set([
   'VALIDATION_ERROR',
   'INVALID_PAYLOAD',
   'RATE_LIMITED',

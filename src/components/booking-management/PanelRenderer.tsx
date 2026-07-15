@@ -1,5 +1,6 @@
 "use client"
 import { type ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 import SearchPanel from './SearchPanel'
 import LoadingPanel from './LoadingPanel'
 import ResultsPanel from './ResultsPanel'
@@ -88,6 +89,7 @@ interface PanelRendererProps {
 }
 
 export default function PanelRenderer(props: PanelRendererProps) {
+  const { t } = useTranslation()
   const {
     state,
     form,
@@ -408,7 +410,7 @@ export default function PanelRenderer(props: PanelRendererProps) {
         <ProcedureChangeErrorPanel
           booking={selectedBooking}
           newProcedure={selectedProcedure}
-          errorMessage={procedureChangeError ?? 'Wystąpił nieznany błąd.'}
+          errorMessage={procedureChangeError ?? t('errors.generic')}
           onRetry={() => {
             // Вернуться к edit-procedure для повторной попытки
             onEditSelectionBack()

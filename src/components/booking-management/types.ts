@@ -55,6 +55,9 @@ export interface ExtensionCheckResult {
   suggestedEndISO?: string
   shiftMinutes?: number
   reason?: string
+  // Stable code for `reason`, safe to switch on for i18n mapping (see
+  // EditProcedurePanel.tsx) — `reason` itself is a dev-only Polish string.
+  reasonCode?: 'NEXT_BOOKING_CONFLICT' | 'OUTSIDE_WORKING_HOURS'
   alternativeSlots?: Array<{ startISO: string; endISO: string }>
 }
 

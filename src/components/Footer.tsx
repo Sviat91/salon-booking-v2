@@ -1,10 +1,20 @@
 "use client"
 import Link from 'next/link'
+import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
+
+type BrandConfig = {
+  brandName: string
+}
 
 export default function Footer() {
   const { t } = useTranslation()
-  
+  const { data: config } = useQuery<BrandConfig>({
+    queryKey: ['tenant-config'],
+    queryFn: () => fetch('/api/tenant-config').then(r => r.json() as Promise<BrandConfig>),
+    staleTime: 60 * 60 * 1000,
+  })
+
   return (
     <footer className="py-3">
       <div className="mx-auto max-w-5xl px-6">
@@ -31,7 +41,7 @@ export default function Footer() {
               {t('support.title')}
             </Link>
             <span className="mx-4">|</span>
-            <span>{t('footer.copyright', '© 2025 Somique Beauty. Wszystkie prawa zastrzeżone.')}</span>
+            <span>{t('footer.copyright', { year: new Date().getFullYear(), brandName: config?.brandName || 'Salon Booking' })}</span>
           </div>
         </div>
       </div>

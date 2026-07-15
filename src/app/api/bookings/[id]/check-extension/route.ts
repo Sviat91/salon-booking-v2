@@ -137,6 +137,7 @@ export async function POST(
       endMinutes: number
       shiftMinutes: number
       reason: string
+      reasonCode: 'NEXT_BOOKING_CONFLICT' | 'OUTSIDE_WORKING_HOURS'
     } | null = null
 
     // Try shifting back in 15-minute increments (15 → 120)
@@ -157,12 +158,14 @@ export async function POST(
         const reason = isConflict
           ? "konflikt z kolejną rezerwacją"
           : "poza godzinami pracy"
+        const reasonCode = isConflict ? "NEXT_BOOKING_CONFLICT" : "OUTSIDE_WORKING_HOURS"
 
         suggested = {
           startMinutes: shiftedStart,
           endMinutes: shiftedEnd,
           shiftMinutes: shiftMin,
           reason,
+          reasonCode,
         }
         break // first valid shift = minimal shift
       }
@@ -183,6 +186,7 @@ export async function POST(
           status: "can_shift_back",
           message: "Nie można wydłużyć w aktualnym terminie",
           reason: suggested.reason,
+          reasonCode: suggested.reasonCode,
           suggestedStartISO: buildISO(dateISO, m2t(suggested.startMinutes)),
           suggestedEndISO: buildISO(dateISO, m2t(suggested.endMinutes)),
           shiftMinutes: suggested.shiftMinutes,

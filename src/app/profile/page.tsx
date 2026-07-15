@@ -12,6 +12,8 @@ import { signOut } from "next-auth/react"
 import Link from "next/link"
 import LinkBookingsCard from "@/components/profile/LinkBookingsCard"
 import EditAppointmentModal, { type EditableAppointment } from "@/components/profile/EditAppointmentModal"
+import { useCurrentLanguage } from "@/contexts/LanguageContext"
+import { localeFor } from "@/lib/i18n"
 
 type AppointmentData = EditableAppointment & {
   status: string
@@ -39,6 +41,7 @@ function canModifyLocally(appointment: AppointmentData) {
 
 export default function ProfilePage() {
   const { t } = useTranslation()
+  const language = useCurrentLanguage()
   const router = useRouter()
   const [showPast, setShowPast] = useState(false)
   const [editingAppointment, setEditingAppointment] = useState<AppointmentData | null>(null)
@@ -72,7 +75,7 @@ export default function ProfilePage() {
 
   const formatDate = (dateStr: string) => {
     const d = new Date(dateStr)
-    return d.toLocaleDateString("ru-RU", {
+    return d.toLocaleDateString(localeFor(language), {
       day: "numeric",
       month: "long",
       year: "numeric",

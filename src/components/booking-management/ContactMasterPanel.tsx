@@ -5,6 +5,8 @@ import PhoneInput from '../ui/PhoneInput'
 import { Textarea } from '@/components/ui/textarea'
 import { clientLog } from '@/lib/client-logger'
 import { useSelectedMaster } from '@/contexts/MasterContext'
+import { ApiError } from './api/bookingManagementApi'
+import { apiErrorKey } from '@/lib/errors/apiErrorKey'
 
 interface ContactMasterPanelProps {
   onBack: () => void
@@ -62,16 +64,15 @@ export default function ContactMasterPanel({ onBack, onSuccess }: ContactMasterP
       clientLog.info('Response data:', data)
       
       if (!response.ok) {
-        const errorMsg = data.error || `Błąd serwera: ${response.status}`
-        throw new Error(errorMsg)
+        throw new ApiError(data.error ?? '', data.code)
       }
-      
+
       // Success
       clientLog.info('Contact form sent successfully')
       onSuccess()
-    } catch (err: any) {
+    } catch (err: unknown) {
       clientLog.error('Failed to send message to master:', err)
-      setError(err.message || 'Wystąpił błąd podczas wysyłania wiadomości')
+      setError(t(apiErrorKey(err instanceof ApiError ? err.code : undefined)))
     } finally {
       setIsSubmitting(false)
     }

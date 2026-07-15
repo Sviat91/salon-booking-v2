@@ -98,29 +98,8 @@ export default function HomeClient({ initialReviews, config, isPreview }: HomeCl
         </div>
       )}
 
-      {showLogo && !(config.logoUrl || config.darkLogoUrl) && (
-        <div className="absolute left-4 top-4 z-10 hidden lg:block">
-          <Image
-            src="/head_logo.png"
-            alt="Logo"
-            width={242}
-            height={97}
-            className="h-auto dark:hidden"
-            priority
-          />
-          <Image
-            src="/head_logo_night.png"
-            alt="Logo"
-            width={242}
-            height={97}
-            className="h-auto hidden dark:block"
-            priority
-          />
-        </div>
-      )}
-
       <div className="block lg:hidden pt-6 pb-2 px-4 text-center">
-        {config.logoUrl ? (
+        {config.logoUrl && (
           <>
             <Image
               src={logoSrc}
@@ -135,25 +114,6 @@ export default function HomeClient({ initialReviews, config, isPreview }: HomeCl
               alt={brandName}
               width={160}
               height={64}
-              className="h-auto max-w-[160px] sm:max-w-[180px] mx-auto hidden dark:block"
-              priority
-            />
-          </>
-        ) : (
-          <>
-            <Image
-              src="/head_logo.png"
-              alt="Logo"
-              width={200}
-              height={80}
-              className="h-auto max-w-[160px] sm:max-w-[180px] mx-auto dark:hidden"
-              priority
-            />
-            <Image
-              src="/head_logo_night.png"
-              alt="Logo"
-              width={200}
-              height={80}
               className="h-auto max-w-[160px] sm:max-w-[180px] mx-auto hidden dark:block"
               priority
             />

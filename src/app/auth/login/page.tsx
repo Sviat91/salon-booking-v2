@@ -2,17 +2,22 @@ import { Suspense } from "react"
 import { Metadata } from "next"
 import LoginForm from "@/components/auth/LoginForm"
 import { SocialLoginButtons } from "@/components/auth/SocialLoginButtons"
+import { AuthFooterLinks } from "@/components/auth/AuthFooterLinks"
+import { BrandNameDisplay } from "@/components/auth/BrandNameDisplay"
 import Link from "next/link"
 import prisma from "@/lib/prisma"
 
-export const metadata: Metadata = {
-  title: "Login | Somique Beauty",
-  description: "Login to your account",
+export async function generateMetadata(): Promise<Metadata> {
+  const config = await prisma.tenantConfig.findFirst()
+  return {
+    title: `Login | ${config?.brandName || 'Salon Booking'}`,
+    description: "Login to your account",
+  }
 }
 
 export default async function LoginPage() {
   const config = await prisma.tenantConfig.findFirst()
-  
+
   const providers = {
     google: !!(config?.googleClientId && config?.googleClientSecret),
     apple: !!(config?.appleClientId && config?.applePrivateKey),
@@ -28,15 +33,9 @@ export default async function LoginPage() {
         <div className="flex flex-col items-center text-center">
           <Link href="/" className="inline-block mb-6">
             <span className="font-bold text-2xl tracking-tight text-primary">
-              Somique <span className="opacity-70 font-light">beauty</span>
+              <BrandNameDisplay brandName={config?.brandName || 'Salon Booking'} />
             </span>
           </Link>
-          <h2 className="text-2xl font-normal tracking-tight text-foreground">
-            Welcome Back
-          </h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Sign in to book appointments or manage your salon.
-          </p>
         </div>
 
         {/* LoginForm uses useSearchParams() — requires Suspense boundary */}
@@ -46,20 +45,7 @@ export default async function LoginPage() {
 
         <SocialLoginButtons providers={providers} />
 
-        <div className="flex flex-col space-y-4 text-center mt-6">
-          <Link
-            href="/auth/register"
-            className="text-sm font-medium text-primary hover:underline transition-colors"
-          >
-            Don&apos;t have an account? Sign up
-          </Link>
-          <Link
-            href="/"
-            className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
-          >
-            &larr; Back to Salon
-          </Link>
-        </div>
+        <AuthFooterLinks variant="login" />
       </div>
     </div>
   )

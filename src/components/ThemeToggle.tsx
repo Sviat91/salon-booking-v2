@@ -1,8 +1,10 @@
 "use client"
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
+import { useTranslation } from 'react-i18next'
 
 export default function ThemeToggle() {
+  const { t } = useTranslation()
   const [isDark, setIsDark] = useState(false)
 
   // Синхронизируем состояние с уже установленной темой
@@ -30,11 +32,11 @@ export default function ThemeToggle() {
     <button
       onClick={toggleTheme}
       className="p-2 hover:opacity-80 transition-opacity duration-300"
-      aria-label={isDark ? 'Переключить на светлую тему' : 'Переключить на темную тему'}
+      aria-label={isDark ? t('theme.switchToLight') : t('theme.switchToDark')}
     >
       <Image
         src={isDark ? '/dark.png' : '/light.png'}
-        alt={isDark ? 'Светлая тема' : 'Темная тема'}
+        alt={isDark ? t('theme.switchToLight') : t('theme.switchToDark')}
         width={48}
         height={48}
         className="h-12 w-12"

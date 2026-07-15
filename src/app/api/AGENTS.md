@@ -16,6 +16,7 @@ Request parsing, auth/role checks, and response shaping. Business logic (availab
 - Mutations to procedures or schedule data must invalidate both cache layers per `src/lib/cache.ts` (`procedures:v2:<masterId>`, `availability:<masterId>:<dates>`) — see [../../lib/AGENTS.md](../../lib/AGENTS.md).
 - `cron/reminders` is invoked by an external scheduler, not a user — don't add session-based auth to it; check its existing token/secret guard before changing.
 - Booking mutation routes (`book`, `bookings/update-time`, `bookings/[id]`) wrap their conflict re-check + write in a single `prisma.$transaction` to close the double-booking race window — there is no DB-level uniqueness constraint (an overlapping-range conflict check can't be expressed as a unique index). Guest/client ownership verification across all booking routes (`cancel`, `update-time`, `update-procedure`, `bookings/[id]`, `bookings/all`) is full-E.164 phone comparison via `phonesMatchE164()`, not last-9-digits.
+- `bookings/[id]/check-extension`'s `can_shift_back` result includes both `reason` (a Polish dev-diagnostic string) and `reasonCode` (`'NEXT_BOOKING_CONFLICT' | 'OUTSIDE_WORKING_HOURS'`) — the client (`EditProcedurePanel.tsx`) switches on `reasonCode` for i18n, never on `reason`. Add new codes to this union (both here and in `src/components/booking-management/types.ts`'s `ExtensionCheckResult`) rather than reintroducing string-matching on `reason`.
 
 ## Work Guidance
 

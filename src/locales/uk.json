@@ -18,7 +18,28 @@
     "resetPasswordMismatch": "Паролі не збігаються.",
     "resetPasswordTooShort": "Пароль має містити щонайменше 6 символів.",
     "requestNewLink": "Запитати нове посилання",
-    "backToLogin": "Повернутися до входу"
+    "backToLogin": "Повернутися до входу",
+    "autoLoginFailed": "Не вдалося автоматично увійти. Будь ласка, увійдіть вручну.",
+    "createAccount": "Створити обліковий запис",
+    "invalidCredentials": "Невірна електронна пошта або пароль",
+    "login": "Увійти",
+    "loginError": "Виникла помилка. Спробуйте ще раз.",
+    "passwordsDoNotMatch": "Паролі не збігаються",
+    "registrationError": "Виникла помилка під час реєстрації. Спробуйте ще раз.",
+    "registrationFailed": "Реєстрація не вдалася",
+    "signIn": "Увійти",
+    "signUp": "Зареєструватися",
+    "welcome": "Ласкаво просимо",
+    "welcomeBack": "Ласкаво просимо назад",
+    "loginSubtitle": "Увійдіть, щоб бронювати візити або керувати салоном.",
+    "noAccountSignUp": "Немає облікового запису? Зареєструйтеся",
+    "backToSalon": "Повернутися до салону",
+    "registerTitle": "Створити обліковий запис",
+    "registerSubtitle": "Зареєструйтеся, щоб легко бронювати візити та керувати ними.",
+    "haveAccountSignIn": "Вже маєте обліковий запис? Увійдіть",
+    "orContinueWith": "Або продовжити через",
+    "continueWithGoogle": "Продовжити через Google",
+    "continueWithApple": "Продовжити через Apple"
   },
   "common": {
     "loading": "Завантаження…",
@@ -31,7 +52,11 @@
     "success": "Успішно",
     "noData": "Немає даних",
     "currency": "zł",
-    "home": "Головна"
+    "home": "Головна",
+    "edit": "Редагувати",
+    "retry": "Спробувати ще раз",
+    "saving": "Збереження...",
+    "searching": "Пошук даних..."
   },
   "profile": {
     "title": "Мої записи",
@@ -59,7 +84,22 @@
     "linkSuccess": "Успішно пов'язано записів: {{count}}",
     "linkBookingsTitle": "Пов'язати старі бронювання",
     "linkBookingsDesc": "Ви бронювали у нас раніше без реєстрації? Введіть своє ім'я та телефон точно так, як при бронюванні, щоб пов'язати їх з вашим акаунтом.",
-    "linkBookingsBtn": "Знайти та пов'язати бронювання"
+    "linkBookingsBtn": "Знайти та пов'язати бронювання",
+    "applyGlobally": "Також оновити ці дані глобально в моєму профілі",
+    "changePassword": "Змінити пароль",
+    "confirmNewPassword": "Підтвердіть новий пароль",
+    "currentPassword": "Поточний пароль",
+    "editBookingTitle": "Редагувати бронювання",
+    "editTitle": "Редагувати профіль",
+    "keepTimeHint": "Залиште час без змін, якщо хочете змінити лише послугу.",
+    "menu": "Меню",
+    "newPassword": "Новий пароль",
+    "noChanges": "Немає змін для збереження",
+    "passwordSuccess": "Пароль успішно змінено",
+    "past": "Минулі",
+    "personalData": "Особисті дані",
+    "updatePasswordBtn": "Оновити пароль",
+    "updateSuccess": "Профіль успішно оновлено"
   },
   "admin": {
     "panel": "Панель керування"
@@ -87,7 +127,8 @@
     "minutes": "хв",
     "manageBooking": "Керування бронюванням",
     "clickToManage": "Натисніть, щоб керувати бронюванням",
-    "closePanel": "Закрити панель"
+    "closePanel": "Закрити панель",
+    "yourDetails": "Ваші дані"
   },
   "form": {
     "name": "Ім'я та прізвище",
@@ -95,7 +136,19 @@
     "email": "E-mail",
     "emailOptional": "E-mail (необов'язково)",
     "message": "Повідомлення",
-    "selectTopic": "Оберіть тему"
+    "selectTopic": "Оберіть тему",
+    "confirmPassword": "Підтвердіть пароль",
+    "emailPlaceholder": "client@example.com",
+    "invalidPhone": "Введіть дійсний номер телефону",
+    "namePlaceholder": "Іван Петренко",
+    "nameTooShort": "Ім'я занадто коротке",
+    "optional": "необов'язково",
+    "password": "Пароль",
+    "phonePlaceholder": "+380 00 000 0000",
+    "countryCodePlaceholder": "+ код країни",
+    "searchCountry": "Пошук країни...",
+    "otherCountry": "Інша країна",
+    "enterCodeManually": "Введіть код вручну"
   },
   "validation": {
     "nameRequired": "Ім'я обов'язкове",
@@ -125,7 +178,8 @@
     "privacyLink": "Політики конфіденційності",
     "notificationsCheckbox": "Я даю згоду на отримання сповіщень про бронювання телефоном/email (необов'язково)",
     "back": "Назад",
-    "booking": "Бронювання..."
+    "booking": "Бронювання...",
+    "requiredForRegistration": "Прийміть обов'язкові згоди, щоб зареєструватися"
   },
   "success": {
     "title": "Бронювання підтверджено",
@@ -322,7 +376,9 @@
     "cancelFailed": "Не вдалося скасувати бронювання",
     "tooManyAttempts": "Виявлено занадто багато спроб. Зачекайте 5 хвилин і спробуйте знову.",
     "ifProblemPersists": "Якщо проблема повторюється, зв'яжіться з майстром – ми допоможемо скасувати візит вручну.",
-    "dateRangeSearch": "📅 Діапазон дат для пошуку"
+    "dateRangeSearch": "📅 Діапазон дат для пошуку",
+    "searchFailed": "Не вдалося знайти бронювання. Спробуйте ще раз.",
+    "searchFormIncomplete": "Введіть ім'я, прізвище та номер телефону (мін. 9 цифр)."
   },
   "support": {
     "title": "Центр допомоги",
@@ -354,7 +410,12 @@
     "eraseButton": "Видалити мої дані",
     "withdrawConsent": "Відкликання згод",
     "withdrawConsentDesc": "Відкличте надані згоди на обробку персональних даних.",
-    "withdrawButton": "Відкликати згоди"
+    "withdrawButton": "Відкликати згоди",
+    "address": "Адреса",
+    "contactInfo": "Контактна інформація",
+    "responseTime": "Час відповіді",
+    "responseTimeDays": "у робочі дні",
+    "responseTimeValue": "Зазвичай протягом 72 годин"
   },
   "gdpr": {
     "exportTitle": "Експорт даних",
@@ -389,7 +450,26 @@
       "namePlaceholder": "Введіть як при бронюванні",
       "phonePlaceholder": "Номер телефону з кодом країни",
       "emailPlaceholder": "vasha.poshta@example.com",
-      "emailOptional": "необов'язково"
+      "emailOptional": "необов'язково",
+      "csv": {
+        "dataType": "Тип даних",
+        "value": "Значення",
+        "date": "Дата",
+        "name": "Ім'я та прізвище",
+        "phone": "Телефон",
+        "email": "Електронна пошта",
+        "none": "Немає",
+        "consentHistory": "Історія згод",
+        "consentGrantedDate": "Згода {{n}} - Дата надання",
+        "consentPrivacyPolicy": "Згода {{n}} - Політика конфіденційності v1.0",
+        "consentTerms": "Згода {{n}} - Умови використання v1.0",
+        "consentNotifications": "Згода {{n}} - Сповіщення",
+        "given": "Надано",
+        "notGiven": "Не надано",
+        "withdrawnDate": "Згода {{n}} - Дата відкликання",
+        "withdrawalMethod": "Згода {{n}} - Спосіб відкликання",
+        "unknown": "Невідомо"
+      }
     },
     "erase": {
       "title": "Видалити мої дані",
@@ -488,7 +568,7 @@
   "footer": {
     "privacy": "Політика конфіденційності",
     "terms": "Умови використання",
-    "copyright": "© 2025 Somique Beauty. Всі права захищені."
+    "copyright": "© {{year}} {{brandName}}. Всі права захищені."
   },
   "privacy": {
     "title": "Політика конфіденційності",

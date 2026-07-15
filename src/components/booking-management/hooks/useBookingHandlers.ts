@@ -1,4 +1,5 @@
 import { useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { ProcedureOption, SlotSelection } from '../types'
 import { clientLog } from '@/lib/client-logger'
 
@@ -33,6 +34,7 @@ export function useBookingHandlers({
   selectedSlot,
   onSlotSelected,
 }: UseBookingHandlersProps) {
+  const { t } = useTranslation()
   const {
     searchMutation,
     updateProcedureMutation,
@@ -47,24 +49,24 @@ export function useBookingHandlers({
   const handleSearch = useCallback(() => {
     if (!canSearch) {
       if (!siteKey) {
-        actions.setFormError('Podaj imię, nazwisko i numer telefonu (min. 9 cyfr).')
+        actions.setFormError(t('management.searchFormIncomplete'))
       } else if (!turnstileSession.turnstileToken) {
-        actions.setFormError('Potwierdź weryfikację Turnstile i spróbuj ponownie.')
+        actions.setFormError(t('management.turnstileRequired'))
       } else {
-        actions.setFormError('Podaj imię, nazwisko i numer telefonu (min. 9 cyfr).')
+        actions.setFormError(t('management.searchFormIncomplete'))
       }
       return
     }
     const token = siteKey ? turnstileSession.turnstileToken ?? undefined : undefined
     if (siteKey && !token) {
-      actions.setFormError('Potwierdź weryfikację Turnstile i spróbuj ponownie.')
+      actions.setFormError(t('management.turnstileRequired'))
       return
     }
     if (token) {
       turnstileSession.setTurnstileToken(token)
     }
     searchMutation.mutate({ turnstileToken: token })
-  }, [canSearch, searchMutation, siteKey, turnstileSession, actions])
+  }, [canSearch, searchMutation, siteKey, turnstileSession, actions, t])
 
   // Toggle panel
   const handleToggle = useCallback((onPanelOpenChange?: (isOpen: boolean) => void) => {
@@ -124,7 +126,7 @@ export function useBookingHandlers({
     clientLog.info('📋 Selected booking:', state.selectedBooking)
     if (!state.selectedProcedure) {
       clientLog.warn('⚠️ No procedure selected!')
-      actions.setActionError('Wybierz procedurę')
+      actions.setActionError(t('management.selectProcedure'))
       return
     }
     if (!state.selectedBooking) {
@@ -135,7 +137,7 @@ export function useBookingHandlers({
     clientLog.info('🚀 Executing procedure change immediately')
     // Сразу вызываем мутацию без промежуточного состояния
     updateProcedureMutation.mutate()
-  }, [state.selectedProcedure, state.selectedBooking, actions, updateProcedureMutation])
+  }, [state.selectedProcedure, state.selectedBooking, actions, updateProcedureMutation, t])
 
   // Time change handlers
   const handleSelectChangeTime = useCallback(() => {

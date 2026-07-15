@@ -33,9 +33,19 @@ export interface ProceduresResponse {
   items: ProcedureOption[]
 }
 
-export interface ApiError {
-  message: string
+/**
+ * Thrown by every mutating/fetching function in this module when the API
+ * responds with a non-OK status. `message` is a dev-only diagnostic (the raw,
+ * possibly mixed-language `error` field from the response) — UI code must
+ * NOT render it directly. Render `t(apiErrorKey(err.code))` instead.
+ */
+export class ApiError extends Error {
   code?: string
+  constructor(message: string, code?: string) {
+    super(message)
+    this.name = 'ApiError'
+    this.code = code
+  }
 }
 
 // Utility functions
@@ -108,8 +118,8 @@ export async function searchBookings(
   const response = await fetch(url)
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}))
-    throw new Error(errorData.error ?? 'Nie udało się pobrać danych z kalendarza')
+    const errorData = await response.json().catch(() => ({} as { error?: string; code?: string }))
+    throw new ApiError(errorData.error ?? 'Nie udało się pobrać danych z kalendarza', errorData.code)
   }
 
   const data = await response.json()
@@ -153,13 +163,15 @@ export async function updateBooking(
   
   if (!response.ok) {
     let detail = 'Nie udało się zaktualizować rezerwacji.'
+    let code: string | undefined
     try {
-      const json = (await response.json()) as { error?: string }
+      const json = (await response.json()) as { error?: string; code?: string }
       if (json?.error) detail = json.error
+      code = json?.code
     } catch {
       // ignore
     }
-    throw new Error(detail)
+    throw new ApiError(detail, code)
   }
   
   // Return new booking data from API response
@@ -177,6 +189,9 @@ export async function checkProcedureExtension(
   result: {
     status: 'can_extend' | 'can_shift_back' | 'no_availability'
     message: string
+    reason?: string
+    reasonCode?: 'NEXT_BOOKING_CONFLICT' | 'OUTSIDE_WORKING_HOURS'
+    shiftMinutes?: number
     suggestedStartISO?: string
     suggestedEndISO?: string
     alternativeSlots?: Array<{ startISO: string; endISO: string }>
@@ -211,13 +226,15 @@ export async function checkProcedureExtension(
 
   if (!response.ok) {
     let detail = 'Nie udało się sprawdzić dostępności.'
+    let code: string | undefined
     try {
-      const json = (await response.json()) as { error?: string }
+      const json = (await response.json()) as { error?: string; code?: string }
       if (json?.error) detail = json.error
+      code = json?.code
     } catch {
       // ignore
     }
-    throw new Error(detail)
+    throw new ApiError(detail, code)
   }
 
   return await response.json()
@@ -257,13 +274,15 @@ export async function updateBookingProcedure(
   
   if (!response.ok) {
     let detail = 'Nie udało się zaktualizować procedury rezerwacji.'
+    let code: string | undefined
     try {
-      const json = (await response.json()) as { error?: string }
+      const json = (await response.json()) as { error?: string; code?: string }
       if (json?.error) detail = json.error
+      code = json?.code
     } catch {
       // ignore
     }
-    throw new Error(detail)
+    throw new ApiError(detail, code)
   }
 }
 
@@ -303,13 +322,15 @@ export async function updateBookingTime(
   
   if (!response.ok) {
     let detail = 'Nie udało się zaktualizować terminu rezerwacji.'
+    let code: string | undefined
     try {
-      const json = (await response.json()) as { error?: string }
+      const json = (await response.json()) as { error?: string; code?: string }
       if (json?.error) detail = json.error
+      code = json?.code
     } catch {
       // ignore
     }
-    throw new Error(detail)
+    throw new ApiError(detail, code)
   }
   
   clientLog.info('✅ Booking time updated successfully')
@@ -336,31 +357,18 @@ export async function cancelBooking(booking: BookingResult, masterId?: string): 
   if (!response.ok) {
     let detail = 'Nie udało się anulować rezerwacji.'
     const status = response.status
+    let code: string | undefined
     try {
       const json = (await response.json()) as { error?: string; code?: string }
-      if (json?.error) {
-        detail = json.error
-      }
-      // HTTP status specific mapping
-      if (status === 429) {
-        detail = 'Zbyt wiele prób. Poczekaj 5 minut i spróbuj ponownie.'
-      }
-      // Improve code-based messages
-      if (json?.code === 'BOOKING_NOT_FOUND') {
-        detail = 'Rezerwacja nie została znaleziona. Spróbuj wyszukać ponownie.'
-      } else if (json?.code === 'VERIFICATION_FAILED') {
-        detail = 'Weryfikacja nie powiodła się. Sprawdź poprawność danych.'
-      } else if (json?.code === 'TOO_LATE_TO_CANCEL') {
-        detail = 'Nie można anulować rezerwacji mniej niż 24 godziny przed terminem.'
-      } else if (json?.code === 'RATE_LIMITED' || json?.code === 'TOO_MANY_REQUESTS') {
-        detail = 'Zbyt wiele prób. Poczekaj 5 minut i spróbuj ponownie.'
-      }
+      if (json?.error) detail = json.error
+      code = json?.code
     } catch {
       // ignore parsing errors
-      if (status === 429) {
-        detail = 'Zbyt wiele prób. Poczekaj 5 minut i spróbuj ponownie.'
-      }
     }
-    throw new Error(detail)
+    // HTTP-429 → RATE_LIMITED code mapping, in case the server didn't send one
+    if (status === 429 && !code) {
+      code = 'RATE_LIMITED'
+    }
+    throw new ApiError(detail, code)
   }
 }

@@ -1,6 +1,8 @@
 "use client"
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useCurrentLanguage } from '@/contexts/LanguageContext'
+import { localeFor } from '@/lib/i18n'
 import type { BookingResult, ProcedureOption, ExtensionCheckStatus, ExtensionCheckResult, SlotSelection } from './types'
 
 interface EditProcedurePanelProps {
@@ -38,6 +40,8 @@ export default function EditProcedurePanel({
   onConfirmAlternativeSlot,
 }: EditProcedurePanelProps) {
   const { t } = useTranslation()
+  const language = useCurrentLanguage()
+  const dateLocale = localeFor(language)
   const [isOpen, setIsOpen] = useState(false)
   const [showAlternatives, setShowAlternatives] = useState(false)
   const currentDuration = booking.procedureDurationMin
@@ -48,11 +52,11 @@ export default function EditProcedurePanel({
   const canExtend = extensionCheckStatus === 'can_extend'
   const canShiftBack = extensionCheckStatus === 'can_shift_back'
   const noAvailability = extensionCheckStatus === 'no_availability'
-  
+
   // Format time helper
   const formatTime = (isoString: string) => {
     const date = new Date(isoString)
-    return new Intl.DateTimeFormat('pl-PL', {
+    return new Intl.DateTimeFormat(dateLocale, {
       hour: '2-digit',
       minute: '2-digit',
     }).format(date)
@@ -75,7 +79,7 @@ export default function EditProcedurePanel({
             {currentDuration} min • {booking.price}zł
           </div>
           <div className="text-xs text-muted-foreground mt-1">
-            {new Intl.DateTimeFormat('pl-PL', {
+            {new Intl.DateTimeFormat(dateLocale, {
               weekday: 'short',
               day: 'numeric',
               month: 'short',
@@ -183,7 +187,7 @@ export default function EditProcedurePanel({
                     ⚠ {t('management.cannotExtendTime')}
                   </div>
                   <div className="text-xs text-amber-600 dark:text-amber-300 mb-3">
-                    {extensionCheckResult.reason === 'konflikt z kolejną rezerwacją' 
+                    {extensionCheckResult.reasonCode === 'NEXT_BOOKING_CONFLICT'
                       ? `→ ${t('management.nextBookingConflict')}`
                       : `→ ${t('management.outsideWorkingHours')}`
                     }

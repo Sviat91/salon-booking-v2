@@ -1,14 +1,22 @@
 import { Suspense } from "react"
 import { Metadata } from "next"
 import ResetPasswordForm from "@/components/auth/ResetPasswordForm"
+import { AuthFooterLinks } from "@/components/auth/AuthFooterLinks"
+import { BrandNameDisplay } from "@/components/auth/BrandNameDisplay"
 import Link from "next/link"
+import prisma from "@/lib/prisma"
 
-export const metadata: Metadata = {
-  title: "Create New Password | Somique Beauty",
-  description: "Create a new password for your account",
+export async function generateMetadata(): Promise<Metadata> {
+  const config = await prisma.tenantConfig.findFirst()
+  return {
+    title: `Create New Password | ${config?.brandName || 'Salon Booking'}`,
+    description: "Create a new password for your account",
+  }
 }
 
-export default function ResetPasswordPage() {
+export default async function ResetPasswordPage() {
+  const config = await prisma.tenantConfig.findFirst()
+
   return (
     <div className="relative flex-1 flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="absolute inset-0 z-[-1] pointer-events-none" />
@@ -17,26 +25,16 @@ export default function ResetPasswordPage() {
         <div className="flex flex-col items-center text-center">
           <Link href="/" className="inline-block mb-6">
             <span className="font-bold text-2xl tracking-tight text-primary">
-              Somique <span className="opacity-70 font-light">beauty</span>
+              <BrandNameDisplay brandName={config?.brandName || 'Salon Booking'} />
             </span>
           </Link>
-          <h2 className="text-2xl font-normal tracking-tight text-foreground">
-            Create new password
-          </h2>
         </div>
 
         <Suspense fallback={<div className="text-center text-sm text-muted-foreground">Loading…</div>}>
           <ResetPasswordForm />
         </Suspense>
 
-        <div className="flex flex-col space-y-4 text-center mt-6">
-          <Link
-            href="/auth/login"
-            className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
-          >
-            &larr; Back to login
-          </Link>
-        </div>
+        <AuthFooterLinks variant="back-to-login" />
       </div>
     </div>
   )

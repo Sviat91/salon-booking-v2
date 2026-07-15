@@ -1,6 +1,7 @@
 "use client"
 import { Component, ReactNode } from 'react'
 import { clientLog } from '@/lib/client-logger'
+import i18n from '@/lib/i18n'
 
 interface Props {
   children: ReactNode
@@ -41,16 +42,16 @@ export class ErrorBoundary extends Component<Props, State> {
           <div className="max-w-md w-full bg-card rounded-2xl border border-border p-8 text-center">
             <div className="mb-4 text-6xl">⚠️</div>
             <h1 className="text-2xl font-bold text-text dark:text-dark-text mb-2">
-              Coś poszło nie tak
+              {i18n.t('errors.boundaryTitle')}
             </h1>
             <p className="text-muted dark:text-dark-muted mb-6">
-              Przepraszamy, wystąpił nieoczekiwany błąd. Odśwież stronę lub spróbuj ponownie później.
+              {i18n.t('errors.boundaryDesc')}
             </p>
             <button
               onClick={() => window.location.reload()}
               className="btn btn-primary w-full"
             >
-              Odśwież stronę
+              {i18n.t('errors.reload')}
             </button>
           </div>
         </div>

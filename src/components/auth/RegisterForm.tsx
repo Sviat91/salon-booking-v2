@@ -97,6 +97,14 @@ export default function RegisterForm({ className, ...props }: RegisterFormProps)
 
   return (
     <div className={cn("grid gap-6", className)} {...props}>
+      <div className="text-center">
+        <h2 className="text-2xl font-normal tracking-tight text-foreground">
+          {t('auth.registerTitle', 'Create an Account')}
+        </h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          {t('auth.registerSubtitle', 'Register to easily book and manage your appointments.')}
+        </p>
+      </div>
       <form onSubmit={onSubmit}>
         <div className="grid gap-4">
           <div className="grid gap-2">

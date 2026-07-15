@@ -1,5 +1,7 @@
 "use client"
 import { useTranslation } from 'react-i18next'
+import { useCurrentLanguage } from '@/contexts/LanguageContext'
+import { localeFor } from '@/lib/i18n'
 import type { BookingResult } from './types'
 
 interface TimeChangeErrorPanelProps {
@@ -19,8 +21,10 @@ export default function TimeChangeErrorPanel({
   onTryAgain,
 }: TimeChangeErrorPanelProps) {
   const { t } = useTranslation()
+  const language = useCurrentLanguage()
+  const dateLocale = localeFor(language)
   const booking = timeChangeSession?.originalBooking
-  
+
   return (
     <div className="space-y-4">
       {/* Error Header */}
@@ -52,18 +56,18 @@ export default function TimeChangeErrorPanel({
             <div>
               <span className="text-sm font-medium text-red-800 dark:text-red-200">{t('management.currentTerm')}</span>
               <p className="text-red-900 dark:text-red-100 font-medium">
-                {new Intl.DateTimeFormat('pl-PL', {
+                {new Intl.DateTimeFormat(dateLocale, {
                   weekday: 'long',
                   day: 'numeric',
                   month: 'long',
                 }).format(booking.startTime)}
               </p>
               <p className="text-red-800 dark:text-red-200">
-                {new Intl.DateTimeFormat('pl-PL', {
+                {new Intl.DateTimeFormat(dateLocale, {
                   hour: '2-digit',
                   minute: '2-digit',
                   hour12: false,
-                }).format(booking.startTime)}–{new Intl.DateTimeFormat('pl-PL', {
+                }).format(booking.startTime)}–{new Intl.DateTimeFormat(dateLocale, {
                   hour: '2-digit',
                   minute: '2-digit',
                   hour12: false,

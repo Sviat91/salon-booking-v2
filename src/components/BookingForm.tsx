@@ -165,7 +165,7 @@ export default function BookingForm({
 
   const handleNameBlur = () => {
     const result = validateName(name)
-    setNameError(result.valid ? null : result.error || null)
+    setNameError(result.valid ? null : result.error ? t(result.error, result.errorParams) : null)
   }
 
   const handleEmailBlur = () => {
@@ -174,7 +174,7 @@ export default function BookingForm({
       return
     }
     const result = validateEmail(email)
-    setEmailError(result.valid ? null : result.error || null)
+    setEmailError(result.valid ? null : result.error ? t(result.error, result.errorParams) : null)
   }
 
   const startDate = useMemo(() => new Date(slot.startISO), [slot.startISO])
@@ -436,7 +436,7 @@ export default function BookingForm({
                     return
                   }
                   const result = validatePhone(val)
-                  setPhoneError(result.valid ? null : result.error || null)
+                  setPhoneError(result.valid ? null : result.error ? t(result.error, result.errorParams) : null)
                 }, 500)
               }}
               placeholder={t('form.phone')}

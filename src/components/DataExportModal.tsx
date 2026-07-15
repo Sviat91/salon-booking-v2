@@ -222,7 +222,7 @@ export default function DataExportModal({
 
   const handleDownloadCSV = () => {
     if (!exportData) return;
-    const csv = generateCSV(exportData);
+    const csv = generateCSV(exportData, t, language);
     const timestamp = new Date().toISOString().slice(0, 16).replace(/[:-]/g, '').replace('T', '-');
     downloadFile(csv, `gdpr-export-${timestamp}.csv`, 'text/csv;charset=utf-8');
   };

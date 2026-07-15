@@ -1,6 +1,7 @@
 "use client"
 import Image from 'next/image'
 import { motion } from 'framer-motion'
+import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { useSelectedMaster, useSelectedMasterId } from '@/contexts/MasterContext'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
@@ -9,12 +10,25 @@ interface BrandHeaderProps {
   onLogoClick?: () => void
 }
 
+type LogoConfig = {
+  logoUrl: string | null
+  darkLogoUrl: string | null
+  brandName: string
+}
+
 export default function BrandHeader({ onLogoClick }: BrandHeaderProps) {
   const { t } = useTranslation()
   const selectedMaster = useSelectedMaster()
   const selectedMasterId = useSelectedMasterId()
   const logoClickable = typeof onLogoClick === 'function'
   const prefersReducedMotion = useReducedMotion()
+  const { data: config } = useQuery<LogoConfig>({
+    queryKey: ['tenant-config'],
+    queryFn: () => fetch('/api/tenant-config').then(r => r.json() as Promise<LogoConfig>),
+    staleTime: 60 * 60 * 1000,
+  })
+  const logoSrc = config?.logoUrl || null
+  const darkLogoSrc = config?.darkLogoUrl || config?.logoUrl || null
   
   // Use selectedMasterId directly for the layoutId instead of selectedMaster?.id
   // because selectedMaster is updated asynchronously and would break the Framer Motion cross-route flight animation
@@ -45,28 +59,34 @@ export default function BrandHeader({ onLogoClick }: BrandHeaderProps) {
       </motion.div>
       
       {/* head_logo показывается только на мобильных устройствах */}
-      <div
-        className={`block lg:hidden mt-3 mb-2 px-4${logoClickable ? ' cursor-pointer' : ''}`}
-        onClick={onLogoClick}
-      >
-        {/* Светлая тема */}
-        <Image
-          src="/head_logo.png"
-          alt="Logo Somique Beauty"
-          width={200}
-          height={80}
-          className="h-auto max-w-[180px] sm:max-w-[200px] mx-auto dark:hidden"
-        />
-        {/* Темная тема */}
-        <Image
-          src="/head_logo_night.png"
-          alt="Logo Somique Beauty"
-          width={200}
-          height={80}
-          className="h-auto max-w-[180px] sm:max-w-[200px] mx-auto hidden dark:block"
-        />
-      </div>
-      
+      {(logoSrc || darkLogoSrc) && (
+        <div
+          className={`block lg:hidden mt-3 mb-2 px-4${logoClickable ? ' cursor-pointer' : ''}`}
+          onClick={onLogoClick}
+        >
+          {/* Светлая тема */}
+          {logoSrc && (
+            <Image
+              src={logoSrc}
+              alt={config?.brandName || ''}
+              width={200}
+              height={80}
+              className="h-auto max-w-[180px] sm:max-w-[200px] mx-auto dark:hidden"
+            />
+          )}
+          {/* Темная тема */}
+          {darkLogoSrc && (
+            <Image
+              src={darkLogoSrc}
+              alt={config?.brandName || ''}
+              width={200}
+              height={80}
+              className="h-auto max-w-[180px] sm:max-w-[200px] mx-auto hidden dark:block"
+            />
+          )}
+        </div>
+      )}
+
       <h1
         className={`text-3xl font-normal tracking-tight${logoClickable ? ' cursor-pointer' : ''}`}
         onClick={onLogoClick}

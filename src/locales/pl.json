@@ -18,7 +18,28 @@
     "resetPasswordMismatch": "Hasła nie pasują do siebie.",
     "resetPasswordTooShort": "Hasło musi mieć co najmniej 6 znaków.",
     "requestNewLink": "Poproś o nowy link",
-    "backToLogin": "Wróć do logowania"
+    "backToLogin": "Wróć do logowania",
+    "autoLoginFailed": "Nie udało się automatycznie zalogować. Zaloguj się ręcznie.",
+    "createAccount": "Utwórz konto",
+    "invalidCredentials": "Nieprawidłowy e-mail lub hasło",
+    "login": "Zaloguj się",
+    "loginError": "Wystąpił błąd. Spróbuj ponownie.",
+    "passwordsDoNotMatch": "Hasła nie są zgodne",
+    "registrationError": "Wystąpił błąd podczas rejestracji. Spróbuj ponownie.",
+    "registrationFailed": "Rejestracja nie powiodła się",
+    "signIn": "Zaloguj się",
+    "signUp": "Zarejestruj się",
+    "welcome": "Witaj",
+    "welcomeBack": "Witaj ponownie",
+    "loginSubtitle": "Zaloguj się, aby rezerwować wizyty lub zarządzać salonem.",
+    "noAccountSignUp": "Nie masz konta? Zarejestruj się",
+    "backToSalon": "Wróć do salonu",
+    "registerTitle": "Utwórz konto",
+    "registerSubtitle": "Zarejestruj się, aby łatwo rezerwować i zarządzać swoimi wizytami.",
+    "haveAccountSignIn": "Masz już konto? Zaloguj się",
+    "orContinueWith": "Lub kontynuuj przez",
+    "continueWithGoogle": "Kontynuuj przez Google",
+    "continueWithApple": "Kontynuuj przez Apple"
   },
   "common": {
     "loading": "Ładowanie…",
@@ -31,7 +52,11 @@
     "success": "Sukces",
     "noData": "Brak danych",
     "currency": "zł",
-    "home": "Strona główna"
+    "home": "Strona główna",
+    "edit": "Edytuj",
+    "retry": "Spróbuj ponownie",
+    "saving": "Zapisywanie...",
+    "searching": "Wyszukiwanie danych..."
   },
   "profile": {
     "title": "Moje wizyty",
@@ -59,7 +84,22 @@
     "linkSuccess": "Pomyślnie powiązano rekordy: {{count}}",
     "linkBookingsTitle": "Powiąż stare rezerwacje",
     "linkBookingsDesc": "Czy rezerwowałeś/aś u nas wcześniej bez rejestracji? Wpisz swoje imię i telefon dokładnie tak, jak przy rezerwacji, aby powiązać je z kontem.",
-    "linkBookingsBtn": "Znajdź i powiąż rezerwacje"
+    "linkBookingsBtn": "Znajdź i powiąż rezerwacje",
+    "applyGlobally": "Zaktualizuj też te dane globalnie w moim profilu",
+    "changePassword": "Zmień hasło",
+    "confirmNewPassword": "Potwierdź nowe hasło",
+    "currentPassword": "Obecne hasło",
+    "editBookingTitle": "Edytuj rezerwację",
+    "editTitle": "Edytuj profil",
+    "keepTimeHint": "Zostaw czas bez zmian, jeśli chcesz zmienić tylko usługę.",
+    "menu": "Menu",
+    "newPassword": "Nowe hasło",
+    "noChanges": "Brak zmian do zapisania",
+    "passwordSuccess": "Hasło zostało pomyślnie zmienione",
+    "past": "Przeszłe",
+    "personalData": "Dane osobowe",
+    "updatePasswordBtn": "Zaktualizuj hasło",
+    "updateSuccess": "Profil został pomyślnie zaktualizowany"
   },
   "admin": {
     "panel": "Panel Administracyjny"
@@ -87,7 +127,8 @@
     "minutes": "min",
     "manageBooking": "Zarządzanie rezerwacją",
     "clickToManage": "Kliknij, aby zarządzać rezerwacją",
-    "closePanel": "Zamknij panel"
+    "closePanel": "Zamknij panel",
+    "yourDetails": "Twoje dane"
   },
   "form": {
     "name": "Imię i nazwisko",
@@ -95,7 +136,19 @@
     "email": "E-mail",
     "emailOptional": "E-mail (opcjonalnie)",
     "message": "Wiadomość",
-    "selectTopic": "Wybierz temat"
+    "selectTopic": "Wybierz temat",
+    "confirmPassword": "Potwierdź hasło",
+    "emailPlaceholder": "klient@example.com",
+    "invalidPhone": "Podaj prawidłowy numer telefonu",
+    "namePlaceholder": "Jan Kowalski",
+    "nameTooShort": "Imię jest za krótkie",
+    "optional": "opcjonalnie",
+    "password": "Hasło",
+    "phonePlaceholder": "+48 000 000 000",
+    "countryCodePlaceholder": "+ kod kraju",
+    "searchCountry": "Szukaj kraju...",
+    "otherCountry": "Inny kraj",
+    "enterCodeManually": "Wprowadź kod ręcznie"
   },
   "validation": {
     "nameRequired": "Imię jest wymagane",
@@ -125,7 +178,8 @@
     "privacyLink": "Polityką prywatności",
     "notificationsCheckbox": "Wyrażam zgodę na otrzymywanie powiadomień o rezerwacji przez telefon/email (opcjonalnie)",
     "back": "Powrót",
-    "booking": "Rezerwowanie..."
+    "booking": "Rezerwowanie...",
+    "requiredForRegistration": "Zaakceptuj wymagane zgody, aby się zarejestrować"
   },
   "success": {
     "title": "Rezerwacja potwierdzona",
@@ -322,7 +376,9 @@
     "cancelFailed": "Nie udało się anulować rezerwacji",
     "tooManyAttempts": "Wykryto zbyt wiele prób. Poczekaj 5 minut i spróbuj ponownie.",
     "ifProblemPersists": "Jeśli problem się powtarza, skontaktuj się z mistrzem – pomożemy anulować wizytę ręcznie.",
-    "dateRangeSearch": "📅 Zakres dat do przeszukania"
+    "dateRangeSearch": "📅 Zakres dat do przeszukania",
+    "searchFailed": "Nie udało się wyszukać rezerwacji. Spróbuj ponownie.",
+    "searchFormIncomplete": "Podaj imię, nazwisko i numer telefonu (min. 9 cyfr)."
   },
   "support": {
     "title": "Centrum Pomocy",
@@ -354,7 +410,12 @@
     "eraseButton": "Usuń moje dane",
     "withdrawConsent": "Wycofanie zgód",
     "withdrawConsentDesc": "Wycofaj udzielone zgody na przetwarzanie danych osobowych.",
-    "withdrawButton": "Wycofaj zgody"
+    "withdrawButton": "Wycofaj zgody",
+    "address": "Adres",
+    "contactInfo": "Informacje kontaktowe",
+    "responseTime": "Czas odpowiedzi",
+    "responseTimeDays": "w dni robocze",
+    "responseTimeValue": "Zwykle w ciągu 72 godzin"
   },
   "gdpr": {
     "exportTitle": "Eksport danych",
@@ -389,7 +450,26 @@
       "namePlaceholder": "Wpisz tak, jak w rezerwacji",
       "phonePlaceholder": "Numer telefonu z kodem kraju",
       "emailPlaceholder": "twoj.email@example.com",
-      "emailOptional": "opcjonalnie"
+      "emailOptional": "opcjonalnie",
+      "csv": {
+        "dataType": "Typ danych",
+        "value": "Wartość",
+        "date": "Data",
+        "name": "Imię i nazwisko",
+        "phone": "Telefon",
+        "email": "E-mail",
+        "none": "Brak",
+        "consentHistory": "Historia zgód",
+        "consentGrantedDate": "Zgoda {{n}} - Data udzielenia",
+        "consentPrivacyPolicy": "Zgoda {{n}} - Polityka Prywatności v1.0",
+        "consentTerms": "Zgoda {{n}} - Warunki Korzystania v1.0",
+        "consentNotifications": "Zgoda {{n}} - Powiadomienia",
+        "given": "Wyrażono",
+        "notGiven": "Nie wyrażono",
+        "withdrawnDate": "Zgoda {{n}} - Data wycofania",
+        "withdrawalMethod": "Zgoda {{n}} - Sposób wycofania",
+        "unknown": "Nieznany"
+      }
     },
     "erase": {
       "title": "Usuń moje dane",
@@ -488,7 +568,7 @@
   "footer": {
     "privacy": "Polityka prywatności",
     "terms": "Regulamin",
-    "copyright": "© 2025 Somique Beauty. Wszystkie prawa zastrzeżone."
+    "copyright": "© {{year}} {{brandName}}. Wszystkie prawa zastrzeżone."
   },
   "privacy": {
     "title": "Polityka Prywatności",

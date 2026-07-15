@@ -1,4 +1,7 @@
+import type { TFunction } from "i18next";
 import type { UserDataExport } from "./types";
+import type { Language } from "@/lib/i18n";
+import { localeFor } from "@/lib/i18n";
 
 export const generateRequestId = () => {
   if (typeof window !== "undefined" && window.crypto?.randomUUID) {
@@ -7,10 +10,10 @@ export const generateRequestId = () => {
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 };
 
-export const formatDate = (dateString: string) => {
+export const formatDate = (dateString: string, locale: string) => {
   try {
     const date = new Date(dateString);
-    return date.toLocaleString('pl-PL', {
+    return date.toLocaleString(locale, {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -22,46 +25,48 @@ export const formatDate = (dateString: string) => {
   }
 };
 
-export const generateCSV = (data: UserDataExport): string => {
+export const generateCSV = (data: UserDataExport, t: TFunction, language: Language): string => {
+  const locale = localeFor(language);
   const rows = [
-    ['Typ danych', 'Wartość', 'Data'],
-    ['Imię i nazwisko', data.personalData.name, data.exportTimestamp],
-    ['Telefon', data.personalData.phone, data.exportTimestamp],
-    ['E-mail', data.personalData.email || 'Brak', data.exportTimestamp],
+    [t('gdpr.export.csv.dataType'), t('gdpr.export.csv.value'), t('gdpr.export.csv.date')],
+    [t('gdpr.export.csv.name'), data.personalData.name, data.exportTimestamp],
+    [t('gdpr.export.csv.phone'), data.personalData.phone, data.exportTimestamp],
+    [t('gdpr.export.csv.email'), data.personalData.email || t('gdpr.export.csv.none'), data.exportTimestamp],
     ['', '', ''], // Empty row
-    ['Historia zgód', '', ''],
+    [t('gdpr.export.csv.consentHistory'), '', ''],
   ];
 
   data.consentHistory.forEach((consent, index) => {
+    const n = index + 1;
     rows.push([
-      `Zgoda ${index + 1} - Data udzielenia`,
-      formatDate(consent.consentDate),
+      t('gdpr.export.csv.consentGrantedDate', { n }),
+      formatDate(consent.consentDate, locale),
       consent.consentDate
     ]);
     rows.push([
-      `Zgoda ${index + 1} - Polityka Prywatności v1.0`,
-      consent.privacyV10 ? 'Wyrażono' : 'Nie wyrażono',
+      t('gdpr.export.csv.consentPrivacyPolicy', { n }),
+      consent.privacyV10 ? t('gdpr.export.csv.given') : t('gdpr.export.csv.notGiven'),
       consent.consentDate
     ]);
     rows.push([
-      `Zgoda ${index + 1} - Warunki Korzystania v1.0`,
-      consent.termsV10 ? 'Wyrażono' : 'Nie wyrażono',
+      t('gdpr.export.csv.consentTerms', { n }),
+      consent.termsV10 ? t('gdpr.export.csv.given') : t('gdpr.export.csv.notGiven'),
       consent.consentDate
     ]);
     rows.push([
-      `Zgoda ${index + 1} - Powiadomienia`,
-      consent.notificationsV10 ? 'Wyrażono' : 'Nie wyrażono',
+      t('gdpr.export.csv.consentNotifications', { n }),
+      consent.notificationsV10 ? t('gdpr.export.csv.given') : t('gdpr.export.csv.notGiven'),
       consent.consentDate
     ]);
     if (consent.withdrawnDate) {
       rows.push([
-        `Zgoda ${index + 1} - Data wycofania`,
-        formatDate(consent.withdrawnDate),
+        t('gdpr.export.csv.withdrawnDate', { n }),
+        formatDate(consent.withdrawnDate, locale),
         consent.withdrawnDate
       ]);
       rows.push([
-        `Zgoda ${index + 1} - Sposób wycofania`,
-        consent.withdrawalMethod || 'Nieznany',
+        t('gdpr.export.csv.withdrawalMethod', { n }),
+        consent.withdrawalMethod || t('gdpr.export.csv.unknown'),
         consent.withdrawnDate
       ]);
     }

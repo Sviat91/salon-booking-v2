@@ -299,7 +299,7 @@ export default function ConsentWithdrawalModal({
                     <li>{t('gdpr.withdraw.futureConsentNeeded')}</li>
                   </ul>
                 </div>
-                <p>Jeśli chcesz całkowicie usunąć swoje dane, użyj formularza „Usuń moje dane”.</p>
+                <p>{t('gdpr.withdraw.eraseDataHint')}</p>
                 <p>{t('gdpr.withdraw.thankYou')}</p>
               </div>
             </div>
@@ -317,8 +317,7 @@ export default function ConsentWithdrawalModal({
                 {t('gdpr.withdraw.alreadyProcessedTitle')}
               </h3>
               <p className="mt-2 text-sm">
-                Ostatnia prośba jest jeszcze w trakcie realizacji lub została zakończona. Jeśli musisz nas o tym
-                poinformować dodatkowo, skontaktuj się przez formularz wsparcia.
+                {t('gdpr.withdraw.alreadyProcessedMessage')}
               </p>
               {showHints && error?.hints?.length ? (
                 <ul className="mt-3 list-disc space-y-1 pl-5 text-sm">

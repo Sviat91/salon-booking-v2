@@ -2,6 +2,7 @@
 import { useTranslation } from 'react-i18next'
 import { useCurrentLanguage } from '@/contexts/LanguageContext'
 import { translateProcedureName } from '@/lib/procedure-translator'
+import { localeFor } from '@/lib/i18n'
 import type { BookingResult } from './types'
 
 interface ConfirmCancelPanelProps {
@@ -22,8 +23,7 @@ export default function ConfirmCancelPanel({
   const { t } = useTranslation()
   const language = useCurrentLanguage()
   
-  const dateLocale = language === 'uk' ? 'uk-UA' : language === 'en' ? 'en-US' : 'pl-PL'
-  const dateLabel = new Intl.DateTimeFormat(dateLocale, {
+  const dateLabel = new Intl.DateTimeFormat(localeFor(language), {
     weekday: 'long',
     day: 'numeric',
     month: 'long',

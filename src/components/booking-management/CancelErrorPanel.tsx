@@ -1,5 +1,7 @@
 "use client"
 import { useTranslation } from 'react-i18next'
+import { useCurrentLanguage } from '@/contexts/LanguageContext'
+import { localeFor } from '@/lib/i18n'
 import type { BookingResult } from './types'
 
 interface CancelErrorPanelProps {
@@ -12,8 +14,10 @@ interface CancelErrorPanelProps {
 
 export default function CancelErrorPanel({ booking, errorMessage, onBackToResults, onTryAgain, onContactMaster }: CancelErrorPanelProps) {
   const { t } = useTranslation()
+  const language = useCurrentLanguage()
+  const dateLocale = localeFor(language)
   const dateLabel = booking
-    ? new Intl.DateTimeFormat('pl-PL', {
+    ? new Intl.DateTimeFormat(dateLocale, {
         weekday: 'long',
         day: 'numeric',
         month: 'long',

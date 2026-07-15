@@ -91,22 +91,5 @@ export default function LogoDisplay({ page }: { page: "home" | "booking" | "mast
     )
   }
 
-  return (
-    <div className="absolute left-4 top-4 z-10 hidden lg:block">
-      <Image
-        src="/head_logo.png"
-        alt="Logo"
-        width={242}
-        height={97}
-        className="h-auto cursor-pointer dark:hidden"
-      />
-      <Image
-        src="/head_logo_night.png"
-        alt="Logo"
-        width={242}
-        height={97}
-        className="h-auto cursor-pointer hidden dark:block"
-      />
-    </div>
-  )
+  return null
 }

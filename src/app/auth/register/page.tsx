@@ -1,17 +1,22 @@
 import { Metadata } from "next"
 import RegisterForm from "@/components/auth/RegisterForm"
 import { SocialLoginButtons } from "@/components/auth/SocialLoginButtons"
+import { AuthFooterLinks } from "@/components/auth/AuthFooterLinks"
+import { BrandNameDisplay } from "@/components/auth/BrandNameDisplay"
 import Link from "next/link"
 import prisma from "@/lib/prisma"
 
-export const metadata: Metadata = {
-  title: "Register | Somique Beauty",
-  description: "Create your client account",
+export async function generateMetadata(): Promise<Metadata> {
+  const config = await prisma.tenantConfig.findFirst()
+  return {
+    title: `Register | ${config?.brandName || 'Salon Booking'}`,
+    description: "Create your client account",
+  }
 }
 
 export default async function RegisterPage() {
   const config = await prisma.tenantConfig.findFirst()
-  
+
   const providers = {
     google: !!(config?.googleClientId && config?.googleClientSecret),
     apple: !!(config?.appleClientId && config?.applePrivateKey),
@@ -28,35 +33,16 @@ export default async function RegisterPage() {
         <div className="flex flex-col items-center text-center">
           <Link href="/" className="inline-block mb-6">
             <span className="font-bold text-2xl tracking-tight text-primary">
-              Somique <span className="opacity-70 font-light">beauty</span>
+              <BrandNameDisplay brandName={config?.brandName || 'Salon Booking'} />
             </span>
           </Link>
-          <h2 className="text-2xl font-normal tracking-tight text-foreground">
-            Create an Account
-          </h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Register to easily book and manage your appointments.
-          </p>
         </div>
-        
+
         <RegisterForm />
-        
+
         <SocialLoginButtons providers={providers} />
-        
-        <div className="flex flex-col space-y-4 text-center mt-6">
-          <Link 
-            href="/auth/login" 
-            className="text-sm font-medium text-primary hover:underline transition-colors"
-          >
-            Already have an account? Sign in
-          </Link>
-          <Link 
-            href="/" 
-            className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
-          >
-            &larr; Back to Salon
-          </Link>
-        </div>
+
+        <AuthFooterLinks variant="register" />
       </div>
     </div>
   )

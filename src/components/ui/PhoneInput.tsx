@@ -1,5 +1,6 @@
 "use client"
 import { useState, useRef, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 
 interface Country {
   code: string
@@ -41,6 +42,7 @@ export default function PhoneInput({
   disabled = false,
   placeholder = "Telefon"
 }: PhoneInputProps) {
+  const { t } = useTranslation()
   const [isOpen, setIsOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCountry, setSelectedCountry] = useState<Country | null>(COUNTRIES[0])
@@ -200,7 +202,7 @@ export default function PhoneInput({
               onChange={handleCustomCodeChange}
               onFocus={handleCodeFocus}
               onBlur={handleFieldBlur}
-              placeholder="+ kod kraju"
+              placeholder={t('form.countryCodePlaceholder')}
               className="country-code-input w-20 text-sm font-medium dark:placeholder-dark-muted bg-transparent border-none outline-none"
             />
           ) : (
@@ -254,7 +256,7 @@ export default function PhoneInput({
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Szukaj kraju..."
+              placeholder={t('form.searchCountry')}
               className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-card text-card-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
               autoFocus
             />
@@ -302,8 +304,8 @@ export default function PhoneInput({
             >
               <span className="text-lg">🌍</span>
               <div className="flex-1">
-                <div className="text-sm font-medium">Inny kraj</div>
-                <div className="text-xs text-gray-500 dark:text-dark-muted">Wprowadź kod ręcznie</div>
+                <div className="text-sm font-medium">{t('form.otherCountry')}</div>
+                <div className="text-xs text-gray-500 dark:text-dark-muted">{t('form.enterCodeManually')}</div>
               </div>
               {isCustomMode && (
                 <svg className="w-4 h-4 text-primary" fill="currentColor" viewBox="0 0 20 20">

@@ -18,7 +18,28 @@
     "resetPasswordMismatch": "Passwords do not match.",
     "resetPasswordTooShort": "Password must be at least 6 characters.",
     "requestNewLink": "Request new link",
-    "backToLogin": "Back to sign in"
+    "backToLogin": "Back to sign in",
+    "autoLoginFailed": "Failed to auto-login. Please sign in manually.",
+    "createAccount": "Create Account",
+    "invalidCredentials": "Invalid email or password",
+    "login": "Sign In",
+    "loginError": "An error occurred. Please try again.",
+    "passwordsDoNotMatch": "Passwords do not match",
+    "registrationError": "An error occurred during registration. Please try again.",
+    "registrationFailed": "Registration failed",
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "welcome": "Welcome",
+    "welcomeBack": "Welcome Back",
+    "loginSubtitle": "Sign in to book appointments or manage your salon.",
+    "noAccountSignUp": "Don't have an account? Sign up",
+    "backToSalon": "Back to Salon",
+    "registerTitle": "Create an Account",
+    "registerSubtitle": "Register to easily book and manage your appointments.",
+    "haveAccountSignIn": "Already have an account? Sign in",
+    "orContinueWith": "Or continue with",
+    "continueWithGoogle": "Continue with Google",
+    "continueWithApple": "Continue with Apple"
   },
   "common": {
     "loading": "Loading…",
@@ -31,7 +52,11 @@
     "success": "Success",
     "noData": "No data",
     "currency": "zł",
-    "home": "Home"
+    "home": "Home",
+    "edit": "Edit",
+    "retry": "Retry",
+    "saving": "Saving...",
+    "searching": "Searching records..."
   },
   "profile": {
     "title": "My Appointments",
@@ -59,7 +84,22 @@
     "linkSuccess": "Successfully linked records: {{count}}",
     "linkBookingsTitle": "Link Old Bookings",
     "linkBookingsDesc": "Have you booked with us before without registering? Enter your name and phone exactly as you did when booking to link them to your account.",
-    "linkBookingsBtn": "Find & Link Bookings"
+    "linkBookingsBtn": "Find & Link Bookings",
+    "applyGlobally": "Also update these details in your profile globally",
+    "changePassword": "Change Password",
+    "confirmNewPassword": "Confirm New Password",
+    "currentPassword": "Current Password",
+    "editBookingTitle": "Edit booking",
+    "editTitle": "Edit Profile",
+    "keepTimeHint": "Leave time unchanged if you only want to update the service.",
+    "menu": "Menu",
+    "newPassword": "New Password",
+    "noChanges": "No changes to save",
+    "passwordSuccess": "Password changed successfully",
+    "past": "Past",
+    "personalData": "Personal Data",
+    "updatePasswordBtn": "Update Password",
+    "updateSuccess": "Profile updated successfully"
   },
   "admin": {
     "panel": "Admin Panel"
@@ -87,7 +127,8 @@
     "minutes": "min",
     "manageBooking": "Manage booking",
     "clickToManage": "Click to manage your booking",
-    "closePanel": "Close panel"
+    "closePanel": "Close panel",
+    "yourDetails": "Your Details"
   },
   "form": {
     "name": "Full name",
@@ -95,7 +136,19 @@
     "email": "E-mail",
     "emailOptional": "E-mail (optional)",
     "message": "Message",
-    "selectTopic": "Select a topic"
+    "selectTopic": "Select a topic",
+    "confirmPassword": "Confirm Password",
+    "emailPlaceholder": "client@example.com",
+    "invalidPhone": "Please enter a valid phone number",
+    "namePlaceholder": "John Doe",
+    "nameTooShort": "Name is too short",
+    "optional": "optional",
+    "password": "Password",
+    "phonePlaceholder": "+1 000 000 0000",
+    "countryCodePlaceholder": "+ country code",
+    "searchCountry": "Search country...",
+    "otherCountry": "Other country",
+    "enterCodeManually": "Enter code manually"
   },
   "validation": {
     "nameRequired": "Name is required",
@@ -125,7 +178,8 @@
     "privacyLink": "Privacy Policy",
     "notificationsCheckbox": "I agree to receive booking notifications via phone/email (optional)",
     "back": "Back",
-    "booking": "Booking..."
+    "booking": "Booking...",
+    "requiredForRegistration": "Please accept required consents to register"
   },
   "success": {
     "title": "Booking confirmed",
@@ -322,7 +376,9 @@
     "cancelFailed": "Failed to cancel booking",
     "tooManyAttempts": "Too many attempts detected. Please wait 5 minutes and try again.",
     "ifProblemPersists": "If the problem persists, contact the specialist - we'll help cancel the appointment manually.",
-    "dateRangeSearch": "📅 Date range to search"
+    "dateRangeSearch": "📅 Date range to search",
+    "searchFailed": "Failed to search bookings. Please try again.",
+    "searchFormIncomplete": "Enter your first name, last name, and phone number (min. 9 digits)."
   },
   "support": {
     "title": "Help Center",
@@ -354,7 +410,12 @@
     "eraseButton": "Delete my data",
     "withdrawConsent": "Withdraw consents",
     "withdrawConsentDesc": "Withdraw your consents to personal data processing.",
-    "withdrawButton": "Withdraw consents"
+    "withdrawButton": "Withdraw consents",
+    "address": "Address",
+    "contactInfo": "Contact Information",
+    "responseTime": "Response Time",
+    "responseTimeDays": "on business days",
+    "responseTimeValue": "Usually within 72 hours"
   },
   "gdpr": {
     "exportTitle": "Export data",
@@ -389,7 +450,26 @@
       "namePlaceholder": "Enter as in your booking",
       "phonePlaceholder": "Phone number with country code",
       "emailPlaceholder": "your.email@example.com",
-      "emailOptional": "optional"
+      "emailOptional": "optional",
+      "csv": {
+        "dataType": "Data type",
+        "value": "Value",
+        "date": "Date",
+        "name": "Full name",
+        "phone": "Phone",
+        "email": "Email",
+        "none": "None",
+        "consentHistory": "Consent history",
+        "consentGrantedDate": "Consent {{n}} - Date granted",
+        "consentPrivacyPolicy": "Consent {{n}} - Privacy Policy v1.0",
+        "consentTerms": "Consent {{n}} - Terms of Service v1.0",
+        "consentNotifications": "Consent {{n}} - Notifications",
+        "given": "Given",
+        "notGiven": "Not given",
+        "withdrawnDate": "Consent {{n}} - Withdrawal date",
+        "withdrawalMethod": "Consent {{n}} - Withdrawal method",
+        "unknown": "Unknown"
+      }
     },
     "erase": {
       "title": "Delete my data",
@@ -488,7 +568,7 @@
   "footer": {
     "privacy": "Privacy Policy",
     "terms": "Terms of Service",
-    "copyright": "© 2025 Somique Beauty. All rights reserved."
+    "copyright": "© {{year}} {{brandName}}. All rights reserved."
   },
   "privacy": {
     "title": "Privacy Policy",

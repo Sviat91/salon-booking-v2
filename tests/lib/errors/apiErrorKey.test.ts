@@ -1,7 +1,13 @@
 import { describe, it, expect } from 'vitest'
-import { apiErrorKey } from '@/lib/errors/apiErrorKey'
+import { apiErrorKey, KNOWN_ERROR_CODES } from '@/lib/errors/apiErrorKey'
 
 describe('apiErrorKey', () => {
+  it('maps every enumerated code to its own errors.<code> key', () => {
+    for (const code of KNOWN_ERROR_CODES) {
+      expect(apiErrorKey(code)).toBe(`errors.${code}`)
+    }
+  })
+
   it('maps a known code to its errors.* key', () => {
     expect(apiErrorKey('BOOKING_NOT_FOUND')).toBe('errors.BOOKING_NOT_FOUND')
   })

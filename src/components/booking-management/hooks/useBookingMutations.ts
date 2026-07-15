@@ -1,5 +1,6 @@
 import { useMutation } from '@tanstack/react-query'
 import { useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   searchBookings,
   updateBookingTime,
@@ -7,9 +8,11 @@ import {
   updateBookingProcedure,
   cancelBooking,
   checkProcedureExtension,
+  ApiError,
 } from '../api/bookingManagementApi'
 import type { ProcedureOption, SlotSelection } from '../types'
 import { clientLog } from '@/lib/client-logger'
+import { apiErrorKey } from '@/lib/errors/apiErrorKey'
 
 interface MutationError {
   message: string
@@ -36,6 +39,8 @@ export function useBookingMutations({
   onProcedureChange,
   masterId,
 }: UseBookingMutationsProps) {
+  const { t } = useTranslation()
+
   // Универсальная функция для сброса состояния календаря
   const resetCalendarState = useCallback(() => {
     clientLog.info('🔄 Resetting calendar state to initial (no procedure, no date, no slot)')
@@ -57,7 +62,8 @@ export function useBookingMutations({
       actions.handleSearchSuccess(results)
     },
     onError: (error) => {
-      actions.handleSearchError(`Nie udało się wyszukać rezerwacji: ${error.message}`)
+      const code = (error as ApiError).code
+      actions.handleSearchError(code ? t(apiErrorKey(code)) : t('management.searchFailed'))
     },
   })
 
@@ -65,10 +71,10 @@ export function useBookingMutations({
   const updateProcedureMutation = useMutation<void, MutationError, void>({
     mutationFn: async () => {
       if (!state.selectedBooking) {
-        throw new Error('Brak wybranej rezerwacji.')
+        throw new ApiError('Brak wybranej rezerwacji.')
       }
       if (!state.selectedProcedure) {
-        throw new Error('Wybierz procedurę.')
+        throw new ApiError('Wybierz procedurę.')
       }
       clientLog.info('🔄 Updating procedure:', state.selectedProcedure.name_pl)
       // NO TURNSTILE - user already verified during search (like updateBookingTime)
@@ -86,11 +92,11 @@ export function useBookingMutations({
     },
     onError: (error) => {
       clientLog.error('❌ Procedure update failed:', error.message)
-      actions.setActionError(error.message)
-      
+      actions.setActionError(t(apiErrorKey((error as ApiError).code)))
+
       // Сбрасываем календарь при ошибке тоже
       resetCalendarState()
-      
+
       actions.setState('procedure-change-error')
     },
   })
@@ -103,7 +109,7 @@ export function useBookingMutations({
   >({
     mutationFn: async (changes) => {
       if (!state.selectedBooking) {
-        throw new Error('Brak wybranej rezerwacji.')
+        throw new ApiError('Brak wybranej rezerwacji.')
       }
       const token = turnstileToken ?? undefined
       return await updateBooking(state.selectedBooking, changes, token, masterId)
@@ -133,11 +139,11 @@ export function useBookingMutations({
     },
     onError: (error) => {
       clientLog.error('❌ Combined update failed:', error.message)
-      actions.setActionError(error.message)
-      
+      actions.setActionError(t(apiErrorKey((error as ApiError).code)))
+
       // Сбрасываем календарь при ошибке тоже
       resetCalendarState()
-      
+
       actions.setState('procedure-change-error')
     },
   })
@@ -147,7 +153,7 @@ export function useBookingMutations({
   const updateTimeMutation = useMutation<void, MutationError, void>({
     mutationFn: async () => {
       if (!state.timeChangeSession?.newSlot) {
-        throw new Error('Brak wybranego nowego terminu.')
+        throw new ApiError('Brak wybranego nowego terminu.')
       }
       
       clientLog.info('🚀 Starting simple time update (no Turnstile):', state.timeChangeSession.originalBooking.eventId)
@@ -173,12 +179,12 @@ export function useBookingMutations({
     },
     onError: (error) => {
       clientLog.error('❌ Time change failed:', error.message)
-      actions.setActionError(error.message)
-      
+      actions.setActionError(t(apiErrorKey((error as ApiError).code)))
+
       // Сбрасываем состояние календаря при ошибке тоже
       resetCalendarState()
       actions.setState('time-change-error')
-      
+
       clientLog.info('❌ State changed to time-change-error')
     },
   })
@@ -187,7 +193,7 @@ export function useBookingMutations({
   const cancelMutation = useMutation<void, MutationError, void>({
     mutationFn: async () => {
       if (!state.selectedBooking) {
-        throw new Error('Brak wybranej rezerwacji.')
+        throw new ApiError('Brak wybranej rezerwacji.')
       }
       await cancelBooking(state.selectedBooking, masterId)
     },
@@ -198,7 +204,7 @@ export function useBookingMutations({
     },
     onError: (error) => {
       // Переходим на красную панель ошибки с понятным сообщением
-      actions.setActionError(error.message)
+      actions.setActionError(t(apiErrorKey((error as ApiError).code)))
       actions.setState('cancel-error')
     },
   })
@@ -237,10 +243,10 @@ export function useBookingMutations({
       
     } catch (error) {
       clientLog.error('❌ Extension check failed:', error)
-      actions.setActionError(error instanceof Error ? error.message : 'Nie udało się sprawdzić dostępności')
+      actions.setActionError(t(apiErrorKey(error instanceof ApiError ? error.code : undefined)))
       actions.setExtensionCheckStatus(null)
     }
-  }, [state.selectedBooking, state.selectedProcedure, actions])
+  }, [state.selectedBooking, state.selectedProcedure, actions, t])
 
   return {
     searchMutation,

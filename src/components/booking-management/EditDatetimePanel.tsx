@@ -1,5 +1,7 @@
 "use client"
 import { useTranslation } from 'react-i18next'
+import { useCurrentLanguage } from '@/contexts/LanguageContext'
+import { localeFor } from '@/lib/i18n'
 import type { BookingResult, ProcedureOption, SlotSelection } from './types'
 
 interface EditDatetimePanelProps {
@@ -20,21 +22,23 @@ export default function EditDatetimePanel({
   onConfirm,
 }: EditDatetimePanelProps) {
   const { t } = useTranslation()
+  const language = useCurrentLanguage()
+  const dateLocale = localeFor(language)
   const hasSelection = Boolean(selectedDate && selectedSlot)
 
-  const currentDateLabel = new Intl.DateTimeFormat('pl-PL', {
+  const currentDateLabel = new Intl.DateTimeFormat(dateLocale, {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
   }).format(booking.startTime)
 
-  const currentTimeLabel = new Intl.DateTimeFormat('pl-PL', {
+  const currentTimeLabel = new Intl.DateTimeFormat(dateLocale, {
     hour: '2-digit',
     minute: '2-digit',
   }).format(booking.startTime)
 
   const selectedDateLabel = selectedDate
-    ? new Intl.DateTimeFormat('pl-PL', {
+    ? new Intl.DateTimeFormat(dateLocale, {
         weekday: 'long',
         day: 'numeric',
         month: 'long',
@@ -42,7 +46,7 @@ export default function EditDatetimePanel({
     : null
 
   const selectedTimeLabel = selectedSlot
-    ? new Intl.DateTimeFormat('pl-PL', {
+    ? new Intl.DateTimeFormat(dateLocale, {
         hour: '2-digit',
         minute: '2-digit',
       }).format(new Date(selectedSlot.startISO))
