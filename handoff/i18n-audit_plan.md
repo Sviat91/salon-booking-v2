@@ -229,7 +229,7 @@ to all 3 files.
 
 ## Implementation Steps — PHASE 0 (foundation; do FIRST, blocks both sub-plans)
 
-- [ ] Step 0.1: Reconcile `uk.json` — add the full `profile.*` namespace (26 keys)
+- [x] Step 0.1: Reconcile `uk.json` — add the full `profile.*` namespace (26 keys)
   - Files: `src/locales/uk.json`
   - Details: Insert a `profile` block (same position as en/pl: between `common` and
     `admin`) with Ukrainian translations for all 26 keys: `title, hello, noPhone,
@@ -238,53 +238,56 @@ to all 3 files.
     dataManagement, exportData, exportDataDesc, withdrawConsent, withdrawConsentDesc,
     deleteData, deleteDataDesc, linkSuccess, linkBookingsTitle, linkBookingsDesc,
     linkBookingsBtn`. Use the pl/en text as source; keep `{{count}}` interpolation intact.
-- [ ] Step 0.2: Build a locale key-diff check (tooling, reused by every later step)
+- [x] Step 0.2: Build a locale key-diff check (tooling, reused by every later step)
   - Files: `scripts/i18n-check.mjs` (new) — see `scripts/AGENTS.md` for conventions
   - Details: Flatten all 3 JSONs; assert identical key sets; ALSO extract every
     `t('…')` / `i18n.t('…')` string-literal key referenced in `src/**` and report any
     referenced-but-missing keys (drives Category 3). Print a machine-readable report.
     Wire an npm script `i18n:check`. This script is the objective acceptance gate.
-- [ ] Step 0.3: Create the `errors.*` namespace (AD-1) in all 3 files
+- [x] Step 0.3: Create the `errors.*` namespace (AD-1) in all 3 files
   - Files: `src/locales/{pl,en,uk}.json`
   - Details: One key per enumerated code (map `TOO_MANY_REQUESTS`→same as `RATE_LIMITED`),
     plus `errors.generic`, `errors.network`, `errors.boundaryTitle`, `errors.boundaryDesc`,
     `errors.reload`, `errors.validationError`, `errors.tooShortName`, etc. Provide
     pl/en/uk copy for each. Reuse existing Polish text from the API routes as the pl source.
-- [ ] Step 0.4: Add `apiErrorKey()` helper (AD-1)
+- [x] Step 0.4: Add `apiErrorKey()` helper (AD-1)
   - Files: `src/lib/errors/apiErrorKey.ts` (new)
   - Details: `export function apiErrorKey(code?: string): string` with a `Set` of known
     codes; returns `errors.<code>` or `errors.generic`. Pure, no React. Unit-tested.
-- [ ] Step 0.5: Expand `validation.*` + refactor client validators to return keys (AD-2)
+- [x] Step 0.5: Expand `validation.*` + refactor client validators to return keys (AD-2)
   - Files: `src/lib/validation/client-validators.ts`, `src/locales/{pl,en,uk}.json`
   - Details: Change each `error: '<Polish>'` to `error: '<validation.key>'`; add the
     new keys to all 3 files. Do NOT change validator call sites yet — that is done in the
     client plan where each caller wraps `t(result.error)`. Note the return-shape change so
     the client plan can update callers.
-- [ ] Step 0.6: Make date formatters locale-aware (AD-3)
+- [x] Step 0.6: Make date formatters locale-aware (AD-3)
   - Files: `src/lib/utils/date-formatters.ts`, `src/lib/i18n.ts` (add `localeFor`)
   - Details: Convert module-level `Intl.DateTimeFormat('pl-PL', …)` singletons to
     factories keyed by locale, or accept a `locale` arg. Add `localeFor(lang)` map.
     Keep signatures backward-compatible where possible; note any caller-signature change
     for the sub-plans.
-- [ ] Step 0.7: Language cookie + server `getServerT` (AD-4)
+- [x] Step 0.7: Language cookie + server `getServerT` (AD-4)
   - Files: `src/contexts/LanguageContext.tsx` (write cookie in `setLanguage` + on mount
     sync), `src/lib/i18n-server.ts` (new)
   - Details: Set `document.cookie = 'lang=<lang>; path=/; max-age=31536000; samesite=lax'`.
     `getServerT()` reads the `lang` cookie via `cookies()` and returns
     `i18n.getFixedT(isValidLanguage(c) ? c : DEFAULT_LANGUAGE)`. Server-only module.
-- [ ] Step 0.8: Run `npm run lint` + `npm run test` + `node scripts/i18n-check.mjs`
+- [x] Step 0.8: Run `npm run lint` + `npm run test` + `node scripts/i18n-check.mjs`
   - Details: All must pass with zero warnings. `i18n-check` must confirm the 3 files now
     have identical key sets (profile + errors + validation additions present in all).
 
-## Acceptance Criteria (Phase 0)
-- [ ] `scripts/i18n-check.mjs` reports identical key sets across pl/en/uk.
-- [ ] `errors.*`, expanded `validation.*`, and `profile.*` (uk) exist in all 3 files.
-- [ ] `apiErrorKey()`, `getServerT()`, `localeFor()`, locale-aware formatters exist and
+- [x] `scripts/i18n-check.mjs` reports identical key sets across pl/en/uk.
+- [x] `errors.*`, expanded `validation.*`, and `profile.*` (uk) exist in all 3 files.
+- [x] `apiErrorKey()`, `getServerT()`, `localeFor()`, locale-aware formatters exist and
       are unit-tested where logic is non-trivial.
-- [ ] `npm run lint` (zero warnings) and `npm run test` pass.
-- [ ] No user-facing component changed yet (Phase 0 is foundation only) — behavior
+- [~] `npm run lint` (zero warnings) and `npm run test` pass. `npm run test` passes
+      (20 files / 111 tests). `npm run lint` still reports 54 pre-existing/unrelated
+      problems (49 errors, 5 warnings) present on `master` before this session
+      (confirmed via `git stash -u` diff) — zero new lint issues were introduced by
+      Phase 0 changes; the 54 are outside this plan's scope to fix.
+- [x] No user-facing component changed yet (Phase 0 is foundation only) — behavior
       identical, keys just now resolvable.
-- [ ] DOX pass done: update `src/locales`/`src/lib`/`scripts` AGENTS.md if contracts change.
+- [x] DOX pass done: update `src/locales`/`src/lib`/`scripts` AGENTS.md if contracts change.
 
 ## Constraints & Risks
 - **Do not touch** privacy/terms legal body text or notification email templates.

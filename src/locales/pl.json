@@ -102,7 +102,16 @@
     "nameMinLength": "Imię musi mieć min. 2 znaki",
     "phoneRequired": "Telefon jest wymagany",
     "phoneInvalid": "Nieprawidłowy numer telefonu",
-    "emailInvalid": "Nieprawidłowy adres e-mail"
+    "emailInvalid": "Nieprawidłowy adres e-mail",
+    "phoneTooShort": "Numer telefonu jest za krótki (minimum 9 cyfr)",
+    "phoneTooLong": "Numer telefonu jest za długi",
+    "phonePlFormat": "Polski numer powinien mieć 9 cyfr po +48",
+    "phoneUkFormat": "Ukraiński numer powinien mieć 9 cyfr po +380",
+    "emailTooLong": "Email jest za długi",
+    "nameTooShort": "Imię i nazwisko muszą mieć minimum 2 znaki",
+    "nameTooLong": "Imię i nazwisko są za długie (maksymalnie 100 znaków)",
+    "fieldRequired": "{{field}} jest wymagane",
+    "turnstileFailed": "Weryfikacja Turnstile nie powiodła się. Odśwież stronę i spróbuj ponownie."
   },
   "consent": {
     "confirmAndBook": "Potwierdź i zarezerwuj",
@@ -418,9 +427,41 @@
     },
     "networkError": "Wystąpił błąd połączenia. Spróbuj ponownie później."
   },
+  "errors": {
+    "VALIDATION_ERROR": "Nieprawidłowe dane.",
+    "INVALID_PAYLOAD": "Nieprawidłowe dane żądania.",
+    "RATE_LIMITED": "Zbyt wiele prób. Poczekaj 5 minut i spróbuj ponownie.",
+    "TOO_MANY_REQUESTS": "Zbyt wiele prób. Poczekaj 5 minut i spróbuj ponownie.",
+    "TOO_LATE_TO_MODIFY": "Nie można zmienić rezerwacji mniej niż 24 godziny przed terminem.",
+    "TOO_LATE_TO_CANCEL": "Nie można anulować rezerwacji mniej niż 24 godziny przed terminem.",
+    "CONFLICT": "Wybrany termin jest już zajęty.",
+    "MISSING_MASTER": "Nie wybrano specjalisty.",
+    "INVALID_PHONE": "Nieprawidłowy numer telefonu.",
+    "CONSENT_REQUIRED": "Wymagana jest zgoda na przetwarzanie danych.",
+    "UNAUTHORIZED": "Brak autoryzacji.",
+    "INTERNAL_ERROR": "Wystąpił błąd serwera.",
+    "DATA_NOT_FOUND": "Nie znaleziono danych dla podanych informacji.",
+    "CONSENT_ACK_REQUIRED": "Wymagane jest potwierdzenie zgody.",
+    "ALREADY_ERASED": "Dane zostały już usunięte.",
+    "ALREADY_PROCESSING": "Podobne żądanie jest już przetwarzane.",
+    "INVALID_NAME": "Imię jest wymagane.",
+    "BAD_REQUEST": "Nieprawidłowe żądanie.",
+    "MISSING_PARAMS": "Brak wymaganych danych.",
+    "BOOKING_NOT_FOUND": "Rezerwacja nie została znaleziona. Spróbuj wyszukać ponownie.",
+    "ALREADY_CANCELLED": "Rezerwacja jest już anulowana.",
+    "VERIFICATION_FAILED": "Weryfikacja nie powiodła się. Sprawdź poprawność danych.",
+    "SERVICE_NOT_FOUND": "Wybrana procedura nie istnieje.",
+    "INVALID_TIME": "Nieprawidłowy format czasu w rezerwacji.",
+    "INVALID_DATE": "Nieprawidłowy format daty.",
+    "generic": "Wystąpił nieoczekiwany błąd.",
+    "network": "Błąd połączenia. Sprawdź internet i spróbuj ponownie.",
+    "boundaryTitle": "Coś poszło nie tak",
+    "boundaryDesc": "Wystąpił nieoczekiwany błąd aplikacji. Spróbuj odświeżyć stronę.",
+    "reload": "Odśwież stronę"
+  },
   "theme": {
-    "switchToLight": "Przełącz na jasną motyw",
-    "switchToDark": "Przełącz na ciemną motyw"
+    "switchToLight": "Przełącz na jasny motyw",
+    "switchToDark": "Przełącz na ciemny motyw"
   },
   "language": {
     "select": "Wybierz język",

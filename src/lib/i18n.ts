@@ -19,6 +19,17 @@ export function isValidLanguage(lang: string): lang is Language {
   return SUPPORTED_LANGUAGES.includes(lang as Language)
 }
 
+const BCP47_LOCALES: Record<Language, string> = {
+  pl: 'pl-PL',
+  uk: 'uk-UA',
+  en: 'en-GB',
+}
+
+/** Maps an app `Language` to its BCP-47 locale for `Intl`/`Intl.DateTimeFormat` use. */
+export function localeFor(lang: Language): string {
+  return BCP47_LOCALES[lang]
+}
+
 const resources = {
   pl: { translation: pl },
   uk: { translation: uk },

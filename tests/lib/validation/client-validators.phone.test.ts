@@ -13,13 +13,13 @@ describe('validatePhone', () => {
   it('rejects a Polish number with missing digits after +48', () => {
     const result = validatePhone('+4850174870')
     expect(result.valid).toBe(false)
-    expect(result.error).toBe('Polski numer powinien mieć 9 cyfr po +48')
+    expect(result.error).toBe('validation.phonePlFormat')
   })
 
   it('rejects empty value', () => {
     const result = validatePhone('')
     expect(result.valid).toBe(false)
-    expect(result.error).toBe('Numer telefonu jest wymagany')
+    expect(result.error).toBe('validation.phoneRequired')
   })
 })
 

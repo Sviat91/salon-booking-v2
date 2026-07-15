@@ -1,14 +1,20 @@
 /**
  * Client-side validation utilities
- * 
+ *
  * Pure TypeScript validators without external dependencies.
  * Designed to be lightweight (<1KB) and provide instant feedback in forms.
  * Server-side validation with Zod remains the source of truth.
+ *
+ * `error` is an i18n KEY under the `validation.*` namespace (see
+ * `src/locales/{pl,en,uk}.json`), not display text — callers must render it
+ * with `t(result.error)` (or `t(result.error, result.errorParams)` when
+ * `errorParams` is present, for keys with `{{...}}` interpolation).
  */
 
 export interface ValidationResult {
   valid: boolean
   error?: string
+  errorParams?: Record<string, string | number>
 }
 
 /**
@@ -19,7 +25,7 @@ export interface ValidationResult {
  */
 export function validatePhone(phone: string): ValidationResult {
   if (!phone || phone.trim().length === 0) {
-    return { valid: false, error: 'Numer telefonu jest wymagany' }
+    return { valid: false, error: 'validation.phoneRequired' }
   }
 
   // Remove all non-digit characters
@@ -27,22 +33,22 @@ export function validatePhone(phone: string): ValidationResult {
 
   // Check minimum length (at least 9 digits)
   if (digitsOnly.length < 9) {
-    return { valid: false, error: 'Numer telefonu jest za krótki (minimum 9 cyfr)' }
+    return { valid: false, error: 'validation.phoneTooShort' }
   }
 
   // Check maximum length (max 15 digits including country code)
   if (digitsOnly.length > 15) {
-    return { valid: false, error: 'Numer telefonu jest za długi' }
+    return { valid: false, error: 'validation.phoneTooLong' }
   }
 
   // Polish format: +48 followed by 9 digits
   if (phone.startsWith('+48') && digitsOnly.length !== 11) {
-    return { valid: false, error: 'Polski numer powinien mieć 9 cyfr po +48' }
+    return { valid: false, error: 'validation.phonePlFormat' }
   }
 
   // Ukrainian format: +380 followed by 9 digits
   if (phone.startsWith('+380') && digitsOnly.length !== 12) {
-    return { valid: false, error: 'Ukraiński numer powinien mieć 9 cyfr po +380' }
+    return { valid: false, error: 'validation.phoneUkFormat' }
   }
 
   return { valid: true }
@@ -64,11 +70,11 @@ export function validateEmail(email: string): ValidationResult {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   
   if (!emailRegex.test(email)) {
-    return { valid: false, error: 'Nieprawidłowy format email' }
+    return { valid: false, error: 'validation.emailInvalid' }
   }
 
   if (email.length > 254) {
-    return { valid: false, error: 'Email jest za długi' }
+    return { valid: false, error: 'validation.emailTooLong' }
   }
 
   return { valid: true }
@@ -82,17 +88,17 @@ export function validateEmail(email: string): ValidationResult {
  */
 export function validateName(name: string): ValidationResult {
   if (!name || name.trim().length === 0) {
-    return { valid: false, error: 'Imię i nazwisko są wymagane' }
+    return { valid: false, error: 'validation.nameRequired' }
   }
 
   const trimmed = name.trim()
 
   if (trimmed.length < 2) {
-    return { valid: false, error: 'Imię i nazwisko muszą mieć minimum 2 znaki' }
+    return { valid: false, error: 'validation.nameTooShort' }
   }
 
   if (trimmed.length > 100) {
-    return { valid: false, error: 'Imię i nazwisko są za długie (maksymalnie 100 znaków)' }
+    return { valid: false, error: 'validation.nameTooLong' }
   }
 
   return { valid: true }
@@ -101,10 +107,12 @@ export function validateName(name: string): ValidationResult {
 /**
  * Validates required field
  * Generic validator for any required text input
+ * `error` resolves to `validation.fieldRequired`; render with
+ * `t(result.error, result.errorParams)` to interpolate `{{field}}`.
  */
 export function validateRequired(value: string, fieldName: string): ValidationResult {
   if (!value || value.trim().length === 0) {
-    return { valid: false, error: `${fieldName} jest wymagane` }
+    return { valid: false, error: 'validation.fieldRequired', errorParams: { field: fieldName } }
   }
 
   return { valid: true }
@@ -116,7 +124,7 @@ export function validateRequired(value: string, fieldName: string): ValidationRe
  */
 export function validateTurnstileToken(token: string | null): ValidationResult {
   if (!token || token.trim().length === 0) {
-    return { valid: false, error: 'Weryfikacja Turnstile nie powiodła się. Odśwież stronę i spróbuj ponownie.' }
+    return { valid: false, error: 'validation.turnstileFailed' }
   }
 
   return { valid: true }

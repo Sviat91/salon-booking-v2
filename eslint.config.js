@@ -52,4 +52,11 @@ export default [
       sourceType: 'commonjs',
     },
   },
+  {
+    files: ['scripts/**/*.mjs'],
+    languageOptions: {
+      globals: globals.node,
+      sourceType: 'module',
+    },
+  },
 ]

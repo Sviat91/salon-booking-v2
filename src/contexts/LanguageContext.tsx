@@ -38,12 +38,19 @@ function getStoredLanguage(): Language | null {
 
 function setStoredLanguage(lang: Language): void {
   if (typeof window === 'undefined') return
-  
+
   try {
     localStorage.setItem(STORAGE_KEY, lang)
   } catch (error) {
     clientLog.warn('Failed to save language to localStorage:', error)
   }
+}
+
+// Mirrors the language into a cookie so Server Components can read it via
+// `next/headers` cookies() (see src/lib/i18n-server.ts).
+function setLanguageCookie(lang: Language): void {
+  if (typeof document === 'undefined') return
+  document.cookie = `lang=${lang}; path=/; max-age=31536000; samesite=lax`
 }
 
 export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
@@ -59,6 +66,7 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
       i18n.changeLanguage(storedLang)
       setLanguageState(storedLang)
     }
+    setLanguageCookie(storedLang ?? DEFAULT_LANGUAGE)
   }, [i18n])
 
   const setLanguage = useCallback((lang: Language) => {
@@ -81,7 +89,10 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
     
     // Save to localStorage
     setStoredLanguage(lang)
-    
+
+    // Mirror to a cookie for server-rendered pages (see src/lib/i18n-server.ts)
+    setLanguageCookie(lang)
+
     clientLog.info('Language changed successfully to:', lang)
   }, [language, i18n])
 
