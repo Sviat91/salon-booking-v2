@@ -222,6 +222,10 @@ export default function ModernCalendar({
     return format(currentDate, "EEEE, MMMM d, yyyy", { locale })
   }, [currentDate, view, language])
 
+  const todayDisplay = useMemo(() => {
+    return format(new Date(), "d MMM", { locale: dateFnsLocale(language) })
+  }, [language])
+
   // Bulk save handler
   const saveBulkOverrides = async (dates: string[], isDayOff: boolean, intervals: Interval[], masterIds?: string[]) => {
     const res = await fetch(`${apiPrefix}/schedule/overrides/bulk`, {
@@ -237,76 +241,28 @@ export default function ModernCalendar({
 
   return (
     <div className="flex flex-col h-full w-full bg-card text-card-foreground overflow-hidden relative">
-      <div className="min-h-[4rem] py-2 border-b border-border/60 flex flex-wrap gap-y-3 gap-x-4 items-center justify-between px-4 shrink-0 z-10 transition-colors shadow-sm">
-        <div className="flex items-center gap-4">
-          <Button variant="outline" size="sm" onClick={() => navigate("today")} className="bg-transparent border-border hover:bg-muted">{t('admin.calendar.todayBtn')}</Button>
-          <div className="flex items-center gap-1">
-            <Button variant="ghost" size="icon" onClick={() => navigate("prev")} className="hover:bg-muted"><ChevronLeft className="h-4 w-4" /></Button>
-            <Button variant="ghost" size="icon" onClick={() => navigate("next")} className="hover:bg-muted"><ChevronRight className="h-4 w-4" /></Button>
-          </div>
-          <h2 className="text-xl font-semibold min-w-[150px]">{headerDisplay}</h2>
-          
-          <div className={`h-4 w-4 rounded-full border-2 border-primary border-t-transparent animate-spin ml-2 transition-opacity ${loading ? 'opacity-100' : 'opacity-0'}`}></div>
-        </div>
+      <div className="min-h-[4rem] py-2 border-b border-border/60 px-4 shrink-0 z-10 transition-colors shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-y-3 gap-x-4">
+          <div className="flex items-center gap-4">
+            <Button variant="outline" size="sm" onClick={() => navigate("today")} className="bg-transparent border-border hover:bg-muted">{t('admin.calendar.todayBtn')} <span className="opacity-70 ml-1">· {todayDisplay}</span></Button>
+            <div className="flex items-center gap-1">
+              <Button variant="ghost" size="icon" onClick={() => navigate("prev")} className="hover:bg-muted"><ChevronLeft className="h-4 w-4" /></Button>
+              <Button variant="ghost" size="icon" onClick={() => navigate("next")} className="hover:bg-muted"><ChevronRight className="h-4 w-4" /></Button>
+            </div>
+            <h2 className="text-xl font-semibold min-w-[150px]">{headerDisplay}</h2>
 
-        <div className="flex flex-wrap items-center gap-3">
-          <Select value={String(step)} onValueChange={(v) => setStep(Number(v ?? step))} disabled={view === "Month"}>
-            <SelectTrigger className="h-auto w-auto bg-transparent hover:bg-muted px-3 py-1.5 text-sm font-medium shadow-sm">
-              <SelectValue>{(v: string) => t('admin.calendar.minutesOption', { count: Number(v) })}</SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              {[5, 10, 15, 30, 60].map(s => (
-                <SelectItem key={s} value={String(s)}><SelectItemText>{t('admin.calendar.minutesOption', { count: s })}</SelectItemText></SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <div className="h-6 w-px bg-border mx-1" />
-
-          {/* Always show Bulk Settings and Edit Tools, Bulk handles 'all' context naturally */}
-          <Button
-            variant={isEditMode ? "default" : "outline"}
-            size="sm"
-            onClick={() => setIsEditMode(!isEditMode)}
-            disabled={isAdminView && selectedMasterId === "all"} // Disable inline edit for 'all' mode
-            className={`gap-2 transition-all ${isEditMode ? 'bg-primary text-primary-foreground shadow shadow-primary/20' : 'bg-transparent border-border hover:bg-muted'}`}
-          >
-            {isEditMode ? <Save className="w-4 h-4" /> : <Edit3 className="w-4 h-4" />}
-            <span className="hidden sm:inline">{isEditMode ? t('admin.calendar.doneEditing') : t('admin.calendar.editSchedule')}</span>
-          </Button>
-
-          <Button variant="outline" size="sm" onClick={() => setShowBulkModal(true)} className="gap-2 shrink-0 bg-transparent border-border hover:bg-muted">
-            <Calendar className="w-4 h-4" />
-            <span className="hidden sm:inline">{t('admin.calendar.bulkSettings')}</span>
-          </Button>
-
-          <div className="h-6 w-px bg-border mx-1" />
-
-          <div className="flex rounded-full border border-border bg-transparent p-0.5 gap-0.5">
-            {(["Month", "Week", "Day"] as ViewType[]).map((v) => (
-              <button
-                key={v}
-                onClick={() => setView(v)}
-                className={`px-3 py-1.5 text-sm font-medium transition-colors rounded-full ${
-                  view === v
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                }`}
-              >
-                {v === "Month" ? t('admin.calendar.monthView') : v === "Week" ? t('admin.calendar.weekView') : t('admin.calendar.dayView')}
-              </button>
-            ))}
+            <div className={`h-4 w-4 rounded-full border-2 border-primary border-t-transparent animate-spin ml-2 transition-opacity ${loading ? 'opacity-100' : 'opacity-0'}`}></div>
           </div>
 
           {isAdminView && adminMastersList && onMasterChange && (
-            <div className="relative ml-2">
+            <div className="relative">
               <button
                 ref={masterSelectBtnRef}
                 onClick={() => setShowMasterSelect(!showMasterSelect)}
                 className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium bg-transparent hover:bg-muted rounded-md transition-colors border border-border"
               >
                  {selectedMasterId === "all" ? (
-                   <span className="flex items-center gap-1.5"><Globe className="w-3.5 h-3.5" />{t('admin.calendar.allMasters')}</span>
+                   <span className="flex items-center gap-1.5"><Globe className="w-3.5 h-3.5" /><span className="inline-block min-w-[22ch] text-center">{t('admin.calendar.allMasters')}</span></span>
                  ) : (
                    <span className="flex items-center gap-1.5"><User className="w-3.5 h-3.5" />{adminMastersList.find(m => m.id === selectedMasterId)?.name || t('admin.calendar.selectMasterFallback')}</span>
                  )}
@@ -345,7 +301,58 @@ export default function ModernCalendar({
               )}
             </div>
           )}
+        </div>
 
+        <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 mt-3">
+          <Select value={String(step)} onValueChange={(v) => setStep(Number(v ?? step))} disabled={view === "Month"}>
+            <SelectTrigger className="h-auto w-auto bg-transparent hover:bg-muted px-3 py-1.5 text-sm font-medium shadow-sm">
+              <SelectValue>{(v: string) => t('admin.calendar.minutesOption', { count: Number(v) })}</SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {[5, 10, 15, 30, 60].map(s => (
+                <SelectItem key={s} value={String(s)}><SelectItemText>{t('admin.calendar.minutesOption', { count: s })}</SelectItemText></SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <div className="h-6 w-px bg-border" />
+
+          {/* Always show Bulk Settings and Edit Tools, Bulk handles 'all' context naturally */}
+          <Button
+            variant={isEditMode ? "default" : "outline"}
+            size="sm"
+            onClick={() => setIsEditMode(!isEditMode)}
+            disabled={isAdminView && selectedMasterId === "all"} // Disable inline edit for 'all' mode
+            className={`gap-2 transition-all ${isEditMode ? 'bg-primary text-primary-foreground shadow shadow-primary/20' : 'bg-transparent border-border hover:bg-muted'}`}
+          >
+            {isEditMode ? <Save className="w-4 h-4" /> : <Edit3 className="w-4 h-4" />}
+            <span className="hidden sm:inline-block min-w-[24ch] text-center">{isEditMode ? t('admin.calendar.doneEditing') : t('admin.calendar.editSchedule')}</span>
+          </Button>
+
+          <Button variant="outline" size="sm" onClick={() => setShowBulkModal(true)} className="gap-2 shrink-0 bg-transparent border-border hover:bg-muted">
+            <Calendar className="w-4 h-4" />
+            <span className="hidden sm:inline-block min-w-[29ch] text-center">{t('admin.calendar.bulkSettings')}</span>
+          </Button>
+
+          <div className="h-6 w-px bg-border" />
+
+          <div className="flex rounded-full border border-border bg-transparent p-0.5 gap-0.5">
+            {(["Month", "Week", "Day"] as ViewType[]).map((v) => (
+              <button
+                key={v}
+                onClick={() => setView(v)}
+                className={`px-3 py-1.5 text-sm font-medium transition-colors rounded-full ${
+                  view === v
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                }`}
+              >
+                <span className="inline-block min-w-[8ch] text-center">
+                  {v === "Month" ? t('admin.calendar.monthView') : v === "Week" ? t('admin.calendar.weekView') : t('admin.calendar.dayView')}
+                </span>
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
