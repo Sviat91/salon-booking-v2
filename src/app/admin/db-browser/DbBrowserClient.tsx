@@ -149,8 +149,12 @@ export default function DbBrowserClient() {
             )}
 
             {!loading && data && data.rows.length > 0 && (
-              <div className="rounded-[20px] border border-border overflow-auto">
-                <table className="w-full text-xs">
+              <div className="rounded-[20px] border border-border overflow-hidden">
+                {/* DB Browser keeps horizontal scroll on mobile instead of cards — arbitrary/
+                    dynamic columns (10-20+) are only readable aligned side-by-side; see
+                    admin/AGENTS.md's table→card exception. */}
+                <div className="overflow-x-auto custom-scrollbar">
+                <table className="w-full min-w-[720px] text-xs">
                   <thead className="bg-muted/50 border-b border-border sticky top-0">
                     <tr>
                       {columns.map((col) => (
@@ -203,6 +207,7 @@ export default function DbBrowserClient() {
                     ))}
                   </tbody>
                 </table>
+                </div>
               </div>
             )}
           </div>

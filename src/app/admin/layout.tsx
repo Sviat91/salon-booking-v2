@@ -17,7 +17,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
               not the sidebar's live/current width, so this container's computed width
               stays identical whether the sidebar is expanded or collapsed. Keep in sync
               if AdminSidebar.tsx's w-60 ever changes. */}
-          <div className="mx-auto w-[calc(100vw-240px)] max-w-full px-6 py-8">
+          <div className="mx-auto w-full lg:w-[calc(100vw-240px)] max-w-full px-4 lg:px-6 py-4 lg:py-8">
             {children}
           </div>
         </main>

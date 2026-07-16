@@ -120,7 +120,8 @@
       "saveSettings": "Save Settings",
       "signOut": "Sign Out",
       "expand": "Expand",
-      "fallbackTitle": "Admin"
+      "fallbackTitle": "Admin",
+      "openMenu": "Open menu"
     },
     "common": {
       "searchAria": "Search",
@@ -155,6 +156,8 @@
       "allMastersCombined": "All Masters (Combined)",
       "selectMasterFallback": "Select",
       "minutesOption": "{{count}} min",
+      "mobileControlsAria": "Calendar settings",
+      "mobileControlsTitle": "Calendar settings",
       "bulkUpdateFailed": "Failed bulk update",
       "deleteFailed": "Delete failed",
       "scheduleAndCalendarTitle": "Schedule & Calendar",

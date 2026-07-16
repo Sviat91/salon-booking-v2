@@ -8,6 +8,7 @@ import { Plus, PowerOff, X, ChevronDown, Clock } from "lucide-react"
 import { TimePickerDropdown } from "@/components/TimePickerDropdown"
 import { useCurrentLanguage } from "@/contexts/LanguageContext"
 import { dateFnsLocale } from "@/lib/utils/date-fns-locale"
+import { pluralize } from "./calendar-utils"
 
 interface MonthViewProps {
   currentDate: Date
@@ -20,6 +21,7 @@ interface MonthViewProps {
   apiPrefix?: string
   isAdminView?: boolean
   selectedMasterId?: string
+  isMobile?: boolean
   onDayClick: (d: Date) => void
   onAppointmentClick: (a: Appointment) => void
   onDataChange: () => void
@@ -32,13 +34,7 @@ interface ExpandedState {
   dateStr: string | null
 }
 
-function pluralize(count: number, one: string, few: string, many: string): string {
-  if (count === 1) return one
-  if (count >= 2 && count <= 4) return few
-  return many
-}
-
-export default function MonthView({ currentDate, appointments, templates, overrides, isEditMode, availableSlotColor, dayOffColor, apiPrefix = "/api/master", selectedMasterId = "all", onDayClick, onAppointmentClick, onDataChange }: MonthViewProps) {
+export default function MonthView({ currentDate, appointments, templates, overrides, isEditMode, availableSlotColor, dayOffColor, apiPrefix = "/api/master", selectedMasterId = "all", isMobile = false, onDayClick, onAppointmentClick, onDataChange }: MonthViewProps) {
   const { t } = useTranslation()
   const language = useCurrentLanguage()
   const locale = dateFnsLocale(language)
@@ -148,15 +144,16 @@ export default function MonthView({ currentDate, appointments, templates, overri
           const apptsCount = dayAppts.length
 
           return (
-            <div 
-              key={i} 
+            <div
+              key={i}
               onClick={() => {
+                if (isMobile) { onDayClick(day); return }
                 if (!isEditMode && !isPastDay && apptsCount === 0) onDayClick(day)
               }}
               className={`border-b border-r border-border p-1 flex flex-col transition-colors relative
-                ${!isEditMode && !isPastDay ? "cursor-pointer hover:bg-muted/10" : ""}
+                ${isMobile || (!isEditMode && !isPastDay) ? "cursor-pointer hover:bg-muted/10" : ""}
                 ${!isCurrentMonth ? "bg-muted/30 opacity-50" : (shiftsCount > 0 || apptsCount > 0) ? "" : "bg-card"}
-                ${isPastDay && isCurrentMonth ? "opacity-60 pointer-events-none" : ""}
+                ${isPastDay && isCurrentMonth && !isMobile ? "opacity-60 pointer-events-none" : ""}
               `}
               style={{ backgroundColor: status.isDayOff && isCurrentMonth ? dayOffColor + '40' : (!isPastDay && !status.isDayOff && shiftsCount > 0) ? availableSlotColor + '1A' : undefined }}
             >
@@ -166,11 +163,21 @@ export default function MonthView({ currentDate, appointments, templates, overri
                 <span className={`text-sm flex items-center justify-center h-6 w-6 rounded-full font-medium ${isCurrentDay ? "bg-primary text-primary-foreground" : "text-muted-foreground"}`}>
                   {format(day, "d")}
                 </span>
-                {status.isDayOff && (
+                {status.isDayOff && !isMobile && (
                   <span className="text-[10px] uppercase font-bold text-destructive">{t('admin.calendar.offBadge')}</span>
                 )}
               </div>
 
+              {isMobile ? (
+                apptsCount > 0 && (
+                  <div className="mt-auto flex justify-center pb-1">
+                    <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[9px] font-semibold text-primary-foreground">
+                      {apptsCount}
+                    </span>
+                  </div>
+                )
+              ) : (
+              <>
               {!isEditMode && apptsCount > 0 && (
                 <div className="flex-1 relative">
                   {isExpanded && expanded.type === 'appointments' ? (
@@ -297,6 +304,8 @@ export default function MonthView({ currentDate, appointments, templates, overri
                     <Plus className="w-3 h-3" /> {t('admin.calendar.shiftBtn')}
                   </button>
                 </div>
+              )}
+              </>
               )}
             </div>
           )

@@ -16,6 +16,7 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { ThemeToggle } from "@/components/ui/theme-toggle"
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import {
   getNavItemsForRole,
   isNavItemActive,
@@ -59,73 +60,25 @@ function NavLink({ item, open }: { item: NavItem; open: boolean }) {
   )
 }
 
-export default function AdminSidebar({ brandName, logoUrl }: AdminSidebarProps) {
+/**
+ * Shared nav body (links, back-to-site, settings-save button, user/theme/sign-out footer).
+ * Used by both the persistent desktop aside (live `open` state) and the mobile drawer
+ * (always `expanded={true}`).
+ */
+function SidebarNav({ expanded, isDirty }: { expanded: boolean; isDirty: boolean }) {
   const pathname = usePathname()
   const { data: session } = useSession()
   const { t } = useTranslation()
-  const [isDirty, setIsDirty] = useState(false)
-  const [open, setOpen] = useState(true)
-
-  useEffect(() => {
-    const handler = (e: Event) => {
-      setIsDirty((e as CustomEvent<{ isDirty: boolean }>).detail.isDirty)
-    }
-    document.addEventListener('settings-dirty', handler)
-    return () => document.removeEventListener('settings-dirty', handler)
-  }, [])
-
   const navItems = getNavItemsForRole(session?.user?.role)
 
   return (
-    <aside
-      className={cn(
-        "flex h-full flex-col overflow-hidden border-r border-border bg-card transition-[width] duration-200 ease-out",
-        open ? "w-60" : "w-[72px]"
-      )}
-    >
-      {/* Brand */}
-      <div className="flex h-16 items-center gap-2 border-b border-border px-4">
-        {open && (
-          logoUrl ? (
-            <Link href="/" className="flex min-w-0 flex-1 items-center gap-2">
-              <Image
-                src={logoUrl}
-                alt={brandName}
-                width={120}
-                height={36}
-                className="h-9 w-auto object-contain"
-              />
-            </Link>
-          ) : (
-            <Link href="/" className="flex min-w-0 flex-1 items-center gap-2">
-              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary">
-                <Scissors className="h-3.5 w-3.5 text-primary-foreground" />
-              </div>
-              <span className="truncate font-semibold tracking-tight text-foreground text-sm">
-                {brandName}
-              </span>
-            </Link>
-          )
-        )}
-        <button
-          type="button"
-          onClick={() => setOpen((o) => !o)}
-          title={open ? undefined : t('admin.nav.expand')}
-          className={cn(
-            "flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
-            !open && "mx-auto"
-          )}
-        >
-          <Menu className="h-4 w-4" />
-        </button>
-      </div>
-
+    <>
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto px-3 py-4">
         <ul className="space-y-0.5">
           {navItems.map((item) => (
             <li key={item.href}>
-              <NavLink item={item} open={open} />
+              <NavLink item={item} open={expanded} />
             </li>
           ))}
         </ul>
@@ -134,14 +87,14 @@ export default function AdminSidebar({ brandName, logoUrl }: AdminSidebarProps) 
         <div className="mt-4 border-t border-border pt-4">
           <Link
             href="/"
-            title={!open ? t('admin.nav.backToSite') : undefined}
+            title={!expanded ? t('admin.nav.backToSite') : undefined}
             className={cn(
               "group flex items-center gap-3 overflow-hidden whitespace-nowrap rounded-md py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
-              open ? "px-3" : "justify-center px-0"
+              expanded ? "px-3" : "justify-center px-0"
             )}
           >
             <ArrowLeft className="h-4 w-4 shrink-0 transition-colors group-hover:text-foreground" />
-            {open && t('admin.nav.backToSite')}
+            {expanded && t('admin.nav.backToSite')}
           </Link>
         </div>
       </nav>
@@ -153,17 +106,17 @@ export default function AdminSidebar({ brandName, logoUrl }: AdminSidebarProps) 
             type="submit"
             form="settings-form"
             disabled={!isDirty}
-            title={!open ? t('admin.nav.saveSettings') : undefined}
+            title={!expanded ? t('admin.nav.saveSettings') : undefined}
             className={cn(
               "flex w-full items-center gap-2 overflow-hidden whitespace-nowrap rounded-md py-2 text-sm font-medium transition-colors",
-              open ? "px-3" : "justify-center px-0",
+              expanded ? "px-3" : "justify-center px-0",
               isDirty
                 ? "bg-primary text-primary-foreground hover:bg-primary/90"
                 : "text-muted-foreground cursor-not-allowed opacity-50"
             )}
           >
             <Save className="h-4 w-4 shrink-0" />
-            {open && t('admin.nav.saveSettings')}
+            {expanded && t('admin.nav.saveSettings')}
           </button>
         </div>
       )}
@@ -171,8 +124,8 @@ export default function AdminSidebar({ brandName, logoUrl }: AdminSidebarProps) 
       {/* User + controls */}
       <div className="border-t border-border px-3 py-3 space-y-2">
         {/* Theme toggle + user info row */}
-        <div className={cn("flex items-center gap-2", !open && "justify-center")}>
-          {open && (
+        <div className={cn("flex items-center gap-2", !expanded && "justify-center")}>
+          {expanded && (
             <div className="flex-1 min-w-0 rounded-md bg-muted/50 px-3 py-2">
               <p className="truncate text-xs font-medium text-foreground">
                 {session?.user?.name ?? session?.user?.email}
@@ -185,16 +138,121 @@ export default function AdminSidebar({ brandName, logoUrl }: AdminSidebarProps) 
         {/* Sign out */}
         <button
           onClick={() => signOut({ callbackUrl: "/auth/login" })}
-          title={!open ? t('admin.nav.signOut') : undefined}
+          title={!expanded ? t('admin.nav.signOut') : undefined}
           className={cn(
             "flex w-full items-center gap-2 overflow-hidden whitespace-nowrap rounded-md py-2 text-sm text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive",
-            open ? "px-3" : "justify-center px-0"
+            expanded ? "px-3" : "justify-center px-0"
           )}
         >
           <LogOut className="h-4 w-4 shrink-0" />
-          {open && t('admin.nav.signOut')}
+          {expanded && t('admin.nav.signOut')}
         </button>
       </div>
-    </aside>
+    </>
+  )
+}
+
+export default function AdminSidebar({ brandName, logoUrl }: AdminSidebarProps) {
+  const pathname = usePathname()
+  const { t } = useTranslation()
+  const [isDirty, setIsDirty] = useState(false)
+  const [open, setOpen] = useState(true)
+  const [mobileOpen, setMobileOpen] = useState(false)
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      setIsDirty((e as CustomEvent<{ isDirty: boolean }>).detail.isDirty)
+    }
+    document.addEventListener('settings-dirty', handler)
+    return () => document.removeEventListener('settings-dirty', handler)
+  }, [])
+
+  useEffect(() => {
+    const handler = () => setMobileOpen(true)
+    document.addEventListener('admin-drawer-open', handler)
+    return () => document.removeEventListener('admin-drawer-open', handler)
+  }, [])
+
+  useEffect(() => {
+    setMobileOpen(false)
+  }, [pathname])
+
+  return (
+    <>
+      {/* Persistent desktop sidebar — hidden below lg, off-canvas drawer takes over there */}
+      <aside
+        className={cn(
+          "hidden lg:flex h-full flex-col overflow-hidden border-r border-border bg-card transition-[width] duration-200 ease-out",
+          open ? "w-60" : "w-[72px]"
+        )}
+      >
+        {/* Brand */}
+        <div className="flex h-16 items-center gap-2 border-b border-border px-4">
+          {open && (
+            logoUrl ? (
+              <Link href="/" className="flex min-w-0 flex-1 items-center gap-2">
+                <Image
+                  src={logoUrl}
+                  alt={brandName}
+                  width={120}
+                  height={36}
+                  className="h-9 w-auto object-contain"
+                />
+              </Link>
+            ) : (
+              <Link href="/" className="flex min-w-0 flex-1 items-center gap-2">
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary">
+                  <Scissors className="h-3.5 w-3.5 text-primary-foreground" />
+                </div>
+                <span className="truncate font-semibold tracking-tight text-foreground text-sm">
+                  {brandName}
+                </span>
+              </Link>
+            )
+          )}
+          <button
+            type="button"
+            onClick={() => setOpen((o) => !o)}
+            title={open ? undefined : t('admin.nav.expand')}
+            className={cn(
+              "flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
+              !open && "mx-auto"
+            )}
+          >
+            <Menu className="h-4 w-4" />
+          </button>
+        </div>
+
+        <SidebarNav expanded={open} isDirty={isDirty} />
+      </aside>
+
+      {/* Mobile off-canvas drawer — below lg */}
+      <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+        <SheetContent side="left" className="flex w-72 max-w-[85vw] flex-col overflow-y-auto p-0">
+          <SheetHeader className="flex-row items-center gap-2 border-b border-border px-4 py-4">
+            <Link href="/" className="flex min-w-0 flex-1 items-center gap-2">
+              {logoUrl ? (
+                <Image
+                  src={logoUrl}
+                  alt={brandName}
+                  width={120}
+                  height={36}
+                  className="h-9 w-auto object-contain"
+                />
+              ) : (
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary">
+                  <Scissors className="h-3.5 w-3.5 text-primary-foreground" />
+                </div>
+              )}
+              <SheetTitle className="truncate text-sm font-semibold tracking-tight text-foreground">
+                {brandName}
+              </SheetTitle>
+            </Link>
+          </SheetHeader>
+
+          <SidebarNav expanded={true} isDirty={isDirty} />
+        </SheetContent>
+      </Sheet>
+    </>
   )
 }

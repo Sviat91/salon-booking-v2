@@ -237,7 +237,7 @@ export default function LogoEditor({
         </div>
 
         <div className="grid gap-6 lg:grid-cols-2">
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-4 min-w-0">
             <div className="grid gap-2">
               <Label>{t('admin.settings.general.lightThemeLogoLabel')}</Label>
               <p className="text-xs text-muted-foreground -mt-1">
@@ -408,7 +408,7 @@ export default function LogoEditor({
             </div>
           </div>
 
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3 min-w-0">
             <div className="flex items-center justify-between">
               <div>
                 <Label>{t('admin.settings.general.positionPreviewLabel')}</Label>

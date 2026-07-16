@@ -3,8 +3,10 @@
 import { useState, useEffect } from "react"
 import { useFormState } from "react-dom"
 import { useTranslation } from "react-i18next"
+import { Save } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { cn } from "@/lib/utils"
 import { saveSettings, type SettingsFormState } from "./actions"
 import LogoEditor from "./LogoEditor"
 import BackgroundSection from "./BackgroundSection"
@@ -444,6 +446,23 @@ export default function SettingsForm({ config }: { config: TenantConfig }) {
 
       {state.error && <p className="text-sm text-destructive">{state.error}</p>}
       {state.success && <p className="text-sm text-[var(--md-success)]">{t('admin.settings.general.settingsSavedMsg')}</p>}
+
+      {/* Mobile-only floating Save button — the sidebar's equivalent button is off-canvas
+          below `lg`, so this mirrors it via the same `form="settings-form"` submit target. */}
+      <button
+        type="submit"
+        form="settings-form"
+        disabled={!isDirty}
+        aria-label={t('admin.nav.saveSettings')}
+        className={cn(
+          "lg:hidden fixed bottom-4 right-4 z-50 flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-all",
+          isDirty
+            ? "bg-primary text-primary-foreground hover:bg-primary/90"
+            : "bg-muted text-muted-foreground opacity-50 pointer-events-none"
+        )}
+      >
+        <Save className="h-5 w-5" />
+      </button>
     </form>
   )
 }

@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation"
 import { useSession } from "next-auth/react"
 import { useTranslation } from "react-i18next"
-import { Search, Bell } from "lucide-react"
+import { Search, Bell, Menu } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { getPageTitleKey } from "@/components/admin/adminNavItems"
@@ -19,14 +19,35 @@ export default function AdminTopBar() {
     .toUpperCase()
 
   return (
-    <header className="flex h-16 shrink-0 items-center justify-between border-b border-border bg-card px-6">
-      <h1 className="text-lg font-normal text-foreground">{title}</h1>
+    <header className="flex h-16 shrink-0 items-center justify-between border-b border-border bg-card px-4 lg:px-6">
+      <div className="flex items-center gap-2">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="lg:hidden"
+          aria-label={t('admin.nav.openMenu')}
+          onClick={() => document.dispatchEvent(new CustomEvent('admin-drawer-open'))}
+        >
+          <Menu className="h-4 w-4 text-foreground" />
+        </Button>
+        <h1 className="text-lg font-normal text-foreground">{title}</h1>
+      </div>
       <div className="flex items-center gap-1">
         <LanguageToggle />
-        <Button variant="ghost" size="icon" aria-label={t('admin.common.searchAria')}>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="hidden sm:inline-flex"
+          aria-label={t('admin.common.searchAria')}
+        >
           <Search className="h-4 w-4 text-muted-foreground" />
         </Button>
-        <Button variant="ghost" size="icon" aria-label={t('admin.common.notificationsAria')}>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="hidden sm:inline-flex"
+          aria-label={t('admin.common.notificationsAria')}
+        >
           <Bell className="h-4 w-4 text-muted-foreground" />
         </Button>
         <Avatar>

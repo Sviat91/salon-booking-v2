@@ -97,15 +97,15 @@ export default function AdminsClient({ admins }: Props) {
                 key={admin.id}
                 className="flex flex-col gap-3 rounded-[20px] border border-border bg-card p-4 shadow-sm"
               >
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="font-medium text-sm">{admin.name ?? "—"}</p>
-                    <p className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
-                      <Mail className="h-3 w-3" />
-                      {admin.email}
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-sm truncate">{admin.name ?? "—"}</p>
+                    <p className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5 truncate">
+                      <Mail className="h-3 w-3 shrink-0" />
+                      <span className="truncate">{admin.email}</span>
                     </p>
                   </div>
-                  <div className="flex gap-1">
+                  <div className="flex gap-1 shrink-0">
                     <Sheet
                       open={editOpen && editTarget?.id === admin.id}
                       onOpenChange={(o) => {

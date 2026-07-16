@@ -1,15 +1,13 @@
 "use client"
 
-import { useState, useEffect, useMemo, useRef, useLayoutEffect } from "react"
-import { createPortal } from "react-dom"
+import { useState, useEffect, useMemo } from "react"
 import { format, addMonths, addWeeks, addDays, startOfMonth, endOfMonth, startOfWeek, endOfWeek } from "date-fns"
 import { useTranslation } from "react-i18next"
-import { ChevronLeft, ChevronRight, Edit3, Save, Calendar, Globe, User } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem, SelectItemText } from "@/components/ui/select"
 import { useCurrentLanguage } from "@/contexts/LanguageContext"
 import { dateFnsLocale } from "@/lib/utils/date-fns-locale"
+import { useIsMobile } from "@/hooks/useIsMobile"
 
+import CalendarToolbar from "./CalendarToolbar"
 import MonthView from "./MonthView"
 import WeekView from "./WeekView"
 import DayView from "./DayView"
@@ -59,16 +57,13 @@ export default function ModernCalendar({
 }) {
   const { t } = useTranslation()
   const language = useCurrentLanguage()
+  const isMobile = useIsMobile()
   const [isMounted, setIsMounted] = useState(false)
   const [view, setView] = useState<ViewType>("Week")
   const [currentDate, setCurrentDate] = useState(new Date())
   const [step, setStep] = useState(15) // Minutes grid step
   const [isEditMode, setIsEditMode] = useState(false)
   const [showBulkModal, setShowBulkModal] = useState(false)
-  const [showMasterSelect, setShowMasterSelect] = useState(false)
-  const masterSelectBtnRef = useRef<HTMLButtonElement>(null)
-  const masterSelectDropdownRef = useRef<HTMLDivElement>(null)
-  const [masterSelectDropdownStyle, setMasterSelectDropdownStyle] = useState<React.CSSProperties>({})
 
   // Appointment Booking State
   const [bookingDate, setBookingDate] = useState<Date | null>(null)
@@ -88,20 +83,17 @@ export default function ModernCalendar({
   useEffect(() => {
     setIsMounted(true)
     const savedView = localStorage.getItem("calendar_view")
-    const savedDate = localStorage.getItem("calendar_date")
     const savedStep = localStorage.getItem("calendar_step")
     if (savedView) setView(savedView as ViewType)
-    if (savedDate) setCurrentDate(new Date(savedDate))
     if (savedStep) setStep(Number(savedStep))
   }, [])
 
   useEffect(() => {
     if (isMounted) {
       localStorage.setItem("calendar_view", view)
-      localStorage.setItem("calendar_date", currentDate.toISOString())
       localStorage.setItem("calendar_step", step.toString())
     }
-  }, [view, currentDate, step, isMounted])
+  }, [view, step, isMounted])
 
   const dateRange = useMemo(() => {
     let from, to
@@ -152,51 +144,6 @@ export default function ModernCalendar({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dateRange, isMounted, selectedMasterId])
 
-  // Position the master-selector dropdown using fixed coordinates from the button.
-  // useLayoutEffect (not useEffect) so the correct position is committed before the
-  // browser paints — otherwise the dropdown briefly renders unpositioned, causing a
-  // visible flash/jump. Mirrors TimePickerDropdown.tsx's proven pattern.
-  useLayoutEffect(() => {
-    if (showMasterSelect && masterSelectBtnRef.current) {
-      const rect = masterSelectBtnRef.current.getBoundingClientRect()
-      const dropdownWidth = 256 // w-64
-      const dropdownHeight = 300 // max-h-[300px]
-      const spaceBelow = window.innerHeight - rect.bottom - 8
-      const left = Math.max(8, Math.min(rect.right - dropdownWidth, window.innerWidth - dropdownWidth - 8))
-
-      if (spaceBelow >= dropdownHeight) {
-        setMasterSelectDropdownStyle({
-          position: 'fixed',
-          top: `${rect.bottom + 8}px`,
-          left: `${left}px`,
-          width: `${dropdownWidth}px`,
-          zIndex: 9999,
-        })
-      } else {
-        setMasterSelectDropdownStyle({
-          position: 'fixed',
-          bottom: `${window.innerHeight - rect.top + 8}px`,
-          left: `${left}px`,
-          width: `${dropdownWidth}px`,
-          zIndex: 9999,
-        })
-      }
-    }
-  }, [showMasterSelect])
-
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      const target = event.target as Node
-      const insideTrigger = masterSelectBtnRef.current && masterSelectBtnRef.current.contains(target)
-      const insideDropdown = masterSelectDropdownRef.current && masterSelectDropdownRef.current.contains(target)
-      if (!insideTrigger && !insideDropdown) {
-        setShowMasterSelect(false)
-      }
-    }
-    if (showMasterSelect) document.addEventListener("mousedown", handleClickOutside)
-    return () => document.removeEventListener("mousedown", handleClickOutside)
-  }, [showMasterSelect])
-
   const navigate = (direction: "prev" | "next" | "today") => {
     if (direction === "today") {
       setCurrentDate(new Date())
@@ -214,10 +161,7 @@ export default function ModernCalendar({
     if (view === "Week") {
       const start = startOfWeek(currentDate, { weekStartsOn: 1 })
       const end = endOfWeek(currentDate, { weekStartsOn: 1 })
-      if (start.getMonth() !== end.getMonth()) {
-        return `${format(start, "MMM d", { locale })} - ${format(end, "MMM d, yyyy", { locale })}`
-      }
-      return `${format(start, "MMMM yyyy", { locale })}`
+      return `${format(start, "MMM d", { locale })} - ${format(end, "MMM d, yyyy", { locale })}`
     }
     return format(currentDate, "EEEE, MMMM d, yyyy", { locale })
   }, [currentDate, view, language])
@@ -241,127 +185,31 @@ export default function ModernCalendar({
 
   return (
     <div className="flex flex-col h-full w-full bg-card text-card-foreground overflow-hidden relative">
-      <div className="min-h-[4rem] py-2 border-b border-border/60 px-4 shrink-0 z-10 transition-colors shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-y-3 gap-x-4">
-          <div className="flex items-center gap-4">
-            <Button variant="outline" size="sm" onClick={() => navigate("today")} className="bg-transparent border-border hover:bg-muted">{t('admin.calendar.todayBtn')} <span className="opacity-70 ml-1">· {todayDisplay}</span></Button>
-            <div className="flex items-center gap-1">
-              <Button variant="ghost" size="icon" onClick={() => navigate("prev")} className="hover:bg-muted"><ChevronLeft className="h-4 w-4" /></Button>
-              <Button variant="ghost" size="icon" onClick={() => navigate("next")} className="hover:bg-muted"><ChevronRight className="h-4 w-4" /></Button>
-            </div>
-            <h2 className="text-xl font-semibold min-w-[150px]">{headerDisplay}</h2>
-
-            <div className={`h-4 w-4 rounded-full border-2 border-primary border-t-transparent animate-spin ml-2 transition-opacity ${loading ? 'opacity-100' : 'opacity-0'}`}></div>
-          </div>
-
-          {isAdminView && adminMastersList && onMasterChange && (
-            <div className="relative">
-              <button
-                ref={masterSelectBtnRef}
-                onClick={() => setShowMasterSelect(!showMasterSelect)}
-                className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium bg-transparent hover:bg-muted rounded-md transition-colors border border-border"
-              >
-                 {selectedMasterId === "all" ? (
-                   <span className="flex items-center gap-1.5"><Globe className="w-3.5 h-3.5" /><span className="inline-block min-w-[22ch] text-center">{t('admin.calendar.allMasters')}</span></span>
-                 ) : (
-                   <span className="flex items-center gap-1.5"><User className="w-3.5 h-3.5" />{adminMastersList.find(m => m.id === selectedMasterId)?.name || t('admin.calendar.selectMasterFallback')}</span>
-                 )}
-                 <ChevronRight className={`w-3.5 h-3.5 opacity-50 transition-transform ${showMasterSelect ? "rotate-[270deg]" : "rotate-90"}`} />
-              </button>
-              {showMasterSelect && createPortal(
-                <div
-                  ref={masterSelectDropdownRef}
-                  style={masterSelectDropdownStyle}
-                  // Portaled outside any ancestor container, so its own mousedown must not
-                  // bubble to document — otherwise the click-outside listener above sees it
-                  // as an outside click and closes the panel before onClick can fire.
-                  onMouseDown={(e) => e.stopPropagation()}
-                  className="bg-card border border-border rounded-xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-100"
-                >
-                  <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
-                    <button
-                       className={`w-full text-left px-4 py-3 text-sm hover:bg-primary hover:text-primary-foreground transition-colors ${selectedMasterId === "all" ? 'bg-primary/20 text-primary font-medium' : ''}`}
-                       onClick={() => { onMasterChange("all"); setShowMasterSelect(false); }}
-                    >
-                      <span className="flex items-center gap-1.5"><Globe className="w-3.5 h-3.5" />{t('admin.calendar.allMastersCombined')}</span>
-                    </button>
-                    <div className="h-px bg-border/60 w-full" />
-                    {adminMastersList.map(m => (
-                      <button
-                         key={m.id}
-                         className={`w-full text-left px-4 py-3 text-sm hover:bg-primary hover:text-primary-foreground transition-colors border-b border-border/40 last:border-0 ${selectedMasterId === m.id ? 'bg-primary/20 text-primary font-medium' : ''}`}
-                         onClick={() => { onMasterChange(m.id); setShowMasterSelect(false); }}
-                      >
-                        <span className="flex items-center gap-1.5"><User className="w-3.5 h-3.5" />{m.name}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>,
-                document.body
-              )}
-            </div>
-          )}
-        </div>
-
-        <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 mt-3">
-          <Select value={String(step)} onValueChange={(v) => setStep(Number(v ?? step))} disabled={view === "Month"}>
-            <SelectTrigger className="h-auto w-auto bg-transparent hover:bg-muted px-3 py-1.5 text-sm font-medium shadow-sm">
-              <SelectValue>{(v: string) => t('admin.calendar.minutesOption', { count: Number(v) })}</SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              {[5, 10, 15, 30, 60].map(s => (
-                <SelectItem key={s} value={String(s)}><SelectItemText>{t('admin.calendar.minutesOption', { count: s })}</SelectItemText></SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <div className="h-6 w-px bg-border" />
-
-          {/* Always show Bulk Settings and Edit Tools, Bulk handles 'all' context naturally */}
-          <Button
-            variant={isEditMode ? "default" : "outline"}
-            size="sm"
-            onClick={() => setIsEditMode(!isEditMode)}
-            disabled={isAdminView && selectedMasterId === "all"} // Disable inline edit for 'all' mode
-            className={`gap-2 transition-all ${isEditMode ? 'bg-primary text-primary-foreground shadow shadow-primary/20' : 'bg-transparent border-border hover:bg-muted'}`}
-          >
-            {isEditMode ? <Save className="w-4 h-4" /> : <Edit3 className="w-4 h-4" />}
-            <span className="hidden sm:inline-block min-w-[24ch] text-center">{isEditMode ? t('admin.calendar.doneEditing') : t('admin.calendar.editSchedule')}</span>
-          </Button>
-
-          <Button variant="outline" size="sm" onClick={() => setShowBulkModal(true)} className="gap-2 shrink-0 bg-transparent border-border hover:bg-muted">
-            <Calendar className="w-4 h-4" />
-            <span className="hidden sm:inline-block min-w-[29ch] text-center">{t('admin.calendar.bulkSettings')}</span>
-          </Button>
-
-          <div className="h-6 w-px bg-border" />
-
-          <div className="flex rounded-full border border-border bg-transparent p-0.5 gap-0.5">
-            {(["Month", "Week", "Day"] as ViewType[]).map((v) => (
-              <button
-                key={v}
-                onClick={() => setView(v)}
-                className={`px-3 py-1.5 text-sm font-medium transition-colors rounded-full ${
-                  view === v
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                }`}
-              >
-                <span className="inline-block min-w-[8ch] text-center">
-                  {v === "Month" ? t('admin.calendar.monthView') : v === "Week" ? t('admin.calendar.weekView') : t('admin.calendar.dayView')}
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
+      <CalendarToolbar
+        view={view}
+        setView={setView}
+        step={step}
+        setStep={setStep}
+        navigate={navigate}
+        headerDisplay={headerDisplay}
+        todayDisplay={todayDisplay}
+        isEditMode={isEditMode}
+        setIsEditMode={setIsEditMode}
+        setShowBulkModal={setShowBulkModal}
+        loading={loading}
+        isMobile={isMobile}
+        isAdminView={isAdminView}
+        selectedMasterId={selectedMasterId}
+        adminMastersList={adminMastersList}
+        onMasterChange={onMasterChange}
+      />
 
       <div className="flex-1 overflow-hidden relative">
         {view === "Month" && (
-          <MonthView 
-            currentDate={currentDate} 
-            appointments={appointments} 
-            templates={templates} 
+          <MonthView
+            currentDate={currentDate}
+            appointments={appointments}
+            templates={templates}
             overrides={overrides}
             isEditMode={isEditMode}
             availableSlotColor={availableSlotColor}
@@ -369,16 +217,17 @@ export default function ModernCalendar({
             apiPrefix={apiPrefix}
             isAdminView={isAdminView}
             selectedMasterId={selectedMasterId}
+            isMobile={isMobile}
             onDayClick={(d) => { setView("Day"); setCurrentDate(d); }}
             onAppointmentClick={(a) => setViewingAppointment(a)}
             onDataChange={fetchData}
           />
         )}
         {view === "Week" && (
-          <WeekView 
-            currentDate={currentDate} 
-            appointments={appointments} 
-            templates={templates} 
+          <WeekView
+            currentDate={currentDate}
+            appointments={appointments}
+            templates={templates}
             overrides={overrides}
             step={step}
             startHour={startHour}
@@ -389,16 +238,17 @@ export default function ModernCalendar({
             apiPrefix={apiPrefix}
             isAdminView={isAdminView}
             selectedMasterId={selectedMasterId}
+            isMobile={isMobile}
             onDayClick={(d) => { setView("Day"); setCurrentDate(d); }}
             onAppointmentClick={(a) => setViewingAppointment(a)}
             onDataChange={fetchData}
           />
         )}
         {view === "Day" && (
-          <DayView 
-            currentDate={currentDate} 
-            appointments={appointments} 
-            templates={templates} 
+          <DayView
+            currentDate={currentDate}
+            appointments={appointments}
+            templates={templates}
             overrides={overrides}
             step={step}
             startHour={startHour}

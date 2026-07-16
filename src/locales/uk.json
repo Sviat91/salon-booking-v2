@@ -120,7 +120,8 @@
       "saveSettings": "Зберегти налаштування",
       "signOut": "Вийти",
       "expand": "Розгорнути",
-      "fallbackTitle": "Адміністрування"
+      "fallbackTitle": "Адміністрування",
+      "openMenu": "Відкрити меню"
     },
     "common": {
       "searchAria": "Пошук",
@@ -155,6 +156,8 @@
       "allMastersCombined": "Всі спеціалісти (разом)",
       "selectMasterFallback": "Вибрати",
       "minutesOption": "{{count}} хв",
+      "mobileControlsAria": "Налаштування календаря",
+      "mobileControlsTitle": "Налаштування календаря",
       "bulkUpdateFailed": "Не вдалося виконати масове оновлення",
       "deleteFailed": "Не вдалося видалити",
       "scheduleAndCalendarTitle": "Графік і календар",

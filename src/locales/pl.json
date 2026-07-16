@@ -120,7 +120,8 @@
       "saveSettings": "Zapisz ustawienia",
       "signOut": "Wyloguj się",
       "expand": "Rozwiń",
-      "fallbackTitle": "Administracja"
+      "fallbackTitle": "Administracja",
+      "openMenu": "Otwórz menu"
     },
     "common": {
       "searchAria": "Szukaj",
@@ -155,6 +156,8 @@
       "allMastersCombined": "Wszyscy specjaliści (razem)",
       "selectMasterFallback": "Wybierz",
       "minutesOption": "{{count}} min",
+      "mobileControlsAria": "Ustawienia kalendarza",
+      "mobileControlsTitle": "Ustawienia kalendarza",
       "bulkUpdateFailed": "Aktualizacja zbiorcza nie powiodła się",
       "deleteFailed": "Usuwanie nie powiodło się",
       "scheduleAndCalendarTitle": "Grafik i kalendarz",

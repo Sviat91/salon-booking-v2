@@ -27,6 +27,9 @@ export default function HomepagePreview({
   logoLayer?: string
   onDragStart: (e: React.MouseEvent | React.TouchEvent) => void
   previewRef: React.RefObject<HTMLDivElement>
+  /** Optional cap on the preview's height (e.g. to keep the desktop inline preview compact).
+   * Acts as a MAX, not a fixed override — the preview never exceeds its natural
+   * width-driven `visibleHeight`, so it still scales down proportionally on mobile. */
   containerHeight: number
 }) {
   const { t } = useTranslation()
@@ -60,7 +63,7 @@ export default function HomepagePreview({
     <div
       ref={containerRef}
       className="relative w-full overflow-hidden rounded-lg border border-border"
-      style={{ height: containerHeight || visibleHeight }}
+      style={{ height: containerHeight ? Math.min(containerHeight, visibleHeight) : visibleHeight }}
     >
       <iframe
         key={isDark ? 'preview-dark' : 'preview-light'}

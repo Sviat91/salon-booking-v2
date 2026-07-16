@@ -8,6 +8,7 @@ import { Clock, Phone, Scissors, User, Plus, PowerOff, X, ChevronDown, Users } f
 import { TimePickerDropdown } from "@/components/TimePickerDropdown"
 import { useCurrentLanguage } from "@/contexts/LanguageContext"
 import { dateFnsLocale } from "@/lib/utils/date-fns-locale"
+import { groupOverlappingAppointments, pluralize, parseTime } from "./calendar-utils"
 
 interface DayViewProps {
   currentDate: Date
@@ -29,44 +30,6 @@ interface DayViewProps {
 }
 
 const HOURS = Array.from({ length: 24 }).map((_, i) => i)
-
-function groupOverlappingAppointments(appointments: Appointment[]): Appointment[][] {
-  if (appointments.length === 0) return []
-  
-  const sorted = [...appointments].sort((a, b) => {
-    const aStart = parseInt(a.startTime.split(':')[0]) * 60 + parseInt(a.startTime.split(':')[1])
-    const bStart = parseInt(b.startTime.split(':')[0]) * 60 + parseInt(b.startTime.split(':')[1])
-    return aStart - bStart
-  })
-  
-  const groups: Appointment[][] = []
-  let currentGroup: Appointment[] = [sorted[0]]
-  let groupEnd = parseInt(sorted[0].endTime.split(':')[0]) * 60 + parseInt(sorted[0].endTime.split(':')[1])
-  
-  for (let i = 1; i < sorted.length; i++) {
-    const appt = sorted[i]
-    const apptStart = parseInt(appt.startTime.split(':')[0]) * 60 + parseInt(appt.startTime.split(':')[1])
-    
-    if (apptStart < groupEnd) {
-      currentGroup.push(appt)
-      const apptEnd = parseInt(appt.endTime.split(':')[0]) * 60 + parseInt(appt.endTime.split(':')[1])
-      groupEnd = Math.max(groupEnd, apptEnd)
-    } else {
-      groups.push(currentGroup)
-      currentGroup = [appt]
-      groupEnd = parseInt(appt.endTime.split(':')[0]) * 60 + parseInt(appt.endTime.split(':')[1])
-    }
-  }
-  groups.push(currentGroup)
-  
-  return groups
-}
-
-function pluralize(count: number, one: string, few: string, many: string): string {
-  if (count === 1) return one
-  if (count >= 2 && count <= 4) return few
-  return many
-}
 
 export default function DayView({ currentDate, appointments, templates, overrides, step, startHour, endHour, isEditMode, availableSlotColor, dayOffColor, apiPrefix = "/api/master", selectedMasterId = "all", onAddClick, onAppointmentClick, onDataChange }: DayViewProps) {
   const { t } = useTranslation()
@@ -112,11 +75,6 @@ export default function DayView({ currentDate, appointments, templates, override
   const dayAppts = appointments.filter(a => a.date.startsWith(dateStr))
   const isCurr = isToday(currentDate)
   const isPastDay = currentDate < new Date(new Date().setHours(0,0,0,0))
-
-  const parseTime = (timeStr: string) => {
-    const [h, m] = timeStr.split(":").map(Number)
-    return h * 60 + m
-  }
 
   const updateServer = async (date: Date, isDayOff: boolean, intervals: Interval[]) => {
     const dStr = format(date, "yyyy-MM-dd")
@@ -327,19 +285,19 @@ export default function DayView({ currentDate, appointments, templates, override
                       className="absolute w-[calc(100%-30px)] rounded-lg text-foreground p-3 shadow-md border-l-[3px] overflow-hidden hover:z-30 hover:shadow-xl transition-all cursor-pointer flex gap-4 backdrop-blur-sm"
                       style={{ top: `${top}px`, minHeight: `${Math.max(height, 60)}px`, left: "8px", zIndex: 10, backgroundColor: (a.master?.masterProfile?.color || "#8B4A58") + "26", borderLeftColor: a.master?.masterProfile?.color || "#8B4A58" }}
                     >
-                      <div className="flex flex-col gap-1 w-[150px] shrink-0 border-r border-foreground/10 pr-4">
+                      <div className="flex flex-col gap-1 w-[110px] sm:w-[150px] shrink-0 border-r border-foreground/10 pr-2 sm:pr-4">
                         <div className="font-bold text-lg">{a.startTime}</div>
                         <div className="text-sm opacity-70">{a.endTime}</div>
                         <div className="mt-auto text-xs font-semibold text-muted-foreground uppercase tracking-wider">{statusLabel(a.status)}</div>
                       </div>
-                      
+
                       <div className="flex-1 flex flex-col gap-2 min-w-0">
                         <h3 className="font-semibold text-base truncate flex items-center gap-2">
                           <User className="w-4 h-4 opacity-70" />
                           {a.client.name || t('admin.appointments.unknownClient')}
                         </h3>
-                        
-                        <div className="flex items-center gap-4 text-sm opacity-90">
+
+                        <div className="flex items-center gap-2 sm:gap-4 text-sm opacity-90">
                           <div className="flex items-center gap-1.5 min-w-0">
                             <Scissors className="w-3.5 h-3.5 shrink-0" />
                             <span className="truncate">{a.service.name}</span>
@@ -372,18 +330,18 @@ export default function DayView({ currentDate, appointments, templates, override
                             className="p-3 border-b last:border-b-0 border-border hover:bg-muted/50 transition-colors cursor-pointer flex gap-4"
                             style={{ borderLeft: `6px solid ${a.master?.masterProfile?.color || "#8B4A58"}` }}
                           >
-                            <div className="flex flex-col gap-1 w-[100px] shrink-0">
+                            <div className="flex flex-col gap-1 w-[80px] sm:w-[100px] shrink-0">
                               <div className="font-bold text-lg">{a.startTime}</div>
                               <div className="text-sm text-muted-foreground">{a.endTime}</div>
                             </div>
-                            
+
                             <div className="flex-1 flex flex-col gap-2 min-w-0">
                               <h3 className="font-semibold text-base truncate flex items-center gap-2">
                                 <User className="w-4 h-4 text-muted-foreground" />
                                 {a.client.name || t('admin.appointments.unknownClient')}
                               </h3>
-                              
-                              <div className="flex items-center gap-4 text-sm text-muted-foreground">
+
+                              <div className="flex items-center gap-2 sm:gap-4 text-sm text-muted-foreground">
                                 <div className="flex items-center gap-1.5 min-w-0">
                                   <Scissors className="w-3.5 h-3.5 shrink-0" />
                                   <span className="truncate">{a.service.name}</span>

@@ -1,5 +1,6 @@
 import { Badge } from "@/components/ui/badge"
 import AppointmentStatusBadge from "@/components/admin/AppointmentStatusBadge"
+import DataCard from "@/components/admin/DataCard"
 import { getServerT } from "@/lib/i18n-server"
 
 type Appointment = {
@@ -30,46 +31,65 @@ export default function TodaysAppointmentsTable({
           {t('admin.appointments.noneToday')}
         </div>
       ) : (
-        <table className="w-full border-collapse text-sm">
-          <thead>
-            <tr className="border-b border-border">
-              <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-                {t('admin.appointments.colTime')}
-              </th>
-              <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-                {t('admin.appointments.colClient')}
-              </th>
-              <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-                {t('admin.appointments.colService')}
-              </th>
-              <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-                {t('admin.appointments.colMaster')}
-              </th>
-              <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-                {t('admin.appointments.colPrice')}
-              </th>
-              <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-                {t('admin.appointments.colStatus')}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {appointments.map((app) => (
-              <tr key={app.id} className="border-b border-border last:border-b-0">
-                <td className="px-4 py-3 font-medium">{app.startTime}</td>
-                <td className="px-4 py-3">{app.client.name || t('admin.appointments.unknownClient')}</td>
-                <td className="px-4 py-3 text-muted-foreground">{app.service.name}</td>
-                <td className="px-4 py-3">
-                  <Badge variant="accent">{app.master.name || "—"}</Badge>
-                </td>
-                <td className="px-4 py-3 text-muted-foreground">{app.service.price} zł</td>
-                <td className="px-4 py-3">
-                  <AppointmentStatusBadge status={app.status} />
-                </td>
+        <>
+          {/* Desktop table */}
+          <table className="hidden lg:table w-full border-collapse text-sm">
+            <thead>
+              <tr className="border-b border-border">
+                <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                  {t('admin.appointments.colTime')}
+                </th>
+                <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                  {t('admin.appointments.colClient')}
+                </th>
+                <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                  {t('admin.appointments.colService')}
+                </th>
+                <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                  {t('admin.appointments.colMaster')}
+                </th>
+                <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                  {t('admin.appointments.colPrice')}
+                </th>
+                <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                  {t('admin.appointments.colStatus')}
+                </th>
               </tr>
+            </thead>
+            <tbody>
+              {appointments.map((app) => (
+                <tr key={app.id} className="border-b border-border last:border-b-0">
+                  <td className="px-4 py-3 font-medium">{app.startTime}</td>
+                  <td className="px-4 py-3">{app.client.name || t('admin.appointments.unknownClient')}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{app.service.name}</td>
+                  <td className="px-4 py-3">
+                    <Badge variant="accent">{app.master.name || "—"}</Badge>
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground">{app.service.price} zł</td>
+                  <td className="px-4 py-3">
+                    <AppointmentStatusBadge status={app.status} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          {/* Mobile cards */}
+          <div className="flex flex-col gap-3 p-4 lg:hidden">
+            {appointments.map((app) => (
+              <DataCard
+                key={app.id}
+                title={`${app.startTime} · ${app.client.name || t('admin.appointments.unknownClient')}`}
+                fields={[
+                  { label: t('admin.appointments.colService'), value: app.service.name },
+                  { label: t('admin.appointments.colMaster'), value: <Badge variant="accent">{app.master.name || "—"}</Badge> },
+                  { label: t('admin.appointments.colPrice'), value: `${app.service.price} zł` },
+                  { label: t('admin.appointments.colStatus'), value: <AppointmentStatusBadge status={app.status} /> },
+                ]}
+              />
             ))}
-          </tbody>
-        </table>
+          </div>
+        </>
       )}
     </div>
   )

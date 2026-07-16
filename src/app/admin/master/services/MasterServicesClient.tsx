@@ -12,6 +12,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet"
+import DataCard from "@/components/admin/DataCard"
 import MasterServiceForm from "./MasterServiceForm"
 import { apiErrorKey } from "@/lib/errors/apiErrorKey"
 
@@ -59,6 +60,30 @@ export default function MasterServicesClient({
   const adminServices = services.filter(s => s.masterId === null)
   const myServices = services.filter(s => s.masterId === currentMasterId)
 
+  // Plain trigger buttons — reused by both the desktop table and the mobile card list.
+  // A single shared edit Sheet (below) is controlled by editTarget/editOpen so it only
+  // ever mounts once, regardless of which layout is visible.
+  const renderActions = (svc: Service) => (
+    <div className="flex items-center gap-0.5">
+      <Button variant="ghost" size="icon-sm" onClick={() => {
+        setEditTarget(svc)
+        setEditOpen(true)
+      }}>
+        <Pencil className="h-3.5 w-3.5" />
+      </Button>
+
+      <Button
+        variant="ghost"
+        size="icon-sm"
+        className="hover:text-destructive"
+        disabled={deletingId === svc.id}
+        onClick={() => handleDelete(svc.id)}
+      >
+        <Trash2 className="h-3.5 w-3.5" />
+      </Button>
+    </div>
+  )
+
   return (
     <div className="space-y-8">
       <div>
@@ -99,69 +124,50 @@ export default function MasterServicesClient({
               <p className="text-sm">{t('admin.services.noCustomServices')}</p>
             </div>
           ) : (
-            <div className="rounded-[20px] border border-border bg-card shadow-sm overflow-hidden">
-              <table className="w-full text-sm">
-                <thead className="bg-muted/50 text-muted-foreground">
-                  <tr>
-                    <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{t('admin.services.colName')}</th>
-                    <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{t('admin.services.colDuration')}</th>
-                    <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{t('admin.services.colPrice')}</th>
-                    <th className="px-4 py-2.5 text-right text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{t('admin.services.colActions')}</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {myServices.map((svc) => (
-                    <tr key={svc.id} className="hover:bg-muted/40 transition-colors">
-                      <td className="px-4 py-3 font-medium">{svc.name}</td>
-                      <td className="px-4 py-3 text-muted-foreground">{svc.duration} {t('booking.minutes')}</td>
-                      <td className="px-4 py-3 font-medium text-foreground">{svc.price.toFixed(2)} zł</td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center justify-end gap-0.5">
-                          <Sheet open={editOpen && editTarget?.id === svc.id} onOpenChange={(o) => {
-                            setEditOpen(o)
-                            if (!o) setEditTarget(null)
-                          }}>
-                            <SheetTrigger
-                              render={
-                                <Button variant="ghost" size="icon-sm" onClick={() => {
-                                  setEditTarget(svc)
-                                  setEditOpen(true)
-                                }}>
-                                  <Pencil className="h-3.5 w-3.5" />
-                                </Button>
-                              }
-                            />
-                            <SheetContent side="right">
-                              <SheetHeader>
-                                <SheetTitle>{t('admin.services.editMyServiceTitle')}</SheetTitle>
-                              </SheetHeader>
-                              <div className="px-4 pb-4 pt-6">
-                                {editTarget && (
-                                  <MasterServiceForm 
-                                    service={editTarget} 
-                                    onSuccess={() => { setEditOpen(false); setEditTarget(null) }} 
-                                  />
-                                )}
-                              </div>
-                            </SheetContent>
-                          </Sheet>
-
-                          <Button
-                            variant="ghost"
-                            size="icon-sm"
-                            className="hover:text-destructive"
-                            disabled={deletingId === svc.id}
-                            onClick={() => handleDelete(svc.id)}
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </Button>
-                        </div>
-                      </td>
+            <>
+              {/* Desktop table */}
+              <div className="hidden lg:block rounded-[20px] border border-border bg-card shadow-sm overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead className="bg-muted/50 text-muted-foreground">
+                    <tr>
+                      <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{t('admin.services.colName')}</th>
+                      <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{t('admin.services.colDuration')}</th>
+                      <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{t('admin.services.colPrice')}</th>
+                      <th className="px-4 py-2.5 text-right text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{t('admin.services.colActions')}</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {myServices.map((svc) => (
+                      <tr key={svc.id} className="hover:bg-muted/40 transition-colors">
+                        <td className="px-4 py-3 font-medium">{svc.name}</td>
+                        <td className="px-4 py-3 text-muted-foreground">{svc.duration} {t('booking.minutes')}</td>
+                        <td className="px-4 py-3 font-medium text-foreground">{svc.price.toFixed(2)} zł</td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center justify-end">
+                            {renderActions(svc)}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile cards */}
+              <div className="flex flex-col gap-3 lg:hidden">
+                {myServices.map((svc) => (
+                  <DataCard
+                    key={svc.id}
+                    title={svc.name}
+                    fields={[
+                      { label: t('admin.services.colDuration'), value: `${svc.duration} ${t('booking.minutes')}` },
+                      { label: t('admin.services.colPrice'), value: `${svc.price.toFixed(2)} zł` },
+                    ]}
+                    actions={renderActions(svc)}
+                  />
+                ))}
+              </div>
+            </>
           )}
         </div>
 
@@ -175,42 +181,91 @@ export default function MasterServicesClient({
           {adminServices.length === 0 ? (
             <p className="text-sm text-muted-foreground">{t('admin.services.noGlobalServices')}</p>
           ) : (
-            <div className="rounded-[20px] border border-border bg-card shadow-sm overflow-hidden">
-              <table className="w-full text-sm opacity-90">
-                <thead className="bg-muted/50 text-muted-foreground">
-                  <tr>
-                    <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{t('admin.services.colName')}</th>
-                    <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{t('admin.services.colDuration')}</th>
-                    <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{t('admin.services.colPricing')}</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {adminServices.map((svc) => (
-                    <tr key={svc.id} className="bg-muted/10">
-                      <td className="px-4 py-3 font-medium text-muted-foreground">{svc.name}</td>
-                      <td className="px-4 py-3 text-muted-foreground">{svc.duration} {t('booking.minutes')}</td>
-                      <td className="px-4 py-3 text-muted-foreground">
-                        {(() => {
-                          const overridePrice = svc.masterServices?.[0]?.priceOverride
-                          if (overridePrice !== null && overridePrice !== undefined) {
-                            return (
-                              <div className="space-y-0.5">
-                                <div>{t('admin.services.yourRate', { price: overridePrice.toFixed(2) })}</div>
-                                <div className="text-xs opacity-80">{t('admin.services.defaultRate', { price: svc.price.toFixed(2) })}</div>
-                              </div>
-                            )
-                          }
-                          return <span>{svc.price.toFixed(2)} zł</span>
-                        })()}
-                      </td>
+            <>
+              {/* Desktop table */}
+              <div className="hidden lg:block rounded-[20px] border border-border bg-card shadow-sm overflow-hidden">
+                <table className="w-full text-sm opacity-90">
+                  <thead className="bg-muted/50 text-muted-foreground">
+                    <tr>
+                      <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{t('admin.services.colName')}</th>
+                      <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{t('admin.services.colDuration')}</th>
+                      <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{t('admin.services.colPricing')}</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {adminServices.map((svc) => (
+                      <tr key={svc.id} className="bg-muted/10">
+                        <td className="px-4 py-3 font-medium text-muted-foreground">{svc.name}</td>
+                        <td className="px-4 py-3 text-muted-foreground">{svc.duration} {t('booking.minutes')}</td>
+                        <td className="px-4 py-3 text-muted-foreground">
+                          {(() => {
+                            const overridePrice = svc.masterServices?.[0]?.priceOverride
+                            if (overridePrice !== null && overridePrice !== undefined) {
+                              return (
+                                <div className="space-y-0.5">
+                                  <div>{t('admin.services.yourRate', { price: overridePrice.toFixed(2) })}</div>
+                                  <div className="text-xs opacity-80">{t('admin.services.defaultRate', { price: svc.price.toFixed(2) })}</div>
+                                </div>
+                              )
+                            }
+                            return <span>{svc.price.toFixed(2)} zł</span>
+                          })()}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile cards */}
+              <div className="flex flex-col gap-3 lg:hidden">
+                {adminServices.map((svc) => {
+                  const overridePrice = svc.masterServices?.[0]?.priceOverride
+                  const pricing = overridePrice !== null && overridePrice !== undefined
+                    ? (
+                      <div className="space-y-0.5">
+                        <div>{t('admin.services.yourRate', { price: overridePrice.toFixed(2) })}</div>
+                        <div className="text-xs opacity-80">{t('admin.services.defaultRate', { price: svc.price.toFixed(2) })}</div>
+                      </div>
+                    )
+                    : <span>{svc.price.toFixed(2)} zł</span>
+                  return (
+                    <DataCard
+                      key={svc.id}
+                      className="opacity-90"
+                      title={svc.name}
+                      fields={[
+                        { label: t('admin.services.colDuration'), value: `${svc.duration} ${t('booking.minutes')}` },
+                        { label: t('admin.services.colPricing'), value: pricing },
+                      ]}
+                    />
+                  )
+                })}
+              </div>
+            </>
           )}
         </div>
       </div>
+
+      {/* Single shared edit Sheet — controlled by editTarget/editOpen, not per-row */}
+      <Sheet open={editOpen} onOpenChange={(o) => {
+        setEditOpen(o)
+        if (!o) setEditTarget(null)
+      }}>
+        <SheetContent side="right">
+          <SheetHeader>
+            <SheetTitle>{t('admin.services.editMyServiceTitle')}</SheetTitle>
+          </SheetHeader>
+          <div className="px-4 pb-4 pt-6">
+            {editTarget && (
+              <MasterServiceForm
+                service={editTarget}
+                onSuccess={() => { setEditOpen(false); setEditTarget(null) }}
+              />
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   )
 }

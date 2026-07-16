@@ -217,8 +217,8 @@ export default function BulkSettingsModal({ onClose, onSave, templates = [], api
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in">
-      <div className="bg-card text-card-foreground border border-border/50 rounded-xl shadow-2xl w-full max-w-3xl flex flex-col md:flex-row max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in" onClick={onClose}>
+      <div className="bg-card text-card-foreground border border-border/50 rounded-xl shadow-2xl w-full max-w-3xl flex flex-col md:flex-row max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
 
         {/* Left: Calendar Picker */}
         <div className="flex-1 p-6 border-b md:border-b-0 md:border-r border-border/50 flex flex-col">
@@ -251,7 +251,7 @@ export default function BulkSettingsModal({ onClose, onSave, templates = [], api
 
           <div className="mt-auto pt-6 shrink-0">
             <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 shadow-sm relative overflow-hidden">
-              <div className="absolute top-0 right-0 p-4 opacity-10">
+              <div className="hidden sm:block absolute top-0 right-0 p-4 opacity-10">
                 <Info className="w-24 h-24" />
               </div>
               <h4 className="font-bold text-primary text-sm flex items-center gap-2 mb-3 relative z-10">

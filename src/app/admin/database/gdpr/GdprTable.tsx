@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import type { AdminPermissions } from "@/lib/admin-permissions"
 import { useCurrentLanguage } from "@/contexts/LanguageContext"
 import { localeFor } from "@/lib/i18n"
+import DataCard from "@/components/admin/DataCard"
 
 type ConsentRow = {
   id: string
@@ -72,6 +73,34 @@ export default function GdprTable({ records, permissions }: Props) {
     if (res.ok) router.refresh()
   }
 
+  const renderActions = (record: ConsentRow) => (
+    <>
+      {permissions.gdpr.withdraw &&
+        !record.consentWithdrawnDate &&
+        !record.erasureDate && (
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={loading === record.id + "-withdraw"}
+            onClick={() => handleWithdraw(record.id, record.fullName)}
+          >
+            {loading === record.id + "-withdraw" ? "…" : t('admin.gdpr.withdrawBtn')}
+          </Button>
+        )}
+      {permissions.gdpr.erase && !record.erasureDate && (
+        <Button
+          variant="outline"
+          size="sm"
+          className="hover:text-destructive hover:border-destructive"
+          disabled={loading === record.id + "-erase"}
+          onClick={() => handleErase(record.id, record.fullName)}
+        >
+          {loading === record.id + "-erase" ? "…" : t('admin.gdpr.eraseBtn')}
+        </Button>
+      )}
+    </>
+  )
+
   return (
     <div>
       <p className="mb-4 text-sm text-muted-foreground">
@@ -92,68 +121,69 @@ export default function GdprTable({ records, permissions }: Props) {
           <p className="text-sm text-muted-foreground">{t('admin.gdpr.noRecordsFound')}</p>
         </div>
       ) : (
-        <div className="rounded-[20px] border border-border bg-card shadow-sm overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/50 text-muted-foreground">
-              <tr>
-                <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{t('admin.database.nameLabel')}</th>
-                <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{t('form.phone')}</th>
-                <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{t('admin.gdpr.colConsentDate')}</th>
-                <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{t('admin.appointments.colStatus')}</th>
-                {(permissions.gdpr.withdraw || permissions.gdpr.erase) && (
-                  <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{t('admin.services.colActions')}</th>
-                )}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {filtered.map((record) => {
-                const status = getStatus(record)
-                const maskedPhone = "****" + record.phoneDigits.slice(-4)
-                return (
-                  <tr key={record.id} className="hover:bg-muted/40 transition-colors">
-                    <td className="px-4 py-3">{record.fullName}</td>
-                    <td className="px-4 py-3 font-mono text-muted-foreground">{maskedPhone}</td>
-                    <td className="px-4 py-3 text-muted-foreground">
-                      {new Date(record.consentDate).toLocaleDateString(localeFor(language))}
-                    </td>
-                    <td className="px-4 py-3">
-                      <StatusBadge status={status} />
-                    </td>
-                    {(permissions.gdpr.withdraw || permissions.gdpr.erase) && (
-                      <td className="px-4 py-3">
-                        <div className="flex gap-1">
-                          {permissions.gdpr.withdraw &&
-                            !record.consentWithdrawnDate &&
-                            !record.erasureDate && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                disabled={loading === record.id + "-withdraw"}
-                                onClick={() => handleWithdraw(record.id, record.fullName)}
-                              >
-                                {loading === record.id + "-withdraw" ? "…" : t('admin.gdpr.withdrawBtn')}
-                              </Button>
-                            )}
-                          {permissions.gdpr.erase && !record.erasureDate && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="hover:text-destructive hover:border-destructive"
-                              disabled={loading === record.id + "-erase"}
-                              onClick={() => handleErase(record.id, record.fullName)}
-                            >
-                              {loading === record.id + "-erase" ? "…" : t('admin.gdpr.eraseBtn')}
-                            </Button>
-                          )}
-                        </div>
+        <>
+          {/* Desktop table */}
+          <div className="hidden lg:block rounded-[20px] border border-border bg-card shadow-sm overflow-hidden">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/50 text-muted-foreground">
+                <tr>
+                  <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{t('admin.database.nameLabel')}</th>
+                  <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{t('form.phone')}</th>
+                  <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{t('admin.gdpr.colConsentDate')}</th>
+                  <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{t('admin.appointments.colStatus')}</th>
+                  {(permissions.gdpr.withdraw || permissions.gdpr.erase) && (
+                    <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{t('admin.services.colActions')}</th>
+                  )}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {filtered.map((record) => {
+                  const status = getStatus(record)
+                  const maskedPhone = "****" + record.phoneDigits.slice(-4)
+                  return (
+                    <tr key={record.id} className="hover:bg-muted/40 transition-colors">
+                      <td className="px-4 py-3">{record.fullName}</td>
+                      <td className="px-4 py-3 font-mono text-muted-foreground">{maskedPhone}</td>
+                      <td className="px-4 py-3 text-muted-foreground">
+                        {new Date(record.consentDate).toLocaleDateString(localeFor(language))}
                       </td>
-                    )}
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
+                      <td className="px-4 py-3">
+                        <StatusBadge status={status} />
+                      </td>
+                      {(permissions.gdpr.withdraw || permissions.gdpr.erase) && (
+                        <td className="px-4 py-3">
+                          <div className="flex gap-1">
+                            {renderActions(record)}
+                          </div>
+                        </td>
+                      )}
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile cards */}
+          <div className="flex flex-col gap-3 lg:hidden">
+            {filtered.map((record) => {
+              const status = getStatus(record)
+              const maskedPhone = "****" + record.phoneDigits.slice(-4)
+              return (
+                <DataCard
+                  key={record.id}
+                  title={record.fullName}
+                  fields={[
+                    { label: t('form.phone'), value: <span className="font-mono">{maskedPhone}</span> },
+                    { label: t('admin.gdpr.colConsentDate'), value: new Date(record.consentDate).toLocaleDateString(localeFor(language)) },
+                    { label: t('admin.appointments.colStatus'), value: <StatusBadge status={status} /> },
+                  ]}
+                  actions={(permissions.gdpr.withdraw || permissions.gdpr.erase) ? renderActions(record) : undefined}
+                />
+              )
+            })}
+          </div>
+        </>
       )}
     </div>
   )
