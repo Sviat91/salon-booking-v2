@@ -2,9 +2,12 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek, isSameMonth, addDays, getDay, isToday } from "date-fns"
+import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight, X, Plus, Trash2, Info, Users, Clock, User } from "lucide-react"
 import { TimePickerDropdown } from "@/components/TimePickerDropdown"
+import { useCurrentLanguage } from "@/contexts/LanguageContext"
+import { dateFnsLocale } from "@/lib/utils/date-fns-locale"
 
 type Interval = { start: string; end: string }
 type Override = { date: string; isDayOff: boolean; intervals: Interval[] }
@@ -25,7 +28,16 @@ interface BulkSettingsModalProps {
  * so it always shows correct day-off / scheduled indicators regardless
  * of what the parent calendar is currently viewing.
  */
+function pluralize(count: number, one: string, few: string, many: string): string {
+  if (count === 1) return one
+  if (count >= 2 && count <= 4) return few
+  return many
+}
+
 export default function BulkSettingsModal({ onClose, onSave, templates = [], apiPrefix = "/api/master", isAdminView = false, selectedMasterId, adminMastersList = [] }: BulkSettingsModalProps) {
+  const { t } = useTranslation()
+  const language = useCurrentLanguage()
+  const locale = dateFnsLocale(language)
   const [currentMonth, setCurrentMonth] = useState(startOfMonth(new Date()))
   const [selectedDates, setSelectedDates] = useState<Set<string>>(new Set())
 
@@ -139,9 +151,9 @@ export default function BulkSettingsModal({ onClose, onSave, templates = [], api
 
     return (
       <div className="grid grid-cols-7 gap-1 mt-4">
-        {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => (
-          <div key={d} className="text-center text-xs font-semibold pb-2 text-muted-foreground">
-            {d}
+        {["dates.mondayShort", "dates.tuesdayShort", "dates.wednesdayShort", "dates.thursdayShort", "dates.fridayShort", "dates.saturdayShort", "dates.sundayShort"].map((k) => (
+          <div key={k} className="text-center text-xs font-semibold pb-2 text-muted-foreground">
+            {t(k)}
           </div>
         ))}
         {days.map((d, idx) => {
@@ -185,11 +197,11 @@ export default function BulkSettingsModal({ onClose, onSave, templates = [], api
 
   const handleSave = async () => {
     if (selectedDates.size === 0) {
-      alert("Please select at least one date.")
+      alert(t('admin.calendar.bulk.selectDateAlert'))
       return
     }
     if (isAdminView && targetMasterIds.size === 0) {
-      alert("Please select at least one master to apply changes to.")
+      alert(t('admin.calendar.bulk.selectMasterAlert'))
       return
     }
     setSaving(true)
@@ -198,7 +210,7 @@ export default function BulkSettingsModal({ onClose, onSave, templates = [], api
       setSelectedDates(new Set())
       await fetchMonthOverrides(currentMonth)
     } catch (e: any) {
-      alert("Error saving: " + e.message)
+      alert(t('admin.calendar.bulk.saveErrorPrefix', { message: e.message }))
     } finally {
       setSaving(false)
     }
@@ -211,14 +223,14 @@ export default function BulkSettingsModal({ onClose, onSave, templates = [], api
         {/* Left: Calendar Picker */}
         <div className="flex-1 p-6 border-b md:border-b-0 md:border-r border-border/50 flex flex-col">
           <div className="flex items-center justify-between mb-4 shrink-0">
-            <h3 className="font-semibold text-lg flex items-center gap-2">Select Dates</h3>
+            <h3 className="font-semibold text-lg flex items-center gap-2">{t('admin.calendar.bulk.selectDatesTitle')}</h3>
             {selectedDates.size > 0 ? (
               <div className="text-sm font-semibold bg-primary text-primary-foreground px-3 py-1 rounded-full animate-in zoom-in shadow-sm">
-                {selectedDates.size} picked
+                {t('admin.calendar.bulk.pickedCount', { count: selectedDates.size })}
               </div>
             ) : (
               <div className="text-sm font-medium text-muted-foreground bg-muted/60 px-3 py-1 rounded-full border border-border/50">
-                0 picked
+                {t('admin.calendar.bulk.pickedCount', { count: 0 })}
               </div>
             )}
           </div>
@@ -228,7 +240,7 @@ export default function BulkSettingsModal({ onClose, onSave, templates = [], api
               <Button variant="ghost" size="icon" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))} className="h-8 w-8 hover:bg-muted text-card-foreground border border-transparent hover:border-border/50">
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              <span className="font-semibold text-[15px]">{format(currentMonth, "MMMM yyyy")}</span>
+              <span className="font-semibold text-[15px]">{format(currentMonth, "MMMM yyyy", { locale })}</span>
               <Button variant="ghost" size="icon" onClick={() => setCurrentMonth(addMonths(currentMonth, 1))} className="h-8 w-8 hover:bg-muted text-card-foreground border border-transparent hover:border-border/50">
                 <ChevronRight className="h-4 w-4" />
               </Button>
@@ -243,30 +255,30 @@ export default function BulkSettingsModal({ onClose, onSave, templates = [], api
                 <Info className="w-24 h-24" />
               </div>
               <h4 className="font-bold text-primary text-sm flex items-center gap-2 mb-3 relative z-10">
-                <Info className="w-4 h-4" /> Action Overview
+                <Info className="w-4 h-4" /> {t('admin.calendar.bulk.actionOverviewTitle')}
               </h4>
               <div className="space-y-2.5 text-sm text-card-foreground relative z-10">
                 <div className="flex justify-between items-center p-2.5 bg-muted/40 rounded-lg shadow-sm border border-border/30">
-                  <span className="text-muted-foreground font-medium">Selected Dates:</span>
+                  <span className="text-muted-foreground font-medium">{t('admin.calendar.bulk.selectedDatesLabel')}</span>
                   <span className="font-bold text-primary">{selectedDates.size}</span>
                 </div>
                 {isAdminView && (
                   <div className="flex justify-between items-center p-2.5 bg-muted/40 rounded-lg shadow-sm border border-border/30">
-                    <span className="text-muted-foreground font-medium">Target Masters:</span>
+                    <span className="text-muted-foreground font-medium">{t('admin.calendar.bulk.targetMastersLabel')}</span>
                     <span className="font-bold text-foreground">
                       {targetMasterIds.size === adminMastersList.length && targetMasterIds.size > 0
-                        ? "All Masters"
+                        ? t('admin.calendar.allMasters')
                         : targetMasterIds.size}
                     </span>
                   </div>
                 )}
                 <div className="flex justify-between items-center p-2.5 bg-muted/40 rounded-lg shadow-sm border border-border/30">
-                  <span className="text-muted-foreground font-medium">Configuration:</span>
+                  <span className="text-muted-foreground font-medium">{t('admin.calendar.bulk.configurationLabel')}</span>
                   <span className="font-bold text-foreground">
                     {isDayOff ? (
-                      <span className="text-destructive flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-destructive"></span> Day Off</span>
+                      <span className="text-destructive flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-destructive"></span> {t('admin.calendar.dayOffBtn')}</span>
                     ) : (
-                      <span className="text-[var(--md-success)] flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[var(--md-success)]"></span> {intervals.length} Shift{intervals.length !== 1 ? 's' : ''}</span>
+                      <span className="text-[var(--md-success)] flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-[var(--md-success)]"></span> {intervals.length} {pluralize(intervals.length, t('admin.calendar.shiftOne'), t('admin.calendar.shiftFew'), t('admin.calendar.shiftMany'))}</span>
                     )}
                   </span>
                 </div>
@@ -278,7 +290,7 @@ export default function BulkSettingsModal({ onClose, onSave, templates = [], api
         {/* Right: Settings */}
         <div className="w-full md:w-[320px] p-6 flex flex-col relative overflow-visible">
           <div className="flex justify-between items-center mb-6">
-            <h3 className="font-semibold text-lg">Configure</h3>
+            <h3 className="font-semibold text-lg">{t('admin.calendar.bulk.configureTitle')}</h3>
             <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8 -mr-2">
               <X className="h-4 w-4" />
             </Button>
@@ -289,7 +301,7 @@ export default function BulkSettingsModal({ onClose, onSave, templates = [], api
             {isAdminView && (
               <div className="space-y-3">
                 <span className="text-sm font-semibold flex items-center gap-2">
-                  <Users className="w-4 h-4" /> Apply To Masters
+                  <Users className="w-4 h-4" /> {t('admin.calendar.bulk.applyToMastersLabel')}
                 </span>
                 <div className="bg-muted/40 border border-border/50 rounded-xl p-4 shadow-sm">
                   <label className="flex items-center gap-3 cursor-pointer p-3 hover:bg-muted rounded-lg transition-colors border border-transparent shadow-sm hover:border-border/50">
@@ -299,7 +311,7 @@ export default function BulkSettingsModal({ onClose, onSave, templates = [], api
                       checked={allSelected}
                       onChange={toggleAllMasters}
                     />
-                    <span className="font-semibold text-foreground">Apply to All Masters</span>
+                    <span className="font-semibold text-foreground">{t('admin.calendar.bulk.applyToAllMastersLabel')}</span>
                   </label>
 
                   <div className="mt-3 bg-card rounded-lg border border-border/50 shadow-inner p-2 max-h-[160px] overflow-y-auto space-y-1 custom-scrollbar">
@@ -321,7 +333,7 @@ export default function BulkSettingsModal({ onClose, onSave, templates = [], api
 
             <div className="space-y-3">
               <span className="text-sm font-semibold flex items-center gap-2">
-                <Clock className="w-4 h-4" /> Schedule Configuration
+                <Clock className="w-4 h-4" /> {t('admin.calendar.bulk.scheduleConfigLabel')}
               </span>
               <div className="bg-muted/40 border border-border/50 rounded-xl p-4 shadow-sm">
                 <label className="flex items-center gap-3 cursor-pointer p-3 hover:bg-muted rounded-lg transition-colors border border-transparent shadow-sm hover:border-border/50 mb-2">
@@ -332,13 +344,13 @@ export default function BulkSettingsModal({ onClose, onSave, templates = [], api
                     onChange={(e) => setIsDayOff(e.target.checked)}
                     className="h-4 w-4 accent-primary rounded cursor-pointer"
                   />
-                  <span className="font-semibold text-destructive">Mark as Day Off</span>
+                  <span className="font-semibold text-destructive">{t('admin.calendar.bulk.markDayOffLabel')}</span>
                 </label>
 
                 {!isDayOff && (
                   <div className="mt-4 pt-4 border-t border-border">
                     <div className="flex items-center justify-between mb-3 pl-2">
-                      <span className="text-sm font-medium text-muted-foreground">Working Intervals</span>
+                      <span className="text-sm font-medium text-muted-foreground">{t('admin.calendar.bulk.workingIntervalsLabel')}</span>
                       <Button
                         type="button"
                         variant="outline"
@@ -346,11 +358,11 @@ export default function BulkSettingsModal({ onClose, onSave, templates = [], api
                         className="h-8 text-xs bg-transparent hover:bg-muted shadow-sm border-border"
                         onClick={() => setIntervals([...intervals, { start: "12:00", end: "13:00" }])}
                       >
-                        <Plus className="h-3 w-3 mr-1" /> Add Interval
+                        <Plus className="h-3 w-3 mr-1" /> {t('admin.calendar.bulk.addIntervalBtn')}
                       </Button>
                     </div>
 
-                    {intervals.length === 0 && <p className="text-xs text-muted-foreground pl-2 mb-2">No intervals added.</p>}
+                    {intervals.length === 0 && <p className="text-xs text-muted-foreground pl-2 mb-2">{t('admin.calendar.bulk.noIntervalsAdded')}</p>}
 
                     <div className="bg-card rounded-xl border border-border/50 shadow-inner p-2 max-h-[140px] overflow-y-auto custom-scrollbar">
                       <div className="space-y-2 pr-1">
@@ -398,7 +410,7 @@ export default function BulkSettingsModal({ onClose, onSave, templates = [], api
 
           <div className="mt-8 pt-4 border-t border-border shrink-0">
             <Button className="w-full font-semibold shadow-md" size="lg" disabled={saving || selectedDates.size === 0 || (isAdminView && targetMasterIds.size === 0)} onClick={handleSave}>
-              {saving ? "Saving..." : "Apply Settings"}
+              {saving ? t('common.saving') : t('admin.calendar.bulk.applySettingsBtn')}
             </Button>
           </div>
         </div>

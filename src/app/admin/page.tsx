@@ -14,6 +14,8 @@ import { Button } from "@/components/ui/button"
 import StatCard from "@/components/admin/StatCard"
 import TodaysAppointmentsTable from "./TodaysAppointmentsTable"
 import prisma from "@/lib/prisma"
+import { getServerT, getServerLanguage } from "@/lib/i18n-server"
+import { dateFnsLocale } from "@/lib/utils/date-fns-locale"
 
 async function getDashboardData() {
   const today = new Date()
@@ -59,37 +61,41 @@ async function getDashboardData() {
 export default async function AdminDashboardPage() {
   const { today, todayAppointments, thisWeekCount, weekDelta, monthRevenue, masters, activeMastersToday } =
     await getDashboardData()
+  const t = getServerT()
+  const language = getServerLanguage()
 
   return (
     <div className="flex flex-col gap-6">
       <div>
         <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-          Overview
+          {t('admin.dashboard.overview')}
         </p>
-        <p className="mt-1 text-sm text-muted-foreground">{format(today, "EEEE, d MMMM yyyy")}</p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {format(today, "EEEE, d MMMM yyyy", { locale: dateFnsLocale(language) })}
+        </p>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          label="Today"
+          label={t('admin.dashboard.today')}
           value={todayAppointments.length}
-          sub={`${activeMastersToday} masters active`}
+          sub={t('admin.dashboard.mastersActive', { count: activeMastersToday })}
           tone="primary"
         />
         <StatCard
-          label="This week"
+          label={t('admin.dashboard.thisWeek')}
           value={thisWeekCount}
-          sub={`${weekDelta >= 0 ? "+" : ""}${weekDelta} vs last week`}
+          sub={t('admin.dashboard.vsLastWeek', { delta: `${weekDelta >= 0 ? "+" : ""}${weekDelta}` })}
           tone="secondary"
         />
         <StatCard
-          label="Revenue"
+          label={t('admin.dashboard.revenue')}
           value={`${monthRevenue.toLocaleString()} zł`}
-          sub="This month"
+          sub={t('admin.dashboard.thisMonth')}
           tone="tertiary"
         />
         <StatCard
-          label="Masters"
+          label={t('admin.dashboard.masters')}
           value={masters.length}
           sub={masters.map((m) => m.name).join(" · ")}
           tone="surface-high"
@@ -100,17 +106,17 @@ export default async function AdminDashboardPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Quick Actions</CardTitle>
+          <CardTitle className="text-base">{t('admin.dashboard.quickActions')}</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-wrap gap-2">
           <Button variant="outline" render={<Link href="/admin/services" />}>
-            Manage Services
+            {t('admin.dashboard.manageServices')}
           </Button>
           <Button variant="outline" render={<Link href="/admin/masters" />}>
-            Manage Masters
+            {t('admin.dashboard.manageMasters')}
           </Button>
           <Button variant="outline" render={<Link href="/admin/settings" />}>
-            Salon Settings
+            {t('admin.dashboard.salonSettings')}
           </Button>
         </CardContent>
       </Card>

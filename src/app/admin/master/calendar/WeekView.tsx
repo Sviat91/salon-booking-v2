@@ -2,9 +2,12 @@
 
 import { useMemo, useRef, useState, useEffect } from "react"
 import { format, startOfWeek, endOfWeek, addDays, isToday } from "date-fns"
+import { useTranslation } from "react-i18next"
 import type { Appointment, Template, Override, Interval } from "./ModernCalendar"
 import { Clock, Plus, PowerOff, X, ChevronDown, Users } from "lucide-react"
 import { TimePickerDropdown } from "@/components/TimePickerDropdown"
+import { useCurrentLanguage } from "@/contexts/LanguageContext"
+import { dateFnsLocale } from "@/lib/utils/date-fns-locale"
 
 interface WeekViewProps {
   currentDate: Date
@@ -68,7 +71,16 @@ interface EditingDayState {
   dateStr: string | null
 }
 
+function pluralize(count: number, one: string, few: string, many: string): string {
+  if (count === 1) return one
+  if (count >= 2 && count <= 4) return few
+  return many
+}
+
 export default function WeekView({ currentDate, appointments, templates, overrides, step, startHour, endHour, isEditMode, availableSlotColor, dayOffColor, apiPrefix = "/api/master", selectedMasterId = "all", onDayClick, onAppointmentClick, onDataChange }: WeekViewProps) {
+  const { t } = useTranslation()
+  const language = useCurrentLanguage()
+  const locale = dateFnsLocale(language)
   const containerRef = useRef<HTMLDivElement>(null)
   const totalHours = endHour - startHour
   const PIXELS_PER_MINUTE = 1.5 
@@ -175,7 +187,7 @@ export default function WeekView({ currentDate, appointments, templates, overrid
               <div key={i} className="pt-2 pb-1 px-1 flex flex-col items-center border-r last:border-r-0 border-border relative">
                 {isSaving && <div className="absolute inset-0 bg-background/50 z-10 animate-pulse" />}
                 <span className={`text-[11px] font-medium uppercase tracking-wider ${isCurr ? 'text-primary' : 'text-muted-foreground'}`}>
-                  {format(day, "EEE")}
+                  {format(day, "EEE", { locale })}
                 </span>
                 <span className={`text-lg font-medium h-8 w-8 flex items-center justify-center rounded-full mt-0.5 ${isCurr ? 'bg-primary text-primary-foreground' : ''}`}>
                   {format(day, "d")}
@@ -192,14 +204,18 @@ export default function WeekView({ currentDate, appointments, templates, overrid
                           : 'bg-muted hover:bg-muted/80'
                     }`}
                   >
-                    {status.isDayOff ? 'Day Off' : status.intervals.length > 0 ? `${status.intervals.length} shift${status.intervals.length > 1 ? 's' : ''}` : 'Edit'}
+                    {status.isDayOff
+                      ? t('admin.calendar.dayOffBtn')
+                      : status.intervals.length > 0
+                        ? `${status.intervals.length} ${pluralize(status.intervals.length, t('admin.calendar.shiftOne'), t('admin.calendar.shiftFew'), t('admin.calendar.shiftMany'))}`
+                        : t('admin.calendar.editBtn')}
                   </button>
                 )}
 
                 {editingDay.dateStr === dateStr && isEditMode && !isPastDay && (
                   <div className="absolute top-[105%] left-1/2 -translate-x-1/2 bg-card border border-border rounded-xl shadow-2xl p-4 space-y-3 animate-in fade-in-0 zoom-in-95 duration-200 z-50 w-[260px] cursor-default" onClick={(e) => e.stopPropagation()}>
                     <div className="text-sm font-semibold text-muted-foreground flex items-center justify-between">
-                      {format(day, "EEEE, MMM d")}
+                      {format(day, "EEEE, MMM d", { locale })}
                       <button onClick={() => setEditingDay({ dateStr: null })} className="text-muted-foreground hover:text-foreground">
                         <X className="w-4 h-4" />
                       </button>
@@ -244,14 +260,14 @@ export default function WeekView({ currentDate, appointments, templates, overrid
                             : 'bg-[var(--md-error-container)] text-[var(--md-on-error-container)] hover:brightness-95'
                         }`}
                       >
-                        <PowerOff className="w-3.5 h-3.5" /> {status.isDayOff ? 'Working' : 'Day Off'}
+                        <PowerOff className="w-3.5 h-3.5" /> {status.isDayOff ? t('admin.calendar.workingBtn') : t('admin.calendar.dayOffBtn')}
                       </button>
                       {!status.isDayOff && (
-                        <button 
+                        <button
                           onClick={() => addShift(day, status)}
                           className="flex-1 flex items-center justify-center py-2 gap-1 text-xs bg-primary text-primary-foreground rounded hover:bg-primary/90 font-medium transition-colors"
                         >
-                          <Plus className="w-3.5 h-3.5" /> Add Shift
+                          <Plus className="w-3.5 h-3.5" /> {t('admin.calendar.addShiftBtn')}
                         </button>
                       )}
                     </div>
@@ -340,7 +356,7 @@ export default function WeekView({ currentDate, appointments, templates, overrid
                       <>
                         <div className="absolute inset-0 z-[0] pointer-events-none" style={{ backgroundColor: dayOffColor + '40' }} />
                         <div className="absolute inset-0 flex items-center justify-center flex-col opacity-80 select-none z-[1]" style={{ color: dayOffColor }}>
-                          <span className="text-sm font-semibold uppercase tracking-widest rotate-[-90deg]">Day Off</span>
+                          <span className="text-sm font-semibold uppercase tracking-widest rotate-[-90deg]">{t('admin.calendar.dayOffBtn')}</span>
                         </div>
                       </>
                     )}
@@ -379,7 +395,7 @@ export default function WeekView({ currentDate, appointments, templates, overrid
                             className="absolute w-[calc(100%-8px)] rounded-md p-1 text-xs overflow-hidden hover:z-30 hover:shadow-md hover:ring-2 ring-primary/40 transition-all cursor-pointer backdrop-blur-sm text-foreground"
                             style={{ top: `${top}px`, minHeight: `${Math.max(height, 24)}px`, left: "4px", zIndex: 10, backgroundColor: (a.master?.masterProfile?.color || "#8B4A58") + "26", borderLeft: "3px solid " + (a.master?.masterProfile?.color || "#8B4A58") }}
                           >
-                            <div className="font-semibold leading-tight truncate">{a.client.name || 'Client'}</div>
+                            <div className="font-semibold leading-tight truncate">{a.client.name || t('admin.calendar.clientFallback')}</div>
                             <div className="opacity-90 leading-tight truncate mt-0.5">{a.service.name}</div>
                             <div className="opacity-75 leading-tight text-[10px] mt-0.5 flex items-center gap-1">
                               <Clock className="w-3 h-3 shrink-0" />
@@ -408,7 +424,7 @@ export default function WeekView({ currentDate, appointments, templates, overrid
                                   <div className="flex items-center gap-2">
                                     <Clock className="w-3 h-3 text-muted-foreground shrink-0" />
                                     <span className="font-medium text-sm">{a.startTime}</span>
-                                    <span className="text-sm truncate">{a.client.name || 'Client'}</span>
+                                    <span className="text-sm truncate">{a.client.name || t('admin.calendar.clientFallback')}</span>
                                   </div>
                                   <div className="text-xs text-muted-foreground mt-0.5 ml-5 truncate">{a.service.name}</div>
                                 </div>
@@ -422,7 +438,7 @@ export default function WeekView({ currentDate, appointments, templates, overrid
                               <div className="flex items-center gap-1.5">
                                 <Users className="w-3.5 h-3.5" />
                                 <span className="font-semibold text-sm">{group.length}</span>
-                                <span className="text-xs opacity-90">bookings</span>
+                                <span className="text-xs opacity-90">{pluralize(group.length, t('management.bookingOne'), t('management.bookingFew'), t('management.bookingMany'))}</span>
                                 <ChevronDown className="w-3 h-3 ml-auto" />
                               </div>
                               <div className="text-[10px] opacity-75 mt-0.5 flex items-center gap-1">

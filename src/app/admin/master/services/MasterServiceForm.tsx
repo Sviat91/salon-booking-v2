@@ -2,9 +2,11 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { apiErrorKey } from "@/lib/errors/apiErrorKey"
 
 type Service = {
   id: string
@@ -19,6 +21,7 @@ interface MasterServiceFormProps {
 }
 
 export default function MasterServiceForm({ service, onSuccess }: MasterServiceFormProps) {
+  const { t } = useTranslation()
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -44,8 +47,8 @@ export default function MasterServiceForm({ service, onSuccess }: MasterServiceF
       })
 
       if (!res.ok) {
-        const errData = await res.json()
-        throw new Error(errData.error || "Failed to save service")
+        const errData = await res.json().catch(() => ({}))
+        throw new Error(errData.code ? t(apiErrorKey(errData.code)) : t('admin.services.saveFailed'))
       }
 
       router.refresh()
@@ -60,18 +63,18 @@ export default function MasterServiceForm({ service, onSuccess }: MasterServiceF
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <div className="grid gap-1.5">
-        <Label htmlFor="name">Service Name</Label>
+        <Label htmlFor="name">{t('admin.services.serviceName')}</Label>
         <Input
           id="name"
           name="name"
           defaultValue={service?.name}
-          placeholder="e.g. Volume Eyelash Extensions"
+          placeholder={t('admin.services.servicePlaceholderMaster')}
           required
         />
       </div>
 
       <div className="grid gap-1.5">
-        <Label htmlFor="duration">Duration (minutes)</Label>
+        <Label htmlFor="duration">{t('admin.services.durationLabel')}</Label>
         <Input
           id="duration"
           name="duration"
@@ -84,7 +87,7 @@ export default function MasterServiceForm({ service, onSuccess }: MasterServiceF
       </div>
 
       <div className="grid gap-1.5">
-        <Label htmlFor="price">Price (zł)</Label>
+        <Label htmlFor="price">{t('admin.services.priceZl')}</Label>
         <Input
           id="price"
           name="price"
@@ -100,7 +103,7 @@ export default function MasterServiceForm({ service, onSuccess }: MasterServiceF
       {error && <p className="text-sm text-destructive">{error}</p>}
 
       <Button type="submit" disabled={loading} className="mt-2">
-        {loading ? "Saving..." : service ? "Update Service" : "Add Service"}
+        {loading ? t('common.saving') : service ? t('admin.services.updateServiceBtn') : t('admin.services.addServiceTitle')}
       </Button>
     </form>
   )

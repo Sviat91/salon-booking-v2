@@ -3,6 +3,7 @@ import * as React from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
+import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -32,6 +33,7 @@ const formSchema = z.object({
 type SocialSettingsValues = z.infer<typeof formSchema>
 
 export default function SocialSettingsForm() {
+  const { t } = useTranslation()
   const [isLoading, setIsLoading] = React.useState(true)
   const [isSaving, setIsSaving] = React.useState(false)
 
@@ -66,7 +68,7 @@ export default function SocialSettingsForm() {
           telegramBotToken: data.telegramBotToken || "",
         })
       } catch (err) {
-        toast.error("Could not load settings")
+        toast.error(t('admin.settings.social.loadError'))
       } finally {
         setIsLoading(false)
       }
@@ -83,7 +85,7 @@ export default function SocialSettingsForm() {
         body: JSON.stringify(data),
       })
       if (!res.ok) throw new Error()
-      
+
       // refresh inputs in case secrets were masked
       const refresh = await fetch("/api/admin/social-settings")
       if (refresh.ok) {
@@ -91,24 +93,24 @@ export default function SocialSettingsForm() {
         form.reset(newData)
       }
 
-      toast.success("Social login settings saved safely")
+      toast.success(t('admin.settings.social.saveSuccess'))
     } catch {
-      toast.error("Failed to save settings")
+      toast.error(t('admin.settings.social.saveError'))
     } finally {
       setIsSaving(false)
     }
   }
 
-  if (isLoading) return <div className="animate-pulse text-sm text-muted-foreground">Loading settings...</div>
+  if (isLoading) return <div className="animate-pulse text-sm text-muted-foreground">{t('admin.settings.social.loading')}</div>
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        
+
         {/* Google */}
         <SettingsSection
-          title="Google Auth"
-          description="Get these credentials from the Google Cloud Console (APIs & Services -> Credentials)."
+          title={t('admin.settings.social.googleTitle')}
+          description={t('admin.settings.social.googleDesc')}
         >
           <div className="grid sm:grid-cols-2 gap-4">
             <FormField
@@ -116,7 +118,7 @@ export default function SocialSettingsForm() {
               name="googleClientId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Client ID</FormLabel>
+                  <FormLabel>{t('admin.settings.social.googleClientId')}</FormLabel>
                   <FormControl>
                     <Input placeholder="123456...apps.googleusercontent.com" {...field} />
                   </FormControl>
@@ -128,7 +130,7 @@ export default function SocialSettingsForm() {
               name="googleClientSecret"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Client Secret</FormLabel>
+                  <FormLabel>{t('admin.settings.social.googleClientSecret')}</FormLabel>
                   <FormControl>
                     <Input type="password" placeholder="GOCSPX-..." autoComplete="new-password" {...field} />
                   </FormControl>
@@ -140,8 +142,8 @@ export default function SocialSettingsForm() {
 
         {/* Telegram */}
         <SettingsSection
-          title="Telegram Auth"
-          description="Talk to @BotFather in Telegram, create a bot and map your domain via /setdomain."
+          title={t('admin.settings.social.telegramTitle')}
+          description={t('admin.settings.social.telegramDesc')}
         >
           <div className="grid sm:grid-cols-2 gap-4">
             <FormField
@@ -149,11 +151,11 @@ export default function SocialSettingsForm() {
               name="telegramBotUsername"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Bot Username</FormLabel>
+                  <FormLabel>{t('admin.settings.social.telegramBotUsername')}</FormLabel>
                   <FormControl>
                     <Input placeholder="my_salon_auth_bot" {...field} />
                   </FormControl>
-                  <FormDescription>Exclude the @ symbol. Note: If the bot username is invalid or if testing on localhost, the widget might display "Username invalid". If so, verify double-check BotFather configuration and register your domain.</FormDescription>
+                  <FormDescription>{t('admin.settings.social.telegramBotUsernameDesc')}</FormDescription>
                 </FormItem>
               )}
             />
@@ -162,11 +164,11 @@ export default function SocialSettingsForm() {
               name="telegramBotToken"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Bot Token</FormLabel>
+                  <FormLabel>{t('admin.settings.social.telegramBotToken')}</FormLabel>
                   <FormControl>
                     <Input type="password" placeholder="123456:ABC-DEF123..." autoComplete="new-password" {...field} />
                   </FormControl>
-                  <FormDescription>Encrypted on save.</FormDescription>
+                  <FormDescription>{t('admin.settings.social.telegramBotTokenDesc')}</FormDescription>
                 </FormItem>
               )}
             />
@@ -175,8 +177,8 @@ export default function SocialSettingsForm() {
 
         {/* Apple */}
         <SettingsSection
-          title="Apple Auth"
-          description="Requires an active Apple Developer Program membership."
+          title={t('admin.settings.social.appleTitle')}
+          description={t('admin.settings.social.appleDesc')}
         >
           <div className="grid sm:grid-cols-2 gap-4">
             <FormField
@@ -184,7 +186,7 @@ export default function SocialSettingsForm() {
               name="appleClientId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Services ID (Client ID)</FormLabel>
+                  <FormLabel>{t('admin.settings.social.appleClientId')}</FormLabel>
                   <FormControl>
                     <Input placeholder="com.example.salon.auth" {...field} />
                   </FormControl>
@@ -196,9 +198,9 @@ export default function SocialSettingsForm() {
               name="appleTeamId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Team ID</FormLabel>
+                  <FormLabel>{t('admin.settings.social.appleTeamId')}</FormLabel>
                   <FormControl>
-                    <Input placeholder="10-character Team ID" {...field} />
+                    <Input placeholder={t('admin.settings.social.appleTeamIdPlaceholder')} {...field} />
                   </FormControl>
                 </FormItem>
               )}
@@ -208,9 +210,9 @@ export default function SocialSettingsForm() {
               name="appleKeyId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Key ID</FormLabel>
+                  <FormLabel>{t('admin.settings.social.appleKeyId')}</FormLabel>
                   <FormControl>
-                    <Input placeholder="10-character Key ID" {...field} />
+                    <Input placeholder={t('admin.settings.social.appleKeyIdPlaceholder')} {...field} />
                   </FormControl>
                 </FormItem>
               )}
@@ -220,7 +222,7 @@ export default function SocialSettingsForm() {
               name="applePrivateKey"
               render={({ field }) => (
                 <FormItem className="sm:col-span-2">
-                  <FormLabel>Private Key (.p8 contents)</FormLabel>
+                  <FormLabel>{t('admin.settings.social.applePrivateKey')}</FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder="-----BEGIN PRIVATE KEY-----&#10;...&#10;-----END PRIVATE KEY-----"
@@ -228,7 +230,7 @@ export default function SocialSettingsForm() {
                       {...field}
                     />
                   </FormControl>
-                  <FormDescription>Paste the entire contents of the .p8 file you downloaded. Encrypted on save.</FormDescription>
+                  <FormDescription>{t('admin.settings.social.applePrivateKeyDesc')}</FormDescription>
                 </FormItem>
               )}
             />
@@ -237,7 +239,7 @@ export default function SocialSettingsForm() {
 
         <div className="flex border-t pt-4">
           <Button type="submit" disabled={isSaving || isLoading}>
-            {isSaving ? "Saving..." : "Save Config"}
+            {isSaving ? t('admin.settings.social.savingConfig') : t('admin.settings.social.saveConfig')}
           </Button>
         </div>
       </form>

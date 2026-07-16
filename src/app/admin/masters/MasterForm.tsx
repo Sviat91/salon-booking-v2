@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useFormState, useFormStatus } from "react-dom"
+import { useTranslation } from "react-i18next"
 import Image from "next/image"
 import { Copy, Check, Upload, X, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -9,6 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { createMaster, updateMaster, resetMasterPassword, getMasterPassword, type MasterFormState } from "./actions"
+import { apiErrorKey } from "@/lib/errors/apiErrorKey"
 
 type Master = {
   id: string
@@ -25,15 +27,17 @@ interface MasterFormProps {
 const initialState: MasterFormState = {}
 
 function SubmitButton({ label }: { label: string }) {
+  const { t } = useTranslation()
   const { pending } = useFormStatus()
   return (
     <Button type="submit" disabled={pending} className="mt-2">
-      {pending ? "Saving…" : label}
+      {pending ? t('common.saving') : label}
     </Button>
   )
 }
 
 export default function MasterForm({ master, onSuccess }: MasterFormProps) {
+  const { t } = useTranslation()
   const action = master
     ? updateMaster.bind(null, master.id)
     : createMaster
@@ -64,7 +68,7 @@ export default function MasterForm({ master, onSuccess }: MasterFormProps) {
     setShowError(null)
     const res = await getMasterPassword(master.id)
     if (res.password) setShownPassword(res.password)
-    else setShowError(res.error ?? "Failed to load password")
+    else setShowError(res.error ?? t('admin.masters.loadPasswordFailed'))
     setIsLoadingPassword(false)
   }
 
@@ -98,11 +102,11 @@ export default function MasterForm({ master, onSuccess }: MasterFormProps) {
     try {
       const res = await fetch("/api/upload", { method: "POST", body: fd })
       const json = await res.json()
-      if (!res.ok) throw new Error(json.error ?? "Upload failed")
+      if (!res.ok) throw new Error(json.code ? t(apiErrorKey(json.code)) : t('admin.masters.uploadFailed'))
       setAvatarPreview(json.url)
       setAvatarUrl(json.url)
     } catch (err) {
-      setUploadError(err instanceof Error ? err.message : "Upload failed")
+      setUploadError(err instanceof Error ? err.message : t('admin.masters.uploadFailed'))
     } finally {
       setUploading(false)
     }
@@ -114,14 +118,14 @@ export default function MasterForm({ master, onSuccess }: MasterFormProps) {
       <div className="flex flex-col gap-4">
         <div className="rounded-lg bg-[var(--md-success-container)] p-4">
           <p className="text-sm font-medium text-[var(--md-on-success-container)]">
-            Master created successfully!
+            {t('admin.masters.masterCreatedSuccess')}
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
-            Save this password — it will not be shown again.
+            {t('admin.masters.savePasswordHint')}
           </p>
         </div>
         <div className="grid gap-1.5">
-          <Label>Generated Password</Label>
+          <Label>{t('admin.masters.generatedPassword')}</Label>
           <div className="flex gap-2">
             <Input readOnly value={state.generatedPassword} className="font-mono" />
             <Button
@@ -138,7 +142,7 @@ export default function MasterForm({ master, onSuccess }: MasterFormProps) {
             </Button>
           </div>
         </div>
-        <Button onClick={onSuccess}>Done</Button>
+        <Button onClick={onSuccess}>{t('admin.masters.done')}</Button>
       </div>
     )
   }
@@ -149,7 +153,7 @@ export default function MasterForm({ master, onSuccess }: MasterFormProps) {
 
       {/* Avatar upload */}
       <div className="grid gap-1.5">
-        <Label>Master Photo</Label>
+        <Label>{t('admin.masters.masterPhoto')}</Label>
         <div className="flex items-center gap-4">
           <div className="relative h-20 w-20 rounded-full overflow-hidden border-2 border-border bg-muted flex items-center justify-center shrink-0">
             {avatarPreview ? (
@@ -177,7 +181,7 @@ export default function MasterForm({ master, onSuccess }: MasterFormProps) {
             />
             <div className="flex items-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm hover:bg-muted transition-colors">
               <Upload className="h-4 w-4" />
-              {uploading ? "Uploading…" : "Upload photo"}
+              {uploading ? t('admin.masters.uploading') : t('admin.masters.uploadPhoto')}
             </div>
           </label>
         </div>
@@ -187,12 +191,12 @@ export default function MasterForm({ master, onSuccess }: MasterFormProps) {
 
       {/* Name */}
       <div className="grid gap-1.5">
-        <Label htmlFor="name">Full Name</Label>
+        <Label htmlFor="name">{t('admin.masters.fullName')}</Label>
         <Input
           id="name"
           name="name"
           defaultValue={master?.name ?? ""}
-          placeholder="e.g. Anna Kowalska"
+          placeholder={t('admin.masters.fullNamePlaceholder')}
           required
         />
         {state.fieldErrors?.name && (
@@ -203,39 +207,39 @@ export default function MasterForm({ master, onSuccess }: MasterFormProps) {
       {/* Email (create only) */}
       {!master && (
         <div className="grid gap-1.5">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email">{t('admin.masters.emailLabel')}</Label>
           <Input
             id="email"
             name="email"
             type="email"
-            placeholder="master@salon.com"
+            placeholder={t('admin.masters.emailPlaceholder')}
             required
           />
           {state.fieldErrors?.email && (
             <p className="text-xs text-destructive">{state.fieldErrors.email[0]}</p>
           )}
           <p className="text-xs text-muted-foreground">
-            A password will be auto-generated.
+            {t('admin.masters.passwordAutoGenerated')}
           </p>
         </div>
       )}
 
       {/* Bio */}
       <div className="grid gap-1.5">
-        <Label htmlFor="bio">Bio</Label>
+        <Label htmlFor="bio">{t('admin.masters.bio')}</Label>
         <Textarea
           id="bio"
           name="bio"
           rows={3}
           defaultValue={master?.masterProfile?.bio ?? ""}
-          placeholder="Short description of specialties…"
+          placeholder={t('admin.masters.bioPlaceholder')}
           className="resize-none"
         />
       </div>
 
       {/* Color */}
       <div className="grid gap-1.5">
-        <Label htmlFor="color">Appointment Color</Label>
+        <Label htmlFor="color">{t('admin.masters.appointmentColor')}</Label>
         <div className="flex gap-2 items-center">
           <input
             type="color"
@@ -244,7 +248,7 @@ export default function MasterForm({ master, onSuccess }: MasterFormProps) {
             defaultValue={master?.masterProfile?.color ?? "#166534"}
             className="h-8 w-10 cursor-pointer rounded border border-input bg-background p-0.5 shrink-0"
           />
-          <span className="text-xs text-muted-foreground">Color for master's bookings in the calendar</span>
+          <span className="text-xs text-muted-foreground">{t('admin.masters.colorHint')}</span>
         </div>
       </div>
 
@@ -259,29 +263,29 @@ export default function MasterForm({ master, onSuccess }: MasterFormProps) {
         />
         <div>
           <Label htmlFor="showOnHomepage" className="cursor-pointer text-sm font-medium">
-            Show on homepage
+            {t('admin.masters.showOnHomepage')}
           </Label>
           <p className="text-xs text-muted-foreground">
-            The master&apos;s card will be visible to clients on the site
+            {t('admin.masters.showOnHomepageHint')}
           </p>
         </div>
       </div>
 
       {state.error && <p className="text-sm text-destructive">{state.error}</p>}
-      {state.success && master && <div className="rounded bg-[var(--md-success-container)] p-2 text-center text-xs font-medium text-[var(--md-on-success-container)]">Settings saved successfully!</div>}
+      {state.success && master && <div className="rounded bg-[var(--md-success-container)] p-2 text-center text-xs font-medium text-[var(--md-on-success-container)]">{t('admin.masters.settingsSaved')}</div>}
 
-      <SubmitButton label={master ? "Save Changes" : "Create Master"} />
+      <SubmitButton label={master ? t('admin.masters.saveChangesBtn') : t('admin.masters.createMasterBtn')} />
     </form>
 
     {master && (
       <div className="flex flex-col gap-4 pt-6 border-t border-border">
         <div>
-          <h3 className="text-lg font-semibold">Access Recovery</h3>
-          <p className="text-sm text-muted-foreground">Replace the master's password if lost.</p>
+          <h3 className="text-lg font-semibold">{t('admin.masters.accessRecovery')}</h3>
+          <p className="text-sm text-muted-foreground">{t('admin.masters.accessRecoveryDesc')}</p>
         </div>
 
         <div className="grid gap-2 max-w-sm">
-          <Label>Current password</Label>
+          <Label>{t('admin.masters.currentPasswordLabel')}</Label>
           <Button
             type="button"
             variant="outline"
@@ -289,7 +293,7 @@ export default function MasterForm({ master, onSuccess }: MasterFormProps) {
             disabled={isLoadingPassword}
             className="w-fit"
           >
-            {isLoadingPassword ? "Loading…" : "Show current password"}
+            {isLoadingPassword ? t('common.loading') : t('admin.masters.showCurrentPassword')}
           </Button>
 
           {shownPassword && (
@@ -314,32 +318,32 @@ export default function MasterForm({ master, onSuccess }: MasterFormProps) {
         </div>
 
         <div className="grid gap-2 max-w-sm">
-          <Label htmlFor="newPassword">Current / New Password</Label>
+          <Label htmlFor="newPassword">{t('admin.masters.currentOrNewPassword')}</Label>
           <div className="flex gap-2">
-            <Input 
-              id="newPassword" 
-              value={customPassword} 
-              onChange={(e) => setCustomPassword(e.target.value)} 
-              placeholder="Enter password or generate" 
+            <Input
+              id="newPassword"
+              value={customPassword}
+              onChange={(e) => setCustomPassword(e.target.value)}
+              placeholder={t('admin.masters.newPasswordPlaceholder')}
             />
             <Button type="button" variant="outline" onClick={handleGenerateCustom}>
-              Generate
+              {t('admin.masters.generate')}
             </Button>
           </div>
-          <Button 
-            type="button" 
-            onClick={handleResetPassword} 
+          <Button
+            type="button"
+            onClick={handleResetPassword}
             disabled={isResetting || (!customPassword && !resetPasswordState.success)}
             className="mt-2 w-full sm:w-auto"
             variant="secondary"
           >
-            {isResetting ? "Saving..." : (customPassword ? "Save New Password" : "Auto-Generate & Save")}
+            {isResetting ? t('common.saving') : (customPassword ? t('admin.masters.saveNewPassword') : t('admin.masters.autoGenerateAndSave'))}
           </Button>
-          
+
           {resetPasswordState.success && (
             <div className="mt-4 rounded-lg bg-[var(--md-success-container)] p-4">
               <p className="text-sm font-medium text-[var(--md-on-success-container)]">
-                Password successfully updated!
+                {t('admin.masters.passwordUpdated')}
               </p>
               <div className="mt-2 flex gap-2">
                 <Input readOnly value={resetPasswordState.password} className="font-mono bg-background" />

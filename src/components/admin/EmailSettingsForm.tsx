@@ -3,6 +3,7 @@ import * as React from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
+import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
@@ -25,28 +26,34 @@ import {
 } from "@/components/ui/dialog"
 import { SettingsSection } from "@/app/admin/settings/FormFields"
 import { toast } from "sonner"
+import { apiErrorKey } from "@/lib/errors/apiErrorKey"
 
-const formSchema = z.object({
-  smtpHost: z.string().min(1, "SMTP Host is required").or(z.literal("")),
-  smtpPort: z.string().superRefine((val, ctx) => {
-    if (val !== "" && isNaN(parseInt(val, 10))) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Must be a valid port number" })
-    }
-  }).or(z.literal("")),
-  smtpUser: z.string().or(z.literal("")),
-  smtpPass: z.string().or(z.literal("")),
-  smtpFrom: z.string().or(z.literal("")),
-  smtpSecure: z.boolean(),
-})
+function buildFormSchema(t: (key: string) => string) {
+  return z.object({
+    smtpHost: z.string().min(1, t('admin.settings.email.smtpHostRequired')).or(z.literal("")),
+    smtpPort: z.string().superRefine((val, ctx) => {
+      if (val !== "" && isNaN(parseInt(val, 10))) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: t('admin.settings.email.invalidPort') })
+      }
+    }).or(z.literal("")),
+    smtpUser: z.string().or(z.literal("")),
+    smtpPass: z.string().or(z.literal("")),
+    smtpFrom: z.string().or(z.literal("")),
+    smtpSecure: z.boolean(),
+  })
+}
 
-type EmailSettingsFormValues = z.infer<typeof formSchema>
+type EmailSettingsFormValues = z.infer<ReturnType<typeof buildFormSchema>>
 
 export default function EmailSettingsForm() {
+  const { t } = useTranslation()
   const [isLoading, setIsLoading] = React.useState(true)
   const [isSaving, setIsSaving] = React.useState(false)
   const [isTesting, setIsTesting] = React.useState(false)
   const [testEmailDialogOpen, setTestEmailDialogOpen] = React.useState(false)
   const [testEmail, setTestEmail] = React.useState("")
+
+  const formSchema = React.useMemo(() => buildFormSchema(t), [t])
 
   const form = useForm<EmailSettingsFormValues>({
     resolver: zodResolver(formSchema),
@@ -65,7 +72,7 @@ export default function EmailSettingsForm() {
     async function loadConfig() {
       try {
         const res = await fetch("/api/admin/email-settings")
-        if (!res.ok) throw new Error("Failed to load")
+        if (!res.ok) throw new Error(t('errors.generic'))
         const data = await res.json()
         form.reset({
           smtpHost: data.smtpHost || "",
@@ -76,7 +83,7 @@ export default function EmailSettingsForm() {
           smtpSecure: data.smtpSecure || false,
         })
       } catch (err) {
-        toast.error("Could not load email settings")
+        toast.error(t('admin.settings.email.loadError'))
       } finally {
         setIsLoading(false)
       }
@@ -94,13 +101,13 @@ export default function EmailSettingsForm() {
       })
 
       if (!res.ok) {
-        const errData = await res.json()
-        throw new Error(errData.error || "Failed to update")
+        const errData = await res.json().catch(() => ({}))
+        throw new Error(t(apiErrorKey(errData.code)))
       }
 
-      toast.success("Email settings saved safely")
+      toast.success(t('admin.settings.email.saveSuccess'))
     } catch (err: any) {
-      toast.error(err.message || "Failed to save settings")
+      toast.error(err.message || t('admin.settings.email.saveError'))
     } finally {
       setIsSaving(false)
     }
@@ -108,10 +115,10 @@ export default function EmailSettingsForm() {
 
   async function handleTestEmail() {
     if (!testEmail || !testEmail.includes("@")) {
-      toast.error("Please enter a valid email address.")
+      toast.error(t('admin.settings.email.testEmailInvalid'))
       return
     }
-    
+
     setIsTesting(true)
     try {
       // Attempt to save first to ensure testing latest config
@@ -123,34 +130,34 @@ export default function EmailSettingsForm() {
         body: JSON.stringify({ email: testEmail }),
       })
 
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || "Failed to send test email")
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(t(apiErrorKey(data.code)))
 
-      toast.success("Test email sent successfully!")
+      toast.success(t('admin.settings.email.testEmailSuccess'))
       setTestEmailDialogOpen(false)
       setTestEmail("")
     } catch (err: any) {
-      toast.error(err.message || "Failed to send test email")
+      toast.error(err.message || t('admin.settings.email.testEmailFailed'))
     } finally {
       setIsTesting(false)
     }
   }
 
   if (isLoading) {
-    return <div className="text-sm text-muted-foreground animate-pulse">Loading settings...</div>
+    return <div className="text-sm text-muted-foreground animate-pulse">{t('admin.settings.email.loading')}</div>
   }
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="max-w-2xl">
-        <SettingsSection title="SMTP Server" description="Server credentials used to send transactional email.">
+        <SettingsSection title={t('admin.settings.email.sectionTitle')} description={t('admin.settings.email.sectionDesc')}>
         <div className="grid sm:grid-cols-2 gap-4">
           <FormField
             control={form.control}
             name="smtpHost"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>SMTP Host</FormLabel>
+                <FormLabel>{t('admin.settings.email.smtpHost')}</FormLabel>
                 <FormControl>
                   <Input placeholder="smtp.gmail.com" {...field} />
                 </FormControl>
@@ -164,11 +171,11 @@ export default function EmailSettingsForm() {
             name="smtpPort"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>SMTP Port</FormLabel>
+                <FormLabel>{t('admin.settings.email.smtpPort')}</FormLabel>
                 <FormControl>
                   <Input placeholder="587" {...field} />
                 </FormControl>
-                <FormDescription>Usually 587 (STARTTLS) or 465 (SSL)</FormDescription>
+                <FormDescription>{t('admin.settings.email.smtpPortDesc')}</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -181,7 +188,7 @@ export default function EmailSettingsForm() {
             name="smtpUser"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>SMTP Username / Email</FormLabel>
+                <FormLabel>{t('admin.settings.email.smtpUser')}</FormLabel>
                 <FormControl>
                   <Input placeholder="user@example.com" {...field} autoComplete="new-password" />
                 </FormControl>
@@ -195,9 +202,9 @@ export default function EmailSettingsForm() {
             name="smtpPass"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>SMTP Password</FormLabel>
+                <FormLabel>{t('admin.settings.email.smtpPass')}</FormLabel>
                 <FormControl>
-                  <Input type="password" placeholder="App Password" autoComplete="new-password" {...field} />
+                  <Input type="password" placeholder={t('admin.settings.email.appPasswordPlaceholder')} autoComplete="new-password" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -210,11 +217,11 @@ export default function EmailSettingsForm() {
           name="smtpFrom"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Sender Display Name (From)</FormLabel>
+              <FormLabel>{t('admin.settings.email.smtpFrom')}</FormLabel>
               <FormControl>
                 <Input placeholder="Salon Beauty <info@salon-beauty.com>" {...field} />
               </FormControl>
-              <FormDescription>Format: Name &lt;email@domain.com&gt;</FormDescription>
+              <FormDescription>{t('admin.settings.email.smtpFromDesc')}</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -226,9 +233,9 @@ export default function EmailSettingsForm() {
           render={({ field }) => (
             <FormItem className="flex flex-row items-center justify-between rounded-[20px] border border-border bg-muted/30 p-4">
               <div className="space-y-0.5">
-                <FormLabel className="text-base">Secure Connection (SSL)</FormLabel>
+                <FormLabel className="text-base">{t('admin.settings.email.smtpSecure')}</FormLabel>
                 <FormDescription>
-                  Enable this if your port is 465. Keep disabled (false) for port 587 (STARTTLS).
+                  {t('admin.settings.email.smtpSecureDesc')}
                 </FormDescription>
               </div>
               <FormControl>
@@ -243,17 +250,17 @@ export default function EmailSettingsForm() {
 
         <div className="flex flex-col sm:flex-row items-center gap-4 pt-4 border-t">
           <Button type="submit" disabled={isSaving || isLoading}>
-            {isSaving ? "Saving..." : "Save Config"}
+            {isSaving ? t('admin.settings.email.savingConfig') : t('admin.settings.email.saveConfig')}
           </Button>
 
-          <Button 
-            type="button" 
-            variant="secondary" 
+          <Button
+            type="button"
+            variant="secondary"
             onClick={() => setTestEmailDialogOpen(true)}
             disabled={isTesting || isLoading || isSaving}
             className="w-full sm:w-auto"
           >
-            {isTesting ? "Sending Test..." : "Save & Send Test Email"}
+            {isTesting ? t('admin.settings.email.sendingTest') : t('admin.settings.email.saveAndTest')}
           </Button>
         </div>
         </SettingsSection>
@@ -262,15 +269,15 @@ export default function EmailSettingsForm() {
       <Dialog open={testEmailDialogOpen} onOpenChange={setTestEmailDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Send Test Email</DialogTitle>
+            <DialogTitle>{t('admin.settings.email.sendTestTitle')}</DialogTitle>
             <DialogDescription>
-              Enter an email address to receive a test message. This will save your current settings and test the connection.
+              {t('admin.settings.email.sendTestDesc')}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <label htmlFor="test-email" className="text-right text-sm font-medium">
-                Email
+                {t('admin.settings.email.emailField')}
               </label>
               <Input
                 id="test-email"
@@ -285,10 +292,10 @@ export default function EmailSettingsForm() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setTestEmailDialogOpen(false)} disabled={isTesting || isSaving}>
-              Cancel
+              {t('admin.settings.email.cancel')}
             </Button>
             <Button onClick={handleTestEmail} disabled={isTesting || isSaving}>
-              {isTesting ? "Sending..." : "Send Email"}
+              {isTesting ? t('admin.settings.email.sending') : t('admin.settings.email.sendEmail')}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -2,10 +2,12 @@
 
 import { useState, useRef, useCallback, useEffect } from "react"
 import Image from "next/image"
+import { useTranslation } from "react-i18next"
 import { Upload, X, ImageIcon, Maximize2, Minimize2 } from "lucide-react"
 import HomepagePreview from "./HomepagePreview"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
+import { apiErrorKey } from "@/lib/errors/apiErrorKey"
 
 type LogoConfig = {
   logoUrl: string | null
@@ -40,16 +42,17 @@ type LogoEditorProps = {
 }
 
 const AVAILABLE_PAGES = [
-  { id: "home", label: "Home Page" },
-  { id: "booking", label: "Booking Page" },
-  { id: "master", label: "Master Profile" },
+  { id: "home", labelKey: "admin.settings.general.homePageLabel" },
+  { id: "booking", labelKey: "admin.settings.general.bookingPageLabel" },
+  { id: "master", labelKey: "admin.settings.general.masterProfileLabel" },
 ]
 
 async function uploadImage(
   file: File,
   onSuccess: (url: string) => void,
   onError: (error: string) => void,
-  onStart: () => void
+  onStart: () => void,
+  resolveMessage: (code?: string) => string
 ) {
   onStart()
   const fd = new FormData()
@@ -57,10 +60,10 @@ async function uploadImage(
   try {
     const res = await fetch("/api/upload", { method: "POST", body: fd })
     const json = await res.json()
-    if (!res.ok) throw new Error(json.error ?? "Upload failed")
+    if (!res.ok) throw new Error(resolveMessage(json.code))
     onSuccess(json.url)
   } catch (err) {
-    onError(err instanceof Error ? err.message : "Upload failed")
+    onError(err instanceof Error ? err.message : resolveMessage())
   }
 }
 
@@ -84,6 +87,7 @@ export default function LogoEditor({
   logoFullscreen,
   onFullscreenChange,
 }: LogoEditorProps) {
+  const { t } = useTranslation()
   const [isDragging, setIsDragging] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
   const previewRef = useRef<HTMLDivElement>(null)
@@ -156,8 +160,8 @@ export default function LogoEditor({
         <div className="fixed inset-0 z-50 bg-background flex flex-col">
           <div className="flex items-center justify-between p-4 border-b">
             <div>
-              <h3 className="font-semibold">Logo Position Editor</h3>
-              <p className="text-xs text-muted-foreground">Click or drag to position the logo</p>
+              <h3 className="font-semibold">{t('admin.settings.general.logoPositionEditorTitle')}</h3>
+              <p className="text-xs text-muted-foreground">{t('admin.settings.general.logoPositionEditorHint')}</p>
             </div>
             <div className="flex items-center gap-4">
               {/* Layer switch in fullscreen */}
@@ -167,14 +171,14 @@ export default function LogoEditor({
                   onClick={() => onLayerChange("above")}
                   className={`px-2 py-1.5 text-xs font-medium rounded-md transition-colors ${config.logoLayer !== "below" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
                 >
-                  Above
+                  {t('admin.settings.general.aboveLabel')}
                 </button>
                 <button
                   type="button"
                   onClick={() => onLayerChange("below")}
                   className={`px-2 py-1.5 text-xs font-medium rounded-md transition-colors ${config.logoLayer === "below" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
                 >
-                  Below
+                  {t('admin.settings.general.belowLabel')}
                 </button>
               </div>
               {/* Fullscreen toggle in fullscreen editor */}
@@ -186,12 +190,12 @@ export default function LogoEditor({
                     onChange={(e) => onFullscreenChange(e.target.checked)}
                     className="accent-primary"
                   />
-                  <span className="text-xs">Full Screen</span>
+                  <span className="text-xs">{t('admin.settings.general.fullScreenLabel')}</span>
                 </label>
               )}
               {/* Size controls in fullscreen */}
               <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground">Size:</span>
+                <span className="text-xs text-muted-foreground">{t('admin.settings.general.sizeWithColon')}</span>
                 <input
                   type="range" min={50} max={800} value={config.logoWidth}
                   onChange={(e) => onSizeChange(parseInt(e.target.value), config.logoHeight)}
@@ -226,18 +230,18 @@ export default function LogoEditor({
 
       <div className="flex flex-col gap-6">
         <div>
-          <h3 className="text-base font-semibold">Logo</h3>
+          <h3 className="text-base font-semibold">{t('admin.settings.general.logoLabelTitle')}</h3>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Upload logo, set position and visibility
+            {t('admin.settings.general.logoSectionDesc')}
           </p>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-2">
           <div className="flex flex-col gap-4">
             <div className="grid gap-2">
-              <Label>Light Theme Logo</Label>
+              <Label>{t('admin.settings.general.lightThemeLogoLabel')}</Label>
               <p className="text-xs text-muted-foreground -mt-1">
-                PNG with transparent background recommended
+                {t('admin.settings.general.lightThemeLogoHint')}
               </p>
               <input type="hidden" name="logoUrl" value={config.logoUrl || ""} />
               <div className="flex items-start gap-4">
@@ -255,7 +259,7 @@ export default function LogoEditor({
                 ) : (
                   <div className="flex h-16 w-32 items-center justify-center rounded-lg border border-dashed border-border bg-muted/20 gap-1.5 text-xs text-muted-foreground">
                     <ImageIcon className="h-4 w-4" />
-                    None
+                    {t('admin.settings.general.noneLabel')}
                   </div>
                 )}
                 <label className="cursor-pointer">
@@ -266,14 +270,14 @@ export default function LogoEditor({
                     onChange={(e) => {
                       const file = e.target.files?.[0]
                       if (file) {
-                        uploadImage(file, onLogoUpload, () => {}, onLogoUploadStart)
+                        uploadImage(file, onLogoUpload, () => {}, onLogoUploadStart, (code) => code ? t(apiErrorKey(code)) : t('admin.masters.uploadFailed'))
                       }
                     }}
                     disabled={logoUploading}
                   />
                   <div className="flex items-center gap-2 rounded-md border border-input bg-transparent px-3 py-2 text-sm hover:bg-muted transition-colors">
                     <Upload className="h-4 w-4" />
-                    {logoUploading ? "Uploading…" : "Upload"}
+                    {logoUploading ? t('admin.masters.uploading') : t('admin.settings.general.uploadLabel')}
                   </div>
                 </label>
               </div>
@@ -281,9 +285,9 @@ export default function LogoEditor({
             </div>
 
             <div className="grid gap-2">
-              <Label>Dark Theme Logo</Label>
+              <Label>{t('admin.settings.general.darkThemeLogoLabel')}</Label>
               <p className="text-xs text-muted-foreground -mt-1">
-                Optional separate logo for dark mode
+                {t('admin.settings.general.darkThemeLogoHint')}
               </p>
               <input type="hidden" name="darkLogoUrl" value={config.darkLogoUrl || ""} />
               <div className="flex items-start gap-4">
@@ -301,7 +305,7 @@ export default function LogoEditor({
                 ) : (
                   <div className="flex h-16 w-32 items-center justify-center rounded-lg border border-dashed border-zinc-600 bg-zinc-900 gap-1.5 text-xs text-zinc-400">
                     <ImageIcon className="h-4 w-4" />
-                    Uses light
+                    {t('admin.settings.general.usesLightLabel')}
                   </div>
                 )}
                 <label className="cursor-pointer">
@@ -312,14 +316,14 @@ export default function LogoEditor({
                     onChange={(e) => {
                       const file = e.target.files?.[0]
                       if (file) {
-                        uploadImage(file, onDarkLogoUpload, () => {}, onDarkLogoUploadStart)
+                        uploadImage(file, onDarkLogoUpload, () => {}, onDarkLogoUploadStart, (code) => code ? t(apiErrorKey(code)) : t('admin.masters.uploadFailed'))
                       }
                     }}
                     disabled={darkLogoUploading}
                   />
                   <div className="flex items-center gap-2 rounded-md border border-input bg-transparent px-3 py-2 text-sm hover:bg-muted transition-colors">
                     <Upload className="h-4 w-4" />
-                    {darkLogoUploading ? "Uploading…" : "Upload"}
+                    {darkLogoUploading ? t('admin.masters.uploading') : t('admin.settings.general.uploadLabel')}
                   </div>
                 </label>
               </div>
@@ -327,10 +331,10 @@ export default function LogoEditor({
             </div>
 
             <div className="grid gap-3">
-              <Label>Logo Size</Label>
+              <Label>{t('admin.settings.general.logoSizeLabel')}</Label>
               <div className="grid gap-1.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">Size</span>
+                  <span className="text-xs text-muted-foreground">{t('admin.settings.general.sizeLabel')}</span>
                   <span className="text-xs font-mono">{config.logoWidth}px</span>
                 </div>
                 <input
@@ -347,7 +351,7 @@ export default function LogoEditor({
             </div>
 
             <div className="grid gap-2">
-              <Label>Overlap Setting (Z-Index)</Label>
+              <Label>{t('admin.settings.general.overlapSettingLabel')}</Label>
               <div className="flex flex-col gap-2">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
@@ -358,7 +362,7 @@ export default function LogoEditor({
                     onChange={(e) => onLayerChange(e.target.value)}
                     className="accent-primary"
                   />
-                  <span className="text-sm">Show Above Content (Default)</span>
+                  <span className="text-sm">{t('admin.settings.general.showAboveContent')}</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
@@ -369,7 +373,7 @@ export default function LogoEditor({
                     onChange={(e) => onLayerChange(e.target.value)}
                     className="accent-primary"
                   />
-                  <span className="text-sm">Show Below Content</span>
+                  <span className="text-sm">{t('admin.settings.general.showBelowContent')}</span>
                 </label>
                 {config.logoLayer === 'below' && (
                   <label className="flex items-center gap-2 cursor-pointer ml-5">
@@ -379,17 +383,17 @@ export default function LogoEditor({
                       onChange={(e) => onFullscreenChange(e.target.checked)}
                       className="accent-primary"
                     />
-                    <span className="text-sm">Stretch to Full Screen</span>
+                    <span className="text-sm">{t('admin.settings.general.stretchFullScreen')}</span>
                   </label>
                 )}
               </div>
               <p className="text-xs text-muted-foreground">
-                In the preview box, "Below Content" logos are shown slightly transparent for easier editing.
+                {t('admin.settings.general.belowContentHint')}
               </p>
             </div>
 
             <div className="grid gap-2">
-              <Label>Show on Pages</Label>
+              <Label>{t('admin.settings.general.showOnPagesLabel')}</Label>
               <div className="flex flex-wrap gap-4">
                 {AVAILABLE_PAGES.map((page) => (
                   <label key={page.id} className="flex items-center gap-2 cursor-pointer">
@@ -397,7 +401,7 @@ export default function LogoEditor({
                       checked={pages.includes(page.id)}
                       onCheckedChange={(checked: boolean) => handlePageToggle(page.id, checked)}
                     />
-                    <span className="text-sm">{page.label}</span>
+                    <span className="text-sm">{t(page.labelKey)}</span>
                   </label>
                 ))}
               </div>
@@ -407,14 +411,14 @@ export default function LogoEditor({
           <div className="flex flex-col gap-3">
             <div className="flex items-center justify-between">
               <div>
-                <Label>Position Preview</Label>
-                <p className="text-xs text-muted-foreground">Click or drag on the page layout</p>
+                <Label>{t('admin.settings.general.positionPreviewLabel')}</Label>
+                <p className="text-xs text-muted-foreground">{t('admin.settings.general.positionPreviewHint')}</p>
               </div>
               <button
                 type="button"
                 onClick={() => setIsFullscreen(true)}
                 className="p-1.5 hover:bg-muted rounded transition-colors"
-                title="Fullscreen editor"
+                title={t('admin.settings.general.fullscreenEditorTitle')}
               >
                 <Maximize2 className="h-4 w-4" />
               </button>

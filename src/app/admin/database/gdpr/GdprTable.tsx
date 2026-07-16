@@ -2,11 +2,14 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { useTranslation } from "react-i18next"
 import { Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import type { AdminPermissions } from "@/lib/admin-permissions"
+import { useCurrentLanguage } from "@/contexts/LanguageContext"
+import { localeFor } from "@/lib/i18n"
 
 type ConsentRow = {
   id: string
@@ -32,14 +35,17 @@ function getStatus(record: ConsentRow) {
 }
 
 function StatusBadge({ status }: { status: string }) {
+  const { t } = useTranslation()
   if (status === "Active")
-    return <Badge variant="success">Active</Badge>
+    return <Badge variant="success">{t('admin.gdpr.statusActive')}</Badge>
   if (status === "Withdrawn")
-    return <Badge variant="warning">Withdrawn</Badge>
-  return <Badge variant="muted">Erased</Badge>
+    return <Badge variant="warning">{t('admin.gdpr.statusWithdrawn')}</Badge>
+  return <Badge variant="muted">{t('admin.gdpr.statusErased')}</Badge>
 }
 
 export default function GdprTable({ records, permissions }: Props) {
+  const { t } = useTranslation()
+  const language = useCurrentLanguage()
   const router = useRouter()
   const [search, setSearch] = useState("")
   const [loading, setLoading] = useState<string | null>(null)
@@ -50,7 +56,7 @@ export default function GdprTable({ records, permissions }: Props) {
   })
 
   async function handleWithdraw(id: string, name: string) {
-    if (!confirm(`Withdraw consent for "${name}"? This cannot be undone.`)) return
+    if (!confirm(t('admin.gdpr.withdrawConfirm', { name }))) return
     setLoading(id + "-withdraw")
     const res = await fetch(`/api/admin/database/gdpr/${id}/withdraw`, { method: "POST" })
     setLoading(null)
@@ -58,11 +64,7 @@ export default function GdprTable({ records, permissions }: Props) {
   }
 
   async function handleErase(id: string, name: string) {
-    if (
-      !confirm(
-        `PERMANENTLY ERASE all personal data for "${name}"?\n\nThis anonymizes the consent record and linked user account. This action CANNOT be undone.`
-      )
-    )
+    if (!confirm(t('admin.gdpr.eraseConfirm', { name })))
       return
     setLoading(id + "-erase")
     const res = await fetch(`/api/admin/database/gdpr/${id}/erase`, { method: "POST" })
@@ -73,13 +75,13 @@ export default function GdprTable({ records, permissions }: Props) {
   return (
     <div>
       <p className="mb-4 text-sm text-muted-foreground">
-        {records.length} consent record{records.length !== 1 ? "s" : ""} total
+        {t('admin.gdpr.totalRecords', { count: records.length })}
       </p>
 
       <div className="mb-4 flex items-center gap-2 max-w-sm">
         <Search className="h-4 w-4 text-muted-foreground shrink-0" />
         <Input
-          placeholder="Search by name…"
+          placeholder={t('admin.gdpr.searchPlaceholder')}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
@@ -87,19 +89,19 @@ export default function GdprTable({ records, permissions }: Props) {
 
       {filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-[20px] border border-dashed border-border py-16 text-center">
-          <p className="text-sm text-muted-foreground">No records found.</p>
+          <p className="text-sm text-muted-foreground">{t('admin.gdpr.noRecordsFound')}</p>
         </div>
       ) : (
         <div className="rounded-[20px] border border-border bg-card shadow-sm overflow-hidden">
           <table className="w-full text-sm">
             <thead className="bg-muted/50 text-muted-foreground">
               <tr>
-                <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Name</th>
-                <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Phone</th>
-                <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Consent Date</th>
-                <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Status</th>
+                <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{t('admin.database.nameLabel')}</th>
+                <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{t('form.phone')}</th>
+                <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{t('admin.gdpr.colConsentDate')}</th>
+                <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{t('admin.appointments.colStatus')}</th>
                 {(permissions.gdpr.withdraw || permissions.gdpr.erase) && (
-                  <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Actions</th>
+                  <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{t('admin.services.colActions')}</th>
                 )}
               </tr>
             </thead>
@@ -112,7 +114,7 @@ export default function GdprTable({ records, permissions }: Props) {
                     <td className="px-4 py-3">{record.fullName}</td>
                     <td className="px-4 py-3 font-mono text-muted-foreground">{maskedPhone}</td>
                     <td className="px-4 py-3 text-muted-foreground">
-                      {new Date(record.consentDate).toLocaleDateString()}
+                      {new Date(record.consentDate).toLocaleDateString(localeFor(language))}
                     </td>
                     <td className="px-4 py-3">
                       <StatusBadge status={status} />
@@ -129,7 +131,7 @@ export default function GdprTable({ records, permissions }: Props) {
                                 disabled={loading === record.id + "-withdraw"}
                                 onClick={() => handleWithdraw(record.id, record.fullName)}
                               >
-                                {loading === record.id + "-withdraw" ? "…" : "Withdraw"}
+                                {loading === record.id + "-withdraw" ? "…" : t('admin.gdpr.withdrawBtn')}
                               </Button>
                             )}
                           {permissions.gdpr.erase && !record.erasureDate && (
@@ -140,7 +142,7 @@ export default function GdprTable({ records, permissions }: Props) {
                               disabled={loading === record.id + "-erase"}
                               onClick={() => handleErase(record.id, record.fullName)}
                             >
-                              {loading === record.id + "-erase" ? "…" : "Erase"}
+                              {loading === record.id + "-erase" ? "…" : t('admin.gdpr.eraseBtn')}
                             </Button>
                           )}
                         </div>

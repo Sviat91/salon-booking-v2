@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ChevronLeft, ChevronRight, Trash2 } from "lucide-react"
@@ -29,6 +30,7 @@ type BrowseResult = {
 }
 
 export default function DbBrowserClient() {
+  const { t } = useTranslation()
   const [selectedTable, setSelectedTable] = useState<TableName>("user")
   const [page, setPage] = useState(1)
   const [data, setData] = useState<BrowseResult | null>(null)
@@ -42,12 +44,11 @@ export default function DbBrowserClient() {
     try {
       const res = await fetch(`/api/admin/db-browser/${table}?page=${p}&pageSize=50`)
       if (!res.ok) {
-        const d = await res.json()
-        throw new Error(d.error ?? "Failed to load")
+        throw new Error(t('admin.database.loadFailed'))
       }
       setData(await res.json())
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load")
+      setError(err instanceof Error ? err.message : t('admin.database.loadFailed'))
     } finally {
       setLoading(false)
     }
@@ -65,7 +66,7 @@ export default function DbBrowserClient() {
 
   async function handleDelete(id: unknown) {
     if (typeof id !== "string") return
-    if (!confirm(`Delete row with id="${id}" from "${selectedTable}"? This cannot be undone.`)) return
+    if (!confirm(t('admin.database.deleteRowConfirm', { id, table: selectedTable }))) return
     setDeletingId(id)
     try {
       const res = await fetch(`/api/admin/db-browser/${selectedTable}`, {
@@ -74,13 +75,12 @@ export default function DbBrowserClient() {
         body: JSON.stringify({ id }),
       })
       if (!res.ok) {
-        const d = await res.json()
-        setError(d.error ?? "Delete failed")
+        setError(t('admin.database.deleteRowFailed'))
       } else {
         fetchData(selectedTable, page)
       }
     } catch {
-      setError("Delete failed")
+      setError(t('admin.database.deleteRowFailed'))
     } finally {
       setDeletingId(null)
     }
@@ -95,7 +95,7 @@ export default function DbBrowserClient() {
         {/* Table selector sidebar */}
         <aside className="w-44 shrink-0 border-r border-border bg-muted/30 flex flex-col">
           <div className="px-3 pt-4 pb-2">
-            <p className="text-xs font-semibold uppercase text-muted-foreground tracking-wide">Tables</p>
+            <p className="text-xs font-semibold uppercase text-muted-foreground tracking-wide">{t('admin.database.tablesLabel')}</p>
           </div>
           <ul className="flex-1 overflow-y-auto px-2 pb-4 space-y-0.5">
             {TABLES.map((t) => (
@@ -122,10 +122,10 @@ export default function DbBrowserClient() {
             <div>
               <h2 className="text-base font-semibold">{selectedTable}</h2>
               {data && (
-                <p className="text-xs text-muted-foreground">{data.total} rows total</p>
+                <p className="text-xs text-muted-foreground">{t('admin.database.rowsTotal', { count: data.total })}</p>
               )}
             </div>
-            <Badge variant="warning">SUPERADMIN only</Badge>
+            <Badge variant="warning">{t('admin.database.superadminOnly')}</Badge>
           </div>
 
           {/* Body */}
@@ -138,13 +138,13 @@ export default function DbBrowserClient() {
 
             {loading && (
               <div className="flex items-center justify-center py-16 text-sm text-muted-foreground">
-                Loading…
+                {t('common.loading')}
               </div>
             )}
 
             {!loading && data && data.rows.length === 0 && (
               <div className="flex items-center justify-center py-16 text-sm text-muted-foreground">
-                No rows in this table.
+                {t('admin.database.noRows')}
               </div>
             )}
 
@@ -162,7 +162,7 @@ export default function DbBrowserClient() {
                         </th>
                       ))}
                       <th className="px-3 py-2 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-                        Actions
+                        {t('admin.services.colActions')}
                       </th>
                     </tr>
                   </thead>
@@ -194,7 +194,7 @@ export default function DbBrowserClient() {
                             className="h-6 w-6 p-0 hover:text-destructive"
                             disabled={deletingId === String(row["id"])}
                             onClick={() => handleDelete(row["id"])}
-                            title="Delete row"
+                            title={t('admin.database.deleteRowTitle')}
                           >
                             <Trash2 className="h-3.5 w-3.5" />
                           </Button>
@@ -217,10 +217,10 @@ export default function DbBrowserClient() {
                 onClick={() => setPage((p) => p - 1)}
               >
                 <ChevronLeft className="h-4 w-4 mr-1" />
-                Prev
+                {t('admin.database.prev')}
               </Button>
               <span className="text-sm text-muted-foreground">
-                Page {page} of {totalPages}
+                {t('admin.database.pageOf', { page, total: totalPages })}
               </span>
               <Button
                 variant="outline"
@@ -228,7 +228,7 @@ export default function DbBrowserClient() {
                 disabled={page >= totalPages}
                 onClick={() => setPage((p) => p + 1)}
               >
-                Next
+                {t('admin.database.next')}
                 <ChevronRight className="h-4 w-4 ml-1" />
               </Button>
             </div>

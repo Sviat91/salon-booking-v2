@@ -2,9 +2,11 @@
 
 import { useState } from "react"
 import Image from "next/image"
+import { useTranslation } from "react-i18next"
 import { Upload, X, ImageIcon } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { apiErrorKey } from "@/lib/errors/apiErrorKey"
 
 type BgConfig = {
   bgType: string
@@ -21,6 +23,7 @@ export default function BackgroundSection({ config, onBgImageUpload, prefix = ''
   onBgImageUpload: (url: string) => void
   prefix?: string
 }) {
+  const { t } = useTranslation()
   // Helper: prefix='' → 'bgType', prefix='dark' → 'darkBgType'
   const n = (field: string) =>
     prefix ? `${prefix}${field.charAt(0).toUpperCase()}${field.slice(1)}` : field
@@ -37,9 +40,9 @@ export default function BackgroundSection({ config, onBgImageUpload, prefix = ''
   const [uploadError, setUploadError] = useState<string | null>(null)
 
   const tabs = [
-    { id: 'solid', label: 'Solid' },
-    { id: 'gradient', label: 'Gradient' },
-    { id: 'picture', label: 'Picture' },
+    { id: 'solid', labelKey: 'admin.settings.general.solidTab' },
+    { id: 'gradient', labelKey: 'admin.settings.general.gradientTab' },
+    { id: 'picture', labelKey: 'admin.settings.general.pictureTab' },
   ]
 
   async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -52,12 +55,12 @@ export default function BackgroundSection({ config, onBgImageUpload, prefix = ''
     try {
       const res = await fetch('/api/upload', { method: 'POST', body: fd })
       const json = await res.json()
-      if (!res.ok) throw new Error(json.error ?? 'Upload failed')
+      if (!res.ok) throw new Error(json.code ? t(apiErrorKey(json.code)) : t('admin.masters.uploadFailed'))
       setBgImageUrl(json.url)
       setBgImagePreview(json.url)
       onBgImageUpload(json.url)
     } catch (err) {
-      setUploadError(err instanceof Error ? err.message : 'Upload failed')
+      setUploadError(err instanceof Error ? err.message : t('admin.masters.uploadFailed'))
     } finally {
       setUploading(false)
     }
@@ -65,7 +68,7 @@ export default function BackgroundSection({ config, onBgImageUpload, prefix = ''
 
   return (
     <div className="grid gap-3">
-      <Label>Page Background</Label>
+      <Label>{t('admin.settings.general.pageBackgroundLabel')}</Label>
 
       {/* Hidden inputs — always submitted regardless of bgType */}
       <input type="hidden" name={n('bgType')} value={bgType} />
@@ -90,14 +93,14 @@ export default function BackgroundSection({ config, onBgImageUpload, prefix = ''
                 : 'text-muted-foreground hover:text-foreground'
             }`}
           >
-            {tab.label}
+            {t(tab.labelKey)}
           </button>
         ))}
       </div>
 
       {!prefix && bgType === 'solid' && (
         <div className="grid gap-1.5">
-          <Label className="text-sm">Background Color</Label>
+          <Label className="text-sm">{t('admin.settings.general.backgroundColorLabel')}</Label>
           <div className="flex gap-2 items-center">
             <input
               type="color"
@@ -115,7 +118,7 @@ export default function BackgroundSection({ config, onBgImageUpload, prefix = ''
               }}
             />
           </div>
-          <p className="text-xs text-muted-foreground">Main background color of pages</p>
+          <p className="text-xs text-muted-foreground">{t('admin.settings.general.backgroundColorHint')}</p>
         </div>
       )}
 
@@ -123,7 +126,7 @@ export default function BackgroundSection({ config, onBgImageUpload, prefix = ''
         <div className="flex flex-col gap-3">
           <div className="flex gap-4 flex-wrap">
             <div className="grid gap-1.5">
-              <Label className="text-xs">From</Label>
+              <Label className="text-xs">{t('admin.settings.general.fromLabel')}</Label>
               <div className="flex gap-2 items-center">
                 <input type="color" value={bgGradientFrom} onChange={(e) => setBgGradientFrom(e.target.value)}
                   className="h-8 w-10 cursor-pointer rounded border border-input bg-transparent p-0.5 shrink-0" />
@@ -132,7 +135,7 @@ export default function BackgroundSection({ config, onBgImageUpload, prefix = ''
               </div>
             </div>
             <div className="grid gap-1.5">
-              <Label className="text-xs">To</Label>
+              <Label className="text-xs">{t('admin.settings.general.toLabel')}</Label>
               <div className="flex gap-2 items-center">
                 <input type="color" value={bgGradientTo} onChange={(e) => setBgGradientTo(e.target.value)}
                   className="h-8 w-10 cursor-pointer rounded border border-input bg-transparent p-0.5 shrink-0" />
@@ -143,7 +146,7 @@ export default function BackgroundSection({ config, onBgImageUpload, prefix = ''
           </div>
           <div className="grid gap-1.5">
             <div className="flex items-center justify-between">
-              <Label className="text-xs">Angle</Label>
+              <Label className="text-xs">{t('admin.settings.general.angleLabel')}</Label>
               <span className="text-xs font-mono">{bgGradientAngle}°</span>
             </div>
             <input type="range" min={0} max={360} value={bgGradientAngle}
@@ -169,7 +172,7 @@ export default function BackgroundSection({ config, onBgImageUpload, prefix = ''
             ) : (
               <div className="flex h-16 w-28 items-center justify-center rounded-lg border border-dashed border-border bg-muted/20 gap-1.5 text-xs text-muted-foreground">
                 <ImageIcon className="h-4 w-4" />
-                None
+                {t('admin.settings.general.noneLabel')}
               </div>
             )}
             <label className="cursor-pointer">
@@ -177,12 +180,12 @@ export default function BackgroundSection({ config, onBgImageUpload, prefix = ''
                 onChange={handleImageUpload} disabled={uploading} />
               <div className="flex items-center gap-2 rounded-md border border-input bg-transparent px-3 py-2 text-sm hover:bg-muted transition-colors">
                 <Upload className="h-4 w-4" />
-                {uploading ? 'Uploading…' : 'Upload'}
+                {uploading ? t('admin.masters.uploading') : t('admin.settings.general.uploadLabel')}
               </div>
             </label>
           </div>
           {uploadError && <p className="text-xs text-destructive">{uploadError}</p>}
-          <p className="text-xs text-muted-foreground">Image will be centered and cover the full page background.</p>
+          <p className="text-xs text-muted-foreground">{t('admin.settings.general.pictureHint')}</p>
         </div>
       )}
 
@@ -194,7 +197,7 @@ export default function BackgroundSection({ config, onBgImageUpload, prefix = ''
             onChange={(e) => setBgApplyToDark(e.target.checked)}
             className="accent-primary"
           />
-          <span className="text-sm">Also apply to dark theme</span>
+          <span className="text-sm">{t('admin.settings.general.applyToDarkLabel')}</span>
         </label>
       )}
     </div>

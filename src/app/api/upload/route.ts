@@ -10,26 +10,26 @@ const MAX_SIZE_BYTES = 4 * 1024 * 1024 // 4 MB
 export async function POST(req: NextRequest) {
   const session = await auth()
   if (!session?.user || !["ADMIN", "MASTER", "SUPERADMIN"].includes(session.user.role ?? "")) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    return NextResponse.json({ error: "Unauthorized", code: "UNAUTHORIZED" }, { status: 401 })
   }
 
   const formData = await req.formData()
   const file = formData.get("file") as File | null
 
   if (!file) {
-    return NextResponse.json({ error: "No file provided" }, { status: 400 })
+    return NextResponse.json({ error: "No file provided", code: "VALIDATION_ERROR" }, { status: 400 })
   }
 
   if (!ALLOWED_TYPES.includes(file.type)) {
     return NextResponse.json(
-      { error: "Only PNG, JPEG, WebP and GIF images are allowed" },
+      { error: "Only PNG, JPEG, WebP and GIF images are allowed", code: "INVALID_FILE_TYPE" },
       { status: 400 }
     )
   }
 
   if (file.size > MAX_SIZE_BYTES) {
     return NextResponse.json(
-      { error: "File is too large (max 4 MB)" },
+      { error: "File is too large (max 4 MB)", code: "FILE_TOO_LARGE" },
       { status: 400 }
     )
   }

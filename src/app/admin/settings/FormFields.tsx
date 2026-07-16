@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import Image from "next/image"
+import { useTranslation } from "react-i18next"
 import { Upload, X, ImageIcon } from "lucide-react"
 import { useFormStatus } from "react-dom"
 import { Button } from "@/components/ui/button"
@@ -65,6 +66,7 @@ export function ImageUploadField({
   uploading: boolean
   uploadError: string | null
 }) {
+  const { t } = useTranslation()
   return (
     <div className="grid gap-2 max-w-sm">
       <Label>{label}</Label>
@@ -85,7 +87,7 @@ export function ImageUploadField({
         ) : (
           <div className="flex h-16 w-32 items-center justify-center rounded-lg border border-dashed border-border bg-muted/20 gap-1.5 text-xs text-muted-foreground">
             <ImageIcon className="h-4 w-4" />
-            None
+            {t('admin.settings.general.noneLabel')}
           </div>
         )}
         <label className="cursor-pointer">
@@ -98,7 +100,7 @@ export function ImageUploadField({
           />
           <div className="flex items-center gap-2 rounded-md border border-input bg-transparent px-3 py-2 text-sm hover:bg-muted transition-colors">
             <Upload className="h-4 w-4" />
-            {uploading ? "Uploading…" : "Upload"}
+            {uploading ? t('admin.masters.uploading') : t('admin.settings.general.uploadLabel')}
           </div>
         </label>
       </div>
@@ -133,10 +135,11 @@ export function SettingsSection({
 }
 
 export function SubmitButton() {
+  const { t } = useTranslation()
   const { pending } = useFormStatus()
   return (
     <Button type="submit" disabled={pending}>
-      {pending ? "Saving…" : "Save Settings"}
+      {pending ? t('common.saving') : t('admin.nav.saveSettings')}
     </Button>
   )
 }

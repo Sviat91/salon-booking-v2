@@ -1,5 +1,6 @@
 import { Badge } from "@/components/ui/badge"
 import AppointmentStatusBadge from "@/components/admin/AppointmentStatusBadge"
+import { getServerT } from "@/lib/i18n-server"
 
 type Appointment = {
   id: string
@@ -15,38 +16,40 @@ export default function TodaysAppointmentsTable({
 }: {
   appointments: Appointment[]
 }) {
+  const t = getServerT()
+
   return (
     <div className="overflow-hidden rounded-2xl border border-border bg-card">
       <div className="flex items-center justify-between border-b border-border px-6 py-4">
-        <span className="text-base font-medium">Today&apos;s appointments</span>
-        <span className="text-sm text-muted-foreground">{appointments.length} total</span>
+        <span className="text-base font-medium">{t('admin.appointments.todaysTitle')}</span>
+        <span className="text-sm text-muted-foreground">{t('admin.appointments.total', { count: appointments.length })}</span>
       </div>
 
       {appointments.length === 0 ? (
         <div className="p-8 text-center text-sm text-muted-foreground">
-          No appointments scheduled for today.
+          {t('admin.appointments.noneToday')}
         </div>
       ) : (
         <table className="w-full border-collapse text-sm">
           <thead>
             <tr className="border-b border-border">
               <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-                Time
+                {t('admin.appointments.colTime')}
               </th>
               <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-                Client
+                {t('admin.appointments.colClient')}
               </th>
               <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-                Service
+                {t('admin.appointments.colService')}
               </th>
               <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-                Master
+                {t('admin.appointments.colMaster')}
               </th>
               <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-                Price
+                {t('admin.appointments.colPrice')}
               </th>
               <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-                Status
+                {t('admin.appointments.colStatus')}
               </th>
             </tr>
           </thead>
@@ -54,7 +57,7 @@ export default function TodaysAppointmentsTable({
             {appointments.map((app) => (
               <tr key={app.id} className="border-b border-border last:border-b-0">
                 <td className="px-4 py-3 font-medium">{app.startTime}</td>
-                <td className="px-4 py-3">{app.client.name || "Unknown Client"}</td>
+                <td className="px-4 py-3">{app.client.name || t('admin.appointments.unknownClient')}</td>
                 <td className="px-4 py-3 text-muted-foreground">{app.service.name}</td>
                 <td className="px-4 py-3">
                   <Badge variant="accent">{app.master.name || "—"}</Badge>

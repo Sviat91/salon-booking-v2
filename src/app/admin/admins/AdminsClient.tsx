@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { useTranslation } from "react-i18next"
 import { Plus, Pencil, Trash2, Mail } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -36,13 +37,14 @@ function PermBadge({ label, granted }: { label: string; granted: boolean }) {
 }
 
 export default function AdminsClient({ admins }: Props) {
+  const { t } = useTranslation()
   const router = useRouter()
   const [addOpen, setAddOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<AdminUser | null>(null)
   const [editOpen, setEditOpen] = useState(false)
 
   async function handleDelete(id: string, name: string | null) {
-    if (!confirm(`Delete admin "${name ?? "this admin"}"? This cannot be undone.`)) return
+    if (!confirm(t('admin.admins.deleteConfirm', { name: name ?? t('admin.admins.thisAdmin') }))) return
     const res = await fetch(`/api/admin/admins/${id}`, { method: "DELETE" })
     if (res.ok) router.refresh()
   }
@@ -52,10 +54,10 @@ export default function AdminsClient({ admins }: Props) {
       <div className="mb-6 flex items-center justify-between">
         <div>
           <p className="text-xs font-medium uppercase tracking-wider text-primary">
-            Access
+            {t('admin.admins.accessEyebrow')}
           </p>
           <p className="mt-1 text-sm text-muted-foreground">
-            {admins.length} admin{admins.length !== 1 ? "s" : ""} registered
+            {t('admin.admins.registeredCount', { count: admins.length })}
           </p>
         </div>
 
@@ -64,13 +66,13 @@ export default function AdminsClient({ admins }: Props) {
             render={
               <Button className="h-10 gap-2 px-5">
                 <Plus className="h-4 w-4" />
-                Add Admin
+                {t('admin.admins.addAdminTrigger')}
               </Button>
             }
           />
           <SheetContent side="right">
             <SheetHeader>
-              <SheetTitle>Add Admin</SheetTitle>
+              <SheetTitle>{t('admin.admins.addAdminTitle')}</SheetTitle>
             </SheetHeader>
             <div className="px-4 pb-4">
               <AdminForm onSuccess={() => { setAddOpen(false); router.refresh() }} />
@@ -81,9 +83,9 @@ export default function AdminsClient({ admins }: Props) {
 
       {admins.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-[20px] border border-dashed border-border py-16 text-center">
-          <p className="text-sm text-muted-foreground">No admins yet.</p>
+          <p className="text-sm text-muted-foreground">{t('admin.admins.noAdminsTitle')}</p>
           <p className="text-xs text-muted-foreground mt-1">
-            Click &ldquo;Add Admin&rdquo; to create the first one.
+            {t('admin.admins.noAdminsHint', { title: t('admin.admins.addAdminTitle') })}
           </p>
         </div>
       ) : (
@@ -124,7 +126,7 @@ export default function AdminsClient({ admins }: Props) {
                       />
                       <SheetContent side="right">
                         <SheetHeader>
-                          <SheetTitle>Edit Admin</SheetTitle>
+                          <SheetTitle>{t('admin.admins.editAdminTitle')}</SheetTitle>
                         </SheetHeader>
                         <div className="px-4 pb-4">
                           {editTarget && (
@@ -149,12 +151,12 @@ export default function AdminsClient({ admins }: Props) {
                 </div>
 
                 <div className="border-t border-border pt-2 flex flex-wrap gap-1">
-                  <PermBadge label="Clients: View" granted={perms.clients.view} />
-                  <PermBadge label="Clients: Edit" granted={perms.clients.edit} />
-                  <PermBadge label="Clients: Delete" granted={perms.clients.delete} />
-                  <PermBadge label="GDPR: View" granted={perms.gdpr.view} />
-                  <PermBadge label="GDPR: Withdraw" granted={perms.gdpr.withdraw} />
-                  <PermBadge label="GDPR: Erase" granted={perms.gdpr.erase} />
+                  <PermBadge label={t('admin.admins.permClientsView')} granted={perms.clients.view} />
+                  <PermBadge label={t('admin.admins.permClientsEdit')} granted={perms.clients.edit} />
+                  <PermBadge label={t('admin.admins.permClientsDelete')} granted={perms.clients.delete} />
+                  <PermBadge label={t('admin.admins.permGdprView')} granted={perms.gdpr.view} />
+                  <PermBadge label={t('admin.admins.permGdprWithdraw')} granted={perms.gdpr.withdraw} />
+                  <PermBadge label={t('admin.admins.permGdprErase')} granted={perms.gdpr.erase} />
                 </div>
               </div>
             )

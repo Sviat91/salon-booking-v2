@@ -2,9 +2,12 @@
 
 import { useState, useEffect, useMemo } from "react"
 import { format, addMonths, addWeeks, addDays, startOfMonth, endOfMonth, startOfWeek, endOfWeek } from "date-fns"
+import { useTranslation } from "react-i18next"
 import { ChevronLeft, ChevronRight, Edit3, Save, Calendar, Globe, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem, SelectItemText } from "@/components/ui/select"
+import { useCurrentLanguage } from "@/contexts/LanguageContext"
+import { dateFnsLocale } from "@/lib/utils/date-fns-locale"
 
 import MonthView from "./MonthView"
 import WeekView from "./WeekView"
@@ -53,6 +56,8 @@ export default function ModernCalendar({
   adminMastersList?: {id:string, name:string}[];
   onMasterChange?: (id:string) => void;
 }) {
+  const { t } = useTranslation()
+  const language = useCurrentLanguage()
   const [isMounted, setIsMounted] = useState(false)
   const [view, setView] = useState<ViewType>("Week")
   const [currentDate, setCurrentDate] = useState(new Date())
@@ -155,17 +160,18 @@ export default function ModernCalendar({
   }
 
   const headerDisplay = useMemo(() => {
-    if (view === "Month") return format(currentDate, "MMMM yyyy")
+    const locale = dateFnsLocale(language)
+    if (view === "Month") return format(currentDate, "MMMM yyyy", { locale })
     if (view === "Week") {
       const start = startOfWeek(currentDate, { weekStartsOn: 1 })
       const end = endOfWeek(currentDate, { weekStartsOn: 1 })
       if (start.getMonth() !== end.getMonth()) {
-        return `${format(start, "MMM d")} - ${format(end, "MMM d, yyyy")}`
+        return `${format(start, "MMM d", { locale })} - ${format(end, "MMM d, yyyy", { locale })}`
       }
-      return `${format(start, "MMMM yyyy")}`
+      return `${format(start, "MMMM yyyy", { locale })}`
     }
-    return format(currentDate, "EEEE, MMMM d, yyyy")
-  }, [currentDate, view])
+    return format(currentDate, "EEEE, MMMM d, yyyy", { locale })
+  }, [currentDate, view, language])
 
   // Bulk save handler
   const saveBulkOverrides = async (dates: string[], isDayOff: boolean, intervals: Interval[], masterIds?: string[]) => {
@@ -174,7 +180,7 @@ export default function ModernCalendar({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ dates, isDayOff, intervals, masterIds, masterId: selectedMasterId !== "all" ? selectedMasterId : undefined }),
     })
-    if (!res.ok) throw new Error("Failed bulk update")
+    if (!res.ok) throw new Error(t('admin.calendar.bulkUpdateFailed'))
     fetchData()
   }
 
@@ -184,7 +190,7 @@ export default function ModernCalendar({
     <div className="flex flex-col h-full w-full bg-card text-card-foreground overflow-hidden relative">
       <div className="min-h-[4rem] py-2 border-b border-border/60 flex flex-wrap gap-y-3 gap-x-4 items-center justify-between px-4 shrink-0 z-10 transition-colors shadow-sm">
         <div className="flex items-center gap-4">
-          <Button variant="outline" size="sm" onClick={() => navigate("today")} className="bg-transparent border-border hover:bg-muted">Today</Button>
+          <Button variant="outline" size="sm" onClick={() => navigate("today")} className="bg-transparent border-border hover:bg-muted">{t('admin.calendar.todayBtn')}</Button>
           <div className="flex items-center gap-1">
             <Button variant="ghost" size="icon" onClick={() => navigate("prev")} className="hover:bg-muted"><ChevronLeft className="h-4 w-4" /></Button>
             <Button variant="ghost" size="icon" onClick={() => navigate("next")} className="hover:bg-muted"><ChevronRight className="h-4 w-4" /></Button>
@@ -197,11 +203,11 @@ export default function ModernCalendar({
         <div className="flex flex-wrap items-center gap-3">
           <Select value={String(step)} onValueChange={(v) => setStep(Number(v ?? step))} disabled={view === "Month"}>
             <SelectTrigger className="h-auto w-auto bg-transparent hover:bg-muted px-3 py-1.5 text-sm font-medium shadow-sm">
-              <SelectValue>{(v: string) => `${v} min`}</SelectValue>
+              <SelectValue>{(v: string) => t('admin.calendar.minutesOption', { count: Number(v) })}</SelectValue>
             </SelectTrigger>
             <SelectContent>
               {[5, 10, 15, 30, 60].map(s => (
-                <SelectItem key={s} value={String(s)}><SelectItemText>{s} min</SelectItemText></SelectItem>
+                <SelectItem key={s} value={String(s)}><SelectItemText>{t('admin.calendar.minutesOption', { count: s })}</SelectItemText></SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -209,20 +215,20 @@ export default function ModernCalendar({
           <div className="h-6 w-px bg-border mx-1" />
 
           {/* Always show Bulk Settings and Edit Tools, Bulk handles 'all' context naturally */}
-          <Button 
-            variant={isEditMode ? "default" : "outline"} 
-            size="sm" 
-            onClick={() => setIsEditMode(!isEditMode)} 
+          <Button
+            variant={isEditMode ? "default" : "outline"}
+            size="sm"
+            onClick={() => setIsEditMode(!isEditMode)}
             disabled={isAdminView && selectedMasterId === "all"} // Disable inline edit for 'all' mode
             className={`gap-2 transition-all ${isEditMode ? 'bg-primary text-primary-foreground shadow shadow-primary/20' : 'bg-transparent border-border hover:bg-muted'}`}
           >
             {isEditMode ? <Save className="w-4 h-4" /> : <Edit3 className="w-4 h-4" />}
-            <span className="hidden sm:inline">{isEditMode ? 'Done Editing' : 'Edit Schedule'}</span>
+            <span className="hidden sm:inline">{isEditMode ? t('admin.calendar.doneEditing') : t('admin.calendar.editSchedule')}</span>
           </Button>
 
           <Button variant="outline" size="sm" onClick={() => setShowBulkModal(true)} className="gap-2 shrink-0 bg-transparent border-border hover:bg-muted">
             <Calendar className="w-4 h-4" />
-            <span className="hidden sm:inline">Bulk Settings</span>
+            <span className="hidden sm:inline">{t('admin.calendar.bulkSettings')}</span>
           </Button>
 
           <div className="h-6 w-px bg-border mx-1" />
@@ -238,21 +244,21 @@ export default function ModernCalendar({
                     : "text-muted-foreground hover:bg-muted hover:text-foreground"
                 }`}
               >
-                {v}
+                {v === "Month" ? t('admin.calendar.monthView') : v === "Week" ? t('admin.calendar.weekView') : t('admin.calendar.dayView')}
               </button>
             ))}
           </div>
 
           {isAdminView && adminMastersList && onMasterChange && (
             <div className="relative ml-2">
-              <button 
+              <button
                 onClick={() => setShowMasterSelect(!showMasterSelect)}
                 className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium bg-transparent hover:bg-muted rounded-md transition-colors border border-border"
               >
                  {selectedMasterId === "all" ? (
-                   <span className="flex items-center gap-1.5"><Globe className="w-3.5 h-3.5" />All Masters</span>
+                   <span className="flex items-center gap-1.5"><Globe className="w-3.5 h-3.5" />{t('admin.calendar.allMasters')}</span>
                  ) : (
-                   <span className="flex items-center gap-1.5"><User className="w-3.5 h-3.5" />{adminMastersList.find(m => m.id === selectedMasterId)?.name || 'Select'}</span>
+                   <span className="flex items-center gap-1.5"><User className="w-3.5 h-3.5" />{adminMastersList.find(m => m.id === selectedMasterId)?.name || t('admin.calendar.selectMasterFallback')}</span>
                  )}
                  <ChevronRight className={`w-3.5 h-3.5 opacity-50 transition-transform ${showMasterSelect ? "rotate-[270deg]" : "rotate-90"}`} />
               </button>
@@ -261,11 +267,11 @@ export default function ModernCalendar({
                   <div className="fixed inset-0 z-40" onClick={() => setShowMasterSelect(false)} />
                   <div className="absolute right-0 top-full mt-2 w-64 bg-card border border-border rounded-xl shadow-xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-100">
                     <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
-                      <button 
+                      <button
                          className={`w-full text-left px-4 py-3 text-sm hover:bg-muted transition-colors ${selectedMasterId === "all" ? 'bg-primary/20 text-primary font-medium' : ''}`}
                          onClick={() => { onMasterChange("all"); setShowMasterSelect(false); }}
                       >
-                        <span className="flex items-center gap-1.5"><Globe className="w-3.5 h-3.5" />All Masters (Combined)</span>
+                        <span className="flex items-center gap-1.5"><Globe className="w-3.5 h-3.5" />{t('admin.calendar.allMastersCombined')}</span>
                       </button>
                       <div className="h-px bg-border/60 w-full" />
                       {adminMastersList.map(m => (
@@ -387,7 +393,7 @@ export default function ModernCalendar({
           onDelete={async (id) => {
              const queryPart = isAdminView && selectedMasterId ? `?masterId=${selectedMasterId}` : ''
              const res = await fetch(`${apiPrefix}/appointments/${id}${queryPart}`, { method: 'DELETE' })
-             if(!res.ok) throw new Error("Delete failed")
+             if(!res.ok) throw new Error(t('admin.calendar.deleteFailed'))
              setViewingAppointment(null)
              fetchData()
           }}

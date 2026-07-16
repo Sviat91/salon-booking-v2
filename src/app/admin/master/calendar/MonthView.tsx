@@ -2,9 +2,12 @@
 
 import { useMemo, useState, useRef, useEffect } from "react"
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, isSameMonth, isToday } from "date-fns"
+import { useTranslation } from "react-i18next"
 import type { Appointment, Template, Override, Interval } from "./ModernCalendar"
 import { Plus, PowerOff, X, ChevronDown, Clock } from "lucide-react"
 import { TimePickerDropdown } from "@/components/TimePickerDropdown"
+import { useCurrentLanguage } from "@/contexts/LanguageContext"
+import { dateFnsLocale } from "@/lib/utils/date-fns-locale"
 
 interface MonthViewProps {
   currentDate: Date
@@ -22,14 +25,23 @@ interface MonthViewProps {
   onDataChange: () => void
 }
 
-const DAYS_OF_WEEK = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+const DAY_OF_WEEK_KEYS = ["dates.mondayShort", "dates.tuesdayShort", "dates.wednesdayShort", "dates.thursdayShort", "dates.fridayShort", "dates.saturdayShort", "dates.sundayShort"]
 
 interface ExpandedState {
   type: 'shifts' | 'appointments' | null
   dateStr: string | null
 }
 
+function pluralize(count: number, one: string, few: string, many: string): string {
+  if (count === 1) return one
+  if (count >= 2 && count <= 4) return few
+  return many
+}
+
 export default function MonthView({ currentDate, appointments, templates, overrides, isEditMode, availableSlotColor, dayOffColor, apiPrefix = "/api/master", selectedMasterId = "all", onDayClick, onAppointmentClick, onDataChange }: MonthViewProps) {
+  const { t } = useTranslation()
+  const language = useCurrentLanguage()
+  const locale = dateFnsLocale(language)
   const monthStart = startOfMonth(currentDate)
   const monthEnd = endOfMonth(monthStart)
   const startDate = startOfWeek(monthStart, { weekStartsOn: 1 })
@@ -114,9 +126,9 @@ export default function MonthView({ currentDate, appointments, templates, overri
   return (
     <div className="flex flex-col h-full overflow-hidden animate-in fade-in duration-200" ref={containerRef}>
       <div className="grid grid-cols-7 border-b border-border shrink-0 bg-muted/20">
-        {DAYS_OF_WEEK.map(d => (
-          <div key={d} className="py-2 text-center text-xs font-semibold text-muted-foreground border-r last:border-r-0">
-            {d}
+        {DAY_OF_WEEK_KEYS.map(k => (
+          <div key={k} className="py-2 text-center text-xs font-semibold text-muted-foreground border-r last:border-r-0">
+            {t(k)}
           </div>
         ))}
       </div>
@@ -155,7 +167,7 @@ export default function MonthView({ currentDate, appointments, templates, overri
                   {format(day, "d")}
                 </span>
                 {status.isDayOff && (
-                  <span className="text-[10px] uppercase font-bold text-destructive">Off</span>
+                  <span className="text-[10px] uppercase font-bold text-destructive">{t('admin.calendar.offBadge')}</span>
                 )}
               </div>
 
@@ -172,7 +184,7 @@ export default function MonthView({ currentDate, appointments, templates, overri
                         >
                           <Clock className="w-3 h-3 shrink-0" />
                           <span className="font-medium">{a.startTime}</span>
-                          <span className="truncate">{a.client.name || 'Client'}</span>
+                          <span className="truncate">{a.client.name || t('admin.calendar.clientFallback')}</span>
                         </div>
                       ))}
                     </div>
@@ -186,7 +198,7 @@ export default function MonthView({ currentDate, appointments, templates, overri
                         style={{ backgroundColor: (dayAppts[0]?.master?.masterProfile?.color || "#8B4A58") + "26", borderLeft: "3px solid " + (dayAppts[0]?.master?.masterProfile?.color || "#8B4A58") }}
                       >
                         <span className="text-[11px] truncate font-medium text-foreground">
-                          {apptsCount} {apptsCount === 1 ? 'booking' : 'bookings'}
+                          {apptsCount} {pluralize(apptsCount, t('management.bookingOne'), t('management.bookingFew'), t('management.bookingMany'))}
                         </span>
                         <ChevronDown className="w-3 h-3 text-muted-foreground shrink-0" />
                       </div>
@@ -200,7 +212,7 @@ export default function MonthView({ currentDate, appointments, templates, overri
                   {isExpanded && expanded.type === 'shifts' ? (
                     <div className="absolute top-0 left-0 bg-card border border-border rounded-xl shadow-2xl p-3 space-y-2 animate-in fade-in-0 zoom-in-95 duration-200 z-50 w-[240px]" onClick={(e) => e.stopPropagation()}>
                       <div className="text-xs font-semibold text-muted-foreground mb-2 flex items-center justify-between">
-                        {format(day, "EEE, MMM d")}
+                        {format(day, "EEE, MMM d", { locale })}
                         <button onClick={(e) => { e.stopPropagation(); setExpanded({ type: null, dateStr: null }); }} className="text-muted-foreground hover:text-foreground">
                           <X className="w-4 h-4" />
                         </button>
@@ -235,13 +247,13 @@ export default function MonthView({ currentDate, appointments, templates, overri
                           onClick={e => { e.stopPropagation(); toggleOff(day, status); setExpanded({ type: null, dateStr: null }); }}
                           className="flex-1 flex items-center justify-center py-2 gap-1 text-xs rounded font-medium transition-colors bg-[var(--md-error-container)] text-[var(--md-on-error-container)] hover:brightness-95"
                         >
-                          <PowerOff className="w-3.5 h-3.5" /> Day Off
+                          <PowerOff className="w-3.5 h-3.5" /> {t('admin.calendar.dayOffBtn')}
                         </button>
-                        <button 
+                        <button
                           onClick={e => { e.stopPropagation(); addShift(day, status); }}
                           className="flex-1 flex items-center justify-center py-2 gap-1 text-xs bg-primary text-primary-foreground rounded hover:bg-primary/90 font-medium transition-colors"
                         >
-                          <Plus className="w-3.5 h-3.5" /> Add Shift
+                          <Plus className="w-3.5 h-3.5" /> {t('admin.calendar.addShiftBtn')}
                         </button>
                       </div>
                     </div>
@@ -252,7 +264,7 @@ export default function MonthView({ currentDate, appointments, templates, overri
                     >
                       <div className="flex items-center gap-1 px-1.5 py-1 rounded bg-[var(--md-success-container)] hover:brightness-95 transition-colors">
                         <span className="text-[11px] truncate font-medium text-[var(--md-on-success-container)]">
-                          {shiftsCount} {shiftsCount === 1 ? 'shift' : 'shifts'}
+                          {shiftsCount} {pluralize(shiftsCount, t('admin.calendar.shiftOne'), t('admin.calendar.shiftFew'), t('admin.calendar.shiftMany'))}
                         </span>
                         <ChevronDown className="w-3 h-3 text-[var(--md-on-success-container)] shrink-0" />
                       </div>
@@ -266,23 +278,23 @@ export default function MonthView({ currentDate, appointments, templates, overri
                   onClick={(e) => { e.stopPropagation(); toggleOff(day, status); }}
                   className="mt-1 text-[10px] px-2 py-1 rounded bg-primary/20 text-primary hover:bg-primary/30 transition-colors font-medium"
                 >
-                  Set Working
+                  {t('admin.calendar.setWorkingBtn')}
                 </button>
               )}
 
               {isEditMode && !isPastDay && !status.isDayOff && shiftsCount === 0 && (
                 <div className="flex gap-1 mt-1">
-                  <button 
+                  <button
                     onClick={e => { e.stopPropagation(); toggleOff(day, status); }}
                     className="flex-1 flex items-center justify-center py-1 gap-1 text-[10px] rounded font-medium transition-colors bg-[var(--md-error-container)] text-[var(--md-on-error-container)] hover:brightness-95"
                   >
-                    <PowerOff className="w-3 h-3" /> Off
+                    <PowerOff className="w-3 h-3" /> {t('admin.calendar.offBadge')}
                   </button>
-                  <button 
+                  <button
                     onClick={e => { e.stopPropagation(); addShift(day, status); }}
                     className="flex-1 flex items-center justify-center py-1 gap-1 text-[10px] bg-background border rounded hover:bg-muted font-medium transition-colors"
                   >
-                    <Plus className="w-3 h-3" /> Shift
+                    <Plus className="w-3 h-3" /> {t('admin.calendar.shiftBtn')}
                   </button>
                 </div>
               )}

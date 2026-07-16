@@ -1,7 +1,9 @@
 import prisma from "@/lib/prisma"
 import ServicesClient from "./ServicesClient"
+import { getServerT } from "@/lib/i18n-server"
 
 export default async function ServicesPage() {
+  const t = getServerT()
   const [services, masterProfiles] = await Promise.all([
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (prisma.service.findMany as any)({
@@ -23,7 +25,7 @@ export default async function ServicesPage() {
 
   const masters = masterProfiles.map((mp) => ({
     masterProfileId: mp.id,
-    name: mp.user?.name ?? "Unknown",
+    name: mp.user?.name ?? t('admin.services.unknownMaster'),
   }))
 
   return <ServicesClient services={services} masters={masters} />

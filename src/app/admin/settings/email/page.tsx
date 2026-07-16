@@ -1,6 +1,7 @@
 import { Metadata } from "next"
 import EmailSettingsForm from "@/components/admin/EmailSettingsForm"
 import { SmtpInstructions } from "@/components/admin/SmtpInstructions"
+import { getServerT } from "@/lib/i18n-server"
 
 export const metadata: Metadata = {
   title: "Email Settings | Admin",
@@ -8,12 +9,13 @@ export const metadata: Metadata = {
 }
 
 export default function EmailSettingsPage() {
+  const t = getServerT()
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <p className="text-xs font-medium uppercase tracking-wider text-primary">Configuration</p>
+        <p className="text-xs font-medium uppercase tracking-wider text-primary">{t('admin.settings.configurationEyebrow')}</p>
         <p className="mt-1 text-sm text-muted-foreground">
-          Configure how the application sends emails for password resets, booking confirmations, and other notifications.
+          {t('admin.settings.email.pageDesc')}
         </p>
       </div>
 

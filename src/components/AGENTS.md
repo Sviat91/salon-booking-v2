@@ -20,7 +20,7 @@ Presentation and client-side interaction only. Data fetching goes through React 
 
 ## Work Guidance
 
-- i18next strings come from `src/locales/{en,pl,uk}.json` (Polish is default) — don't hardcode user-facing text.
+- i18next strings come from `src/locales/{en,pl,uk}.json` (Polish is default) — don't hardcode user-facing text. `admin/` components use the `admin.*` namespace (see [../app/admin/AGENTS.md](../app/admin/AGENTS.md) for the client/server split rule) — `"use client"` files call `useTranslation()` directly; a component shared between a Server Component caller and a client caller (e.g. `AppointmentStatusBadge.tsx`, which computes its own status label) is itself `"use client"` rather than requiring every caller to pre-translate.
 - Components fetching `/api/tenant-config` via react-query use two established `queryKey`s depending on need: `['tenant-config-contact']` for the salon-contact-info subset (`support/`, `privacy/`, `terms/` pages, `BookingSuccess(Panel).tsx`), and `['tenant-config']` for branding fields like `brandName`/`logoUrl`/`darkLogoUrl` (`BrandHeader.tsx`, `Footer.tsx`). Match the existing key for the data you need — mixing keys defeats react-query's per-page cache dedup between components that want the same fields. Never hardcode a fallback brand asset (image or name) — an absent `TenantConfig` value means render nothing, with `'Salon Booking'` (the Prisma `@default`) as the only acceptable text fallback.
 
 ## Verification

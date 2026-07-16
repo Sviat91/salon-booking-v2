@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
+import { Trans, useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
@@ -18,6 +19,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { SettingsSection } from '@/app/admin/settings/FormFields'
+import { apiErrorKey } from '@/lib/errors/apiErrorKey'
 
 const formSchema = z.object({
   notifEmailEnabled: z.boolean(),
@@ -43,6 +45,7 @@ function ToggleRow({
   onCheckedChange: (v: boolean) => void
   disabled?: boolean
 }) {
+  const { t } = useTranslation()
   return (
     <div className="flex items-center justify-between gap-4 py-1">
       <div className="flex-1 min-w-0">
@@ -53,7 +56,7 @@ function ToggleRow({
       </div>
       <div className="flex items-center gap-2 shrink-0">
         <span className="text-xs text-muted-foreground w-7 text-right">
-          {checked ? 'On' : 'Off'}
+          {checked ? t('admin.settings.notifications.onLabel') : t('admin.settings.notifications.offLabel')}
         </span>
         <Switch checked={checked} onCheckedChange={onCheckedChange} disabled={disabled} />
       </div>
@@ -62,6 +65,7 @@ function ToggleRow({
 }
 
 export default function NotificationSettingsForm() {
+  const { t } = useTranslation()
   const [isLoading, setIsLoading] = React.useState(true)
   const [isSaving, setIsSaving] = React.useState(false)
   const [smtpConfigured, setSmtpConfigured] = React.useState(false)
@@ -108,7 +112,7 @@ export default function NotificationSettingsForm() {
           notifReminder2hEnabled: notifData.notifReminder2hEnabled ?? false,
         })
       } catch {
-        toast.error('Failed to load notification settings')
+        toast.error(t('admin.settings.notifications.loadFailed'))
       } finally {
         setIsLoading(false)
       }
@@ -125,20 +129,20 @@ export default function NotificationSettingsForm() {
         body: JSON.stringify(values),
       })
       if (!res.ok) {
-        const err = await res.json()
-        throw new Error(err.error || 'Save failed')
+        const err = await res.json().catch(() => ({}))
+        throw new Error(err.code ? t(apiErrorKey(err.code)) : t('admin.settings.notifications.saveFailed'))
       }
       form.reset(values)
-      toast.success('Notification settings saved')
+      toast.success(t('admin.settings.notifications.saveSuccess'))
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Save failed')
+      toast.error(err instanceof Error ? err.message : t('admin.settings.notifications.saveFailed'))
     } finally {
       setIsSaving(false)
     }
   }
 
   if (isLoading) {
-    return <div className="text-sm text-muted-foreground">Loading…</div>
+    return <div className="text-sm text-muted-foreground">{t('common.loading')}</div>
   }
 
   return (
@@ -147,8 +151,8 @@ export default function NotificationSettingsForm() {
 
         {/* Email channel */}
         <SettingsSection
-          title="Email"
-          description="Send booking confirmations and reminders by email. Requires SMTP configured under Email Settings."
+          title={t('admin.settings.notifications.emailSectionTitle')}
+          description={t('admin.settings.notifications.emailSectionDesc')}
         >
           <FormField
             control={form.control}
@@ -156,11 +160,16 @@ export default function NotificationSettingsForm() {
             render={({ field }) => (
               <FormItem>
                 <ToggleRow
-                  label="Send email notifications"
+                  label={t('admin.settings.notifications.sendEmailNotifLabel')}
                   description={
                     smtpConfigured
-                      ? 'Booking confirmations and reminders sent via email.'
-                      : <span className="text-destructive font-medium">SMTP not configured — go to <a href="/admin/settings/email" className="underline">Email Settings</a> first.</span>
+                      ? t('admin.settings.notifications.emailNotifConfiguredDesc')
+                      : <span className="text-destructive font-medium">
+                          <Trans
+                            i18nKey="admin.settings.notifications.smtpNotConfiguredDesc"
+                            components={{ a: <a href="/admin/settings/email" className="underline" /> }}
+                          />
+                        </span>
                   }
                   checked={field.value}
                   onCheckedChange={field.onChange}
@@ -174,8 +183,8 @@ export default function NotificationSettingsForm() {
 
         {/* Telegram channel */}
         <SettingsSection
-          title="Telegram"
-          description="Admin alerts for new bookings and contact form submissions via a Telegram bot."
+          title={t('admin.settings.notifications.telegramSectionTitle')}
+          description={t('admin.settings.notifications.telegramSectionDesc')}
         >
           <FormField
             control={form.control}
@@ -183,8 +192,8 @@ export default function NotificationSettingsForm() {
             render={({ field }) => (
               <FormItem>
                 <ToggleRow
-                  label="Send Telegram notifications"
-                  description="Admin alerts for new bookings and contact form submissions."
+                  label={t('admin.settings.notifications.sendTelegramNotifLabel')}
+                  description={t('admin.settings.notifications.telegramNotifDesc')}
                   checked={field.value}
                   onCheckedChange={field.onChange}
                 />
@@ -198,7 +207,7 @@ export default function NotificationSettingsForm() {
             name="telegramBotToken"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Bot Token</FormLabel>
+                <FormLabel>{t('admin.settings.notifications.botTokenLabel')}</FormLabel>
                 <FormControl>
                   <Input
                     placeholder="1234567890:ABCdef..."
@@ -208,7 +217,7 @@ export default function NotificationSettingsForm() {
                   />
                 </FormControl>
                 <FormDescription>
-                  Get it from <code>@BotFather</code> → /newbot or /mybots.
+                  <Trans i18nKey="admin.settings.notifications.botTokenDesc" components={{ code: <code /> }} />
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -220,12 +229,12 @@ export default function NotificationSettingsForm() {
             name="notifAdminChatId"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Admin Chat ID</FormLabel>
+                <FormLabel>{t('admin.settings.notifications.adminChatIdLabel')}</FormLabel>
                 <FormControl>
-                  <Input placeholder="e.g. 123456789" {...field} />
+                  <Input placeholder={t('admin.settings.notifications.adminChatIdPlaceholder')} {...field} />
                 </FormControl>
                 <FormDescription>
-                  Send <code>/start</code> to your bot, then message <code>@userinfobot</code> to get your Chat ID.
+                  <Trans i18nKey="admin.settings.notifications.adminChatIdDesc" components={{ code: <code /> }} />
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -235,12 +244,12 @@ export default function NotificationSettingsForm() {
 
         {/* Reminders */}
         <SettingsSection
-          title="Reminders"
-          description="Automated appointment reminders, sent on the channels enabled above."
+          title={t('admin.settings.notifications.remindersSectionTitle')}
+          description={t('admin.settings.notifications.remindersSectionDesc')}
         >
           {!anyChannelEnabled && (
             <p className="text-sm text-muted-foreground">
-              Enable at least one channel above to activate reminders.
+              {t('admin.settings.notifications.enableChannelHint')}
             </p>
           )}
 
@@ -250,8 +259,8 @@ export default function NotificationSettingsForm() {
             render={({ field }) => (
               <FormItem>
                 <ToggleRow
-                  label="24-hour reminder"
-                  description="Remind clients one day before their appointment."
+                  label={t('admin.settings.notifications.reminder24hLabel')}
+                  description={t('admin.settings.notifications.reminder24hDesc')}
                   checked={field.value}
                   onCheckedChange={field.onChange}
                   disabled={!anyChannelEnabled}
@@ -267,8 +276,8 @@ export default function NotificationSettingsForm() {
             render={({ field }) => (
               <FormItem>
                 <ToggleRow
-                  label="2-hour reminder"
-                  description="Remind clients two hours before their appointment."
+                  label={t('admin.settings.notifications.reminder2hLabel')}
+                  description={t('admin.settings.notifications.reminder2hDesc')}
                   checked={field.value}
                   onCheckedChange={field.onChange}
                   disabled={!anyChannelEnabled}
@@ -281,7 +290,7 @@ export default function NotificationSettingsForm() {
 
         <div className="flex border-t pt-4">
           <Button type="submit" disabled={isSaving || !formState.isDirty}>
-            {isSaving ? 'Saving…' : 'Save Settings'}
+            {isSaving ? t('common.saving') : t('admin.nav.saveSettings')}
           </Button>
         </div>
       </form>

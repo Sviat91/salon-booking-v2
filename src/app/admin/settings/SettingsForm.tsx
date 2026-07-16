@@ -2,12 +2,14 @@
 
 import { useState, useEffect } from "react"
 import { useFormState } from "react-dom"
+import { useTranslation } from "react-i18next"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { saveSettings, type SettingsFormState } from "./actions"
 import LogoEditor from "./LogoEditor"
 import BackgroundSection from "./BackgroundSection"
 import { ColorRow, ImageUploadField, SubmitButton, SettingsSection } from "./FormFields"
+import { apiErrorKey } from "@/lib/errors/apiErrorKey"
 
 const M3_LIGHT_DEFAULTS = {
   primaryColor:  '#FFF0F1',
@@ -80,28 +82,29 @@ type TenantConfig = {
 
 const initialState: SettingsFormState = {}
 
-// Light theme color fields — plain English labels
-const lightColorFields: { name: keyof TenantConfig; label: string; description: string }[] = [
-  { name: "primaryColor",   label: "Secondary Tint",   description: "Accent backgrounds, hover states" },
-  { name: "cardColor",      label: "Card Background",  description: "Background for cards and panels" },
-  { name: "accentColor",    label: "Primary Button",   description: "Buttons and highlighted elements" },
-  { name: "textColor",      label: "Body Text",        description: "Main text color" },
-  { name: "mutedColor",     label: "Muted Text",       description: "Subtitles, placeholders" },
-  { name: "borderColor",    label: "Borders",          description: "Color of dividers and outlines" },
+// Light/dark theme color fields — labelKey/descKey resolved via t() at render
+const lightColorFields: { name: keyof TenantConfig; labelKey: string; descKey: string }[] = [
+  { name: "primaryColor",   labelKey: "admin.settings.general.primaryColorLabel",   descKey: "admin.settings.general.primaryColorDesc" },
+  { name: "cardColor",      labelKey: "admin.settings.general.cardColorLabel",      descKey: "admin.settings.general.cardColorDesc" },
+  { name: "accentColor",    labelKey: "admin.settings.general.accentColorLabel",    descKey: "admin.settings.general.accentColorDesc" },
+  { name: "textColor",      labelKey: "admin.settings.general.textColorLabel",      descKey: "admin.settings.general.textColorDesc" },
+  { name: "mutedColor",     labelKey: "admin.settings.general.mutedColorLabel",     descKey: "admin.settings.general.mutedColorDesc" },
+  { name: "borderColor",    labelKey: "admin.settings.general.borderColorLabel",    descKey: "admin.settings.general.borderColorDesc" },
 ]
 
-const darkColorFields: { name: keyof TenantConfig; label: string; description: string }[] = [
-  { name: "darkBgColor",     label: "Dark Background",      description: "Main background in dark theme" },
-  { name: "darkPrimaryColor", label: "Dark Secondary Tint", description: "Accent backgrounds, hover states" },
-  { name: "darkCardColor",   label: "Dark Card",            description: "Card / panel background" },
-  { name: "darkAccentColor", label: "Dark Primary Button",  description: "Buttons and highlighted elements" },
-  { name: "darkTextColor",   label: "Dark Text",            description: "Main text on dark background" },
-  { name: "darkMutedColor",  label: "Dark Muted Text",      description: "Subtitles on dark background" },
-  { name: "darkBorderColor", label: "Dark Borders",         description: "Dividers in dark theme" },
+const darkColorFields: { name: keyof TenantConfig; labelKey: string; descKey: string }[] = [
+  { name: "darkBgColor",      labelKey: "admin.settings.general.darkBgColorLabel",      descKey: "admin.settings.general.darkBgColorDesc" },
+  { name: "darkPrimaryColor", labelKey: "admin.settings.general.darkPrimaryColorLabel", descKey: "admin.settings.general.primaryColorDesc" },
+  { name: "darkCardColor",    labelKey: "admin.settings.general.darkCardColorLabel",    descKey: "admin.settings.general.darkCardColorDesc" },
+  { name: "darkAccentColor",  labelKey: "admin.settings.general.darkAccentColorLabel",  descKey: "admin.settings.general.accentColorDesc" },
+  { name: "darkTextColor",    labelKey: "admin.settings.general.darkTextColorLabel",    descKey: "admin.settings.general.darkTextColorDesc" },
+  { name: "darkMutedColor",   labelKey: "admin.settings.general.darkMutedColorLabel",   descKey: "admin.settings.general.darkMutedColorDesc" },
+  { name: "darkBorderColor",  labelKey: "admin.settings.general.darkBorderColorLabel",  descKey: "admin.settings.general.darkBorderColorDesc" },
 ]
 
 
 export default function SettingsForm({ config }: { config: TenantConfig }) {
+  const { t } = useTranslation()
   const [state, formAction] = useFormState(saveSettings, initialState)
   const [isDirty, setIsDirty] = useState(false)
   const [lightReset, setLightReset] = useState(0)
@@ -159,11 +162,11 @@ export default function SettingsForm({ config }: { config: TenantConfig }) {
     try {
       const res = await fetch("/api/upload", { method: "POST", body: fd })
       const json = await res.json()
-      if (!res.ok) throw new Error(json.error ?? "Upload failed")
+      if (!res.ok) throw new Error(json.code ? t(apiErrorKey(json.code)) : t('admin.masters.uploadFailed'))
       setPreview(json.url)
       setUrl(json.url)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Upload failed")
+      setError(err instanceof Error ? err.message : t('admin.masters.uploadFailed'))
     } finally {
       setUploading(false)
     }
@@ -188,9 +191,9 @@ export default function SettingsForm({ config }: { config: TenantConfig }) {
       onChange={() => setIsDirty(true)}
     >
 
-      <SettingsSection title="Brand" description="Salon name and visual identity">
+      <SettingsSection title={t('admin.settings.general.brandSectionTitle')} description={t('admin.settings.general.brandSectionDesc')}>
         <div className="grid gap-1.5 max-w-sm">
-          <Label htmlFor="brandName">Salon Name</Label>
+          <Label htmlFor="brandName">{t('admin.settings.general.salonNameLabel')}</Label>
           <Input
             id="brandName"
             name="brandName"
@@ -198,7 +201,7 @@ export default function SettingsForm({ config }: { config: TenantConfig }) {
             required
           />
           <p className="text-xs text-muted-foreground">
-            Shown in the browser tab title and meta tags.
+            {t('admin.settings.general.salonNameHint')}
           </p>
         </div>
 
@@ -234,8 +237,8 @@ export default function SettingsForm({ config }: { config: TenantConfig }) {
         <input type="hidden" name="logoFullscreen" value={String(logoFullscreen)} />
 
         <ImageUploadField
-          label="Favicon"
-          hint="Small icon shown in the browser tab. Recommended: PNG 32×32 or SVG. Max 4 MB."
+          label={t('admin.settings.general.faviconLabel')}
+          hint={t('admin.settings.general.faviconHint')}
           preview={faviconPreview}
           fieldName="faviconUrl"
           fieldValue={faviconUrl}
@@ -248,133 +251,133 @@ export default function SettingsForm({ config }: { config: TenantConfig }) {
 
       {/* ── Salon Contact Info ────────────────────────────────────────── */}
       <SettingsSection
-        title="Salon Contact Info"
-        description="Address, phone, email and legal details. Displayed on booking confirmation, support page, terms and privacy policy."
+        title={t('admin.settings.general.contactSectionTitle')}
+        description={t('admin.settings.general.contactSectionDesc')}
       >
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="grid gap-1.5">
-            <Label htmlFor="salonCompanyName">Company Name</Label>
+            <Label htmlFor="salonCompanyName">{t('admin.settings.general.companyNameLabel')}</Label>
             <Input
               id="salonCompanyName"
               name="salonCompanyName"
               defaultValue={config.salonCompanyName ?? ""}
-              placeholder="e.g. Beauty Studio LLC"
+              placeholder={t('admin.settings.general.companyNamePlaceholder')}
             />
-            <p className="text-xs text-muted-foreground">Legal entity name shown in terms &amp; privacy</p>
+            <p className="text-xs text-muted-foreground">{t('admin.settings.general.companyNameHint')}</p>
           </div>
           <div className="grid gap-1.5">
-            <Label htmlFor="salonNip">Tax ID (NIP)</Label>
+            <Label htmlFor="salonNip">{t('admin.settings.general.taxIdLabel')}</Label>
             <Input
               id="salonNip"
               name="salonNip"
               defaultValue={config.salonNip ?? ""}
-              placeholder="e.g. 9512580063"
+              placeholder={t('admin.settings.general.taxIdPlaceholder')}
             />
-            <p className="text-xs text-muted-foreground">Tax identification number</p>
+            <p className="text-xs text-muted-foreground">{t('admin.settings.general.taxIdHint')}</p>
           </div>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="grid gap-1.5">
-            <Label htmlFor="salonAddress">Salon Address</Label>
+            <Label htmlFor="salonAddress">{t('admin.settings.general.salonAddressLabel')}</Label>
             <Input
               id="salonAddress"
               name="salonAddress"
               defaultValue={config.salonAddress ?? ""}
-              placeholder="e.g. Sarmacka 4B/ lokal 106"
+              placeholder={t('admin.settings.general.salonAddressPlaceholder')}
             />
-            <p className="text-xs text-muted-foreground">Street address shown to clients</p>
+            <p className="text-xs text-muted-foreground">{t('admin.settings.general.salonAddressHint')}</p>
           </div>
           <div className="grid gap-1.5">
-            <Label htmlFor="salonCity">City / Postal Code</Label>
+            <Label htmlFor="salonCity">{t('admin.settings.general.salonCityLabel')}</Label>
             <Input
               id="salonCity"
               name="salonCity"
               defaultValue={config.salonCity ?? ""}
-              placeholder="e.g. 02-972 Warszawa"
+              placeholder={t('admin.settings.general.salonCityPlaceholder')}
             />
-            <p className="text-xs text-muted-foreground">City and postal code</p>
+            <p className="text-xs text-muted-foreground">{t('admin.settings.general.salonCityHint')}</p>
           </div>
         </div>
 
         <div className="grid gap-1.5 max-w-sm">
-          <Label htmlFor="salonLegalAddress">Legal Address</Label>
+          <Label htmlFor="salonLegalAddress">{t('admin.settings.general.legalAddressLabel')}</Label>
           <Input
             id="salonLegalAddress"
             name="salonLegalAddress"
             defaultValue={config.salonLegalAddress ?? ""}
-            placeholder="e.g. Herbu Janina 3a/40, 02-972 Warszawa"
+            placeholder={t('admin.settings.general.legalAddressPlaceholder')}
           />
-          <p className="text-xs text-muted-foreground">Registered address if different from salon address. Shown in terms &amp; privacy.</p>
+          <p className="text-xs text-muted-foreground">{t('admin.settings.general.legalAddressHint')}</p>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="grid gap-1.5">
-            <Label htmlFor="salonPhone">Phone Number</Label>
+            <Label htmlFor="salonPhone">{t('admin.settings.general.phoneNumberLabel')}</Label>
             <Input
               id="salonPhone"
               name="salonPhone"
               type="tel"
               defaultValue={config.salonPhone ?? ""}
-              placeholder="e.g. +48 789 894 948"
+              placeholder={t('admin.settings.general.phoneNumberPlaceholder')}
             />
-            <p className="text-xs text-muted-foreground">Shown on booking confirmation &amp; support</p>
+            <p className="text-xs text-muted-foreground">{t('admin.settings.general.phoneNumberHint')}</p>
           </div>
           <div className="grid gap-1.5">
-            <Label htmlFor="salonEmail">Contact Email</Label>
+            <Label htmlFor="salonEmail">{t('admin.settings.general.contactEmailLabel')}</Label>
             <Input
               id="salonEmail"
               name="salonEmail"
               type="email"
               defaultValue={config.salonEmail ?? ""}
-              placeholder="e.g. info@salon.pl"
+              placeholder={t('admin.settings.general.contactEmailPlaceholder')}
             />
-            <p className="text-xs text-muted-foreground">Public contact email</p>
+            <p className="text-xs text-muted-foreground">{t('admin.settings.general.contactEmailHint')}</p>
           </div>
         </div>
       </SettingsSection>
 
       {/* ── Calendar Settings ────────────────────────────────────────── */}
-      <SettingsSection title="Calendar Settings" description="Colors used in the booking calendar">
+      <SettingsSection title={t('admin.settings.general.calendarSectionTitle')} description={t('admin.settings.general.calendarSectionDesc')}>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <ColorRow
-            field={{ name: "availableSlotColor", label: "Available Slot", description: "Color for open working intervals" }}
+            field={{ name: "availableSlotColor", label: t('admin.settings.general.availableSlotLabel'), description: t('admin.settings.general.availableSlotDesc') }}
             defaultValue={config.availableSlotColor}
           />
           <ColorRow
-            field={{ name: "dayOffColor", label: "Day Off", description: "Color highlighting non-working days" }}
+            field={{ name: "dayOffColor", label: t('admin.settings.general.dayOffLabel'), description: t('admin.settings.general.dayOffDesc') }}
             defaultValue={config.dayOffColor}
           />
         </div>
       </SettingsSection>
 
       {/* ── Business Hours ────────────────────────────────────────── */}
-      <SettingsSection title="Business Hours" description="Global salon opening and closing hours">
+      <SettingsSection title={t('admin.settings.general.businessHoursTitle')} description={t('admin.settings.general.businessHoursDesc')}>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <div className="grid gap-1.5">
-            <Label htmlFor="workingHourStart">Open Hour (Start)</Label>
+            <Label htmlFor="workingHourStart">{t('admin.settings.general.openHourLabel')}</Label>
             <Input id="workingHourStart" name="workingHourStart" type="number" min="0" max="23" defaultValue={config.workingHourStart} />
-            <p className="text-xs text-muted-foreground">Salon opens (e.g. 8 for 8:00 AM)</p>
+            <p className="text-xs text-muted-foreground">{t('admin.settings.general.openHourHint')}</p>
           </div>
           <div className="grid gap-1.5">
-            <Label htmlFor="workingHourEnd">Close Hour (End)</Label>
+            <Label htmlFor="workingHourEnd">{t('admin.settings.general.closeHourLabel')}</Label>
             <Input id="workingHourEnd" name="workingHourEnd" type="number" min="1" max="24" defaultValue={config.workingHourEnd} />
-            <p className="text-xs text-muted-foreground">Salon closes (e.g. 21 for 9:00 PM)</p>
+            <p className="text-xs text-muted-foreground">{t('admin.settings.general.closeHourHint')}</p>
           </div>
         </div>
       </SettingsSection>
 
       {/* ── Light theme ──────────────────────────────────────────── */}
       <SettingsSection
-        title="Light Theme"
-        description="Colors used when the light theme is active"
+        title={t('admin.settings.general.lightThemeTitle')}
+        description={t('admin.settings.general.lightThemeDesc')}
         action={
           <button
             type="button"
             onClick={resetLightToM3}
             className="shrink-0 text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors"
           >
-            Reset to M3 defaults
+            {t('admin.settings.general.resetToM3')}
           </button>
         }
       >
@@ -394,7 +397,7 @@ export default function SettingsForm({ config }: { config: TenantConfig }) {
           {lightColorFields.map((field) => (
             <ColorRow
               key={field.name}
-              field={field}
+              field={{ name: field.name, label: t(field.labelKey), description: t(field.descKey) }}
               defaultValue={lightColorOverrides?.[field.name as keyof typeof M3_LIGHT_DEFAULTS] ?? config[field.name] as string}
             />
           ))}
@@ -403,15 +406,15 @@ export default function SettingsForm({ config }: { config: TenantConfig }) {
 
       {/* ── Dark theme ───────────────────────────────────────────── */}
       <SettingsSection
-        title="Dark Theme Colors"
-        description="Colors used when the dark theme is active"
+        title={t('admin.settings.general.darkThemeTitle')}
+        description={t('admin.settings.general.darkThemeDesc')}
         action={
           <button
             type="button"
             onClick={resetDarkToM3}
             className="shrink-0 text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors"
           >
-            Reset to M3 defaults
+            {t('admin.settings.general.resetToM3')}
           </button>
         }
       >
@@ -432,7 +435,7 @@ export default function SettingsForm({ config }: { config: TenantConfig }) {
           {darkColorFields.map((field) => (
             <ColorRow
               key={field.name}
-              field={field}
+              field={{ name: field.name, label: t(field.labelKey), description: t(field.descKey) }}
               defaultValue={darkColorOverrides?.[field.name as keyof typeof M3_DARK_DEFAULTS] ?? config[field.name] as string}
             />
           ))}
@@ -440,7 +443,7 @@ export default function SettingsForm({ config }: { config: TenantConfig }) {
       </SettingsSection>
 
       {state.error && <p className="text-sm text-destructive">{state.error}</p>}
-      {state.success && <p className="text-sm text-[var(--md-success)]">Settings saved.</p>}
+      {state.success && <p className="text-sm text-[var(--md-success)]">{t('admin.settings.general.settingsSavedMsg')}</p>}
     </form>
   )
 }

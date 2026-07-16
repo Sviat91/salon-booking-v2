@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useCallback, useTransition } from "react"
+import { useTranslation } from "react-i18next"
 import Image from "next/image"
 import { Plus, Pencil, Trash2, Eye, EyeOff, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -23,18 +24,19 @@ type Master = {
 }
 
 export default function MastersClient({ masters }: { masters: Master[] }) {
+  const { t } = useTranslation()
   const [editTarget, setEditTarget] = useState<Master | null>(null)
   const [addOpen, setAddOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
   const [, startTransition] = useTransition()
 
   const handleDelete = useCallback((id: string, name: string | null) => {
-    if (!confirm(`Delete master "${name ?? "this master"}"? This cannot be undone.`))
+    if (!confirm(t('admin.masters.deleteConfirm', { name: name ?? t('admin.masters.thisMaster') })))
       return
     startTransition(() => {
       deleteMaster(id)
     })
-  }, [])
+  }, [t])
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -42,10 +44,10 @@ export default function MastersClient({ masters }: { masters: Master[] }) {
       <div className="mb-6 flex items-center justify-between">
         <div>
           <p className="text-xs font-medium uppercase tracking-wider text-primary">
-            Staff
+            {t('admin.masters.staffEyebrow')}
           </p>
           <p className="mt-1 text-sm text-muted-foreground">
-            Manage accounts and permissions
+            {t('admin.masters.staffDesc')}
           </p>
         </div>
 
@@ -54,13 +56,13 @@ export default function MastersClient({ masters }: { masters: Master[] }) {
             render={
               <Button className="h-10 gap-2 px-5">
                 <Plus className="h-4 w-4" />
-                Add master
+                {t('admin.masters.addMasterTrigger')}
               </Button>
             }
           />
           <SheetContent side="right">
             <SheetHeader>
-              <SheetTitle>Add Master</SheetTitle>
+              <SheetTitle>{t('admin.masters.addMasterTitle')}</SheetTitle>
             </SheetHeader>
             <div className="px-4 pb-4">
               <MasterForm onSuccess={() => setAddOpen(false)} />
@@ -71,9 +73,9 @@ export default function MastersClient({ masters }: { masters: Master[] }) {
 
       {masters.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-[20px] border border-dashed border-border py-16 text-center">
-          <p className="text-sm text-muted-foreground">No masters yet.</p>
+          <p className="text-sm text-muted-foreground">{t('admin.masters.noMastersTitle')}</p>
           <p className="text-xs text-muted-foreground mt-1">
-            Click &ldquo;Add Master&rdquo; to register the first one.
+            {t('admin.masters.noMastersHint', { title: t('admin.masters.addMasterTitle') })}
           </p>
         </div>
       ) : (
@@ -122,12 +124,12 @@ export default function MastersClient({ masters }: { masters: Master[] }) {
                 {master.masterProfile?.showOnHomepage ? (
                   <Badge variant="success" className="gap-1">
                     <Eye className="h-3 w-3" />
-                    Visible
+                    {t('admin.masters.visible')}
                   </Badge>
                 ) : (
                   <Badge variant="muted" className="gap-1">
                     <EyeOff className="h-3 w-3" />
-                    Hidden
+                    {t('admin.masters.hidden')}
                   </Badge>
                 )}
               </div>
@@ -157,7 +159,7 @@ export default function MastersClient({ masters }: { masters: Master[] }) {
                   />
                   <SheetContent side="right">
                     <SheetHeader>
-                      <SheetTitle>Edit Master</SheetTitle>
+                      <SheetTitle>{t('admin.masters.editMasterTitle')}</SheetTitle>
                     </SheetHeader>
                     <div className="px-4 pb-4">
                       {editTarget && (

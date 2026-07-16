@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useFormState, useFormStatus } from "react-dom"
+import { useTranslation } from "react-i18next"
 import { Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -30,15 +31,17 @@ interface ServiceFormProps {
 const initialState: ServiceFormState = {}
 
 function SubmitButton({ label }: { label: string }) {
+  const { t } = useTranslation()
   const { pending } = useFormStatus()
   return (
     <Button type="submit" disabled={pending} className="mt-2">
-      {pending ? "Saving…" : label}
+      {pending ? t('common.saving') : label}
     </Button>
   )
 }
 
 export default function ServiceForm({ service, masters, onSuccess }: ServiceFormProps) {
+  const { t } = useTranslation()
   const action = service
     ? updateService.bind(null, service.id)
     : createService
@@ -72,12 +75,12 @@ export default function ServiceForm({ service, masters, onSuccess }: ServiceForm
     <form action={formAction} className="flex flex-col gap-4">
       {/* Name */}
       <div className="grid gap-1.5">
-        <Label htmlFor="name">Service Name</Label>
+        <Label htmlFor="name">{t('admin.services.serviceName')}</Label>
         <Input
           id="name"
           name="name"
           defaultValue={service?.name}
-          placeholder="e.g. Classic Manicure"
+          placeholder={t('admin.services.serviceNamePlaceholder')}
           required
         />
         {state.fieldErrors?.name && (
@@ -87,7 +90,7 @@ export default function ServiceForm({ service, masters, onSuccess }: ServiceForm
 
       {/* Duration */}
       <div className="grid gap-1.5">
-        <Label htmlFor="duration">Duration (minutes)</Label>
+        <Label htmlFor="duration">{t('admin.services.durationLabel')}</Label>
         <Input
           id="duration"
           name="duration"
@@ -104,7 +107,7 @@ export default function ServiceForm({ service, masters, onSuccess }: ServiceForm
 
       {/* Default price */}
       <div className="grid gap-1.5">
-        <Label htmlFor="price">Default Price (zł)</Label>
+        <Label htmlFor="price">{t('admin.services.defaultPrice')}</Label>
         <Input
           id="price"
           name="price"
@@ -116,7 +119,7 @@ export default function ServiceForm({ service, masters, onSuccess }: ServiceForm
           required
         />
         <p className="text-xs text-muted-foreground">
-          Used when no per-master price is set.
+          {t('admin.services.defaultPriceHint')}
         </p>
         {state.fieldErrors?.price && (
           <p className="text-xs text-destructive">{state.fieldErrors.price[0]}</p>
@@ -128,10 +131,10 @@ export default function ServiceForm({ service, masters, onSuccess }: ServiceForm
         <div className="grid gap-2">
           <div className="flex items-center gap-2">
             <Users className="h-4 w-4 text-muted-foreground" />
-            <Label className="text-sm font-medium">Assign to Masters</Label>
+            <Label className="text-sm font-medium">{t('admin.services.assignToMasters')}</Label>
           </div>
           <p className="text-xs text-muted-foreground -mt-1">
-            Leave all unchecked = available for all masters at the default price.
+            {t('admin.services.assignHint')}
           </p>
           <div className="rounded-xl border border-border divide-y divide-border overflow-hidden">
             {masters.map((m) => {
@@ -154,14 +157,14 @@ export default function ServiceForm({ service, masters, onSuccess }: ServiceForm
                   </label>
                   {checked && (
                     <div className="flex items-center gap-1.5">
-                      <span className="text-xs text-muted-foreground">Price:</span>
+                      <span className="text-xs text-muted-foreground">{t('management.priceLabel')}</span>
                       <Input
                         name={`price_${m.masterProfileId}`}
                         type="number"
                         min={0}
                         step={0.01}
                         defaultValue={existingAssignments.get(m.masterProfileId) ?? ""}
-                        placeholder="default"
+                        placeholder={t('admin.services.defaultPricePlaceholder')}
                         className="h-7 w-24 text-xs px-2"
                       />
                     </div>
@@ -175,7 +178,7 @@ export default function ServiceForm({ service, masters, onSuccess }: ServiceForm
 
       {state.error && <p className="text-sm text-destructive">{state.error}</p>}
 
-      <SubmitButton label={service ? "Update Service" : "Add Service"} />
+      <SubmitButton label={service ? t('admin.services.updateServiceBtn') : t('admin.services.addServiceTitle')} />
     </form>
   )
 }

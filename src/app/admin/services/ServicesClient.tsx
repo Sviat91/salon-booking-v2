@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useCallback, useTransition } from "react"
+import { useTranslation } from "react-i18next"
 import { Plus, Pencil, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -31,17 +32,18 @@ export default function ServicesClient({
   services: Service[]
   masters: MasterOption[]
 }) {
+  const { t } = useTranslation()
   const [editTarget, setEditTarget] = useState<Service | null>(null)
   const [addOpen, setAddOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
   const [, startTransition] = useTransition()
 
   const handleDelete = useCallback((id: string) => {
-    if (!confirm("Delete this service?")) return
+    if (!confirm(t('admin.services.deleteConfirm'))) return
     startTransition(() => {
       deleteService(id)
     })
-  }, [])
+  }, [t])
 
   const masterNameByProfileId = new Map(
     masters.map((m) => [m.masterProfileId, m.name])
@@ -52,8 +54,8 @@ export default function ServicesClient({
       {/* Header row */}
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <p className="text-xs font-medium uppercase tracking-wider text-primary">Manage</p>
-          <p className="mt-1 text-sm text-muted-foreground">Procedures, prices and durations</p>
+          <p className="text-xs font-medium uppercase tracking-wider text-primary">{t('admin.services.manageEyebrow')}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{t('admin.services.manageDesc')}</p>
         </div>
 
         <Sheet open={addOpen} onOpenChange={setAddOpen}>
@@ -61,13 +63,13 @@ export default function ServicesClient({
             render={
               <Button className="h-10 gap-2 px-5">
                 <Plus className="h-4 w-4" />
-                Add service
+                {t('admin.services.addServiceTrigger')}
               </Button>
             }
           />
           <SheetContent side="right">
             <SheetHeader>
-              <SheetTitle>Add Service</SheetTitle>
+              <SheetTitle>{t('admin.services.addServiceTitle')}</SheetTitle>
             </SheetHeader>
             <div className="px-4 pb-4">
               <ServiceForm masters={masters} onSuccess={() => setAddOpen(false)} />
@@ -79,9 +81,9 @@ export default function ServicesClient({
       {/* Table */}
       {services.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-[20px] border border-dashed border-border py-16 text-center">
-          <p className="text-sm text-muted-foreground">No services yet.</p>
+          <p className="text-sm text-muted-foreground">{t('admin.services.noServicesTitle')}</p>
           <p className="text-xs text-muted-foreground mt-1">
-            Click &ldquo;Add Service&rdquo; to create the first one.
+            {t('admin.services.noServicesHint', { title: t('admin.services.addServiceTitle') })}
           </p>
         </div>
       ) : (
@@ -89,11 +91,11 @@ export default function ServicesClient({
           <table className="w-full text-sm">
             <thead className="bg-muted/50 text-muted-foreground">
               <tr>
-                <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Name</th>
-                <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Duration</th>
-                <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Price</th>
-                <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Special Prices</th>
-                <th className="px-4 py-2.5 text-right text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Actions</th>
+                <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{t('admin.services.colName')}</th>
+                <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{t('admin.services.colDuration')}</th>
+                <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{t('admin.services.colPrice')}</th>
+                <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{t('admin.services.colSpecialPrices')}</th>
+                <th className="px-4 py-2.5 text-right text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{t('admin.services.colActions')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -101,7 +103,7 @@ export default function ServicesClient({
                 <tr key={svc.id} className="hover:bg-muted/40 transition-colors">
                   <td className="px-4 py-3 font-medium">{svc.name}</td>
                   <td className="px-4 py-3 text-muted-foreground">
-                    {svc.duration} min
+                    {svc.duration} {t('booking.minutes')}
                   </td>
                   <td className="px-4 py-3 font-medium text-foreground">
                     {svc.price.toFixed(2)} zł
@@ -113,7 +115,7 @@ export default function ServicesClient({
                           .filter((ms) => ms.priceOverride !== null)
                           .map((ms) => (
                             <Badge key={ms.masterProfileId} variant="muted" className="text-[11px]">
-                              {(masterNameByProfileId.get(ms.masterProfileId) ?? "Unknown master")}: {ms.priceOverride!.toFixed(2)} zł
+                              {(masterNameByProfileId.get(ms.masterProfileId) ?? t('admin.services.unknownMaster'))}: {ms.priceOverride!.toFixed(2)} zł
                             </Badge>
                           ))}
                       </div>
@@ -147,7 +149,7 @@ export default function ServicesClient({
                         />
                         <SheetContent side="right">
                           <SheetHeader>
-                            <SheetTitle>Edit Service</SheetTitle>
+                            <SheetTitle>{t('admin.services.editServiceTitle')}</SheetTitle>
                           </SheetHeader>
                           <div className="px-4 pb-4">
                             {editTarget && (

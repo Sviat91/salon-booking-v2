@@ -14,7 +14,7 @@ import {
 } from "lucide-react"
 
 export interface NavItem {
-  label: string
+  labelKey: string
   href: string
   icon: LucideIcon
   exact?: boolean
@@ -22,49 +22,49 @@ export interface NavItem {
 
 export const adminNavItems: NavItem[] = [
   {
-    label: "Dashboard",
+    labelKey: "admin.nav.dashboard",
     href: "/admin",
     icon: LayoutDashboard,
     exact: true,
   },
   {
-    label: "Calendar",
+    labelKey: "admin.nav.calendar",
     href: "/admin/calendar",
     icon: CalendarDays,
   },
   {
-    label: "Services",
+    labelKey: "admin.nav.services",
     href: "/admin/services",
     icon: Scissors,
   },
   {
-    label: "Masters",
+    labelKey: "admin.nav.masters",
     href: "/admin/masters",
     icon: Users,
   },
   {
-    label: "Settings",
+    labelKey: "admin.nav.settings",
     href: "/admin/settings",
     icon: Settings,
     exact: true,
   },
   {
-    label: "Email",
+    labelKey: "admin.nav.email",
     href: "/admin/settings/email",
     icon: Mail,
   },
   {
-    label: "Social Auth",
+    labelKey: "admin.nav.socialAuth",
     href: "/admin/settings/social",
     icon: Key,
   },
   {
-    label: "Notifications",
+    labelKey: "admin.nav.notifications",
     href: "/admin/settings/notifications",
     icon: Bell,
   },
   {
-    label: "Database",
+    labelKey: "admin.nav.database",
     href: "/admin/database",
     icon: Database,
   },
@@ -73,12 +73,12 @@ export const adminNavItems: NavItem[] = [
 export const superadminNavItems: NavItem[] = [
   ...adminNavItems,
   {
-    label: "Admins",
+    labelKey: "admin.nav.admins",
     href: "/admin/admins",
     icon: UserCog,
   },
   {
-    label: "DB Browser",
+    labelKey: "admin.nav.dbBrowser",
     href: "/admin/db-browser",
     icon: Table2,
   },
@@ -86,18 +86,18 @@ export const superadminNavItems: NavItem[] = [
 
 export const masterNavItems: NavItem[] = [
   {
-    label: "Dashboard",
+    labelKey: "admin.nav.dashboard",
     href: "/admin/master",
     icon: LayoutDashboard,
     exact: true,
   },
   {
-    label: "Services",
+    labelKey: "admin.nav.services",
     href: "/admin/master/services",
     icon: Scissors,
   },
   {
-    label: "Schedule",
+    labelKey: "admin.nav.schedule",
     href: "/admin/master/schedule",
     icon: CalendarDays,
   },
@@ -114,9 +114,9 @@ export function isNavItemActive(item: NavItem, pathname: string): boolean {
   return pathname.startsWith(item.href)
 }
 
-export function getPageTitle(pathname: string, role?: string): string {
+export function getPageTitleKey(pathname: string, role?: string): string {
   return (
     getNavItemsForRole(role).find((item) => isNavItemActive(item, pathname))
-      ?.label ?? "Admin"
+      ?.labelKey ?? "admin.nav.fallbackTitle"
   )
 }

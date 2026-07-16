@@ -2,10 +2,12 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import AppointmentStatusBadge from "@/components/admin/AppointmentStatusBadge"
 import { Clock, Phone, User as UserIcon } from "lucide-react"
+import { apiErrorKey } from "@/lib/errors/apiErrorKey"
 
 type AppointmentProps = {
   id: string
@@ -17,20 +19,21 @@ type AppointmentProps = {
 }
 
 export default function AppointmentsList({ appointments }: { appointments: AppointmentProps[] }) {
+  const { t } = useTranslation()
   const router = useRouter()
   const [cancellingId, setCancellingId] = useState<string | null>(null)
 
   const handleCancel = async (id: string) => {
-    if (!confirm("Are you sure you want to cancel this appointment?")) return
-    
+    if (!confirm(t('admin.appointments.confirmCancel'))) return
+
     setCancellingId(id)
     try {
       const res = await fetch(`/api/master/appointments/${id}`, {
         method: "PATCH",
       })
       if (!res.ok) {
-        const errorData = await res.json()
-        throw new Error(errorData.error || "Failed to cancel")
+        const errorData = await res.json().catch(() => ({}))
+        throw new Error(errorData.code ? t(apiErrorKey(errorData.code)) : t('admin.appointments.cancelFailed'))
       }
       router.refresh()
     } catch (error: any) {
@@ -43,7 +46,7 @@ export default function AppointmentsList({ appointments }: { appointments: Appoi
   if (appointments.length === 0) {
     return (
       <div className="text-sm text-muted-foreground p-8 text-center border border-dashed rounded-lg bg-muted/20">
-        No appointments scheduled for today.
+        {t('admin.appointments.noneToday')}
       </div>
     )
   }
@@ -70,7 +73,7 @@ export default function AppointmentsList({ appointments }: { appointments: Appoi
                   <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-1">
                     <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                       <UserIcon className="w-4 h-4 shrink-0" />
-                      <span>{app.client.name || "Unknown Client"}</span>
+                      <span>{app.client.name || t('admin.appointments.unknownClient')}</span>
                     </div>
                     {app.client.phone && (
                       <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
@@ -90,7 +93,7 @@ export default function AppointmentsList({ appointments }: { appointments: Appoi
                     onClick={() => handleCancel(app.id)}
                     disabled={cancellingId === app.id}
                   >
-                    {cancellingId === app.id ? "Cancelling..." : "Cancel"}
+                    {cancellingId === app.id ? t('management.cancelling') : t('management.cancelBtn')}
                   </Button>
                 </div>
               )}

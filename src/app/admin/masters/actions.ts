@@ -6,26 +6,31 @@ import bcrypt from "bcryptjs"
 import prisma from "@/lib/prisma"
 import { encrypt, decrypt } from "@/lib/encryption"
 import { auth } from "@/auth"
+import { getServerT } from "@/lib/i18n-server"
 
 // Avatar/logo paths are relative: "/uploads/filename.jpg" — not absolute URLs
 const pathOrEmpty = z.string().optional().default("")
 
-const CreateMasterSchema = z.object({
-  name:          z.string().min(1, "Name is required").max(100),
-  email:         z.string().email("Invalid email"),
-  bio:           z.string().max(500).optional(),
-  avatarUrl:     pathOrEmpty,
-  showOnHomepage:z.coerce.boolean().default(true),
-  color:         z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Invalid hex").default("#166534"),
-})
+function buildCreateMasterSchema(t: (key: string) => string) {
+  return z.object({
+    name:          z.string().min(1, t('admin.masters.nameRequired')).max(100),
+    email:         z.string().email(t('admin.masters.invalidEmail')),
+    bio:           z.string().max(500).optional(),
+    avatarUrl:     pathOrEmpty,
+    showOnHomepage:z.coerce.boolean().default(true),
+    color:         z.string().regex(/^#[0-9A-Fa-f]{6}$/, t('admin.masters.invalidHex')).default("#166534"),
+  })
+}
 
-const UpdateMasterSchema = z.object({
-  name:          z.string().min(1, "Name is required").max(100),
-  bio:           z.string().max(500).optional(),
-  avatarUrl:     pathOrEmpty,
-  showOnHomepage:z.coerce.boolean().default(true),
-  color:         z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Invalid hex").default("#166534"),
-})
+function buildUpdateMasterSchema(t: (key: string) => string) {
+  return z.object({
+    name:          z.string().min(1, t('admin.masters.nameRequired')).max(100),
+    bio:           z.string().max(500).optional(),
+    avatarUrl:     pathOrEmpty,
+    showOnHomepage:z.coerce.boolean().default(true),
+    color:         z.string().regex(/^#[0-9A-Fa-f]{6}$/, t('admin.masters.invalidHex')).default("#166534"),
+  })
+}
 
 export type MasterFormState = {
   error?: string
@@ -45,9 +50,10 @@ export async function createMaster(
   _prev: MasterFormState,
   formData: FormData
 ): Promise<MasterFormState> {
+  const t = getServerT()
   const session = await auth()
   if (!session?.user || !["SUPERADMIN", "ADMIN"].includes(session.user.role ?? "")) {
-    return { error: "Unauthorized" }
+    return { error: t('errors.UNAUTHORIZED') }
   }
 
   const raw = {
@@ -59,14 +65,14 @@ export async function createMaster(
     color:          formData.get("color") || "#166534",
   }
 
-  const parsed = CreateMasterSchema.safeParse(raw)
+  const parsed = buildCreateMasterSchema(t).safeParse(raw)
   if (!parsed.success) {
     return { fieldErrors: parsed.error.flatten().fieldErrors }
   }
 
   const existing = await prisma.user.findFirst({ where: { email: parsed.data.email } })
   if (existing) {
-    return { fieldErrors: { email: ["This email is already registered"] } }
+    return { fieldErrors: { email: [t('admin.masters.emailAlreadyRegistered')] } }
   }
 
   const plainPassword = generatePassword()
@@ -95,7 +101,7 @@ export async function createMaster(
     revalidatePath("/")
     return { success: true, generatedPassword: plainPassword }
   } catch {
-    return { error: "Failed to create master. Please try again." }
+    return { error: t('admin.masters.createError') }
   }
 }
 
@@ -104,9 +110,10 @@ export async function updateMaster(
   _prev: MasterFormState,
   formData: FormData
 ): Promise<MasterFormState> {
+  const t = getServerT()
   const session = await auth()
   if (!session?.user || !["SUPERADMIN", "ADMIN"].includes(session.user.role ?? "")) {
-    return { error: "Unauthorized" }
+    return { error: t('errors.UNAUTHORIZED') }
   }
 
   const raw = {
@@ -117,7 +124,7 @@ export async function updateMaster(
     color:          formData.get("color") || "#166534",
   }
 
-  const parsed = UpdateMasterSchema.safeParse(raw)
+  const parsed = buildUpdateMasterSchema(t).safeParse(raw)
   if (!parsed.success) {
     return { fieldErrors: parsed.error.flatten().fieldErrors }
   }
@@ -151,14 +158,15 @@ export async function updateMaster(
     revalidatePath("/")
     return { success: true }
   } catch {
-    return { error: "Failed to update master. Please try again." }
+    return { error: t('admin.masters.updateError') }
   }
 }
 
 export async function deleteMaster(id: string): Promise<void> {
+  const t = getServerT()
   const session = await auth()
   if (!session?.user || !["SUPERADMIN", "ADMIN"].includes(session.user.role ?? "")) {
-    throw new Error("Unauthorized")
+    throw new Error(t('errors.UNAUTHORIZED'))
   }
 
   await prisma.user.delete({ where: { id } })
@@ -170,9 +178,10 @@ export async function resetMasterPassword(
   id: string,
   newPassword?: string
 ): Promise<{ success: boolean; newPassword?: string; error?: string }> {
+  const t = getServerT()
   const session = await auth()
   if (!session?.user || !["SUPERADMIN", "ADMIN"].includes(session.user.role ?? "")) {
-    return { success: false, error: "Unauthorized" }
+    return { success: false, error: t('errors.UNAUTHORIZED') }
   }
 
   try {
@@ -186,26 +195,27 @@ export async function resetMasterPassword(
 
     return { success: true, newPassword: passwordToSet }
   } catch {
-    return { success: false, error: "Failed to reset password. Please try again." }
+    return { success: false, error: t('admin.masters.resetPasswordError') }
   }
 }
 
 export async function getMasterPassword(
   masterId: string
 ): Promise<{ password?: string; error?: string }> {
+  const t = getServerT()
   const session = await auth()
   if (!session?.user || !["SUPERADMIN", "ADMIN"].includes(session.user.role ?? "")) {
-    return { error: "Unauthorized" }
+    return { error: t('errors.UNAUTHORIZED') }
   }
   const user = await prisma.user.findUnique({
     where: { id: masterId },
     select: { passwordEncrypted: true },
   })
-  if (!user) return { error: "Master not found" }
+  if (!user) return { error: t('admin.masters.masterNotFound') }
   if (!user.passwordEncrypted) {
-    return { error: "No stored password yet — use \"Generate new password\" to set one." }
+    return { error: t('admin.masters.noStoredPassword') }
   }
   const password = decrypt(user.passwordEncrypted)
-  if (!password) return { error: "Failed to decrypt password." }
+  if (!password) return { error: t('admin.masters.decryptFailed') }
   return { password }
 }

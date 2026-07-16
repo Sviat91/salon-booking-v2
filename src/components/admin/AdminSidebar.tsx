@@ -5,6 +5,7 @@ import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { useSession, signOut } from "next-auth/react"
 import { useState, useEffect } from "react"
+import { useTranslation } from "react-i18next"
 import {
   Scissors,
   LogOut,
@@ -28,12 +29,14 @@ interface AdminSidebarProps {
 
 function NavLink({ item, open }: { item: NavItem; open: boolean }) {
   const pathname = usePathname()
+  const { t } = useTranslation()
   const active = isNavItemActive(item, pathname)
   const Icon = item.icon
+  const label = t(item.labelKey)
   return (
     <Link
       href={item.href}
-      title={!open ? item.label : undefined}
+      title={!open ? label : undefined}
       className={cn(
         "group flex items-center gap-3 overflow-hidden whitespace-nowrap rounded-md py-2 text-sm font-medium transition-colors",
         open ? "px-3" : "justify-center px-0",
@@ -48,7 +51,7 @@ function NavLink({ item, open }: { item: NavItem; open: boolean }) {
           active ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
         )}
       />
-      {open && <span className="truncate">{item.label}</span>}
+      {open && <span className="truncate">{label}</span>}
       {open && active && (
         <ChevronRight className="ml-auto h-3.5 w-3.5 shrink-0 text-primary" />
       )}
@@ -59,6 +62,7 @@ function NavLink({ item, open }: { item: NavItem; open: boolean }) {
 export default function AdminSidebar({ brandName, logoUrl }: AdminSidebarProps) {
   const pathname = usePathname()
   const { data: session } = useSession()
+  const { t } = useTranslation()
   const [isDirty, setIsDirty] = useState(false)
   const [open, setOpen] = useState(true)
 
@@ -106,7 +110,7 @@ export default function AdminSidebar({ brandName, logoUrl }: AdminSidebarProps) 
         <button
           type="button"
           onClick={() => setOpen((o) => !o)}
-          title={open ? undefined : "Expand"}
+          title={open ? undefined : t('admin.nav.expand')}
           className={cn(
             "flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
             !open && "mx-auto"
@@ -130,14 +134,14 @@ export default function AdminSidebar({ brandName, logoUrl }: AdminSidebarProps) 
         <div className="mt-4 border-t border-border pt-4">
           <Link
             href="/"
-            title={!open ? "Back to site" : undefined}
+            title={!open ? t('admin.nav.backToSite') : undefined}
             className={cn(
               "group flex items-center gap-3 overflow-hidden whitespace-nowrap rounded-md py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
               open ? "px-3" : "justify-center px-0"
             )}
           >
             <ArrowLeft className="h-4 w-4 shrink-0 transition-colors group-hover:text-foreground" />
-            {open && "Back to site"}
+            {open && t('admin.nav.backToSite')}
           </Link>
         </div>
       </nav>
@@ -149,7 +153,7 @@ export default function AdminSidebar({ brandName, logoUrl }: AdminSidebarProps) 
             type="submit"
             form="settings-form"
             disabled={!isDirty}
-            title={!open ? "Save Settings" : undefined}
+            title={!open ? t('admin.nav.saveSettings') : undefined}
             className={cn(
               "flex w-full items-center gap-2 overflow-hidden whitespace-nowrap rounded-md py-2 text-sm font-medium transition-colors",
               open ? "px-3" : "justify-center px-0",
@@ -159,7 +163,7 @@ export default function AdminSidebar({ brandName, logoUrl }: AdminSidebarProps) 
             )}
           >
             <Save className="h-4 w-4 shrink-0" />
-            {open && "Save Settings"}
+            {open && t('admin.nav.saveSettings')}
           </button>
         </div>
       )}
@@ -181,14 +185,14 @@ export default function AdminSidebar({ brandName, logoUrl }: AdminSidebarProps) 
         {/* Sign out */}
         <button
           onClick={() => signOut({ callbackUrl: "/auth/login" })}
-          title={!open ? "Sign Out" : undefined}
+          title={!open ? t('admin.nav.signOut') : undefined}
           className={cn(
             "flex w-full items-center gap-2 overflow-hidden whitespace-nowrap rounded-md py-2 text-sm text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive",
             open ? "px-3" : "justify-center px-0"
           )}
         >
           <LogOut className="h-4 w-4 shrink-0" />
-          {open && "Sign Out"}
+          {open && t('admin.nav.signOut')}
         </button>
       </div>
     </aside>

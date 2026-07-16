@@ -17,7 +17,7 @@ export async function POST(req: Request) {
     const smtp = await getSmtpConfig()
     if (!smtp) {
       return NextResponse.json(
-        { error: "SMTP is not configured. Fill in SMTP Host, Username and Password in Email Settings and save first." },
+        { error: "SMTP is not configured. Fill in SMTP Host, Username and Password in Email Settings and save first.", code: "SMTP_NOT_CONFIGURED" },
         { status: 400 }
       )
     }

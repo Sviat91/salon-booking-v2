@@ -3,14 +3,17 @@
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
 import prisma from "@/lib/prisma"
+import { getServerT } from "@/lib/i18n-server"
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const db = prisma as any
 
-const ServiceSchema = z.object({
-  name:     z.string().min(1, "Name is required").max(100),
-  duration: z.coerce.number().int().min(5).max(480),
-  price:    z.coerce.number().min(0),
-})
+function buildServiceSchema(t: (key: string) => string) {
+  return z.object({
+    name:     z.string().min(1, t('admin.services.nameRequired')).max(100),
+    duration: z.coerce.number().int().min(5).max(480),
+    price:    z.coerce.number().min(0),
+  })
+}
 
 export type ServiceFormState = {
   error?: string
@@ -50,7 +53,8 @@ export async function createService(
   _prev: ServiceFormState,
   formData: FormData
 ): Promise<ServiceFormState> {
-  const parsed = ServiceSchema.safeParse({
+  const t = getServerT()
+  const parsed = buildServiceSchema(t).safeParse({
     name:     formData.get("name"),
     duration: formData.get("duration"),
     price:    formData.get("price"),
@@ -76,7 +80,7 @@ export async function createService(
     revalidatePath("/admin/services")
     return { success: true }
   } catch {
-    return { error: "Failed to create service. Please try again." }
+    return { error: t('admin.services.createError') }
   }
 }
 
@@ -85,7 +89,8 @@ export async function updateService(
   _prev: ServiceFormState,
   formData: FormData
 ): Promise<ServiceFormState> {
-  const parsed = ServiceSchema.safeParse({
+  const t = getServerT()
+  const parsed = buildServiceSchema(t).safeParse({
     name:     formData.get("name"),
     duration: formData.get("duration"),
     price:    formData.get("price"),
@@ -112,7 +117,7 @@ export async function updateService(
     revalidatePath("/admin/services")
     return { success: true }
   } catch {
-    return { error: "Failed to update service. Please try again." }
+    return { error: t('admin.services.updateError') }
   }
 }
 

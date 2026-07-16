@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { format } from "date-fns"
+import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem, SelectItemText } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
@@ -25,6 +26,7 @@ type Client = { id: string; name: string | null; phone: string | null }
 type Entry = { id: string; date: string; startTime: string; duration: number }
 
 export default function AppointmentModal({ date, initialAppointment, mode, apiPrefix = "/api/master", isAdminView = false, selectedMasterId, onClose, onSuccess }: AppointmentModalProps) {
+  const { t } = useTranslation()
   const [loading, setLoading] = useState(false)
   const [fetching, setFetching] = useState(true)
   
@@ -117,8 +119,7 @@ export default function AppointmentModal({ date, initialAppointment, mode, apiPr
       })
 
       if (!res.ok) {
-        const d = await res.json()
-        throw new Error(d.error || "Failed to create appointment")
+        throw new Error(t('admin.calendar.createAppointmentFailed'))
       }
       onSuccess()
     } catch (err: any) {
@@ -175,8 +176,8 @@ export default function AppointmentModal({ date, initialAppointment, mode, apiPr
                 <CalIcon className="h-5 w-5" />
               </div>
               <div>
-                <h2 className="text-xl font-bold leading-tight">New Booking</h2>
-                <p className="text-sm text-muted-foreground font-medium">Create a single or series booking</p>
+                <h2 className="text-xl font-bold leading-tight">{t('admin.calendar.newBookingTitle')}</h2>
+                <p className="text-sm text-muted-foreground font-medium">{t('admin.calendar.newBookingSubtitle')}</p>
               </div>
             </div>
             <Button variant="ghost" size="icon" onClick={onClose}><X className="h-5 w-5" /></Button>
@@ -191,7 +192,7 @@ export default function AppointmentModal({ date, initialAppointment, mode, apiPr
             <>
               {isAdminView && (
                 <div className="bg-muted/50 p-4 rounded-lg border border-border mb-4">
-                  <label className="text-sm font-medium mb-1.5 block">Select Master <span className="text-destructive">*</span></label>
+                  <label className="text-sm font-medium mb-1.5 block">{t('admin.calendar.selectMasterLabel')} <span className="text-destructive">*</span></label>
                   <Select
                     value={formMasterId}
                     onValueChange={(v) => setFormMasterId(v ?? "")}
@@ -199,11 +200,11 @@ export default function AppointmentModal({ date, initialAppointment, mode, apiPr
                   >
                     <SelectTrigger className="h-10">
                       <SelectValue>
-                        {(v: string) => v ? (masters.find(m => m.id === v)?.name ?? v) : "-- Choose Master --"}
+                        {(v: string) => v ? (masters.find(m => m.id === v)?.name ?? v) : t('admin.calendar.chooseMasterPlaceholder')}
                       </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value=""><SelectItemText>-- Choose Master --</SelectItemText></SelectItem>
+                      <SelectItem value=""><SelectItemText>{t('admin.calendar.chooseMasterPlaceholder')}</SelectItemText></SelectItem>
                       {masters.map(m => <SelectItem key={m.id} value={m.id}><SelectItemText>{m.name}</SelectItemText></SelectItem>)}
                     </SelectContent>
                   </Select>
@@ -215,23 +216,23 @@ export default function AppointmentModal({ date, initialAppointment, mode, apiPr
                 {/* Service Column */}
                 <div className="space-y-4">
                   <h3 className="font-semibold text-lg flex items-center gap-2 border-b pb-2">
-                    <MapPin className="h-4 w-4 text-primary" /> Service Details
+                    <MapPin className="h-4 w-4 text-primary" /> {t('admin.calendar.serviceDetailsTitle')}
                   </h3>
-                  
+
                   <div className="space-y-1.5">
-                    <label className="text-sm font-medium">Select Service</label>
+                    <label className="text-sm font-medium">{t('admin.calendar.selectServiceLabel')}</label>
                     <Select value={serviceId} onValueChange={(v) => setServiceId(v ?? "custom")}>
                       <SelectTrigger className="h-10">
                         <SelectValue>
                           {(v: string) => {
-                            if (v === "custom") return "-- Custom Service --"
+                            if (v === "custom") return t('admin.calendar.customServiceOption')
                             const s = services.find(sv => sv.id === v)
                             return s ? `${s.name} (${s.duration}m)` : v
                           }}
                         </SelectValue>
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="custom"><SelectItemText>-- Custom Service --</SelectItemText></SelectItem>
+                        <SelectItem value="custom"><SelectItemText>{t('admin.calendar.customServiceOption')}</SelectItemText></SelectItem>
                         {services.map(s => <SelectItem key={s.id} value={s.id}><SelectItemText>{s.name} ({s.duration}m)</SelectItemText></SelectItem>)}
                       </SelectContent>
                     </Select>
@@ -239,13 +240,13 @@ export default function AppointmentModal({ date, initialAppointment, mode, apiPr
 
                   {serviceId === "custom" && (
                     <div className="space-y-1.5 animate-in slide-in-from-top-2">
-                      <label className="text-sm font-medium">Custom Service Name <span className="text-destructive">*</span></label>
-                      <input 
-                        type="text" 
+                      <label className="text-sm font-medium">{t('admin.calendar.customServiceNameLabel')} <span className="text-destructive">*</span></label>
+                      <input
+                        type="text"
                         value={customServiceName}
                         onChange={e => setCustomServiceName(e.target.value)}
                         className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                        placeholder="E.g., Special Haircut"
+                        placeholder={t('admin.calendar.customServiceNamePlaceholder')}
                       />
                     </div>
                   )}
@@ -254,23 +255,23 @@ export default function AppointmentModal({ date, initialAppointment, mode, apiPr
                 {/* Client Column */}
                 <div className="space-y-4">
                   <h3 className="font-semibold text-lg flex items-center gap-2 border-b pb-2">
-                    <User className="h-4 w-4 text-primary" /> Client Details
+                    <User className="h-4 w-4 text-primary" /> {t('admin.calendar.clientDetailsTitle')}
                   </h3>
-                  
+
                   <div className="space-y-1.5">
-                    <label className="text-sm font-medium">Select Existing Client</label>
+                    <label className="text-sm font-medium">{t('admin.calendar.selectExistingClientLabel')}</label>
                     <Select value={clientId} onValueChange={(v) => setClientId(v ?? "custom")}>
                       <SelectTrigger className="h-10">
                         <SelectValue>
                           {(v: string) => {
-                            if (v === "custom") return "-- New Client / Guest --"
+                            if (v === "custom") return t('admin.calendar.newClientGuestOption')
                             const c = clients.find(cl => cl.id === v)
                             return c ? `${c.name ?? ''}${c.phone ? ` (${c.phone})` : ''}` : v
                           }}
                         </SelectValue>
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="custom"><SelectItemText>-- New Client / Guest --</SelectItemText></SelectItem>
+                        <SelectItem value="custom"><SelectItemText>{t('admin.calendar.newClientGuestOption')}</SelectItemText></SelectItem>
                         {clients.map(c => <SelectItem key={c.id} value={c.id}><SelectItemText>{c.name} {c.phone ? `(${c.phone})` : ''}</SelectItemText></SelectItem>)}
                       </SelectContent>
                     </Select>
@@ -279,23 +280,23 @@ export default function AppointmentModal({ date, initialAppointment, mode, apiPr
                   {clientId === "custom" && (
                      <div className="space-y-3 animate-in slide-in-from-top-2">
                       <div className="space-y-1.5">
-                        <label className="text-sm font-medium">Client Name <span className="text-destructive">*</span></label>
-                        <input 
-                          type="text" 
+                        <label className="text-sm font-medium">{t('admin.calendar.clientNameLabel')} <span className="text-destructive">*</span></label>
+                        <input
+                          type="text"
                           value={customClientName}
                           onChange={e => setCustomClientName(e.target.value)}
-                          className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" 
-                          placeholder="Guest Name" 
+                          className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                          placeholder={t('admin.calendar.guestNamePlaceholder')}
                         />
                       </div>
                       <div className="space-y-1.5">
-                        <label className="text-sm font-medium">Phone Number</label>
-                        <input 
-                          type="text" 
+                        <label className="text-sm font-medium">{t('admin.calendar.phoneNumberLabel')}</label>
+                        <input
+                          type="text"
                           value={customClientPhone}
                           onChange={e => setCustomClientPhone(e.target.value)}
-                          className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" 
-                          placeholder="+1 234 567 8900" 
+                          className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                          placeholder={t('admin.calendar.phonePlaceholderExample')}
                         />
                       </div>
                     </div>
@@ -307,36 +308,36 @@ export default function AppointmentModal({ date, initialAppointment, mode, apiPr
               <div className="space-y-4 pt-4">
                 <div className="flex justify-between items-center border-b pb-2">
                   <h3 className="font-semibold text-lg flex items-center gap-2">
-                    <CalIcon className="h-4 w-4 text-primary" /> Schedule & Time
+                    <CalIcon className="h-4 w-4 text-primary" /> {t('admin.calendar.scheduleTimeTitle')}
                   </h3>
                   {mode !== "edit" && (
                     <Button variant="outline" size="sm" onClick={addEntry} className="h-8 gap-1">
-                      <Plus className="w-3.5 h-3.5" /> Add Date (Series)
+                      <Plus className="w-3.5 h-3.5" /> {t('admin.calendar.addDateSeriesBtn')}
                     </Button>
                   )}
                 </div>
-                
+
                 <div className="space-y-3">
                   {entries.map((ent) => (
                     <div key={ent.id} className="flex flex-wrap sm:flex-nowrap items-center gap-3 bg-muted/30 p-4 rounded-lg border border-border">
                       <div className="space-y-1 w-full sm:flex-1 shrink-0">
-                        <label className="text-xs font-medium text-muted-foreground">Date</label>
-                        <DatePickerDropdown 
-                          date={ent.date} 
-                          onChange={(val) => updateEntry(ent.id, 'date', val)} 
+                        <label className="text-xs font-medium text-muted-foreground">{t('admin.calendar.dateLabel')}</label>
+                        <DatePickerDropdown
+                          date={ent.date}
+                          onChange={(val) => updateEntry(ent.id, 'date', val)}
                         />
                       </div>
                       <div className="space-y-1 w-full sm:flex-1 shrink-0">
-                        <label className="text-xs font-medium text-muted-foreground">Start Time</label>
-                        <TimePickerDropdown 
+                        <label className="text-xs font-medium text-muted-foreground">{t('admin.calendar.startTimeLabel')}</label>
+                        <TimePickerDropdown
                           value={ent.startTime}
                           onChange={(val) => updateEntry(ent.id, 'startTime', val)}
                           step={15}
                         />
                       </div>
                       <div className="space-y-1 w-full sm:flex-1 shrink-0">
-                        <label className="text-xs font-medium text-muted-foreground">Duration (min)</label>
-                        <input 
+                        <label className="text-xs font-medium text-muted-foreground">{t('admin.calendar.durationMinLabel')}</label>
+                        <input
                           type="number" 
                           value={ent.duration}
                           min={5}
@@ -364,12 +365,12 @@ export default function AppointmentModal({ date, initialAppointment, mode, apiPr
               {/* Row 3: Notes */}
               <div>
                  <div className="space-y-1.5">
-                    <label className="text-sm font-medium">Notes (Optional)</label>
+                    <label className="text-sm font-medium">{t('admin.calendar.notesOptionalLabel')}</label>
                     <Textarea
                       value={notes}
                       onChange={e => setNotes(e.target.value)}
                       className="min-h-[80px] resize-none"
-                      placeholder="Special requests or comments about this booking..."
+                      placeholder={t('admin.calendar.notesPlaceholder')}
                     />
                   </div>
               </div>
@@ -378,9 +379,9 @@ export default function AppointmentModal({ date, initialAppointment, mode, apiPr
         </div>
 
         <div className="p-5 border-t border-border bg-muted/20 flex justify-end items-center rounded-b-xl shrink-0 gap-3 sticky bottom-0 z-20">
-           <Button variant="outline" onClick={onClose} disabled={loading}>Cancel</Button>
+           <Button variant="outline" onClick={onClose} disabled={loading}>{t('common.cancel')}</Button>
            <Button onClick={handleSave} disabled={loading || fetching || !isValid()}>
-             {loading ? "Saving..." : mode === "edit" ? "Save Changes" : entries.length > 1 ? `Create ${entries.length} Appointments` : "Create Appointment"}
+             {loading ? t('common.saving') : mode === "edit" ? t('admin.masters.saveChangesBtn') : entries.length > 1 ? t('admin.calendar.createNAppointmentsBtn', { count: entries.length }) : t('admin.calendar.createAppointmentBtn')}
            </Button>
         </div>
 

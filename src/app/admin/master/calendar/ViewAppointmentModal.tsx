@@ -5,6 +5,9 @@ import { Button } from "@/components/ui/button"
 import { format, parseISO } from "date-fns"
 import type { Appointment } from "./ModernCalendar"
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
+import { useCurrentLanguage } from "@/contexts/LanguageContext"
+import { dateFnsLocale } from "@/lib/utils/date-fns-locale"
 
 interface Props {
   appointment: Appointment
@@ -15,7 +18,15 @@ interface Props {
 }
 
 export default function ViewAppointmentModal({ appointment, onClose, onDelete, onEdit, onDuplicate }: Props) {
+  const { t } = useTranslation()
+  const language = useCurrentLanguage()
   const [isDeleting, setIsDeleting] = useState(false)
+  const statusLabel = (status: string) => {
+    if (status === "PENDING") return t('profile.statusPending')
+    if (status === "CONFIRMED") return t('profile.statusConfirmed')
+    if (status.startsWith("CANCELLED")) return t('profile.statusCancelled')
+    return status
+  }
   const formattedServicePrice =
     appointment.service.price > 0
       ? new Intl.NumberFormat("pl-PL", {
@@ -27,12 +38,12 @@ export default function ViewAppointmentModal({ appointment, onClose, onDelete, o
       : ""
 
   const handleDelete = async () => {
-    if (!confirm("Are you sure you want to delete this appointment?")) return
+    if (!confirm(t('admin.calendar.deleteAppointmentConfirm'))) return
     setIsDeleting(true)
     try {
       await onDelete(appointment.id)
     } catch {
-      alert("Failed to delete appointment")
+      alert(t('admin.calendar.deleteAppointmentFailed'))
       setIsDeleting(false)
     }
   }
@@ -50,8 +61,8 @@ export default function ViewAppointmentModal({ appointment, onClose, onDelete, o
               <Calendar className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-xl font-bold leading-tight">Booking Details</h2>
-              <p className="text-sm text-muted-foreground font-medium uppercase tracking-wider">{appointment.status}</p>
+              <h2 className="text-xl font-bold leading-tight">{t('admin.calendar.bookingDetailsTitle')}</h2>
+              <p className="text-sm text-muted-foreground font-medium uppercase tracking-wider">{statusLabel(appointment.status)}</p>
             </div>
           </div>
           <Button variant="ghost" size="icon" onClick={onClose}><X className="h-5 w-5" /></Button>
@@ -66,8 +77,8 @@ export default function ViewAppointmentModal({ appointment, onClose, onDelete, o
                   <User className="w-4 h-4" />
                </div>
                <div>
-                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Client</p>
-                  <p className="font-semibold text-lg">{appointment.client.name || "Guest"}</p>
+                  <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">{t('admin.appointments.colClient')}</p>
+                  <p className="font-semibold text-lg">{appointment.client.name || t('admin.calendar.guestFallback')}</p>
                </div>
              </div>
              {appointment.client.phone && (
@@ -79,27 +90,27 @@ export default function ViewAppointmentModal({ appointment, onClose, onDelete, o
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1 bg-muted/20 p-3 rounded-lg border border-border">
-              <p className="text-xs text-muted-foreground font-medium flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5"/> Date</p>
-              <p className="font-semibold">{format(apptDate, "EEEE, MMM d, yyyy")}</p>
+              <p className="text-xs text-muted-foreground font-medium flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5"/> {t('admin.calendar.dateLabel')}</p>
+              <p className="font-semibold">{format(apptDate, "EEEE, MMM d, yyyy", { locale: dateFnsLocale(language) })}</p>
             </div>
             <div className="space-y-1 bg-muted/20 p-3 rounded-lg border border-border">
-              <p className="text-xs text-muted-foreground font-medium flex items-center gap-1.5"><Clock className="w-3.5 h-3.5"/> Time</p>
+              <p className="text-xs text-muted-foreground font-medium flex items-center gap-1.5"><Clock className="w-3.5 h-3.5"/> {t('admin.calendar.timeFieldLabel')}</p>
               <p className="font-semibold">{appointment.startTime} - {appointment.endTime}</p>
             </div>
           </div>
 
           <div className="bg-muted/20 rounded-lg p-4 border border-border">
-            <p className="text-xs text-muted-foreground font-medium mb-1.5 flex items-center gap-1.5"><Scissors className="w-3.5 h-3.5"/> Service</p>
+            <p className="text-xs text-muted-foreground font-medium mb-1.5 flex items-center gap-1.5"><Scissors className="w-3.5 h-3.5"/> {t('admin.appointments.colService')}</p>
             <div className="flex justify-between items-center">
               <p className="font-semibold text-base">{appointment.service.name}</p>
               <p className="font-bold text-primary">{formattedServicePrice}</p>
             </div>
-            <p className="text-sm text-muted-foreground mt-1">{appointment.service.duration} minutes</p>
+            <p className="text-sm text-muted-foreground mt-1">{appointment.service.duration} {t('admin.calendar.minutesSuffix')}</p>
           </div>
 
           {appointment.notes && (
             <div className="bg-muted/20 rounded-lg p-4 border border-border">
-              <p className="text-xs text-muted-foreground font-medium mb-1.5 flex items-center gap-1.5"><FileText className="w-3.5 h-3.5"/> Notes</p>
+              <p className="text-xs text-muted-foreground font-medium mb-1.5 flex items-center gap-1.5"><FileText className="w-3.5 h-3.5"/> {t('admin.calendar.notesFieldLabel')}</p>
               <p className="text-sm whitespace-pre-wrap">{appointment.notes}</p>
             </div>
           )}
@@ -109,10 +120,10 @@ export default function ViewAppointmentModal({ appointment, onClose, onDelete, o
         {/* Footer Actions */}
         <div className="p-5 border-t border-border bg-muted/10 flex flex-wrap gap-3 sm:flex-nowrap">
            <Button variant="outline" className="flex-1 gap-2" onClick={() => onEdit(appointment)}>
-             <Edit3 className="w-4 h-4" /> Edit
+             <Edit3 className="w-4 h-4" /> {t('admin.calendar.editBtn')}
            </Button>
            <Button variant="outline" className="flex-1 gap-2" onClick={() => onDuplicate(appointment)}>
-             <Copy className="w-4 h-4" /> Copy
+             <Copy className="w-4 h-4" /> {t('admin.calendar.copyBtn')}
            </Button>
            <Button
              variant="destructive"
@@ -120,7 +131,7 @@ export default function ViewAppointmentModal({ appointment, onClose, onDelete, o
              onClick={handleDelete}
              disabled={isDeleting}
            >
-             <Trash2 className="w-4 h-4" /> {isDeleting ? "Deleting..." : "Delete"}
+             <Trash2 className="w-4 h-4" /> {isDeleting ? t('admin.calendar.deletingBtn') : t('admin.calendar.deleteBtn')}
            </Button>
         </div>
 

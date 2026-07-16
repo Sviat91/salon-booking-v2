@@ -1,5 +1,6 @@
 import { Metadata } from "next"
 import SocialSettingsForm from "@/components/admin/SocialSettingsForm"
+import { getServerT } from "@/lib/i18n-server"
 
 export const metadata: Metadata = {
   title: "Social Login Settings | Admin",
@@ -7,13 +8,13 @@ export const metadata: Metadata = {
 }
 
 export default function SocialSettingsPage() {
+  const t = getServerT()
   return (
     <div className="flex flex-col gap-6 max-w-4xl">
       <div>
-        <p className="text-xs font-medium uppercase tracking-wider text-primary">Configuration</p>
+        <p className="text-xs font-medium uppercase tracking-wider text-primary">{t('admin.settings.configurationEyebrow')}</p>
         <p className="mt-1 text-sm text-muted-foreground">
-          Fill in keys to automatically enable social logins. Leave everything blank to disable a provider.
-          Secrets are encrypted securely in the database.
+          {t('admin.settings.social.pageDesc')}
         </p>
       </div>
 

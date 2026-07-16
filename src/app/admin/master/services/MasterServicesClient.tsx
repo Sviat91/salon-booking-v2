@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import { Plus, Pencil, Trash2, Lock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
@@ -12,6 +13,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet"
 import MasterServiceForm from "./MasterServiceForm"
+import { apiErrorKey } from "@/lib/errors/apiErrorKey"
 
 type Service = {
   id: string
@@ -29,6 +31,7 @@ export default function MasterServicesClient({
   services: Service[]
   currentMasterId: string
 }) {
+  const { t } = useTranslation()
   const router = useRouter()
   const [editTarget, setEditTarget] = useState<Service | null>(null)
   const [addOpen, setAddOpen] = useState(false)
@@ -36,14 +39,17 @@ export default function MasterServicesClient({
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Delete your custom service?")) return
+    if (!confirm(t('admin.services.deleteCustomConfirm'))) return
     setDeletingId(id)
     try {
       const res = await fetch(`/api/master/services/${id}`, { method: "DELETE" })
-      if (!res.ok) throw new Error("Delete failed")
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}))
+        throw new Error(t(apiErrorKey(errData.code)))
+      }
       router.refresh()
     } catch (e: any) {
-      alert("Error: " + e.message)
+      alert(t('admin.services.errorPrefix', { message: e.message }))
     } finally {
       setDeletingId(null)
     }
@@ -58,9 +64,9 @@ export default function MasterServicesClient({
       <div>
         <div className="mb-6 flex items-center justify-between">
           <div>
-            <p className="text-xs font-medium uppercase tracking-wider text-primary">Services</p>
+            <p className="text-xs font-medium uppercase tracking-wider text-primary">{t('admin.nav.services')}</p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Manage your personal services or view general salon ones.
+              {t('admin.services.masterDesc')}
             </p>
           </div>
 
@@ -69,13 +75,13 @@ export default function MasterServicesClient({
               render={
                 <Button className="h-10 gap-2 px-5">
                   <Plus className="h-4 w-4" />
-                  Add My Service
+                  {t('admin.services.addMyService')}
                 </Button>
               }
             />
             <SheetContent side="right">
               <SheetHeader>
-                <SheetTitle>Add My Service</SheetTitle>
+                <SheetTitle>{t('admin.services.addMyService')}</SheetTitle>
               </SheetHeader>
               <div className="px-4 pb-4 pt-6">
                 <MasterServiceForm onSuccess={() => setAddOpen(false)} />
@@ -87,27 +93,27 @@ export default function MasterServicesClient({
 
       <div className="space-y-6">
         <div>
-          <h2 className="text-lg font-semibold mb-3">My Custom Services</h2>
+          <h2 className="text-lg font-semibold mb-3">{t('admin.services.myCustomServicesHeading')}</h2>
           {myServices.length === 0 ? (
             <div className="flex flex-col items-center justify-center rounded-[20px] border border-dashed border-border py-16 text-center text-muted-foreground">
-              <p className="text-sm">You haven&apos;t added any custom services.</p>
+              <p className="text-sm">{t('admin.services.noCustomServices')}</p>
             </div>
           ) : (
             <div className="rounded-[20px] border border-border bg-card shadow-sm overflow-hidden">
               <table className="w-full text-sm">
                 <thead className="bg-muted/50 text-muted-foreground">
                   <tr>
-                    <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Name</th>
-                    <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Duration</th>
-                    <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Price</th>
-                    <th className="px-4 py-2.5 text-right text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Actions</th>
+                    <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{t('admin.services.colName')}</th>
+                    <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{t('admin.services.colDuration')}</th>
+                    <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{t('admin.services.colPrice')}</th>
+                    <th className="px-4 py-2.5 text-right text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{t('admin.services.colActions')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
                   {myServices.map((svc) => (
                     <tr key={svc.id} className="hover:bg-muted/40 transition-colors">
                       <td className="px-4 py-3 font-medium">{svc.name}</td>
-                      <td className="px-4 py-3 text-muted-foreground">{svc.duration} min</td>
+                      <td className="px-4 py-3 text-muted-foreground">{svc.duration} {t('booking.minutes')}</td>
                       <td className="px-4 py-3 font-medium text-foreground">{svc.price.toFixed(2)} zł</td>
                       <td className="px-4 py-3">
                         <div className="flex items-center justify-end gap-0.5">
@@ -127,7 +133,7 @@ export default function MasterServicesClient({
                             />
                             <SheetContent side="right">
                               <SheetHeader>
-                                <SheetTitle>Edit My Service</SheetTitle>
+                                <SheetTitle>{t('admin.services.editMyServiceTitle')}</SheetTitle>
                               </SheetHeader>
                               <div className="px-4 pb-4 pt-6">
                                 {editTarget && (
@@ -161,36 +167,36 @@ export default function MasterServicesClient({
 
         <div>
           <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
-            Salon Services <Lock className="w-4 h-4 text-muted-foreground" />
+            {t('admin.services.salonServicesHeading')} <Lock className="w-4 h-4 text-muted-foreground" />
           </h2>
           <p className="text-xs text-muted-foreground mb-4">
-            These services are managed by the salon administrator and cannot be edited.
+            {t('admin.services.salonServicesDesc')}
           </p>
           {adminServices.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No global salon services available.</p>
+            <p className="text-sm text-muted-foreground">{t('admin.services.noGlobalServices')}</p>
           ) : (
             <div className="rounded-[20px] border border-border bg-card shadow-sm overflow-hidden">
               <table className="w-full text-sm opacity-90">
                 <thead className="bg-muted/50 text-muted-foreground">
                   <tr>
-                    <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Name</th>
-                    <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Duration</th>
-                    <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Pricing</th>
+                    <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{t('admin.services.colName')}</th>
+                    <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{t('admin.services.colDuration')}</th>
+                    <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{t('admin.services.colPricing')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
                   {adminServices.map((svc) => (
                     <tr key={svc.id} className="bg-muted/10">
                       <td className="px-4 py-3 font-medium text-muted-foreground">{svc.name}</td>
-                      <td className="px-4 py-3 text-muted-foreground">{svc.duration} min</td>
+                      <td className="px-4 py-3 text-muted-foreground">{svc.duration} {t('booking.minutes')}</td>
                       <td className="px-4 py-3 text-muted-foreground">
                         {(() => {
                           const overridePrice = svc.masterServices?.[0]?.priceOverride
                           if (overridePrice !== null && overridePrice !== undefined) {
                             return (
                               <div className="space-y-0.5">
-                                <div>Your rate: {overridePrice.toFixed(2)} zł</div>
-                                <div className="text-xs opacity-80">Default: {svc.price.toFixed(2)} zł</div>
+                                <div>{t('admin.services.yourRate', { price: overridePrice.toFixed(2) })}</div>
+                                <div className="text-xs opacity-80">{t('admin.services.defaultRate', { price: svc.price.toFixed(2) })}</div>
                               </div>
                             )
                           }

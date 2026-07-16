@@ -1,11 +1,13 @@
 "use client"
 
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import { Copy, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { parseAdminPermissions, type AdminPermissions } from "@/lib/admin-permissions"
+import { apiErrorKey } from "@/lib/errors/apiErrorKey"
 
 type AdminUser = {
   id: string
@@ -24,6 +26,7 @@ type ClientKey = keyof AdminPermissions["clients"]
 type GdprKey = keyof AdminPermissions["gdpr"]
 
 export default function AdminForm({ admin, onSuccess }: Props) {
+  const { t } = useTranslation()
   const existing = parseAdminPermissions(admin?.adminPermissions)
 
   const [name, setName] = useState("")
@@ -58,8 +61,8 @@ export default function AdminForm({ admin, onSuccess }: Props) {
       if (res.ok) {
         onSuccess()
       } else {
-        const d = await res.json()
-        setError(d.error ?? "Failed to save")
+        const d = await res.json().catch(() => ({}))
+        setError(d.code ? t(apiErrorKey(d.code)) : t('admin.admins.saveFailed'))
       }
     } else {
       // Create mode
@@ -72,8 +75,8 @@ export default function AdminForm({ admin, onSuccess }: Props) {
       if (res.ok) {
         setCreated({ password })
       } else {
-        const d = await res.json()
-        setError(typeof d.error === "string" ? d.error : "Failed to create admin")
+        const d = await res.json().catch(() => ({}))
+        setError(d.code ? t(apiErrorKey(d.code)) : t('admin.admins.createFailed'))
       }
     }
   }
@@ -83,14 +86,14 @@ export default function AdminForm({ admin, onSuccess }: Props) {
       <div className="flex flex-col gap-4">
         <div className="rounded-lg bg-[var(--md-success-container)] p-4">
           <p className="text-sm font-medium text-[var(--md-on-success-container)]">
-            Admin created successfully!
+            {t('admin.admins.adminCreatedSuccess')}
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
-            Save this password — it will not be shown again.
+            {t('admin.masters.savePasswordHint')}
           </p>
         </div>
         <div className="grid gap-1.5">
-          <Label>Password</Label>
+          <Label>{t('form.password')}</Label>
           <div className="flex gap-2">
             <Input readOnly value={created.password} className="font-mono" />
             <Button
@@ -107,7 +110,7 @@ export default function AdminForm({ admin, onSuccess }: Props) {
             </Button>
           </div>
         </div>
-        <Button onClick={onSuccess}>Done</Button>
+        <Button onClick={onSuccess}>{t('admin.masters.done')}</Button>
       </div>
     )
   }
@@ -117,34 +120,34 @@ export default function AdminForm({ admin, onSuccess }: Props) {
       {!admin && (
         <>
           <div className="grid gap-1.5">
-            <Label htmlFor="adm-name">Full Name</Label>
+            <Label htmlFor="adm-name">{t('admin.masters.fullName')}</Label>
             <Input
               id="adm-name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Jan Kowalski"
+              placeholder={t('admin.admins.adminNamePlaceholder')}
               required
             />
           </div>
           <div className="grid gap-1.5">
-            <Label htmlFor="adm-email">Email</Label>
+            <Label htmlFor="adm-email">{t('admin.masters.emailLabel')}</Label>
             <Input
               id="adm-email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="admin@salon.com"
+              placeholder={t('admin.admins.adminEmailPlaceholder')}
               required
             />
           </div>
           <div className="grid gap-1.5">
-            <Label htmlFor="adm-password">Password</Label>
+            <Label htmlFor="adm-password">{t('form.password')}</Label>
             <Input
               id="adm-password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Min 6 characters"
+              placeholder={t('admin.admins.passwordPlaceholder')}
               minLength={6}
               required
             />
@@ -153,7 +156,7 @@ export default function AdminForm({ admin, onSuccess }: Props) {
       )}
 
       <div className="grid gap-2">
-        <p className="text-sm font-medium">Clients</p>
+        <p className="text-sm font-medium">{t('admin.admins.clientsSection')}</p>
         {(["view", "edit", "delete"] as ClientKey[]).map((key) => (
           <label key={key} className="flex items-center gap-2 cursor-pointer">
             <input
@@ -162,13 +165,13 @@ export default function AdminForm({ admin, onSuccess }: Props) {
               onChange={() => toggle("clients", key)}
               className="h-4 w-4 accent-primary"
             />
-            <span className="text-sm capitalize">{key}</span>
+            <span className="text-sm capitalize">{t(`admin.admins.perm${key.charAt(0).toUpperCase()}${key.slice(1)}Word`)}</span>
           </label>
         ))}
       </div>
 
       <div className="grid gap-2">
-        <p className="text-sm font-medium">GDPR</p>
+        <p className="text-sm font-medium">{t('admin.admins.gdprSection')}</p>
         {(["view", "withdraw", "erase"] as GdprKey[]).map((key) => (
           <label key={key} className="flex items-center gap-2 cursor-pointer">
             <input
@@ -177,7 +180,7 @@ export default function AdminForm({ admin, onSuccess }: Props) {
               onChange={() => toggle("gdpr", key)}
               className="h-4 w-4 accent-primary"
             />
-            <span className="text-sm capitalize">{key}</span>
+            <span className="text-sm capitalize">{t(`admin.admins.perm${key.charAt(0).toUpperCase()}${key.slice(1)}Word`)}</span>
           </label>
         ))}
       </div>
@@ -185,7 +188,7 @@ export default function AdminForm({ admin, onSuccess }: Props) {
       {error && <p className="text-sm text-destructive">{error}</p>}
 
       <Button type="submit" disabled={saving}>
-        {saving ? "Saving…" : admin ? "Save Permissions" : "Create Admin"}
+        {saving ? t('common.saving') : admin ? t('admin.admins.savePermissions') : t('admin.admins.createAdminBtn')}
       </Button>
     </form>
   )

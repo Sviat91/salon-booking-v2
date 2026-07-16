@@ -31,6 +31,14 @@ export const KNOWN_ERROR_CODES = new Set([
   'SERVICE_NOT_FOUND',
   'INVALID_TIME',
   'INVALID_DATE',
+  'SMTP_NOT_CONFIGURED',
+  'NOT_FOUND',
+  'FORBIDDEN',
+  'INVALID_FILE_TYPE',
+  'FILE_TOO_LARGE',
+  'NO_PASSWORD_SET',
+  'INVALID_CURRENT_PASSWORD',
+  'EMAIL_ALREADY_IN_USE',
 ])
 
 export function apiErrorKey(code?: string): string {

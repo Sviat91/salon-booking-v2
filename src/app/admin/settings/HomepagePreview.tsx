@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react"
 import Image from "next/image"
+import { useTranslation } from "react-i18next"
 import { Move } from "lucide-react"
 
 export const IFRAME_WIDTH = 1440
@@ -28,6 +29,7 @@ export default function HomepagePreview({
   previewRef: React.RefObject<HTMLDivElement>
   containerHeight: number
 }) {
+  const { t } = useTranslation()
   const containerRef = useRef<HTMLDivElement>(null)
   const [scale, setScale] = useState(0.25)
   const [isDark, setIsDark] = useState(() => typeof document !== 'undefined' && document.documentElement.classList.contains('dark'))
@@ -63,7 +65,7 @@ export default function HomepagePreview({
       <iframe
         key={isDark ? 'preview-dark' : 'preview-light'}
         src="/?preview=1"
-        title="Homepage preview"
+        title={t('admin.settings.general.homepagePreviewTitle')}
         className="origin-top-left pointer-events-none"
         style={{
           width: IFRAME_WIDTH,
@@ -95,7 +97,7 @@ export default function HomepagePreview({
           >
             <div className="h-8 w-14 rounded border-2 border-dashed border-primary/50 flex items-center justify-center gap-0.5 bg-primary/10">
               <Move className="h-3 w-3 text-primary/60" />
-              <span className="text-[9px] text-primary/60">Logo</span>
+              <span className="text-[9px] text-primary/60">{t('admin.settings.general.logoFallbackLabel')}</span>
             </div>
           </div>
         )}

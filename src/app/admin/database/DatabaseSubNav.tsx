@@ -2,15 +2,17 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useTranslation } from "react-i18next"
 import { cn } from "@/lib/utils"
 
 const tabs = [
-  { label: "Clients", href: "/admin/database/clients" },
-  { label: "GDPR", href: "/admin/database/gdpr" },
+  { labelKey: "admin.database.clientsTab", href: "/admin/database/clients" },
+  { labelKey: "admin.database.gdprTab", href: "/admin/database/gdpr" },
 ]
 
 export default function DatabaseSubNav() {
   const pathname = usePathname()
+  const { t } = useTranslation()
 
   return (
     <div className="mb-6 flex gap-1 border-b border-border">
@@ -25,7 +27,7 @@ export default function DatabaseSubNav() {
               : "border-transparent text-muted-foreground hover:text-foreground"
           )}
         >
-          {tab.label}
+          {t(tab.labelKey)}
         </Link>
       ))}
     </div>

@@ -2,9 +2,12 @@
 
 import { useRef, useState, useEffect } from "react"
 import { format, isToday } from "date-fns"
+import { useTranslation } from "react-i18next"
 import type { Appointment, Template, Override, Interval } from "./ModernCalendar"
 import { Clock, Phone, Scissors, User, Plus, PowerOff, X, ChevronDown, Users } from "lucide-react"
 import { TimePickerDropdown } from "@/components/TimePickerDropdown"
+import { useCurrentLanguage } from "@/contexts/LanguageContext"
+import { dateFnsLocale } from "@/lib/utils/date-fns-locale"
 
 interface DayViewProps {
   currentDate: Date
@@ -59,8 +62,23 @@ function groupOverlappingAppointments(appointments: Appointment[]): Appointment[
   return groups
 }
 
+function pluralize(count: number, one: string, few: string, many: string): string {
+  if (count === 1) return one
+  if (count >= 2 && count <= 4) return few
+  return many
+}
+
 export default function DayView({ currentDate, appointments, templates, overrides, step, startHour, endHour, isEditMode, availableSlotColor, dayOffColor, apiPrefix = "/api/master", selectedMasterId = "all", onAddClick, onAppointmentClick, onDataChange }: DayViewProps) {
+  const { t } = useTranslation()
+  const language = useCurrentLanguage()
+  const locale = dateFnsLocale(language)
   const containerRef = useRef<HTMLDivElement>(null)
+  const statusLabel = (status: string) => {
+    if (status === "PENDING") return t('profile.statusPending')
+    if (status === "CONFIRMED") return t('profile.statusConfirmed')
+    if (status.startsWith("CANCELLED")) return t('profile.statusCancelled')
+    return status
+  }
   const totalHours = endHour - startHour
   const PIXELS_PER_MINUTE = 2 
   const containerHeight = totalHours * 60 * PIXELS_PER_MINUTE
@@ -135,10 +153,10 @@ export default function DayView({ currentDate, appointments, templates, override
           
           <div className="flex flex-col items-start">
             <span className={`text-xs font-medium uppercase tracking-wider ${isCurr ? 'text-primary' : 'text-muted-foreground'}`}>
-              {format(currentDate, "EEEE")}
+              {format(currentDate, "EEEE", { locale })}
             </span>
             <span className={`text-2xl font-bold rounded-full mt-1 ${isCurr ? 'text-primary' : ''}`}>
-              {format(currentDate, "MMMM d")}
+              {format(currentDate, "MMMM d", { locale })}
             </span>
           </div>
 
@@ -146,7 +164,7 @@ export default function DayView({ currentDate, appointments, templates, override
             <div className="flex flex-wrap items-center gap-4 bg-muted/40 p-2 rounded-lg border border-border/50 shadow-inner ml-auto mr-4">
               {status.isDayOff ? (
                 <div className="text-sm font-medium text-destructive flex items-center gap-2 px-2">
-                  <PowerOff className="w-4 h-4" /> Day Off
+                  <PowerOff className="w-4 h-4" /> {t('admin.calendar.dayOffBtn')}
                 </div>
               ) : (
                 <div className="flex flex-wrap items-center gap-3">
@@ -185,14 +203,14 @@ export default function DayView({ currentDate, appointments, templates, override
                     status.isDayOff ? 'bg-primary/20 text-primary hover:bg-primary/30' : 'bg-[var(--md-error-container)] text-[var(--md-on-error-container)] hover:brightness-95'
                   }`}
                 >
-                  <PowerOff className="w-3.5 h-3.5" /> {status.isDayOff ? 'Work' : 'Day Off'}
+                  <PowerOff className="w-3.5 h-3.5" /> {status.isDayOff ? t('admin.calendar.workBtn') : t('admin.calendar.dayOffBtn')}
                 </button>
                 {!status.isDayOff && (
-                  <button 
-                    onClick={addShift} 
+                  <button
+                    onClick={addShift}
                     className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-background border rounded-md hover:bg-muted font-medium transition-colors shadow-sm"
                   >
-                    <Plus className="w-3.5 h-3.5" /> Add Shift
+                    <Plus className="w-3.5 h-3.5" /> {t('admin.calendar.addShiftBtn')}
                   </button>
                 )}
               </div>
@@ -200,11 +218,11 @@ export default function DayView({ currentDate, appointments, templates, override
           )}
 
           {!isEditMode && !isPastDay && !status.isDayOff && (
-            <button 
+            <button
               onClick={() => onAddClick(currentDate)}
               className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-full font-semibold text-sm hover:bg-primary/90 transition-colors shadow-sm ml-auto"
             >
-              <Plus className="w-4 h-4" /> New Booking
+              <Plus className="w-4 h-4" /> {t('admin.calendar.newBookingBtn')}
             </button>
           )}
         </div>
@@ -249,7 +267,7 @@ export default function DayView({ currentDate, appointments, templates, override
               {status.isDayOff && (
                 <div className="absolute inset-0 flex items-center justify-center z-0" style={{ backgroundColor: dayOffColor + '40' }}>
                   <span className="text-2xl font-bold opacity-80 select-none uppercase tracking-widest" style={{ color: dayOffColor }}>
-                    Day Off
+                    {t('admin.calendar.dayOffBtn')}
                   </span>
                 </div>
               )}
@@ -312,13 +330,13 @@ export default function DayView({ currentDate, appointments, templates, override
                       <div className="flex flex-col gap-1 w-[150px] shrink-0 border-r border-foreground/10 pr-4">
                         <div className="font-bold text-lg">{a.startTime}</div>
                         <div className="text-sm opacity-70">{a.endTime}</div>
-                        <div className="mt-auto text-xs font-semibold text-muted-foreground uppercase tracking-wider">{a.status}</div>
+                        <div className="mt-auto text-xs font-semibold text-muted-foreground uppercase tracking-wider">{statusLabel(a.status)}</div>
                       </div>
                       
                       <div className="flex-1 flex flex-col gap-2 min-w-0">
                         <h3 className="font-semibold text-base truncate flex items-center gap-2">
                           <User className="w-4 h-4 opacity-70" />
-                          {a.client.name || 'Unknown Client'}
+                          {a.client.name || t('admin.appointments.unknownClient')}
                         </h3>
                         
                         <div className="flex items-center gap-4 text-sm opacity-90">
@@ -362,7 +380,7 @@ export default function DayView({ currentDate, appointments, templates, override
                             <div className="flex-1 flex flex-col gap-2 min-w-0">
                               <h3 className="font-semibold text-base truncate flex items-center gap-2">
                                 <User className="w-4 h-4 text-muted-foreground" />
-                                {a.client.name || 'Unknown Client'}
+                                {a.client.name || t('admin.appointments.unknownClient')}
                               </h3>
                               
                               <div className="flex items-center gap-4 text-sm text-muted-foreground">
@@ -389,7 +407,7 @@ export default function DayView({ currentDate, appointments, templates, override
                         <div className="flex items-center gap-2 mb-2">
                           <Users className="w-4 h-4" />
                           <span className="font-semibold text-lg">{group.length}</span>
-                          <span className="text-sm opacity-90">bookings at this time</span>
+                          <span className="text-sm opacity-90">{pluralize(group.length, t('management.bookingOne'), t('management.bookingFew'), t('management.bookingMany'))} {t('admin.calendar.atThisTime')}</span>
                           <ChevronDown className="w-4 h-4 ml-auto" />
                         </div>
                         <div className="text-xs opacity-75 flex items-center gap-1">

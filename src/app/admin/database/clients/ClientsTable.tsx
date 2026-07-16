@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { useTranslation } from "react-i18next"
 import { Search, Pencil, Trash2, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -14,6 +15,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import type { AdminPermissions } from "@/lib/admin-permissions"
+import { apiErrorKey } from "@/lib/errors/apiErrorKey"
+import { useCurrentLanguage } from "@/contexts/LanguageContext"
+import { localeFor } from "@/lib/i18n"
 
 type ClientRow = {
   id: string
@@ -37,6 +41,8 @@ interface EditState {
 }
 
 export default function ClientsTable({ clients: initialClients, permissions }: Props) {
+  const { t } = useTranslation()
+  const language = useCurrentLanguage()
   const router = useRouter()
   const [search, setSearch] = useState("")
   const [editTarget, setEditTarget] = useState<EditState | null>(null)
@@ -69,20 +75,20 @@ export default function ClientsTable({ clients: initialClients, permissions }: P
         }),
       })
       if (!res.ok) {
-        const d = await res.json()
-        throw new Error(d.error ?? "Failed to save")
+        const d = await res.json().catch(() => ({}))
+        throw new Error(d.code ? t(apiErrorKey(d.code)) : t('admin.database.saveFailed'))
       }
       setEditTarget(null)
       router.refresh()
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save")
+      setError(err instanceof Error ? err.message : t('admin.database.saveFailed'))
     } finally {
       setSaving(false)
     }
   }
 
   async function handleDelete(id: string, name: string | null) {
-    if (!confirm(`Delete client "${name ?? "this client"}"? This cannot be undone.`)) return
+    if (!confirm(t('admin.database.deleteConfirm', { name: name ?? t('admin.database.thisClient') }))) return
     const res = await fetch(`/api/admin/database/clients/${id}`, { method: "DELETE" })
     if (res.ok) {
       router.refresh()
@@ -92,13 +98,13 @@ export default function ClientsTable({ clients: initialClients, permissions }: P
   return (
     <div>
       <p className="mb-4 text-sm text-muted-foreground">
-        {initialClients.length} client{initialClients.length !== 1 ? "s" : ""} total
+        {t('admin.database.totalClients', { count: initialClients.length })}
       </p>
 
       <div className="mb-4 flex items-center gap-2 max-w-sm">
         <Search className="h-4 w-4 text-muted-foreground shrink-0" />
         <Input
-          placeholder="Search by name, phone, email…"
+          placeholder={t('admin.database.searchPlaceholder')}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
@@ -106,20 +112,20 @@ export default function ClientsTable({ clients: initialClients, permissions }: P
 
       {filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-[20px] border border-dashed border-border py-16 text-center">
-          <p className="text-sm text-muted-foreground">No clients found.</p>
+          <p className="text-sm text-muted-foreground">{t('admin.database.noClientsFound')}</p>
         </div>
       ) : (
         <div className="rounded-[20px] border border-border bg-card shadow-sm overflow-hidden">
           <table className="w-full text-sm">
             <thead className="bg-muted/50 text-muted-foreground">
               <tr>
-                <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Name</th>
-                <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Phone</th>
-                <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Email</th>
-                <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Registered</th>
-                <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Type</th>
+                <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{t('admin.database.nameLabel')}</th>
+                <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{t('form.phone')}</th>
+                <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{t('admin.masters.emailLabel')}</th>
+                <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{t('admin.database.colRegistered')}</th>
+                <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{t('admin.database.colType')}</th>
                 {(permissions.clients.edit || permissions.clients.delete) && (
-                  <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Actions</th>
+                  <th className="px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{t('admin.services.colActions')}</th>
                 )}
               </tr>
             </thead>
@@ -136,13 +142,13 @@ export default function ClientsTable({ clients: initialClients, permissions }: P
                   <td className="px-4 py-3">{client.phone ?? <span className="text-muted-foreground">—</span>}</td>
                   <td className="px-4 py-3">{client.email ?? <span className="text-muted-foreground">—</span>}</td>
                   <td className="px-4 py-3 text-muted-foreground">
-                    {new Date(client.createdAt).toLocaleDateString()}
+                    {new Date(client.createdAt).toLocaleDateString(localeFor(language))}
                   </td>
                   <td className="px-4 py-3">
                     {client.isGuest ? (
-                      <Badge variant="muted">Guest</Badge>
+                      <Badge variant="muted">{t('admin.database.guestBadge')}</Badge>
                     ) : (
-                      <Badge variant="success">Registered</Badge>
+                      <Badge variant="success">{t('admin.database.registeredBadge')}</Badge>
                     )}
                   </td>
                   {(permissions.clients.edit || permissions.clients.delete) && (
@@ -187,12 +193,12 @@ export default function ClientsTable({ clients: initialClients, permissions }: P
       <Dialog open={!!editTarget} onOpenChange={(o) => { if (!o) setEditTarget(null) }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit Client</DialogTitle>
+            <DialogTitle>{t('admin.database.editClientTitle')}</DialogTitle>
           </DialogHeader>
           {editTarget && (
             <form onSubmit={handleEdit} className="flex flex-col gap-4 pt-2">
               <div className="grid gap-1.5">
-                <Label htmlFor="edit-name">Name</Label>
+                <Label htmlFor="edit-name">{t('admin.database.nameLabel')}</Label>
                 <Input
                   id="edit-name"
                   value={editTarget.name}
@@ -200,7 +206,7 @@ export default function ClientsTable({ clients: initialClients, permissions }: P
                 />
               </div>
               <div className="grid gap-1.5">
-                <Label htmlFor="edit-phone">Phone</Label>
+                <Label htmlFor="edit-phone">{t('form.phone')}</Label>
                 <Input
                   id="edit-phone"
                   value={editTarget.phone}
@@ -208,7 +214,7 @@ export default function ClientsTable({ clients: initialClients, permissions }: P
                 />
               </div>
               <div className="grid gap-1.5">
-                <Label htmlFor="edit-email">Email</Label>
+                <Label htmlFor="edit-email">{t('admin.masters.emailLabel')}</Label>
                 <Input
                   id="edit-email"
                   type="email"
@@ -218,7 +224,7 @@ export default function ClientsTable({ clients: initialClients, permissions }: P
               </div>
               {error && <p className="text-sm text-destructive">{error}</p>}
               <Button type="submit" disabled={saving}>
-                {saving ? "Saving…" : "Save Changes"}
+                {saving ? t('common.saving') : t('admin.masters.saveChangesBtn')}
               </Button>
             </form>
           )}

@@ -3,11 +3,13 @@
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
 import prisma from "@/lib/prisma"
+import { getServerT } from "@/lib/i18n-server"
 
-const hexColor = z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Invalid hex color")
+function buildSettingsSchema(t: (key: string) => string) {
+  const hexColor = z.string().regex(/^#[0-9A-Fa-f]{6}$/, t('admin.settings.general.invalidHexColor'))
 
-const SettingsSchema = z.object({
-  brandName:      z.string().min(1, "Brand name is required").max(80),
+  return z.object({
+  brandName:      z.string().min(1, t('admin.settings.general.brandNameRequired')).max(80),
   logoUrl:        z.string().optional().default(""),
   faviconUrl:     z.string().optional().default(""),
   darkLogoUrl:    z.string().optional().default(""),
@@ -55,7 +57,8 @@ const SettingsSchema = z.object({
   salonCompanyName: z.string().max(200).optional().default(""),
   salonNip:         z.string().max(30).optional().default(""),
   salonLegalAddress:z.string().max(200).optional().default(""),
-})
+  })
+}
 
 export type SettingsFormState = {
   error?: string
@@ -66,6 +69,7 @@ export async function saveSettings(
   _prev: SettingsFormState,
   formData: FormData
 ): Promise<SettingsFormState> {
+  const t = getServerT()
   const raw = {
     brandName:        formData.get("brandName"),
     logoUrl:          formData.get("logoUrl") || "",
@@ -116,7 +120,7 @@ export async function saveSettings(
     salonLegalAddress:formData.get("salonLegalAddress") || "",
   }
 
-  const parsed = SettingsSchema.safeParse(raw)
+  const parsed = buildSettingsSchema(t).safeParse(raw)
   if (!parsed.success) {
     return { error: parsed.error.errors[0].message }
   }
@@ -152,6 +156,6 @@ export async function saveSettings(
     revalidatePath("/admin/settings")
     return { success: true }
   } catch {
-    return { error: "Failed to save settings. Please try again." }
+    return { error: t('admin.settings.general.saveSettingsError') }
   }
 }

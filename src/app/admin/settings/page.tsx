@@ -2,8 +2,10 @@ import { auth } from "@/auth"
 import { getTenantConfig } from "@/lib/tenant"
 import SettingsForm from "./SettingsForm"
 import SuperAdminCredentials from "./SuperAdminCredentials"
+import { getServerT } from "@/lib/i18n-server"
 
 export default async function SettingsPage() {
+  const t = getServerT()
   const session = await auth()
   const isSuperAdmin = session?.user?.role === "SUPERADMIN"
   const config = await getTenantConfig()
@@ -36,9 +38,9 @@ export default async function SettingsPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <p className="text-xs font-medium uppercase tracking-wider text-primary">Configuration</p>
+        <p className="text-xs font-medium uppercase tracking-wider text-primary">{t('admin.settings.configurationEyebrow')}</p>
         <p className="mt-1 text-sm text-muted-foreground">
-          Brand, colours, contact details and business hours
+          {t('admin.settings.general.mainDesc')}
         </p>
       </div>
 
