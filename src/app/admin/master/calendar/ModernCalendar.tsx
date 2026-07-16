@@ -1,6 +1,7 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, useRef, useLayoutEffect } from "react"
+import { createPortal } from "react-dom"
 import { format, addMonths, addWeeks, addDays, startOfMonth, endOfMonth, startOfWeek, endOfWeek } from "date-fns"
 import { useTranslation } from "react-i18next"
 import { ChevronLeft, ChevronRight, Edit3, Save, Calendar, Globe, User } from "lucide-react"
@@ -65,7 +66,10 @@ export default function ModernCalendar({
   const [isEditMode, setIsEditMode] = useState(false)
   const [showBulkModal, setShowBulkModal] = useState(false)
   const [showMasterSelect, setShowMasterSelect] = useState(false)
-  
+  const masterSelectBtnRef = useRef<HTMLButtonElement>(null)
+  const masterSelectDropdownRef = useRef<HTMLDivElement>(null)
+  const [masterSelectDropdownStyle, setMasterSelectDropdownStyle] = useState<React.CSSProperties>({})
+
   // Appointment Booking State
   const [bookingDate, setBookingDate] = useState<Date | null>(null)
   const [viewingAppointment, setViewingAppointment] = useState<Appointment | null>(null)
@@ -147,6 +151,51 @@ export default function ModernCalendar({
     if (isMounted) fetchData()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dateRange, isMounted, selectedMasterId])
+
+  // Position the master-selector dropdown using fixed coordinates from the button.
+  // useLayoutEffect (not useEffect) so the correct position is committed before the
+  // browser paints — otherwise the dropdown briefly renders unpositioned, causing a
+  // visible flash/jump. Mirrors TimePickerDropdown.tsx's proven pattern.
+  useLayoutEffect(() => {
+    if (showMasterSelect && masterSelectBtnRef.current) {
+      const rect = masterSelectBtnRef.current.getBoundingClientRect()
+      const dropdownWidth = 256 // w-64
+      const dropdownHeight = 300 // max-h-[300px]
+      const spaceBelow = window.innerHeight - rect.bottom - 8
+      const left = Math.max(8, Math.min(rect.right - dropdownWidth, window.innerWidth - dropdownWidth - 8))
+
+      if (spaceBelow >= dropdownHeight) {
+        setMasterSelectDropdownStyle({
+          position: 'fixed',
+          top: `${rect.bottom + 8}px`,
+          left: `${left}px`,
+          width: `${dropdownWidth}px`,
+          zIndex: 9999,
+        })
+      } else {
+        setMasterSelectDropdownStyle({
+          position: 'fixed',
+          bottom: `${window.innerHeight - rect.top + 8}px`,
+          left: `${left}px`,
+          width: `${dropdownWidth}px`,
+          zIndex: 9999,
+        })
+      }
+    }
+  }, [showMasterSelect])
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      const target = event.target as Node
+      const insideTrigger = masterSelectBtnRef.current && masterSelectBtnRef.current.contains(target)
+      const insideDropdown = masterSelectDropdownRef.current && masterSelectDropdownRef.current.contains(target)
+      if (!insideTrigger && !insideDropdown) {
+        setShowMasterSelect(false)
+      }
+    }
+    if (showMasterSelect) document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [showMasterSelect])
 
   const navigate = (direction: "prev" | "next" | "today") => {
     if (direction === "today") {
@@ -252,6 +301,7 @@ export default function ModernCalendar({
           {isAdminView && adminMastersList && onMasterChange && (
             <div className="relative ml-2">
               <button
+                ref={masterSelectBtnRef}
                 onClick={() => setShowMasterSelect(!showMasterSelect)}
                 className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium bg-transparent hover:bg-muted rounded-md transition-colors border border-border"
               >
@@ -262,30 +312,36 @@ export default function ModernCalendar({
                  )}
                  <ChevronRight className={`w-3.5 h-3.5 opacity-50 transition-transform ${showMasterSelect ? "rotate-[270deg]" : "rotate-90"}`} />
               </button>
-              {showMasterSelect && (
-                <>
-                  <div className="fixed inset-0 z-40" onClick={() => setShowMasterSelect(false)} />
-                  <div className="absolute right-0 top-full mt-2 w-64 bg-card border border-border rounded-xl shadow-xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-100">
-                    <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
+              {showMasterSelect && createPortal(
+                <div
+                  ref={masterSelectDropdownRef}
+                  style={masterSelectDropdownStyle}
+                  // Portaled outside any ancestor container, so its own mousedown must not
+                  // bubble to document — otherwise the click-outside listener above sees it
+                  // as an outside click and closes the panel before onClick can fire.
+                  onMouseDown={(e) => e.stopPropagation()}
+                  className="bg-card border border-border rounded-xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-100"
+                >
+                  <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
+                    <button
+                       className={`w-full text-left px-4 py-3 text-sm hover:bg-primary hover:text-primary-foreground transition-colors ${selectedMasterId === "all" ? 'bg-primary/20 text-primary font-medium' : ''}`}
+                       onClick={() => { onMasterChange("all"); setShowMasterSelect(false); }}
+                    >
+                      <span className="flex items-center gap-1.5"><Globe className="w-3.5 h-3.5" />{t('admin.calendar.allMastersCombined')}</span>
+                    </button>
+                    <div className="h-px bg-border/60 w-full" />
+                    {adminMastersList.map(m => (
                       <button
-                         className={`w-full text-left px-4 py-3 text-sm hover:bg-muted transition-colors ${selectedMasterId === "all" ? 'bg-primary/20 text-primary font-medium' : ''}`}
-                         onClick={() => { onMasterChange("all"); setShowMasterSelect(false); }}
+                         key={m.id}
+                         className={`w-full text-left px-4 py-3 text-sm hover:bg-primary hover:text-primary-foreground transition-colors border-b border-border/40 last:border-0 ${selectedMasterId === m.id ? 'bg-primary/20 text-primary font-medium' : ''}`}
+                         onClick={() => { onMasterChange(m.id); setShowMasterSelect(false); }}
                       >
-                        <span className="flex items-center gap-1.5"><Globe className="w-3.5 h-3.5" />{t('admin.calendar.allMastersCombined')}</span>
+                        <span className="flex items-center gap-1.5"><User className="w-3.5 h-3.5" />{m.name}</span>
                       </button>
-                      <div className="h-px bg-border/60 w-full" />
-                      {adminMastersList.map(m => (
-                        <button 
-                           key={m.id}
-                           className={`w-full text-left px-4 py-3 text-sm hover:bg-muted transition-colors border-b border-border/40 last:border-0 ${selectedMasterId === m.id ? 'bg-primary/20 text-primary font-medium' : ''}`}
-                           onClick={() => { onMasterChange(m.id); setShowMasterSelect(false); }}
-                        >
-                          <span className="flex items-center gap-1.5"><User className="w-3.5 h-3.5" />{m.name}</span>
-                        </button>
-                      ))}
-                    </div>
+                    ))}
                   </div>
-                </>
+                </div>,
+                document.body
               )}
             </div>
           )}

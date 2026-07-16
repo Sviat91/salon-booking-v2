@@ -7,6 +7,7 @@ import { Search, Bell } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { getPageTitleKey } from "@/components/admin/adminNavItems"
+import LanguageToggle from "@/components/LanguageToggle"
 
 export default function AdminTopBar() {
   const pathname = usePathname()
@@ -21,6 +22,7 @@ export default function AdminTopBar() {
     <header className="flex h-16 shrink-0 items-center justify-between border-b border-border bg-card px-6">
       <h1 className="text-lg font-normal text-foreground">{title}</h1>
       <div className="flex items-center gap-1">
+        <LanguageToggle />
         <Button variant="ghost" size="icon" aria-label={t('admin.common.searchAria')}>
           <Search className="h-4 w-4 text-muted-foreground" />
         </Button>

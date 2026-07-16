@@ -1,5 +1,6 @@
 "use client"
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react'
+import { useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 import { 
   Language, 
@@ -55,7 +56,8 @@ function setLanguageCookie(lang: Language): void {
 
 export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { i18n } = useTranslation()
-  
+  const router = useRouter()
+
   // Always start with default language to avoid hydration mismatch
   const [language, setLanguageState] = useState<Language>(DEFAULT_LANGUAGE)
 
@@ -93,8 +95,12 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
     // Mirror to a cookie for server-rendered pages (see src/lib/i18n-server.ts)
     setLanguageCookie(lang)
 
+    // Refresh Server Component content (e.g. admin pages using getServerT())
+    // so it picks up the new language immediately.
+    router.refresh()
+
     clientLog.info('Language changed successfully to:', lang)
-  }, [language, i18n])
+  }, [language, i18n, router])
 
   // Sync with localStorage changes from other tabs
   useEffect(() => {

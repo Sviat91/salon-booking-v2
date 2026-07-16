@@ -13,7 +13,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
         <AdminTopBar />
         <main className="flex-1 overflow-y-auto bg-background">
-          <div className="mx-auto max-w-5xl px-6 py-8">
+          <div className="mx-auto max-w-7xl px-6 py-8">
             {children}
           </div>
         </main>
