@@ -7,6 +7,7 @@ import type { Appointment } from "./ModernCalendar"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useCurrentLanguage } from "@/contexts/LanguageContext"
+import { resolveLocalized } from "@/lib/localized-content"
 import { dateFnsLocale } from "@/lib/utils/date-fns-locale"
 
 interface Props {
@@ -102,7 +103,7 @@ export default function ViewAppointmentModal({ appointment, onClose, onDelete, o
           <div className="bg-muted/20 rounded-lg p-4 border border-border">
             <p className="text-xs text-muted-foreground font-medium mb-1.5 flex items-center gap-1.5"><Scissors className="w-3.5 h-3.5"/> {t('admin.appointments.colService')}</p>
             <div className="flex justify-between items-center">
-              <p className="font-semibold text-base">{appointment.service.name_pl}</p>
+              <p className="font-semibold text-base">{resolveLocalized({ pl: appointment.service.name_pl, en: appointment.service.name_en, uk: appointment.service.name_uk }, language)}</p>
               <p className="font-bold text-primary">{formattedServicePrice}</p>
             </div>
             <p className="text-sm text-muted-foreground mt-1">{appointment.service.duration} {t('admin.calendar.minutesSuffix')}</p>

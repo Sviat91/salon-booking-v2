@@ -1,14 +1,18 @@
+"use client"
+
+import { useTranslation } from "react-i18next"
 import { Badge } from "@/components/ui/badge"
 import AppointmentStatusBadge from "@/components/admin/AppointmentStatusBadge"
 import DataCard from "@/components/admin/DataCard"
-import { getServerT } from "@/lib/i18n-server"
+import { useCurrentLanguage } from "@/contexts/LanguageContext"
+import { resolveLocalized } from "@/lib/localized-content"
 
 type Appointment = {
   id: string
   startTime: string
   status: string
   client: { name: string | null }
-  service: { name_pl: string; price: number }
+  service: { name_pl: string; name_en: string | null; name_uk: string | null; price: number }
   master: { name: string | null }
 }
 
@@ -17,7 +21,10 @@ export default function TodaysAppointmentsTable({
 }: {
   appointments: Appointment[]
 }) {
-  const t = getServerT()
+  const { t } = useTranslation()
+  const language = useCurrentLanguage()
+  const serviceName = (svc: Appointment["service"]) =>
+    resolveLocalized({ pl: svc.name_pl, en: svc.name_en, uk: svc.name_uk }, language)
 
   return (
     <div className="overflow-hidden rounded-2xl border border-border bg-card">
@@ -61,7 +68,7 @@ export default function TodaysAppointmentsTable({
                 <tr key={app.id} className="border-b border-border last:border-b-0">
                   <td className="px-4 py-3 font-medium">{app.startTime}</td>
                   <td className="px-4 py-3">{app.client.name || t('admin.appointments.unknownClient')}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{app.service.name_pl}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{serviceName(app.service)}</td>
                   <td className="px-4 py-3">
                     <Badge variant="accent">{app.master.name || "—"}</Badge>
                   </td>
@@ -81,7 +88,7 @@ export default function TodaysAppointmentsTable({
                 key={app.id}
                 title={`${app.startTime} · ${app.client.name || t('admin.appointments.unknownClient')}`}
                 fields={[
-                  { label: t('admin.appointments.colService'), value: app.service.name_pl },
+                  { label: t('admin.appointments.colService'), value: serviceName(app.service) },
                   { label: t('admin.appointments.colMaster'), value: <Badge variant="accent">{app.master.name || "—"}</Badge> },
                   { label: t('admin.appointments.colPrice'), value: `${app.service.price} zł` },
                   { label: t('admin.appointments.colStatus'), value: <AppointmentStatusBadge status={app.status} /> },

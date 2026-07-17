@@ -6,6 +6,7 @@ import { z } from "zod"
 import { auth } from "@/auth"
 import { notifyBookingConfirmation } from "@/lib/notifications"
 import { normalizePhoneToE164 } from "@/lib/utils/phone-normalization"
+import { isValidLanguage, DEFAULT_LANGUAGE } from "@/lib/i18n-shared"
 
 export const runtime = "nodejs"
 
@@ -13,7 +14,7 @@ export const runtime = "nodejs"
  * POST /api/book
  * Creates a new booking (guest flow — no auth required).
  * 
- * Body: { startISO, endISO, procedureId?, masterId?, name, phone, email?, turnstileToken?, consents? }
+ * Body: { startISO, endISO, procedureId?, masterId?, name, phone, email?, turnstileToken?, language?, consents? }
  * Returns: { eventId: string }
  */
 export async function POST(req: NextRequest) {
@@ -33,7 +34,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid payload" }, { status: 400 })
   }
 
-  const { startISO, endISO, procedureId, masterId, name, phone, email, consents } = body
+  const { startISO, endISO, procedureId, masterId, name, phone, email, consents, language } = body
+  const clientLanguage = language && isValidLanguage(language) ? language : DEFAULT_LANGUAGE
 
   if (!masterId) {
     return NextResponse.json({ error: "masterId is required", code: "MISSING_MASTER" }, { status: 400 })
@@ -224,6 +226,7 @@ export async function POST(req: NextRequest) {
           startTime,
           endTime,
           status: "CONFIRMED",
+          clientLanguage,
         },
       })
     })

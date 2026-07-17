@@ -9,6 +9,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { X, Calendar as CalIcon, User, MapPin, Plus, Trash2 } from "lucide-react"
 import { DatePickerDropdown } from "@/components/DatePickerDropdown"
 import { TimePickerDropdown } from "@/components/TimePickerDropdown"
+import { useCurrentLanguage } from "@/contexts/LanguageContext"
+import { resolveLocalized } from "@/lib/localized-content"
 
 interface AppointmentModalProps {
   date?: Date
@@ -21,12 +23,13 @@ interface AppointmentModalProps {
   onSuccess: () => void
 }
 
-type Service = { id: string; name_pl: string; duration: number }
+type Service = { id: string; name_pl: string; name_en?: string | null; name_uk?: string | null; duration: number }
 type Client = { id: string; name: string | null; phone: string | null }
 type Entry = { id: string; date: string; startTime: string; duration: number }
 
 export default function AppointmentModal({ date, initialAppointment, mode, apiPrefix = "/api/master", isAdminView = false, selectedMasterId, onClose, onSuccess }: AppointmentModalProps) {
   const { t } = useTranslation()
+  const language = useCurrentLanguage()
   const [loading, setLoading] = useState(false)
   const [fetching, setFetching] = useState(true)
   
@@ -227,13 +230,13 @@ export default function AppointmentModal({ date, initialAppointment, mode, apiPr
                           {(v: string) => {
                             if (v === "custom") return t('admin.calendar.customServiceOption')
                             const s = services.find(sv => sv.id === v)
-                            return s ? `${s.name_pl} (${s.duration}m)` : v
+                            return s ? `${resolveLocalized({ pl: s.name_pl, en: s.name_en, uk: s.name_uk }, language)} (${s.duration}m)` : v
                           }}
                         </SelectValue>
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="custom"><SelectItemText>{t('admin.calendar.customServiceOption')}</SelectItemText></SelectItem>
-                        {services.map(s => <SelectItem key={s.id} value={s.id}><SelectItemText>{s.name_pl} ({s.duration}m)</SelectItemText></SelectItem>)}
+                        {services.map(s => <SelectItem key={s.id} value={s.id}><SelectItemText>{resolveLocalized({ pl: s.name_pl, en: s.name_en, uk: s.name_uk }, language)} ({s.duration}m)</SelectItemText></SelectItem>)}
                       </SelectContent>
                     </Select>
                   </div>

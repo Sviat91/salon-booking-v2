@@ -151,6 +151,7 @@ model Appointment {
   endTime     String   // "11:00" format
   status      String   @default("PENDING")
   notes       String?
+  clientLanguage String @default("pl")
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

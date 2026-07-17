@@ -127,5 +127,56 @@ describe('POST /api/book consent gate', () => {
     expect(mockPrisma.consentRecord.create).not.toHaveBeenCalled()
     expect(mockPrisma.appointment.create).toHaveBeenCalledTimes(1)
   })
+
+  it('persists clientLanguage from a valid language field', async () => {
+    mockPrisma.consentRecord.findMany.mockResolvedValue([
+      {
+        id: 'consent_existing',
+        consentDate: new Date('2026-04-01T10:00:00.000Z'),
+        emailNormalized: 'user@example.com',
+        consentPrivacyV10: true,
+        consentTermsV10: true,
+        consentWithdrawnDate: null,
+        erasureDate: null,
+      },
+    ])
+
+    const res = await POST(createRequest({ ...baseBody, language: 'uk' }))
+    const body = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(body.eventId).toBe('app_1')
+    expect(mockPrisma.appointment.create).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ clientLanguage: 'uk' }) })
+    )
+  })
+
+  it('defaults clientLanguage to pl for invalid or missing language', async () => {
+    mockPrisma.consentRecord.findMany.mockResolvedValue([
+      {
+        id: 'consent_existing',
+        consentDate: new Date('2026-04-01T10:00:00.000Z'),
+        emailNormalized: 'user@example.com',
+        consentPrivacyV10: true,
+        consentTermsV10: true,
+        consentWithdrawnDate: null,
+        erasureDate: null,
+      },
+    ])
+
+    const resInvalid = await POST(createRequest({ ...baseBody, language: 'xx' }))
+    expect(resInvalid.status).toBe(200)
+    expect(mockPrisma.appointment.create).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ clientLanguage: 'pl' }) })
+    )
+
+    mockPrisma.appointment.create.mockClear()
+
+    const resMissing = await POST(createRequest({ ...baseBody }))
+    expect(resMissing.status).toBe(200)
+    expect(mockPrisma.appointment.create).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ clientLanguage: 'pl' }) })
+    )
+  })
 })
 

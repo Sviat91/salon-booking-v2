@@ -54,7 +54,7 @@ export async function PATCH(
       where: { id },
       data: { status: "CANCELLED_BY_MASTER" },
       include: {
-        service: { select: { name_pl: true } },
+        service: { select: { name_pl: true, name_en: true, name_uk: true } },
         client: { select: { name: true, phone: true } },
       },
     })

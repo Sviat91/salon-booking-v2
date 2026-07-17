@@ -5,6 +5,8 @@
 
 import prisma from '@/lib/prisma'
 import { getTenantConfig } from '@/lib/tenant'
+import { resolveLocalized } from '@/lib/localized-content'
+import { DEFAULT_LANGUAGE, type Language } from '@/lib/i18n-shared'
 import { sendTelegramMessage } from './telegram'
 import {
   sendBookingConfirmationToClient,
@@ -71,12 +73,24 @@ export async function notifyBookingConfirmation(appointmentId: string): Promise<
       return
     }
 
+    const serviceVariants = {
+      pl: appointment.service.name_pl,
+      en: appointment.service.name_en,
+      uk: appointment.service.name_uk,
+    }
+
     const data = {
       name: appointment.client.name ?? 'Klient',
       date: formatDate(appointment.date),
       time: appointment.startTime,
-      service: appointment.service.name_pl,
+      service: resolveLocalized(serviceVariants, DEFAULT_LANGUAGE),
       master: appointment.master.name ?? 'Mistrz',
+    }
+
+    // Client-facing copy uses the client's booking-time language; admin/salon copy stays DEFAULT_LANGUAGE.
+    const clientData = {
+      ...data,
+      service: resolveLocalized(serviceVariants, appointment.clientLanguage as Language),
     }
 
     // Email notifications
@@ -84,7 +98,7 @@ export async function notifyBookingConfirmation(appointmentId: string): Promise<
       // Client copy
       if (appointment.client.email) {
         try {
-          await sendBookingConfirmationToClient(appointment.client.email, data, brandName)
+          await sendBookingConfirmationToClient(appointment.client.email, clientData, brandName)
           await logNotification({
             type: 'BOOKING_CONFIRMATION',
             channel: 'email',
@@ -267,17 +281,29 @@ export async function notifyBookingReminders(): Promise<{ sent: number; skipped:
           continue
         }
 
+        const reminderServiceVariants = {
+          pl: appt.service.name_pl,
+          en: appt.service.name_en,
+          uk: appt.service.name_uk,
+        }
+
         const data = {
           name: appt.client.name ?? 'Klient',
           date: formatDate(appt.date),
           time: appt.startTime,
-          service: appt.service.name_pl,
+          service: resolveLocalized(reminderServiceVariants, DEFAULT_LANGUAGE),
           master: appt.master.name ?? 'Mistrz',
+        }
+
+        // Client-facing reminder uses the client's booking-time language; Telegram salon reminder stays DEFAULT_LANGUAGE.
+        const clientData = {
+          ...data,
+          service: resolveLocalized(reminderServiceVariants, appt.clientLanguage as Language),
         }
 
         if (config.notifEmailEnabled && appt.client.email && !alreadyEmail) {
           try {
-            await sendBookingReminderToClient(appt.client.email, data, window.hours, brandName)
+            await sendBookingReminderToClient(appt.client.email, clientData, window.hours, brandName)
             await logNotification({
               type: window.type,
               channel: 'email',

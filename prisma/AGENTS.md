@@ -15,6 +15,7 @@ Data model and migration history for the SQLite (libSQL) database at `prisma/app
 - `User` identity for clients is the `(phone, name)` pair (see schema comment on `User`) — two people sharing a phone get separate rows; email uniqueness for admin/master auth is enforced in the register endpoint, not a DB constraint.
 - Any schema change requires `npx prisma migrate dev --name <name>` — never hand-edit `migrations/` or `app.db` directly.
 - `Service.name` and `MasterProfile.bio` are per-locale columns, not translations tables: `name_pl`/`name_en`/`name_uk` (`name_pl` is NOT NULL — the canonical default) and `bio_pl`/`bio_en`/`bio_uk` (all nullable). `TenantConfig.enabledLocales` is a JSON string array (default `["pl","en","uk"]`) gating which locales an admin can author. Resolve a display value with `resolveLocalized()`/`parseEnabledLocales()` from `src/lib/localized-content.ts` — never read the bare `name`/`bio` fields (they no longer exist).
+- `Appointment.clientLanguage String @default("pl")` (NOT NULL) stores the client's UI language at booking time, validated against `SUPPORTED_LANGUAGES` and defaulted to `pl` by `POST /api/book` for missing/invalid input — never written directly from an unvalidated request field. Used only by `src/lib/notifications/index.ts` to pick the language of the **client-facing** confirmation/reminder copy; admin/salon-facing copy always stays `DEFAULT_LANGUAGE`.
 
 ## Work Guidance
 

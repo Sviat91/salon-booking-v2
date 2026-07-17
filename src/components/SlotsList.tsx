@@ -4,6 +4,8 @@ import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { formatTimeRange } from '@/lib/utils/date-formatters'
 import { useSelectedMasterId } from '@/contexts/MasterContext'
+import { useCurrentLanguage } from '@/contexts/LanguageContext'
+import { localeFor } from '@/lib/i18n-shared'
 
 function toISO(d: Date) {
   const y = d.getFullYear(); const m = String(d.getMonth() + 1).padStart(2, '0'); const day = String(d.getDate()).padStart(2, '0')
@@ -12,6 +14,7 @@ function toISO(d: Date) {
 
 export default function SlotsList({ date, procedureId, selected, onPick }: { date?: Date; procedureId?: string; selected?: { startISO: string; endISO: string } | null; onPick?: (slot: { startISO: string; endISO: string }) => void }) {
   const { t } = useTranslation()
+  const language = useCurrentLanguage()
   const masterId = useSelectedMasterId()
   const dateISO = date ? toISO(date) : null
 
@@ -58,7 +61,7 @@ export default function SlotsList({ date, procedureId, selected, onPick }: { dat
               {!error && slots.length > 0 && (
                 <div className="grid max-h-[18rem] grid-cols-2 gap-2 overflow-y-auto pr-1">
                   {slots.map((s) => {
-                    const label = formatTimeRange(new Date(s.startISO), new Date(s.endISO))
+                    const label = formatTimeRange(new Date(s.startISO), new Date(s.endISO), localeFor(language))
                     const isSelected = selected?.startISO === s.startISO && selected?.endISO === s.endISO
                     const cls = isSelected ? 'btn btn-primary' : 'btn btn-outline'
                     return (

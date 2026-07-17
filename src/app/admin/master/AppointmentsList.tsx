@@ -8,6 +8,8 @@ import { Card, CardContent } from "@/components/ui/card"
 import AppointmentStatusBadge from "@/components/admin/AppointmentStatusBadge"
 import { Clock, Phone, User as UserIcon } from "lucide-react"
 import { apiErrorKey } from "@/lib/errors/apiErrorKey"
+import { useCurrentLanguage } from "@/contexts/LanguageContext"
+import { resolveLocalized } from "@/lib/localized-content"
 
 type AppointmentProps = {
   id: string
@@ -15,12 +17,13 @@ type AppointmentProps = {
   endTime: string
   status: string
   client: { name: string | null; phone: string | null }
-  service: { name_pl: string; duration: number }
+  service: { name_pl: string; name_en: string | null; name_uk: string | null; duration: number }
 }
 
 export default function AppointmentsList({ appointments }: { appointments: AppointmentProps[] }) {
   const { t } = useTranslation()
   const router = useRouter()
+  const language = useCurrentLanguage()
   const [cancellingId, setCancellingId] = useState<string | null>(null)
 
   const handleCancel = async (id: string) => {
@@ -69,7 +72,7 @@ export default function AppointmentsList({ appointments }: { appointments: Appoi
                 </div>
                 
                 <div>
-                  <h4 className="font-semibold text-base">{app.service.name_pl}</h4>
+                  <h4 className="font-semibold text-base">{resolveLocalized({ pl: app.service.name_pl, en: app.service.name_en, uk: app.service.name_uk }, language)}</h4>
                   <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-1">
                     <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                       <UserIcon className="w-4 h-4 shrink-0" />

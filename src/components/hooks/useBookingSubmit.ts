@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react'
+import type { Language } from '@/lib/i18n-shared'
 
 export type Slot = { startISO: string; endISO: string }
 
@@ -12,6 +13,7 @@ interface UseBookingSubmitProps {
   phone: string
   email: string
   tsToken: string | null
+  language: Language
   isAuthenticatedClient?: boolean
   onSuccess?: () => void
 }
@@ -30,6 +32,7 @@ export function useBookingSubmit({
   phone,
   email,
   tsToken,
+  language,
   isAuthenticatedClient = false,
   onSuccess,
 }: UseBookingSubmitProps) {
@@ -74,6 +77,7 @@ export function useBookingSubmit({
           phone,
           email: email || undefined,
           turnstileToken: tsToken,
+          language,
           // No consents object - user already has valid consents
         }),
       })
@@ -93,7 +97,7 @@ export function useBookingSubmit({
     } finally {
       setLoading(false)
     }
-  }, [slot, procedureId, masterId, name, phone, email, tsToken, onSuccess, handleBookingError])
+  }, [slot, procedureId, masterId, name, phone, email, tsToken, language, onSuccess, handleBookingError])
 
   // Check if user already has valid consents and proceed accordingly
   const checkConsentAndProceed = useCallback(async () => {
@@ -149,6 +153,7 @@ export function useBookingSubmit({
           phone,
           email: email || undefined,
           turnstileToken: tsToken,
+          language,
           consents: {
             dataProcessing: consents.dataProcessing,
             terms: consents.terms,
@@ -172,7 +177,7 @@ export function useBookingSubmit({
     } finally {
       setLoading(false)
     }
-  }, [slot, procedureId, masterId, name, phone, email, tsToken, onSuccess, handleBookingError])
+  }, [slot, procedureId, masterId, name, phone, email, tsToken, language, onSuccess, handleBookingError])
 
   const resetToForm = useCallback(() => {
     setBookingState('form')

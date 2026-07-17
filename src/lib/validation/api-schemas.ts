@@ -26,6 +26,7 @@ export const bookingApiSchema = z.object({
   phone: z.string().min(5, 'Phone number is too short').max(20, 'Phone number is too long').optional().or(z.literal('')).nullish(),
   email: z.string().email('Invalid email format').optional().or(z.literal('')).nullish(),
   turnstileToken: z.string().nullish(),
+  language: z.string().optional(),
   consents: z.object({
     dataProcessing: z.boolean(),
     terms: z.boolean(),

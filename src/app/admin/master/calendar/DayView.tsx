@@ -7,6 +7,7 @@ import type { Appointment, Template, Override, Interval } from "./ModernCalendar
 import { Clock, Phone, Scissors, User, Plus, PowerOff, X, ChevronDown, Users } from "lucide-react"
 import { TimePickerDropdown } from "@/components/TimePickerDropdown"
 import { useCurrentLanguage } from "@/contexts/LanguageContext"
+import { resolveLocalized } from "@/lib/localized-content"
 import { dateFnsLocale } from "@/lib/utils/date-fns-locale"
 import { groupOverlappingAppointments, pluralize, parseTime } from "./calendar-utils"
 
@@ -300,7 +301,7 @@ export default function DayView({ currentDate, appointments, templates, override
                         <div className="flex items-center gap-2 sm:gap-4 text-sm opacity-90">
                           <div className="flex items-center gap-1.5 min-w-0">
                             <Scissors className="w-3.5 h-3.5 shrink-0" />
-                            <span className="truncate">{a.service.name_pl}</span>
+                            <span className="truncate">{resolveLocalized({ pl: a.service.name_pl, en: a.service.name_en, uk: a.service.name_uk }, language)}</span>
                           </div>
                           {a.client.phone && (
                             <div className="flex items-center gap-1.5 shrink-0">
@@ -344,7 +345,7 @@ export default function DayView({ currentDate, appointments, templates, override
                               <div className="flex items-center gap-2 sm:gap-4 text-sm text-muted-foreground">
                                 <div className="flex items-center gap-1.5 min-w-0">
                                   <Scissors className="w-3.5 h-3.5 shrink-0" />
-                                  <span className="truncate">{a.service.name_pl}</span>
+                                  <span className="truncate">{resolveLocalized({ pl: a.service.name_pl, en: a.service.name_en, uk: a.service.name_uk }, language)}</span>
                                 </div>
                                 {a.client.phone && (
                                   <div className="flex items-center gap-1.5 shrink-0">

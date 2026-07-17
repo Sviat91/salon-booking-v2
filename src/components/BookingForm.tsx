@@ -8,11 +8,12 @@ import BookingSuccess from './BookingSuccess'
 import BookingConsentModal from './BookingConsentModal'
 import { useBookingSubmit, type Slot } from './hooks/useBookingSubmit'
 
-import { fullDateFormatter, formatTimeRange } from '@/lib/utils/date-formatters'
+import { getFullDateFormatter, formatTimeRange } from '@/lib/utils/date-formatters'
 import { validateName, validatePhone, validateEmail, validateTurnstileToken } from '@/lib/validation/client-validators'
 import { useSelectedMasterId } from '@/contexts/MasterContext'
 import { useCurrentLanguage } from '@/contexts/LanguageContext'
 import { resolveLocalized } from '@/lib/localized-content'
+import { localeFor } from '@/lib/i18n-shared'
 
 type Procedure = { id: string; name_pl: string; name_en?: string; name_uk?: string; price_pln?: number }
 type ProceduresResponse = { items: Procedure[] }
@@ -99,6 +100,7 @@ export default function BookingForm({
     phone,
     email,
     tsToken,
+    language,
     isAuthenticatedClient: isAuth,
     onSuccess,
   })
@@ -179,8 +181,8 @@ export default function BookingForm({
 
   const startDate = useMemo(() => new Date(slot.startISO), [slot.startISO])
   const endDate = useMemo(() => new Date(slot.endISO), [slot.endISO])
-  const label = formatTimeRange(startDate, endDate)
-  const terminLabel = `${fullDateFormatter.format(startDate)}, ${label}`
+  const label = formatTimeRange(startDate, endDate, localeFor(language))
+  const terminLabel = `${getFullDateFormatter(localeFor(language)).format(startDate)}, ${label}`
 
   const handleConsentConfirm = () => {
     if (!dataProcessingConsent || !termsConsent) return

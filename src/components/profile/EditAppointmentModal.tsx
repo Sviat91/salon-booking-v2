@@ -6,10 +6,15 @@ import { useTranslation } from "react-i18next"
 import { formatTimeRange } from "@/lib/utils/date-formatters"
 import { DatePickerDropdown } from "@/components/DatePickerDropdown"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem, SelectItemText } from "@/components/ui/select"
+import { useCurrentLanguage } from "@/contexts/LanguageContext"
+import { resolveLocalized } from "@/lib/localized-content"
+import { localeFor, type Language } from "@/lib/i18n-shared"
 
 type ProcedureOption = {
   id: string
   name_pl: string
+  name_en?: string | null
+  name_uk?: string | null
   duration_min: number
   price_pln: number
 }
@@ -24,7 +29,7 @@ export type EditableAppointment = {
   date: string
   startTime: string
   endTime: string
-  service: { id: string; name_pl: string; duration: number; price: number }
+  service: { id: string; name_pl: string; name_en: string | null; name_uk: string | null; duration: number; price: number }
   master: { id: string; name: string }
 }
 
@@ -39,8 +44,8 @@ function getDatePart(dateIso: string) {
   return new Date(dateIso).toISOString().slice(0, 10)
 }
 
-function formatSlotLabel(slot: DaySlot) {
-  return formatTimeRange(new Date(slot.startISO), new Date(slot.endISO))
+function formatSlotLabel(slot: DaySlot, language: Language) {
+  return formatTimeRange(new Date(slot.startISO), new Date(slot.endISO), localeFor(language))
 }
 
 export default function EditAppointmentModal({
@@ -50,6 +55,7 @@ export default function EditAppointmentModal({
   onSaved,
 }: EditAppointmentModalProps) {
   const { t } = useTranslation()
+  const language = useCurrentLanguage()
   const [selectedProcedureId, setSelectedProcedureId] = useState<string>("")
   const [selectedDate, setSelectedDate] = useState<string>("")
   const [selectedSlot, setSelectedSlot] = useState<DaySlot | null>(null)
@@ -147,7 +153,7 @@ export default function EditAppointmentModal({
               {t("profile.editBookingTitle", "Edit booking")}
             </h3>
             <p className="text-sm text-muted-foreground">
-              {appointment.service.name_pl} - {appointment.master.name}
+              {resolveLocalized({ pl: appointment.service.name_pl, en: appointment.service.name_en, uk: appointment.service.name_uk }, language)} - {appointment.master.name}
             </p>
           </div>
           <button
@@ -173,13 +179,16 @@ export default function EditAppointmentModal({
             >
               <SelectTrigger>
                 <SelectValue>
-                  {(v: string) => proceduresData?.items?.find((p: any) => p.id === v)?.name_pl ?? v}
+                  {(v: string) => {
+                    const p = proceduresData?.items?.find((p: any) => p.id === v)
+                    return p ? resolveLocalized({ pl: p.name_pl, en: p.name_en, uk: p.name_uk }, language) : v
+                  }}
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {(proceduresData?.items || []).map((procedure) => (
                   <SelectItem key={procedure.id} value={procedure.id}>
-                    <SelectItemText>{procedure.name_pl}</SelectItemText>
+                    <SelectItemText>{resolveLocalized({ pl: procedure.name_pl, en: procedure.name_en, uk: procedure.name_uk }, language)}</SelectItemText>
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -226,7 +235,7 @@ export default function EditAppointmentModal({
                             : "border-border text-foreground hover:bg-muted"
                         }`}
                       >
-                        {formatSlotLabel(slot)}
+                        {formatSlotLabel(slot, language)}
                       </button>
                     )
                   })}
