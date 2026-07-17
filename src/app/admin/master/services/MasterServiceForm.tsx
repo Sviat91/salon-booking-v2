@@ -7,20 +7,25 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { apiErrorKey } from "@/lib/errors/apiErrorKey"
+import LocalizedFieldInput from "@/components/admin/LocalizedFieldInput"
+import type { Language } from "@/lib/i18n-shared"
 
 type Service = {
   id: string
   name_pl: string
+  name_en: string | null
+  name_uk: string | null
   duration: number
   price: number
 }
 
 interface MasterServiceFormProps {
   service?: Service
+  enabledLocales: Language[]
   onSuccess: () => void
 }
 
-export default function MasterServiceForm({ service, onSuccess }: MasterServiceFormProps) {
+export default function MasterServiceForm({ service, enabledLocales, onSuccess }: MasterServiceFormProps) {
   const { t } = useTranslation()
   const router = useRouter()
   const [loading, setLoading] = useState(false)
@@ -35,6 +40,9 @@ export default function MasterServiceForm({ service, onSuccess }: MasterServiceF
     const name_pl = formData.get("name_pl") as string
     const duration = parseInt(formData.get("duration") as string, 10)
     const price = parseFloat(formData.get("price") as string)
+    const body: Record<string, unknown> = { name_pl, duration, price }
+    if (formData.has("name_en")) body.name_en = formData.get("name_en")
+    if (formData.has("name_uk")) body.name_uk = formData.get("name_uk")
 
     try {
       const url = service ? `/api/master/services/${service.id}` : "/api/master/services"
@@ -43,7 +51,7 @@ export default function MasterServiceForm({ service, onSuccess }: MasterServiceF
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name_pl, duration, price })
+        body: JSON.stringify(body)
       })
 
       if (!res.ok) {
@@ -62,16 +70,14 @@ export default function MasterServiceForm({ service, onSuccess }: MasterServiceF
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-      <div className="grid gap-1.5">
-        <Label htmlFor="name_pl">{t('admin.services.serviceName')}</Label>
-        <Input
-          id="name_pl"
-          name="name_pl"
-          defaultValue={service?.name_pl}
-          placeholder={t('admin.services.servicePlaceholderMaster')}
-          required
-        />
-      </div>
+      <LocalizedFieldInput
+        baseName="name"
+        label={t('admin.services.serviceName')}
+        values={{ pl: service?.name_pl, en: service?.name_en, uk: service?.name_uk }}
+        enabledLocales={enabledLocales}
+        placeholder={t('admin.services.servicePlaceholderMaster')}
+        required
+      />
 
       <div className="grid gap-1.5">
         <Label htmlFor="duration">{t('admin.services.durationLabel')}</Label>

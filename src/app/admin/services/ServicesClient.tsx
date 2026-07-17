@@ -15,10 +15,15 @@ import {
 import DataCard from "@/components/admin/DataCard"
 import ServiceForm from "./ServiceForm"
 import { deleteService } from "./actions"
+import { useCurrentLanguage } from "@/contexts/LanguageContext"
+import { resolveLocalized } from "@/lib/localized-content"
+import type { Language } from "@/lib/i18n-shared"
 
 type Service = {
   id: string
   name_pl: string
+  name_en: string | null
+  name_uk: string | null
   duration: number
   price: number
   masterServices?: { masterProfileId: string; priceOverride: number | null }[]
@@ -29,11 +34,16 @@ type MasterOption = { masterProfileId: string; name: string }
 export default function ServicesClient({
   services,
   masters,
+  enabledLocales,
 }: {
   services: Service[]
   masters: MasterOption[]
+  enabledLocales: Language[]
 }) {
   const { t } = useTranslation()
+  const language = useCurrentLanguage()
+  const displayName = (svc: Service) =>
+    resolveLocalized({ pl: svc.name_pl, en: svc.name_en, uk: svc.name_uk }, language)
   const [editTarget, setEditTarget] = useState<Service | null>(null)
   const [addOpen, setAddOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
@@ -115,7 +125,7 @@ export default function ServicesClient({
               <SheetTitle>{t('admin.services.addServiceTitle')}</SheetTitle>
             </SheetHeader>
             <div className="px-4 pb-4">
-              <ServiceForm masters={masters} onSuccess={() => setAddOpen(false)} />
+              <ServiceForm masters={masters} enabledLocales={enabledLocales} onSuccess={() => setAddOpen(false)} />
             </div>
           </SheetContent>
         </Sheet>
@@ -146,7 +156,7 @@ export default function ServicesClient({
               <tbody className="divide-y divide-border">
                 {services.map((svc) => (
                   <tr key={svc.id} className="hover:bg-muted/40 transition-colors">
-                    <td className="px-4 py-3 font-medium">{svc.name_pl}</td>
+                    <td className="px-4 py-3 font-medium">{displayName(svc)}</td>
                     <td className="px-4 py-3 text-muted-foreground">
                       {svc.duration} {t('booking.minutes')}
                     </td>
@@ -172,7 +182,7 @@ export default function ServicesClient({
             {services.map((svc) => (
               <DataCard
                 key={svc.id}
-                title={svc.name_pl}
+                title={displayName(svc)}
                 fields={[
                   { label: t('admin.services.colDuration'), value: `${svc.duration} ${t('booking.minutes')}` },
                   { label: t('admin.services.colPrice'), value: `${svc.price.toFixed(2)} zł` },
@@ -202,6 +212,7 @@ export default function ServicesClient({
               <ServiceForm
                 service={editTarget}
                 masters={masters}
+                enabledLocales={enabledLocales}
                 onSuccess={() => {
                   setEditOpen(false)
                   setEditTarget(null)

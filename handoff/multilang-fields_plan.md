@@ -78,16 +78,16 @@ Order rationale: B (write) before C/D (read) so there's real per-locale data to 
   - Verify: `npm run build` and `npm run lint` (zero warnings) and `npm run test` all green. App visually identical to pre-change; existing services/bios still display.
 
 ### Group B — Admin authoring UI + `enabledLocales` setting + gating + admin display
-- [ ] **B1: `enabledLocales` in tenant settings**
+- [x] **B1: `enabledLocales` in tenant settings**
   - Files: `src/app/admin/settings/actions.ts` (add `enabledLocales` to schema + `raw` mapping; validate it parses to a non-empty subset of the 3 locales via `parseEnabledLocales`, persist canonical JSON), `src/app/admin/settings/page.tsx` (pass `config.enabledLocales` into the form), `src/app/admin/settings/SettingsForm.tsx` (add `enabledLocales: string` to its `TenantConfig` type and render the new section — see B2), `src/app/admin/settings/LanguagesSection.tsx` (new client component: checkboxes for pl/en/uk writing a hidden `enabledLocales` JSON input; `pl` always checked/disabled since it's the canonical default).
   - Details: Extract the UI into `LanguagesSection.tsx` (new file) to keep `SettingsForm.tsx` under the 500-line limit — see Constraints. Add i18n keys.
-- [ ] **B2: Reusable per-locale input component**
+- [x] **B2: Reusable per-locale input component**
   - Files: `src/components/admin/LocalizedFieldInput.tsx` (new client component)
   - Details: Props: base field name (e.g. `name` / `bio`), label, existing values `{ pl, en, uk }`, `enabledLocales: Language[]`, variant (`input` | `textarea`). Renders one plain field when `enabledLocales.length === 1`; otherwise a compact tabbed set (one tab per enabled locale) emitting form fields `name_pl`/`name_en`/`name_uk` (or `bio_*`). `pl` is required for services; others optional. Uses `LANGUAGE_NAMES` for tab labels. Keep it small and generic so all three forms reuse it.
-- [ ] **B3: Wire per-locale inputs into the three forms (gated by `enabledLocales`)**
+- [x] **B3: Wire per-locale inputs into the three forms (gated by `enabledLocales`)**
   - Files: `src/app/admin/services/ServiceForm.tsx` + `src/app/admin/services/actions.ts` + `src/app/admin/services/page.tsx`; `src/app/admin/master/services/MasterServiceForm.tsx` + `src/app/api/master/services/route.ts` + `src/app/api/master/services/[id]/route.ts` + `src/app/admin/master/services/page.tsx`; `src/app/admin/masters/MasterForm.tsx` + `src/app/admin/masters/actions.ts` + `src/app/admin/masters/page.tsx`.
   - Details: Replace the single `name`/`bio` input with `LocalizedFieldInput`. Server actions/route schemas parse `name_pl`(required)/`name_en`/`name_uk` and `bio_pl`/`bio_en`/`bio_uk`; write them to the new columns. `enabledLocales` must be fetched in each server page and threaded to the form (read via `getTenantConfig()` / `parseEnabledLocales`). Editing preserves existing per-locale values as defaults. When only `pl` is enabled, the form persists just `name_pl`/`bio_pl` (others untouched/left as-is on edit).
-- [ ] **B4: Localize admin table/list display**
+- [x] **B4: Localize admin table/list display**
   - Files: `src/app/admin/services/ServicesClient.tsx`, `src/app/admin/master/services/MasterServicesClient.tsx`, `src/app/admin/masters/MastersClient.tsx`.
   - Details: These client components add `useCurrentLanguage()` and render `resolveLocalized({ pl: svc.name_pl, en: svc.name_en, uk: svc.name_uk }, language)` for names, and the equivalent for `bio`. Their server pages (`services/page.tsx`, `master/services/page.tsx`, `masters/page.tsx`) must `select` all three variant columns and the client type must carry them.
   - Verify: In admin, set a tenant to all-3 locales, create/edit a service and a master bio with distinct pl/en/uk values; confirm in `prisma studio` the columns persist; switch admin UI language and confirm the tables show the matching variant (empty variant falls back to pl). Set `enabledLocales` to `["pl"]` and confirm the forms collapse to a single input. `npm run build`/`lint`/`test` green.

@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache"
 import { z } from "zod"
 import prisma from "@/lib/prisma"
 import { getServerT } from "@/lib/i18n-server"
+import { parseEnabledLocales } from "@/lib/localized-content"
+import { DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES } from "@/lib/i18n-shared"
 
 function buildSettingsSchema(t: (key: string) => string) {
   const hexColor = z.string().regex(/^#[0-9A-Fa-f]{6}$/, t('admin.settings.general.invalidHexColor'))
@@ -57,6 +59,7 @@ function buildSettingsSchema(t: (key: string) => string) {
   salonCompanyName: z.string().max(200).optional().default(""),
   salonNip:         z.string().max(30).optional().default(""),
   salonLegalAddress:z.string().max(200).optional().default(""),
+  enabledLocales:   z.string().optional().default('["pl","en","uk"]'),
   })
 }
 
@@ -118,6 +121,7 @@ export async function saveSettings(
     salonCompanyName: formData.get("salonCompanyName") || "",
     salonNip:         formData.get("salonNip") || "",
     salonLegalAddress:formData.get("salonLegalAddress") || "",
+    enabledLocales:   formData.get("enabledLocales") || '["pl","en","uk"]',
   }
 
   const parsed = buildSettingsSchema(t).safeParse(raw)
@@ -125,8 +129,14 @@ export async function saveSettings(
     return { error: parsed.error.errors[0].message }
   }
 
+  const parsedLocales = parseEnabledLocales(parsed.data.enabledLocales)
+  const enabledLocales = JSON.stringify(
+    SUPPORTED_LANGUAGES.filter((lang) => lang === DEFAULT_LANGUAGE || parsedLocales.includes(lang))
+  )
+
   const data = {
     ...parsed.data,
+    enabledLocales,
     logoUrl:          parsed.data.logoUrl          || null,
     faviconUrl:       parsed.data.faviconUrl       || null,
     darkLogoUrl:      parsed.data.darkLogoUrl      || null,

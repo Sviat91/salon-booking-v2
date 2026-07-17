@@ -15,10 +15,15 @@ import {
 import DataCard from "@/components/admin/DataCard"
 import MasterServiceForm from "./MasterServiceForm"
 import { apiErrorKey } from "@/lib/errors/apiErrorKey"
+import { useCurrentLanguage } from "@/contexts/LanguageContext"
+import { resolveLocalized } from "@/lib/localized-content"
+import type { Language } from "@/lib/i18n-shared"
 
 type Service = {
   id: string
   name_pl: string
+  name_en: string | null
+  name_uk: string | null
   duration: number
   price: number
   masterId: string | null
@@ -28,12 +33,17 @@ type Service = {
 export default function MasterServicesClient({
   services,
   currentMasterId,
+  enabledLocales,
 }: {
   services: Service[]
   currentMasterId: string
+  enabledLocales: Language[]
 }) {
   const { t } = useTranslation()
   const router = useRouter()
+  const language = useCurrentLanguage()
+  const displayName = (svc: Service) =>
+    resolveLocalized({ pl: svc.name_pl, en: svc.name_en, uk: svc.name_uk }, language)
   const [editTarget, setEditTarget] = useState<Service | null>(null)
   const [addOpen, setAddOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
@@ -109,7 +119,7 @@ export default function MasterServicesClient({
                 <SheetTitle>{t('admin.services.addMyService')}</SheetTitle>
               </SheetHeader>
               <div className="px-4 pb-4 pt-6">
-                <MasterServiceForm onSuccess={() => setAddOpen(false)} />
+                <MasterServiceForm enabledLocales={enabledLocales} onSuccess={() => setAddOpen(false)} />
               </div>
             </SheetContent>
           </Sheet>
@@ -139,7 +149,7 @@ export default function MasterServicesClient({
                   <tbody className="divide-y divide-border">
                     {myServices.map((svc) => (
                       <tr key={svc.id} className="hover:bg-muted/40 transition-colors">
-                        <td className="px-4 py-3 font-medium">{svc.name_pl}</td>
+                        <td className="px-4 py-3 font-medium">{displayName(svc)}</td>
                         <td className="px-4 py-3 text-muted-foreground">{svc.duration} {t('booking.minutes')}</td>
                         <td className="px-4 py-3 font-medium text-foreground">{svc.price.toFixed(2)} zł</td>
                         <td className="px-4 py-3">
@@ -158,7 +168,7 @@ export default function MasterServicesClient({
                 {myServices.map((svc) => (
                   <DataCard
                     key={svc.id}
-                    title={svc.name_pl}
+                    title={displayName(svc)}
                     fields={[
                       { label: t('admin.services.colDuration'), value: `${svc.duration} ${t('booking.minutes')}` },
                       { label: t('admin.services.colPrice'), value: `${svc.price.toFixed(2)} zł` },
@@ -195,7 +205,7 @@ export default function MasterServicesClient({
                   <tbody className="divide-y divide-border">
                     {adminServices.map((svc) => (
                       <tr key={svc.id} className="bg-muted/10">
-                        <td className="px-4 py-3 font-medium text-muted-foreground">{svc.name_pl}</td>
+                        <td className="px-4 py-3 font-medium text-muted-foreground">{displayName(svc)}</td>
                         <td className="px-4 py-3 text-muted-foreground">{svc.duration} {t('booking.minutes')}</td>
                         <td className="px-4 py-3 text-muted-foreground">
                           {(() => {
@@ -233,7 +243,7 @@ export default function MasterServicesClient({
                     <DataCard
                       key={svc.id}
                       className="opacity-90"
-                      title={svc.name_pl}
+                      title={displayName(svc)}
                       fields={[
                         { label: t('admin.services.colDuration'), value: `${svc.duration} ${t('booking.minutes')}` },
                         { label: t('admin.services.colPricing'), value: pricing },
@@ -260,6 +270,7 @@ export default function MasterServicesClient({
             {editTarget && (
               <MasterServiceForm
                 service={editTarget}
+                enabledLocales={enabledLocales}
                 onSuccess={() => { setEditOpen(false); setEditTarget(null) }}
               />
             )}

@@ -2,13 +2,18 @@ import { redirect } from "next/navigation"
 import { auth } from "@/auth"
 import prisma from "@/lib/prisma"
 import MasterServicesClient from "./MasterServicesClient"
+import { getTenantConfig } from "@/lib/tenant"
+import { parseEnabledLocales } from "@/lib/localized-content"
 
 export default async function MasterServicesPage() {
   const session = await auth()
-  
+
   if (!session?.user?.id || session.user.role !== "MASTER") {
     redirect("/auth/login")
   }
+
+  const config = await getTenantConfig()
+  const enabledLocales = parseEnabledLocales((config as { enabledLocales?: string }).enabledLocales)
 
   const masterProfile = await prisma.masterProfile.findUnique({
     where: { userId: session.user.id },
@@ -33,5 +38,5 @@ export default async function MasterServicesPage() {
     orderBy: { name_pl: "asc" },
   })
 
-  return <MasterServicesClient services={services} currentMasterId={session.user.id} />
+  return <MasterServicesClient services={services} currentMasterId={session.user.id} enabledLocales={enabledLocales} />
 }

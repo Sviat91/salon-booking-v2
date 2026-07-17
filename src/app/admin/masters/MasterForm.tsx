@@ -8,19 +8,28 @@ import { Copy, Check, Upload, X, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import { createMaster, updateMaster, resetMasterPassword, getMasterPassword, type MasterFormState } from "./actions"
 import { apiErrorKey } from "@/lib/errors/apiErrorKey"
+import LocalizedFieldInput from "@/components/admin/LocalizedFieldInput"
+import type { Language } from "@/lib/i18n-shared"
 
 type Master = {
   id: string
   name: string | null
   email: string | null
-  masterProfile: { bio_pl: string | null; avatarUrl: string | null; showOnHomepage: boolean; color: string | null } | null
+  masterProfile: {
+    bio_pl: string | null
+    bio_en: string | null
+    bio_uk: string | null
+    avatarUrl: string | null
+    showOnHomepage: boolean
+    color: string | null
+  } | null
 }
 
 interface MasterFormProps {
   master?: Master
+  enabledLocales: Language[]
   onSuccess: () => void
 }
 
@@ -36,7 +45,7 @@ function SubmitButton({ label }: { label: string }) {
   )
 }
 
-export default function MasterForm({ master, onSuccess }: MasterFormProps) {
+export default function MasterForm({ master, enabledLocales, onSuccess }: MasterFormProps) {
   const { t } = useTranslation()
   const action = master
     ? updateMaster.bind(null, master.id)
@@ -225,17 +234,18 @@ export default function MasterForm({ master, onSuccess }: MasterFormProps) {
       )}
 
       {/* Bio */}
-      <div className="grid gap-1.5">
-        <Label htmlFor="bio_pl">{t('admin.masters.bio')}</Label>
-        <Textarea
-          id="bio_pl"
-          name="bio_pl"
-          rows={3}
-          defaultValue={master?.masterProfile?.bio_pl ?? ""}
-          placeholder={t('admin.masters.bioPlaceholder')}
-          className="resize-none"
-        />
-      </div>
+      <LocalizedFieldInput
+        baseName="bio"
+        label={t('admin.masters.bio')}
+        values={{
+          pl: master?.masterProfile?.bio_pl,
+          en: master?.masterProfile?.bio_en,
+          uk: master?.masterProfile?.bio_uk,
+        }}
+        enabledLocales={enabledLocales}
+        variant="textarea"
+        placeholder={t('admin.masters.bioPlaceholder')}
+      />
 
       {/* Color */}
       <div className="grid gap-1.5">

@@ -15,16 +15,34 @@ import {
 } from "@/components/ui/sheet"
 import MasterForm from "./MasterForm"
 import { deleteMaster } from "./actions"
+import { useCurrentLanguage } from "@/contexts/LanguageContext"
+import { resolveLocalized } from "@/lib/localized-content"
+import type { Language } from "@/lib/i18n-shared"
 
 type Master = {
   id: string
   name: string | null
   email: string | null
-  masterProfile: { bio_pl: string | null; avatarUrl: string | null; showOnHomepage: boolean; color: string | null } | null
+  masterProfile: {
+    bio_pl: string | null
+    bio_en: string | null
+    bio_uk: string | null
+    avatarUrl: string | null
+    showOnHomepage: boolean
+    color: string | null
+  } | null
 }
 
-export default function MastersClient({ masters }: { masters: Master[] }) {
+export default function MastersClient({ masters, enabledLocales }: { masters: Master[]; enabledLocales: Language[] }) {
   const { t } = useTranslation()
+  const language = useCurrentLanguage()
+  const displayBio = (master: Master) =>
+    master.masterProfile
+      ? resolveLocalized(
+          { pl: master.masterProfile.bio_pl, en: master.masterProfile.bio_en, uk: master.masterProfile.bio_uk },
+          language
+        )
+      : ""
   const [editTarget, setEditTarget] = useState<Master | null>(null)
   const [addOpen, setAddOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
@@ -65,7 +83,7 @@ export default function MastersClient({ masters }: { masters: Master[] }) {
               <SheetTitle>{t('admin.masters.addMasterTitle')}</SheetTitle>
             </SheetHeader>
             <div className="px-4 pb-4">
-              <MasterForm onSuccess={() => setAddOpen(false)} />
+              <MasterForm enabledLocales={enabledLocales} onSuccess={() => setAddOpen(false)} />
             </div>
           </SheetContent>
         </Sheet>
@@ -112,9 +130,9 @@ export default function MastersClient({ masters }: { masters: Master[] }) {
                 <p className="truncate text-xs text-muted-foreground mt-0.5">
                   {master.email}
                 </p>
-                {master.masterProfile?.bio_pl && (
+                {displayBio(master) && (
                   <p className="truncate text-xs text-muted-foreground/80 mt-0.5">
-                    {master.masterProfile.bio_pl}
+                    {displayBio(master)}
                   </p>
                 )}
               </div>
@@ -165,6 +183,7 @@ export default function MastersClient({ masters }: { masters: Master[] }) {
                       {editTarget && (
                         <MasterForm
                           master={editTarget}
+                          enabledLocales={enabledLocales}
                           onSuccess={() => {
                             setEditOpen(false)
                             setEditTarget(null)

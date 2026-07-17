@@ -10,9 +10,21 @@ const db = prisma as any
 function buildServiceSchema(t: (key: string) => string) {
   return z.object({
     name_pl:  z.string().min(1, t('admin.services.nameRequired')).max(100),
+    name_en:  z.string().max(100).optional(),
+    name_uk:  z.string().max(100).optional(),
     duration: z.coerce.number().int().min(5).max(480),
     price:    z.coerce.number().min(0),
   })
+}
+
+/**
+ * Locale fields (`name_en`/`name_uk`) are only rendered in the form when their
+ * locale is enabled for the tenant. When a field is absent from the submission
+ * (locale currently disabled), we must not touch its DB column — preserves any
+ * previously-saved translation instead of nulling it out.
+ */
+function readOptionalLocaleField(formData: FormData, key: string): string | undefined {
+  return formData.has(key) ? (formData.get(key) as string) : undefined
 }
 
 export type ServiceFormState = {
@@ -56,15 +68,24 @@ export async function createService(
   const t = getServerT()
   const parsed = buildServiceSchema(t).safeParse({
     name_pl:  formData.get("name_pl"),
+    name_en:  readOptionalLocaleField(formData, "name_en"),
+    name_uk:  readOptionalLocaleField(formData, "name_uk"),
     duration: formData.get("duration"),
     price:    formData.get("price"),
   })
   if (!parsed.success) return { fieldErrors: parsed.error.flatten().fieldErrors }
 
+  const { name_en, name_uk, ...rest } = parsed.data
+  const data = {
+    ...rest,
+    ...(name_en !== undefined ? { name_en: name_en || null } : {}),
+    ...(name_uk !== undefined ? { name_uk: name_uk || null } : {}),
+  }
+
   const assignments = parseMasterAssignments(formData)
 
   try {
-    const service = await prisma.service.create({ data: parsed.data })
+    const service = await prisma.service.create({ data })
 
     // Create MasterService records for selected masters
     if (assignments.length > 0) {
@@ -92,15 +113,24 @@ export async function updateService(
   const t = getServerT()
   const parsed = buildServiceSchema(t).safeParse({
     name_pl:  formData.get("name_pl"),
+    name_en:  readOptionalLocaleField(formData, "name_en"),
+    name_uk:  readOptionalLocaleField(formData, "name_uk"),
     duration: formData.get("duration"),
     price:    formData.get("price"),
   })
   if (!parsed.success) return { fieldErrors: parsed.error.flatten().fieldErrors }
 
+  const { name_en, name_uk, ...rest } = parsed.data
+  const data = {
+    ...rest,
+    ...(name_en !== undefined ? { name_en: name_en || null } : {}),
+    ...(name_uk !== undefined ? { name_uk: name_uk || null } : {}),
+  }
+
   const assignments = parseMasterAssignments(formData)
 
   try {
-    await prisma.service.update({ where: { id }, data: parsed.data })
+    await prisma.service.update({ where: { id }, data })
 
     // Replace all MasterService records for this service
     await db.masterService.deleteMany({ where: { serviceId: id } })

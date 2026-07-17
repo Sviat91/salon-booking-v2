@@ -8,10 +8,14 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { createService, updateService, type ServiceFormState } from "./actions"
+import LocalizedFieldInput from "@/components/admin/LocalizedFieldInput"
+import type { Language } from "@/lib/i18n-shared"
 
 type Service = {
   id: string
   name_pl: string
+  name_en: string | null
+  name_uk: string | null
   duration: number
   price: number
   masterServices?: { masterProfileId: string; priceOverride: number | null }[]
@@ -25,6 +29,7 @@ type MasterOption = {
 interface ServiceFormProps {
   service?: Service
   masters: MasterOption[]
+  enabledLocales: Language[]
   onSuccess: () => void
 }
 
@@ -40,7 +45,7 @@ function SubmitButton({ label }: { label: string }) {
   )
 }
 
-export default function ServiceForm({ service, masters, onSuccess }: ServiceFormProps) {
+export default function ServiceForm({ service, masters, enabledLocales, onSuccess }: ServiceFormProps) {
   const { t } = useTranslation()
   const action = service
     ? updateService.bind(null, service.id)
@@ -74,19 +79,19 @@ export default function ServiceForm({ service, masters, onSuccess }: ServiceForm
   return (
     <form action={formAction} className="flex flex-col gap-4">
       {/* Name */}
-      <div className="grid gap-1.5">
-        <Label htmlFor="name_pl">{t('admin.services.serviceName')}</Label>
-        <Input
-          id="name_pl"
-          name="name_pl"
-          defaultValue={service?.name_pl}
-          placeholder={t('admin.services.serviceNamePlaceholder')}
-          required
-        />
-        {state.fieldErrors?.name_pl && (
-          <p className="text-xs text-destructive">{state.fieldErrors.name_pl[0]}</p>
-        )}
-      </div>
+      <LocalizedFieldInput
+        baseName="name"
+        label={t('admin.services.serviceName')}
+        values={{ pl: service?.name_pl, en: service?.name_en, uk: service?.name_uk }}
+        enabledLocales={enabledLocales}
+        placeholder={t('admin.services.serviceNamePlaceholder')}
+        required
+        errors={{
+          pl: state.fieldErrors?.name_pl?.[0],
+          en: state.fieldErrors?.name_en?.[0],
+          uk: state.fieldErrors?.name_uk?.[0],
+        }}
+      />
 
       {/* Duration */}
       <div className="grid gap-1.5">

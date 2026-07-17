@@ -7,6 +7,8 @@ export const runtime = "nodejs"
 
 const ServiceSchema = z.object({
   name_pl: z.string().min(2, "Name must be at least 2 characters"),
+  name_en: z.string().optional(),
+  name_uk: z.string().optional(),
   duration: z.number().int().min(5, "Duration must be at least 5 minutes"),
   price: z.number().min(0, "Price must be positive"),
 })
@@ -52,6 +54,8 @@ export async function PUT(
       where: { id: params.id },
       data: {
         name_pl: body.name_pl,
+        ...(body.name_en !== undefined ? { name_en: body.name_en || null } : {}),
+        ...(body.name_uk !== undefined ? { name_uk: body.name_uk || null } : {}),
         duration: body.duration,
         price: body.price,
       },

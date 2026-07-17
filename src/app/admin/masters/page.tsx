@@ -1,5 +1,7 @@
 import prisma from "@/lib/prisma"
 import MastersClient from "./MastersClient"
+import { getTenantConfig } from "@/lib/tenant"
+import { parseEnabledLocales } from "@/lib/localized-content"
 
 // Type pending Prisma client regeneration after db push
 type MasterWithProfile = {
@@ -8,6 +10,8 @@ type MasterWithProfile = {
   email: string | null
   masterProfile: {
     bio_pl: string | null
+    bio_en: string | null
+    bio_uk: string | null
     avatarUrl: string | null
     showOnHomepage: boolean
     color: string | null
@@ -15,6 +19,9 @@ type MasterWithProfile = {
 }
 
 export default async function MastersPage() {
+  const config = await getTenantConfig()
+  const enabledLocales = parseEnabledLocales((config as { enabledLocales?: string }).enabledLocales)
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const masters = await (prisma.user.findMany as any)({
     where: { role: "MASTER" },
@@ -24,10 +31,10 @@ export default async function MastersPage() {
       name: true,
       email: true,
       masterProfile: {
-        select: { bio_pl: true, avatarUrl: true, showOnHomepage: true, color: true },
+        select: { bio_pl: true, bio_en: true, bio_uk: true, avatarUrl: true, showOnHomepage: true, color: true },
       },
     },
   }) as MasterWithProfile[]
 
-  return <MastersClient masters={masters} />
+  return <MastersClient masters={masters} enabledLocales={enabledLocales} />
 }

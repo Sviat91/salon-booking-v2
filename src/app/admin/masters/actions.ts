@@ -16,6 +16,8 @@ function buildCreateMasterSchema(t: (key: string) => string) {
     name:          z.string().min(1, t('admin.masters.nameRequired')).max(100),
     email:         z.string().email(t('admin.masters.invalidEmail')),
     bio_pl:        z.string().max(500).optional(),
+    bio_en:        z.string().max(500).optional(),
+    bio_uk:        z.string().max(500).optional(),
     avatarUrl:     pathOrEmpty,
     showOnHomepage:z.coerce.boolean().default(true),
     color:         z.string().regex(/^#[0-9A-Fa-f]{6}$/, t('admin.masters.invalidHex')).default("#166534"),
@@ -26,10 +28,21 @@ function buildUpdateMasterSchema(t: (key: string) => string) {
   return z.object({
     name:          z.string().min(1, t('admin.masters.nameRequired')).max(100),
     bio_pl:        z.string().max(500).optional(),
+    bio_en:        z.string().max(500).optional(),
+    bio_uk:        z.string().max(500).optional(),
     avatarUrl:     pathOrEmpty,
     showOnHomepage:z.coerce.boolean().default(true),
     color:         z.string().regex(/^#[0-9A-Fa-f]{6}$/, t('admin.masters.invalidHex')).default("#166534"),
   })
+}
+
+/**
+ * `bio_en`/`bio_uk` fields are only rendered when their locale is enabled for
+ * the tenant. When absent from the submission, don't touch the DB column —
+ * preserves a previously-saved translation instead of nulling it out.
+ */
+function readOptionalLocaleField(formData: FormData, key: string): string | undefined {
+  return formData.has(key) ? (formData.get(key) as string) : undefined
 }
 
 export type MasterFormState = {
@@ -60,6 +73,8 @@ export async function createMaster(
     name:           formData.get("name"),
     email:          formData.get("email"),
     bio_pl:         formData.get("bio_pl") || undefined,
+    bio_en:         readOptionalLocaleField(formData, "bio_en"),
+    bio_uk:         readOptionalLocaleField(formData, "bio_uk"),
     avatarUrl:      formData.get("avatarUrl") || "",
     showOnHomepage: formData.get("showOnHomepage") === "on" || formData.get("showOnHomepage") === "true",
     color:          formData.get("color") || "#166534",
@@ -90,6 +105,8 @@ export async function createMaster(
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           create: {
             bio_pl:        parsed.data.bio_pl ?? null,
+            bio_en:        parsed.data.bio_en ?? null,
+            bio_uk:        parsed.data.bio_uk ?? null,
             avatarUrl:     parsed.data.avatarUrl || null,
             showOnHomepage:parsed.data.showOnHomepage,
             color:         parsed.data.color,
@@ -119,6 +136,8 @@ export async function updateMaster(
   const raw = {
     name:           formData.get("name"),
     bio_pl:         formData.get("bio_pl") || undefined,
+    bio_en:         readOptionalLocaleField(formData, "bio_en"),
+    bio_uk:         readOptionalLocaleField(formData, "bio_uk"),
     avatarUrl:      formData.get("avatarUrl") || "",
     showOnHomepage: formData.get("showOnHomepage") === "on" || formData.get("showOnHomepage") === "true",
     color:          formData.get("color") || "#166534",
@@ -139,6 +158,8 @@ export async function updateMaster(
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             create: {
               bio_pl:        parsed.data.bio_pl ?? null,
+              bio_en:        parsed.data.bio_en ?? null,
+              bio_uk:        parsed.data.bio_uk ?? null,
               avatarUrl:     parsed.data.avatarUrl || null,
               showOnHomepage:parsed.data.showOnHomepage,
               color:         parsed.data.color,
@@ -146,6 +167,8 @@ export async function updateMaster(
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             update: {
               bio_pl:        parsed.data.bio_pl ?? null,
+              ...(parsed.data.bio_en !== undefined ? { bio_en: parsed.data.bio_en || null } : {}),
+              ...(parsed.data.bio_uk !== undefined ? { bio_uk: parsed.data.bio_uk || null } : {}),
               avatarUrl:     parsed.data.avatarUrl || null,
               showOnHomepage:parsed.data.showOnHomepage,
               color:         parsed.data.color,
