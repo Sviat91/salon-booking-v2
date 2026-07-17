@@ -1,14 +1,14 @@
 "use client"
-import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react'
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
-import { 
-  Language, 
-  DEFAULT_LANGUAGE, 
+import {
+  Language,
+  DEFAULT_LANGUAGE,
   isValidLanguage,
   LANGUAGE_NAMES,
-  SUPPORTED_LANGUAGES,
 } from '@/lib/i18n'
+import { parseEnabledLocales } from '@/lib/localized-content'
 import { clientLog } from '@/lib/client-logger'
 
 const STORAGE_KEY = 'selected-language'
@@ -54,26 +54,40 @@ function setLanguageCookie(lang: Language): void {
   document.cookie = `lang=${lang}; path=/; max-age=31536000; samesite=lax`
 }
 
-export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const LanguageProvider: React.FC<{ children: ReactNode; enabledLocales?: string }> = ({ children, enabledLocales }) => {
   const { i18n } = useTranslation()
   const router = useRouter()
+
+  const enabledLanguages = useMemo(() => parseEnabledLocales(enabledLocales), [enabledLocales])
 
   // Always start with default language to avoid hydration mismatch
   const [language, setLanguageState] = useState<Language>(DEFAULT_LANGUAGE)
 
-  // Sync language from localStorage AFTER hydration is complete
+  // Sync language from localStorage AFTER hydration is complete. A stored
+  // language that is no longer enabled (tenant disabled it) falls back to
+  // the first enabled language.
   useEffect(() => {
     const storedLang = getStoredLanguage()
-    if (storedLang && storedLang !== DEFAULT_LANGUAGE) {
-      i18n.changeLanguage(storedLang)
-      setLanguageState(storedLang)
+    const effective = storedLang && enabledLanguages.includes(storedLang) ? storedLang : enabledLanguages[0]
+
+    i18n.changeLanguage(effective)
+    setLanguageState(effective)
+    setLanguageCookie(effective)
+
+    if (storedLang && storedLang !== effective) {
+      setStoredLanguage(effective)
+      router.refresh()
     }
-    setLanguageCookie(storedLang ?? DEFAULT_LANGUAGE)
-  }, [i18n])
+  }, [i18n, enabledLanguages, router])
 
   const setLanguage = useCallback((lang: Language) => {
     if (!isValidLanguage(lang)) {
       clientLog.error('Invalid language:', lang)
+      return
+    }
+
+    if (!enabledLanguages.includes(lang)) {
+      clientLog.error('Language not enabled:', lang)
       return
     }
 
@@ -100,12 +114,17 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
     router.refresh()
 
     clientLog.info('Language changed successfully to:', lang)
-  }, [language, i18n, router])
+  }, [language, i18n, router, enabledLanguages])
 
   // Sync with localStorage changes from other tabs
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === STORAGE_KEY && e.newValue && isValidLanguage(e.newValue)) {
+      if (
+        e.key === STORAGE_KEY &&
+        e.newValue &&
+        isValidLanguage(e.newValue) &&
+        enabledLanguages.includes(e.newValue)
+      ) {
         const newLang = e.newValue as Language
         i18n.changeLanguage(newLang)
         setLanguageState(newLang)
@@ -114,13 +133,13 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
 
     window.addEventListener('storage', handleStorageChange)
     return () => window.removeEventListener('storage', handleStorageChange)
-  }, [i18n])
+  }, [i18n, enabledLanguages])
 
   const value: LanguageContextType = {
     language,
     setLanguage,
     languageName: LANGUAGE_NAMES[language],
-    supportedLanguages: SUPPORTED_LANGUAGES,
+    supportedLanguages: enabledLanguages,
   }
 
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>

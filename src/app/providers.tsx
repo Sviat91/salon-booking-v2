@@ -10,7 +10,7 @@ import { ErrorBoundary } from '@/components/ErrorBoundary'
 // Initialize i18n
 import '@/lib/i18n'
 
-export default function Providers({ children }: { children: React.ReactNode }) {
+export default function Providers({ children, enabledLocales }: { children: React.ReactNode; enabledLocales: string }) {
   const clientRef = useRef<QueryClient>()
   if (!clientRef.current) clientRef.current = new QueryClient({
     defaultOptions: {
@@ -28,7 +28,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
     <ErrorBoundary>
       <SessionProvider>
         <QueryClientProvider client={clientRef.current}>
-          <LanguageProvider>
+          <LanguageProvider enabledLocales={enabledLocales}>
             <MasterProvider>
               <LayoutGroup>
                 {children}

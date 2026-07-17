@@ -63,6 +63,8 @@ export default function LanguageToggle() {
     setIsOpen(false)
   }
 
+  if (supportedLanguages.length <= 1) return null
+
   return (
     <div ref={dropdownRef} className="relative">
       <button

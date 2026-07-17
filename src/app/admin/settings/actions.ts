@@ -5,7 +5,6 @@ import { z } from "zod"
 import prisma from "@/lib/prisma"
 import { getServerT } from "@/lib/i18n-server"
 import { parseEnabledLocales } from "@/lib/localized-content"
-import { DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES } from "@/lib/i18n-shared"
 
 function buildSettingsSchema(t: (key: string) => string) {
   const hexColor = z.string().regex(/^#[0-9A-Fa-f]{6}$/, t('admin.settings.general.invalidHexColor'))
@@ -130,9 +129,7 @@ export async function saveSettings(
   }
 
   const parsedLocales = parseEnabledLocales(parsed.data.enabledLocales)
-  const enabledLocales = JSON.stringify(
-    SUPPORTED_LANGUAGES.filter((lang) => lang === DEFAULT_LANGUAGE || parsedLocales.includes(lang))
-  )
+  const enabledLocales = JSON.stringify(parsedLocales)
 
   const data = {
     ...parsed.data,

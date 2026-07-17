@@ -147,7 +147,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         />
       </head>
       <body>
-        <Providers>
+        <Providers enabledLocales={config.enabledLocales}>
           <div className="min-h-screen flex flex-col text-foreground">
             <div className="flex-1 w-full mx-auto">
               {children}

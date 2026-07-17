@@ -53,6 +53,7 @@ const DEFAULT_CONFIG = {
   notifReminder2hEnabled: false,
   telegramBotToken: null,
   telegramBotUsername: null,
+  enabledLocales: '["pl","en","uk"]',
 }
 
 export async function getTenantConfig() {

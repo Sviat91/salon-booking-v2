@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { useFormState } from "react-dom"
 import { useTranslation } from "react-i18next"
 import { Save } from "lucide-react"
@@ -110,6 +111,7 @@ const darkColorFields: { name: keyof TenantConfig; labelKey: string; descKey: st
 
 export default function SettingsForm({ config }: { config: TenantConfig }) {
   const { t } = useTranslation()
+  const router = useRouter()
   const [state, formAction] = useFormState(saveSettings, initialState)
   const [isDirty, setIsDirty] = useState(false)
   const [lightReset, setLightReset] = useState(0)
@@ -143,8 +145,9 @@ export default function SettingsForm({ config }: { config: TenantConfig }) {
   useEffect(() => {
     if (state.success) {
       setIsDirty(false)
+      router.refresh()
     }
-  }, [state.success])
+  }, [state.success, router])
 
   // Dispatch custom event so sidebar can read isDirty
   useEffect(() => {
