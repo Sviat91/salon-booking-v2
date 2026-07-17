@@ -16,7 +16,7 @@ type Master = {
   id: string
   name: string | null
   email: string | null
-  masterProfile: { bio: string | null; avatarUrl: string | null; showOnHomepage: boolean; color: string | null } | null
+  masterProfile: { bio_pl: string | null; avatarUrl: string | null; showOnHomepage: boolean; color: string | null } | null
 }
 
 interface MasterFormProps {
@@ -226,12 +226,12 @@ export default function MasterForm({ master, onSuccess }: MasterFormProps) {
 
       {/* Bio */}
       <div className="grid gap-1.5">
-        <Label htmlFor="bio">{t('admin.masters.bio')}</Label>
+        <Label htmlFor="bio_pl">{t('admin.masters.bio')}</Label>
         <Textarea
-          id="bio"
-          name="bio"
+          id="bio_pl"
+          name="bio_pl"
           rows={3}
-          defaultValue={master?.masterProfile?.bio ?? ""}
+          defaultValue={master?.masterProfile?.bio_pl ?? ""}
           placeholder={t('admin.masters.bioPlaceholder')}
           className="resize-none"
         />

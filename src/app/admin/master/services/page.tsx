@@ -30,7 +30,7 @@ export default async function MasterServicesPage() {
           }
         : undefined,
     },
-    orderBy: { name: "asc" },
+    orderBy: { name_pl: "asc" },
   })
 
   return <MasterServicesClient services={services} currentMasterId={session.user.id} />

@@ -98,7 +98,7 @@ export async function PATCH(
   try {
     const appointment = await prisma.appointment.findUnique({
       where: { id: appointmentId },
-      include: { service: { select: { name: true } } },
+      include: { service: { select: { name_pl: true } } },
     })
 
     if (!appointment) {
@@ -164,7 +164,7 @@ export async function PATCH(
     if (body.newProcedureId) {
       const service = await prisma.service.findUnique({
         where: { id: body.newProcedureId },
-        select: { id: true, name: true },
+        select: { id: true, name_pl: true },
       })
 
       if (!service) {
@@ -172,7 +172,7 @@ export async function PATCH(
       }
 
       updateData.serviceId = service.id
-      changes.procedure = service.name
+      changes.procedure = service.name_pl
     }
 
     await prisma.appointment.update({

@@ -15,7 +15,7 @@ type AppointmentProps = {
   endTime: string
   status: string
   client: { name: string | null; phone: string | null }
-  service: { name: string; duration: number }
+  service: { name_pl: string; duration: number }
 }
 
 export default function AppointmentsList({ appointments }: { appointments: AppointmentProps[] }) {
@@ -69,7 +69,7 @@ export default function AppointmentsList({ appointments }: { appointments: Appoi
                 </div>
                 
                 <div>
-                  <h4 className="font-semibold text-base">{app.service.name}</h4>
+                  <h4 className="font-semibold text-base">{app.service.name_pl}</h4>
                   <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-1">
                     <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                       <UserIcon className="w-4 h-4 shrink-0" />

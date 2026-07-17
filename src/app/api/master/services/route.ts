@@ -21,7 +21,7 @@ export async function GET() {
           { masterId: session.user.id }, // Master's own services
         ],
       },
-      orderBy: { name: "asc" },
+      orderBy: { name_pl: "asc" },
     })
 
     return NextResponse.json({ services })
@@ -32,7 +32,7 @@ export async function GET() {
 }
 
 const ServiceSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
+  name_pl: z.string().min(2, "Name must be at least 2 characters"),
   duration: z.number().int().min(5, "Duration must be at least 5 minutes"),
   price: z.number().min(0, "Price must be positive"),
 })
@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
   try {
     const service = await prisma.service.create({
       data: {
-        name: body.name,
+        name_pl: body.name_pl,
         duration: body.duration,
         price: body.price,
         masterId: session.user.id, // Explicitly assign to this master

@@ -34,7 +34,7 @@ async function getDashboardData() {
         where: { date: { gte: todayStart, lte: todayEnd } },
         include: {
           client: { select: { name: true } },
-          service: { select: { name: true, price: true } },
+          service: { select: { name_pl: true, price: true } },
           master: { select: { name: true } },
         },
         orderBy: { startTime: "asc" },

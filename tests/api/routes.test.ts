@@ -48,7 +48,7 @@ describe('API smoke checks', () => {
 
   it('GET /api/procedures returns global services when no masterId is provided', async () => {
     mockPrisma.service.findMany.mockResolvedValue([
-      { id: 'svc_1', name: 'Massage', duration: 60, price: 150 },
+      { id: 'svc_1', name_pl: 'Massage', duration: 60, price: 150 },
     ])
 
     const { GET } = await import('../../src/app/api/procedures/route')
@@ -70,7 +70,7 @@ describe('API smoke checks', () => {
     })
     expect(mockPrisma.service.findMany).toHaveBeenCalledWith({
       where: { masterId: null },
-      orderBy: { name: 'asc' },
+      orderBy: { name_pl: 'asc' },
     })
   })
 })

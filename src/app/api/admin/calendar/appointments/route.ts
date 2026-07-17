@@ -53,7 +53,7 @@ export async function GET(req: NextRequest) {
         endTime: true,
         status: true,
         notes: true,
-        service: { select: { id: true, name: true, duration: true, price: true } },
+        service: { select: { id: true, name_pl: true, duration: true, price: true } },
         client: { select: { id: true, name: true, phone: true, email: true } },
         master: { select: { masterProfile: { select: { color: true } } } },
       },
@@ -104,7 +104,7 @@ export async function POST(req: NextRequest) {
     if (!finalServiceId) {
       if (!parsed.serviceName) return NextResponse.json({ error: "Service Name is required" }, { status: 400 })
       const customService = await prisma.service.create({
-        data: { name: parsed.serviceName, duration: parsed.entries[0].duration, price: 0, masterId }
+        data: { name_pl: parsed.serviceName, duration: parsed.entries[0].duration, price: 0, masterId }
       })
       finalServiceId = customService.id
     }

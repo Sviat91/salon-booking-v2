@@ -19,7 +19,7 @@ export async function GET() {
         id: true,
         name: true,
         masterProfile: {
-          select: { avatarUrl: true, bio: true },
+          select: { avatarUrl: true, bio_pl: true },
         },
       },
     })
@@ -29,7 +29,7 @@ export async function GET() {
       id: m.id,
       name: m.name ?? "Master",
       avatar: m.masterProfile?.avatarUrl ?? null,
-      bio: m.masterProfile?.bio ?? null,
+      bio: m.masterProfile?.bio_pl ?? null,
     }))
 
     return NextResponse.json({ masters: result })

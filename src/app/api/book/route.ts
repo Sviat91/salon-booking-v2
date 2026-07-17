@@ -197,7 +197,7 @@ export async function POST(req: NextRequest) {
       } else {
         // Create a placeholder "Consultation" service
         const placeholder = await prisma.service.create({
-          data: { name: "General Service", duration: 60, price: 0 },
+          data: { name_pl: "General Service", duration: 60, price: 0 },
         })
         serviceId = placeholder.id
       }

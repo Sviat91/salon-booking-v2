@@ -19,12 +19,12 @@ export async function GET(req: NextRequest) {
       // Return all global services as fallback
       const services = await prisma.service.findMany({
         where: { masterId: null },
-        orderBy: { name: "asc" },
+        orderBy: { name_pl: "asc" },
       })
       return NextResponse.json({
         items: services.map((s) => ({
           id: s.id,
-          name_pl: s.name,
+          name_pl: s.name_pl,
           duration_min: s.duration,
           price_pln: s.price,
           price_default_pln: s.price,
@@ -43,14 +43,14 @@ export async function GET(req: NextRequest) {
       const masterServices = await prisma.masterService.findMany({
         where: { masterProfileId: profile.id },
         include: { service: true },
-        orderBy: { service: { name: "asc" } },
+        orderBy: { service: { name_pl: "asc" } },
       })
 
       if (masterServices.length > 0) {
         return NextResponse.json({
           items: masterServices.map((ms) => ({
             id: ms.service.id,
-            name_pl: ms.service.name,
+            name_pl: ms.service.name_pl,
             duration_min: ms.service.duration,
             // Use price override if set, otherwise default service price
             price_pln: ms.priceOverride ?? ms.service.price,
@@ -66,13 +66,13 @@ export async function GET(req: NextRequest) {
       where: {
         OR: [{ masterId: null }, { masterId }],
       },
-      orderBy: { name: "asc" },
+      orderBy: { name_pl: "asc" },
     })
 
     return NextResponse.json({
       items: services.map((s) => ({
         id: s.id,
-        name_pl: s.name,
+        name_pl: s.name_pl,
         duration_min: s.duration,
         price_pln: s.price,
         price_default_pln: s.price,

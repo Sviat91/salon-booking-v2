@@ -48,7 +48,9 @@ model MasterProfile {
   id              String   @id @default(cuid())
   userId          String   @unique
   avatarUrl       String?
-  bio             String?
+  bio_pl          String?
+  bio_en          String?
+  bio_uk          String?
   specialties     String?  // Stored as JSON string or comma-separated
   showOnHomepage  Boolean  @default(true)
   color           String?  @default("#166534")
@@ -62,7 +64,9 @@ model MasterProfile {
 
 model Service {
   id          String   @id @default(cuid())
-  name        String
+  name_pl     String
+  name_en     String?
+  name_uk     String?
   duration    Int      // Duration in minutes
   price       Float    // Default price (can be overridden per master)
 
@@ -258,6 +262,8 @@ model TenantConfig {
   notifAdminChatId        String?
   notifReminder24hEnabled Boolean  @default(false)
   notifReminder2hEnabled  Boolean  @default(false)
+
+  enabledLocales  String   @default("[\"pl\",\"en\",\"uk\"]")
 
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt

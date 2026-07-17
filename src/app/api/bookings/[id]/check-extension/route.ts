@@ -67,7 +67,7 @@ export async function POST(
     const appointment = await prisma.appointment.findUnique({
       where: { id: appointmentId },
       include: {
-        service: { select: { id: true, name: true, duration: true } },
+        service: { select: { id: true, name_pl: true, duration: true } },
       },
     })
 
@@ -125,7 +125,7 @@ export async function POST(
         },
         newProcedure: {
           id: newService.id,
-          name: newService.name,
+          name: newService.name_pl,
           duration: newService.duration,
         },
       })
@@ -201,7 +201,7 @@ export async function POST(
         },
         newProcedure: {
           id: newService.id,
-          name: newService.name,
+          name: newService.name_pl,
           duration: newService.duration,
         },
       })
@@ -223,7 +223,7 @@ export async function POST(
       },
       newProcedure: {
         id: newService.id,
-        name: newService.name,
+        name: newService.name_pl,
         duration: newService.duration,
       },
     })

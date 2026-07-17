@@ -332,7 +332,7 @@ export default function WeekView({ currentDate, appointments, templates, overrid
                 style={{ top: `${top}px`, minHeight: `${Math.max(height, 24)}px`, left: "4px", zIndex: 10, backgroundColor: (a.master?.masterProfile?.color || "#8B4A58") + "26", borderLeft: "3px solid " + (a.master?.masterProfile?.color || "#8B4A58") }}
               >
                 <div className="font-semibold leading-tight truncate">{a.client.name || t('admin.calendar.clientFallback')}</div>
-                <div className="opacity-90 leading-tight truncate mt-0.5">{a.service.name}</div>
+                <div className="opacity-90 leading-tight truncate mt-0.5">{a.service.name_pl}</div>
                 <div className="opacity-75 leading-tight text-[10px] mt-0.5 flex items-center gap-1">
                   <Clock className="w-3 h-3 shrink-0" />
                   {a.startTime}
@@ -362,7 +362,7 @@ export default function WeekView({ currentDate, appointments, templates, overrid
                         <span className="font-medium text-sm">{a.startTime}</span>
                         <span className="text-sm truncate">{a.client.name || t('admin.calendar.clientFallback')}</span>
                       </div>
-                      <div className="text-xs text-muted-foreground mt-0.5 ml-5 truncate">{a.service.name}</div>
+                      <div className="text-xs text-muted-foreground mt-0.5 ml-5 truncate">{a.service.name_pl}</div>
                     </div>
                   ))}
                 </div>

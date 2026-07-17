@@ -24,7 +24,7 @@ export type EditableAppointment = {
   date: string
   startTime: string
   endTime: string
-  service: { id: string; name: string; duration: number; price: number }
+  service: { id: string; name_pl: string; duration: number; price: number }
   master: { id: string; name: string }
 }
 
@@ -147,7 +147,7 @@ export default function EditAppointmentModal({
               {t("profile.editBookingTitle", "Edit booking")}
             </h3>
             <p className="text-sm text-muted-foreground">
-              {appointment.service.name} - {appointment.master.name}
+              {appointment.service.name_pl} - {appointment.master.name}
             </p>
           </div>
           <button

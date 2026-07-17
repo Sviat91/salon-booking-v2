@@ -25,7 +25,7 @@ export type Appointment = {
   endTime: string
   status: string
   notes: string | null
-  service: { id: string, name: string, duration: number, price: number }
+  service: { id: string, name_pl: string, duration: number, price: number }
   client: { id: string, name: string | null, phone: string | null, email: string | null }
   master?: { masterProfile?: { color?: string | null } }
 }

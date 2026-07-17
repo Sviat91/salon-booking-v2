@@ -9,7 +9,7 @@ const db = prisma as any
 
 function buildServiceSchema(t: (key: string) => string) {
   return z.object({
-    name:     z.string().min(1, t('admin.services.nameRequired')).max(100),
+    name_pl:  z.string().min(1, t('admin.services.nameRequired')).max(100),
     duration: z.coerce.number().int().min(5).max(480),
     price:    z.coerce.number().min(0),
   })
@@ -55,7 +55,7 @@ export async function createService(
 ): Promise<ServiceFormState> {
   const t = getServerT()
   const parsed = buildServiceSchema(t).safeParse({
-    name:     formData.get("name"),
+    name_pl:  formData.get("name_pl"),
     duration: formData.get("duration"),
     price:    formData.get("price"),
   })
@@ -91,7 +91,7 @@ export async function updateService(
 ): Promise<ServiceFormState> {
   const t = getServerT()
   const parsed = buildServiceSchema(t).safeParse({
-    name:     formData.get("name"),
+    name_pl:  formData.get("name_pl"),
     duration: formData.get("duration"),
     price:    formData.get("price"),
   })

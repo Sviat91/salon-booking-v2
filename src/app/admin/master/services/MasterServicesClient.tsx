@@ -18,7 +18,7 @@ import { apiErrorKey } from "@/lib/errors/apiErrorKey"
 
 type Service = {
   id: string
-  name: string
+  name_pl: string
   duration: number
   price: number
   masterId: string | null
@@ -139,7 +139,7 @@ export default function MasterServicesClient({
                   <tbody className="divide-y divide-border">
                     {myServices.map((svc) => (
                       <tr key={svc.id} className="hover:bg-muted/40 transition-colors">
-                        <td className="px-4 py-3 font-medium">{svc.name}</td>
+                        <td className="px-4 py-3 font-medium">{svc.name_pl}</td>
                         <td className="px-4 py-3 text-muted-foreground">{svc.duration} {t('booking.minutes')}</td>
                         <td className="px-4 py-3 font-medium text-foreground">{svc.price.toFixed(2)} zł</td>
                         <td className="px-4 py-3">
@@ -158,7 +158,7 @@ export default function MasterServicesClient({
                 {myServices.map((svc) => (
                   <DataCard
                     key={svc.id}
-                    title={svc.name}
+                    title={svc.name_pl}
                     fields={[
                       { label: t('admin.services.colDuration'), value: `${svc.duration} ${t('booking.minutes')}` },
                       { label: t('admin.services.colPrice'), value: `${svc.price.toFixed(2)} zł` },
@@ -195,7 +195,7 @@ export default function MasterServicesClient({
                   <tbody className="divide-y divide-border">
                     {adminServices.map((svc) => (
                       <tr key={svc.id} className="bg-muted/10">
-                        <td className="px-4 py-3 font-medium text-muted-foreground">{svc.name}</td>
+                        <td className="px-4 py-3 font-medium text-muted-foreground">{svc.name_pl}</td>
                         <td className="px-4 py-3 text-muted-foreground">{svc.duration} {t('booking.minutes')}</td>
                         <td className="px-4 py-3 text-muted-foreground">
                           {(() => {
@@ -233,7 +233,7 @@ export default function MasterServicesClient({
                     <DataCard
                       key={svc.id}
                       className="opacity-90"
-                      title={svc.name}
+                      title={svc.name_pl}
                       fields={[
                         { label: t('admin.services.colDuration'), value: `${svc.duration} ${t('booking.minutes')}` },
                         { label: t('admin.services.colPricing'), value: pricing },

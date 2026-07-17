@@ -54,7 +54,7 @@ export async function GET(req: NextRequest) {
           endTime: true,
           status: true,
           notes: true,
-          service: { select: { id: true, name: true, duration: true, price: true } },
+          service: { select: { id: true, name_pl: true, duration: true, price: true } },
           client: { select: { id: true, name: true, phone: true, email: true } },
           master: { select: { masterProfile: { select: { color: true } } } },
         },
@@ -167,7 +167,7 @@ export async function POST(req: NextRequest) {
       // Create a custom service on the fly for this master
       const customService = await prisma.service.create({
         data: {
-          name: parsed.serviceName,
+          name_pl: parsed.serviceName,
           duration: parsed.entries[0].duration, // base it on the first entry
           price: 0,
           masterId: masterId

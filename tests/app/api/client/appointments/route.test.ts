@@ -56,13 +56,13 @@ describe("Client appointments route", () => {
       status: "CONFIRMED",
       date: new Date("2099-01-20T00:00:00.000Z"),
       startTime: "12:00",
-      service: { name: "Old service" },
+      service: { name_pl: "Old service" },
     })
 
     mockPrisma.appointment.findFirst.mockResolvedValue(null)
     mockPrisma.service.findUnique.mockResolvedValue({
       id: "srv_new",
-      name: "New service",
+      name_pl: "New service",
     })
     mockPrisma.appointment.update.mockResolvedValue({ id: "appt_1" })
 
@@ -90,7 +90,7 @@ describe("Client appointments route", () => {
       status: "CONFIRMED",
       date: new Date("2099-01-20T00:00:00.000Z"),
       startTime: "12:00",
-      service: { name: "Service" },
+      service: { name_pl: "Service" },
     })
 
     const response = await PATCH(

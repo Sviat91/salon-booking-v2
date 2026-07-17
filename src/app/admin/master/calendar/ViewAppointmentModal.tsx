@@ -102,7 +102,7 @@ export default function ViewAppointmentModal({ appointment, onClose, onDelete, o
           <div className="bg-muted/20 rounded-lg p-4 border border-border">
             <p className="text-xs text-muted-foreground font-medium mb-1.5 flex items-center gap-1.5"><Scissors className="w-3.5 h-3.5"/> {t('admin.appointments.colService')}</p>
             <div className="flex justify-between items-center">
-              <p className="font-semibold text-base">{appointment.service.name}</p>
+              <p className="font-semibold text-base">{appointment.service.name_pl}</p>
               <p className="font-bold text-primary">{formattedServicePrice}</p>
             </div>
             <p className="text-sm text-muted-foreground mt-1">{appointment.service.duration} {t('admin.calendar.minutesSuffix')}</p>

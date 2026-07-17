@@ -300,7 +300,7 @@ export default function DayView({ currentDate, appointments, templates, override
                         <div className="flex items-center gap-2 sm:gap-4 text-sm opacity-90">
                           <div className="flex items-center gap-1.5 min-w-0">
                             <Scissors className="w-3.5 h-3.5 shrink-0" />
-                            <span className="truncate">{a.service.name}</span>
+                            <span className="truncate">{a.service.name_pl}</span>
                           </div>
                           {a.client.phone && (
                             <div className="flex items-center gap-1.5 shrink-0">
@@ -344,7 +344,7 @@ export default function DayView({ currentDate, appointments, templates, override
                               <div className="flex items-center gap-2 sm:gap-4 text-sm text-muted-foreground">
                                 <div className="flex items-center gap-1.5 min-w-0">
                                   <Scissors className="w-3.5 h-3.5 shrink-0" />
-                                  <span className="truncate">{a.service.name}</span>
+                                  <span className="truncate">{a.service.name_pl}</span>
                                 </div>
                                 {a.client.phone && (
                                   <div className="flex items-center gap-1.5 shrink-0">

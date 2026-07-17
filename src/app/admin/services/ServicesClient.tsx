@@ -18,7 +18,7 @@ import { deleteService } from "./actions"
 
 type Service = {
   id: string
-  name: string
+  name_pl: string
   duration: number
   price: number
   masterServices?: { masterProfileId: string; priceOverride: number | null }[]
@@ -146,7 +146,7 @@ export default function ServicesClient({
               <tbody className="divide-y divide-border">
                 {services.map((svc) => (
                   <tr key={svc.id} className="hover:bg-muted/40 transition-colors">
-                    <td className="px-4 py-3 font-medium">{svc.name}</td>
+                    <td className="px-4 py-3 font-medium">{svc.name_pl}</td>
                     <td className="px-4 py-3 text-muted-foreground">
                       {svc.duration} {t('booking.minutes')}
                     </td>
@@ -172,7 +172,7 @@ export default function ServicesClient({
             {services.map((svc) => (
               <DataCard
                 key={svc.id}
-                title={svc.name}
+                title={svc.name_pl}
                 fields={[
                   { label: t('admin.services.colDuration'), value: `${svc.duration} ${t('booking.minutes')}` },
                   { label: t('admin.services.colPrice'), value: `${svc.price.toFixed(2)} zł` },

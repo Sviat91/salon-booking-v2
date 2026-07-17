@@ -11,7 +11,7 @@ import { createService, updateService, type ServiceFormState } from "./actions"
 
 type Service = {
   id: string
-  name: string
+  name_pl: string
   duration: number
   price: number
   masterServices?: { masterProfileId: string; priceOverride: number | null }[]
@@ -75,16 +75,16 @@ export default function ServiceForm({ service, masters, onSuccess }: ServiceForm
     <form action={formAction} className="flex flex-col gap-4">
       {/* Name */}
       <div className="grid gap-1.5">
-        <Label htmlFor="name">{t('admin.services.serviceName')}</Label>
+        <Label htmlFor="name_pl">{t('admin.services.serviceName')}</Label>
         <Input
-          id="name"
-          name="name"
-          defaultValue={service?.name}
+          id="name_pl"
+          name="name_pl"
+          defaultValue={service?.name_pl}
           placeholder={t('admin.services.serviceNamePlaceholder')}
           required
         />
-        {state.fieldErrors?.name && (
-          <p className="text-xs text-destructive">{state.fieldErrors.name[0]}</p>
+        {state.fieldErrors?.name_pl && (
+          <p className="text-xs text-destructive">{state.fieldErrors.name_pl[0]}</p>
         )}
       </div>
 

@@ -75,7 +75,7 @@ export async function notifyBookingConfirmation(appointmentId: string): Promise<
       name: appointment.client.name ?? 'Klient',
       date: formatDate(appointment.date),
       time: appointment.startTime,
-      service: appointment.service.name,
+      service: appointment.service.name_pl,
       master: appointment.master.name ?? 'Mistrz',
     }
 
@@ -271,7 +271,7 @@ export async function notifyBookingReminders(): Promise<{ sent: number; skipped:
           name: appt.client.name ?? 'Klient',
           date: formatDate(appt.date),
           time: appt.startTime,
-          service: appt.service.name,
+          service: appt.service.name_pl,
           master: appt.master.name ?? 'Mistrz',
         }
 

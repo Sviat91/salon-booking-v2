@@ -10,7 +10,7 @@ import { apiErrorKey } from "@/lib/errors/apiErrorKey"
 
 type Service = {
   id: string
-  name: string
+  name_pl: string
   duration: number
   price: number
 }
@@ -32,7 +32,7 @@ export default function MasterServiceForm({ service, onSuccess }: MasterServiceF
     setError(null)
 
     const formData = new FormData(e.currentTarget)
-    const name = formData.get("name") as string
+    const name_pl = formData.get("name_pl") as string
     const duration = parseInt(formData.get("duration") as string, 10)
     const price = parseFloat(formData.get("price") as string)
 
@@ -43,7 +43,7 @@ export default function MasterServiceForm({ service, onSuccess }: MasterServiceF
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, duration, price })
+        body: JSON.stringify({ name_pl, duration, price })
       })
 
       if (!res.ok) {
@@ -63,11 +63,11 @@ export default function MasterServiceForm({ service, onSuccess }: MasterServiceF
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <div className="grid gap-1.5">
-        <Label htmlFor="name">{t('admin.services.serviceName')}</Label>
+        <Label htmlFor="name_pl">{t('admin.services.serviceName')}</Label>
         <Input
-          id="name"
-          name="name"
-          defaultValue={service?.name}
+          id="name_pl"
+          name="name_pl"
+          defaultValue={service?.name_pl}
           placeholder={t('admin.services.servicePlaceholderMaster')}
           required
         />

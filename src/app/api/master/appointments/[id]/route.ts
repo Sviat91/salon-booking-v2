@@ -54,7 +54,7 @@ export async function PATCH(
       where: { id },
       data: { status: "CANCELLED_BY_MASTER" },
       include: {
-        service: { select: { name: true } },
+        service: { select: { name_pl: true } },
         client: { select: { name: true, phone: true } },
       },
     })
@@ -142,9 +142,9 @@ export async function PUT(
     // Reconstruct service and client associations based on IDs or custom input
     let finalServiceId = serviceId
     if (serviceId === "custom" && serviceName) {
-      const newSrv = await prisma.service.create({ 
-        data: { 
-          name: serviceName, 
+      const newSrv = await prisma.service.create({
+        data: {
+          name_pl: serviceName,
           duration: entries[0].duration,
           price: 0,
           masterId: session.user.id 

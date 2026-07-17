@@ -15,7 +15,7 @@ function buildCreateMasterSchema(t: (key: string) => string) {
   return z.object({
     name:          z.string().min(1, t('admin.masters.nameRequired')).max(100),
     email:         z.string().email(t('admin.masters.invalidEmail')),
-    bio:           z.string().max(500).optional(),
+    bio_pl:        z.string().max(500).optional(),
     avatarUrl:     pathOrEmpty,
     showOnHomepage:z.coerce.boolean().default(true),
     color:         z.string().regex(/^#[0-9A-Fa-f]{6}$/, t('admin.masters.invalidHex')).default("#166534"),
@@ -25,7 +25,7 @@ function buildCreateMasterSchema(t: (key: string) => string) {
 function buildUpdateMasterSchema(t: (key: string) => string) {
   return z.object({
     name:          z.string().min(1, t('admin.masters.nameRequired')).max(100),
-    bio:           z.string().max(500).optional(),
+    bio_pl:        z.string().max(500).optional(),
     avatarUrl:     pathOrEmpty,
     showOnHomepage:z.coerce.boolean().default(true),
     color:         z.string().regex(/^#[0-9A-Fa-f]{6}$/, t('admin.masters.invalidHex')).default("#166534"),
@@ -59,7 +59,7 @@ export async function createMaster(
   const raw = {
     name:           formData.get("name"),
     email:          formData.get("email"),
-    bio:            formData.get("bio") || undefined,
+    bio_pl:         formData.get("bio_pl") || undefined,
     avatarUrl:      formData.get("avatarUrl") || "",
     showOnHomepage: formData.get("showOnHomepage") === "on" || formData.get("showOnHomepage") === "true",
     color:          formData.get("color") || "#166534",
@@ -89,7 +89,7 @@ export async function createMaster(
         masterProfile: {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           create: {
-            bio:           parsed.data.bio ?? null,
+            bio_pl:        parsed.data.bio_pl ?? null,
             avatarUrl:     parsed.data.avatarUrl || null,
             showOnHomepage:parsed.data.showOnHomepage,
             color:         parsed.data.color,
@@ -118,7 +118,7 @@ export async function updateMaster(
 
   const raw = {
     name:           formData.get("name"),
-    bio:            formData.get("bio") || undefined,
+    bio_pl:         formData.get("bio_pl") || undefined,
     avatarUrl:      formData.get("avatarUrl") || "",
     showOnHomepage: formData.get("showOnHomepage") === "on" || formData.get("showOnHomepage") === "true",
     color:          formData.get("color") || "#166534",
@@ -138,14 +138,14 @@ export async function updateMaster(
           upsert: {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             create: {
-              bio:           parsed.data.bio ?? null,
+              bio_pl:        parsed.data.bio_pl ?? null,
               avatarUrl:     parsed.data.avatarUrl || null,
               showOnHomepage:parsed.data.showOnHomepage,
               color:         parsed.data.color,
             } as any,
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             update: {
-              bio:           parsed.data.bio ?? null,
+              bio_pl:        parsed.data.bio_pl ?? null,
               avatarUrl:     parsed.data.avatarUrl || null,
               showOnHomepage:parsed.data.showOnHomepage,
               color:         parsed.data.color,

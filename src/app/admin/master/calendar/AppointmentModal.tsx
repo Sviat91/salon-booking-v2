@@ -21,7 +21,7 @@ interface AppointmentModalProps {
   onSuccess: () => void
 }
 
-type Service = { id: string; name: string; duration: number }
+type Service = { id: string; name_pl: string; duration: number }
 type Client = { id: string; name: string | null; phone: string | null }
 type Entry = { id: string; date: string; startTime: string; duration: number }
 
@@ -227,13 +227,13 @@ export default function AppointmentModal({ date, initialAppointment, mode, apiPr
                           {(v: string) => {
                             if (v === "custom") return t('admin.calendar.customServiceOption')
                             const s = services.find(sv => sv.id === v)
-                            return s ? `${s.name} (${s.duration}m)` : v
+                            return s ? `${s.name_pl} (${s.duration}m)` : v
                           }}
                         </SelectValue>
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="custom"><SelectItemText>{t('admin.calendar.customServiceOption')}</SelectItemText></SelectItem>
-                        {services.map(s => <SelectItem key={s.id} value={s.id}><SelectItemText>{s.name} ({s.duration}m)</SelectItemText></SelectItem>)}
+                        {services.map(s => <SelectItem key={s.id} value={s.id}><SelectItemText>{s.name_pl} ({s.duration}m)</SelectItemText></SelectItem>)}
                       </SelectContent>
                     </Select>
                   </div>

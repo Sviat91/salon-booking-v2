@@ -12,7 +12,7 @@ export async function GET() {
 
   try {
     const services = await prisma.service.findMany({
-      orderBy: { name: "asc" }
+      orderBy: { name_pl: "asc" }
     })
     return NextResponse.json({ services })
   } catch (error) {

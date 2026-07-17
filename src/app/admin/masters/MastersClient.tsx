@@ -20,7 +20,7 @@ type Master = {
   id: string
   name: string | null
   email: string | null
-  masterProfile: { bio: string | null; avatarUrl: string | null; showOnHomepage: boolean; color: string | null } | null
+  masterProfile: { bio_pl: string | null; avatarUrl: string | null; showOnHomepage: boolean; color: string | null } | null
 }
 
 export default function MastersClient({ masters }: { masters: Master[] }) {
@@ -112,9 +112,9 @@ export default function MastersClient({ masters }: { masters: Master[] }) {
                 <p className="truncate text-xs text-muted-foreground mt-0.5">
                   {master.email}
                 </p>
-                {master.masterProfile?.bio && (
+                {master.masterProfile?.bio_pl && (
                   <p className="truncate text-xs text-muted-foreground/80 mt-0.5">
-                    {master.masterProfile.bio}
+                    {master.masterProfile.bio_pl}
                   </p>
                 )}
               </div>

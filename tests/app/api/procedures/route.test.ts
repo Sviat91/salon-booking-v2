@@ -34,7 +34,7 @@ describe('GET /api/procedures', () => {
         priceOverride: 170,
         service: {
           id: 'svc_1',
-          name: 'Pedeciure',
+          name_pl: 'Pedeciure',
           duration: 60,
           price: 150,
         },
@@ -59,7 +59,7 @@ describe('GET /api/procedures', () => {
 
   it('returns global services with null override when masterId is missing', async () => {
     mockPrisma.service.findMany.mockResolvedValue([
-      { id: 'svc_2', name: 'Classic M', duration: 90, price: 150 },
+      { id: 'svc_2', name_pl: 'Classic M', duration: 90, price: 150 },
     ])
 
     const res = await GET({ url: 'http://localhost/api/procedures' } as any)
