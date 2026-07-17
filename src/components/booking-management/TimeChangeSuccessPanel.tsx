@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { format } from 'date-fns'
 import { pl, enGB, uk } from 'date-fns/locale'
 import { useCurrentLanguage } from '@/contexts/LanguageContext'
-import { translateProcedureName } from '@/lib/procedure-translator'
+import { resolveLocalized } from '@/lib/localized-content'
 import type { TimeChangeSession } from './types'
 
 interface TimeChangeSuccessPanelProps {
@@ -38,7 +38,7 @@ export default function TimeChangeSuccessPanel({
   const newDateStr = format(newStartTime, 'EEEE, d MMMM', { locale: dateLocale })
   const newTimeStr = `${format(newStartTime, 'HH:mm')}–${format(newEndTime, 'HH:mm')}`
   
-  const procedureName = translateProcedureName(booking.procedureName, language)
+  const procedureName = resolveLocalized({ pl: booking.procedureName, en: booking.procedureName_en, uk: booking.procedureName_uk }, language)
 
   return (
     <div className="space-y-4">

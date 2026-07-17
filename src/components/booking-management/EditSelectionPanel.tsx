@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { format } from 'date-fns'
 import { pl, enGB, uk } from 'date-fns/locale'
 import { useCurrentLanguage } from '@/contexts/LanguageContext'
-import { translateProcedureName } from '@/lib/procedure-translator'
+import { resolveLocalized } from '@/lib/localized-content'
 import type { BookingResult } from './types'
 
 interface EditSelectionPanelProps {
@@ -33,7 +33,7 @@ export default function EditSelectionPanel({
 
   const dateStr = format(booking.startTime, 'EEEE, d MMMM', { locale: dateLocale })
   const timeStr = `${format(booking.startTime, 'HH:mm')}–${format(booking.endTime, 'HH:mm')}`
-  const procedureName = translateProcedureName(booking.procedureName, language)
+  const procedureName = resolveLocalized({ pl: booking.procedureName, en: booking.procedureName_en, uk: booking.procedureName_uk }, language)
 
   return (
     <div className="space-y-4">

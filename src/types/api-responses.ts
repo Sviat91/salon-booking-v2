@@ -28,6 +28,8 @@ export interface BookingResult {
   end: string
   procedureId?: string
   procedureName?: string
+  procedureName_en?: string
+  procedureName_uk?: string
   procedureDurationMin?: number
   procedurePricePLN?: number
   canModify: boolean
@@ -84,8 +86,8 @@ export interface ProceduresResponse {
 export interface ProcedureItem {
   id: string
   name_pl: string
-  name_ua?: string
   name_en?: string
+  name_uk?: string
   description_pl?: string
   description_ua?: string
   description_en?: string

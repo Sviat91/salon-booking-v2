@@ -126,6 +126,8 @@ export async function POST(
         newProcedure: {
           id: newService.id,
           name: newService.name_pl,
+          name_en: newService.name_en,
+          name_uk: newService.name_uk,
           duration: newService.duration,
         },
       })
@@ -202,6 +204,8 @@ export async function POST(
         newProcedure: {
           id: newService.id,
           name: newService.name_pl,
+          name_en: newService.name_en,
+          name_uk: newService.name_uk,
           duration: newService.duration,
         },
       })
@@ -224,6 +228,8 @@ export async function POST(
       newProcedure: {
         id: newService.id,
         name: newService.name_pl,
+        name_en: newService.name_en,
+        name_uk: newService.name_uk,
         duration: newService.duration,
       },
     })

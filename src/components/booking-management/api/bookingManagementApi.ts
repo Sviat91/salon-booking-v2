@@ -14,6 +14,8 @@ export interface SearchResultApi {
   phone: string
   email?: string
   procedureName: string
+  procedureName_en?: string
+  procedureName_uk?: string
   procedureId?: string
   masterName?: string
   masterId?: string
@@ -72,6 +74,8 @@ export function mapApiResult(entry: SearchResultApi, procedures: ProcedureOption
   return {
     eventId: entry.eventId,
     procedureName: entry.procedureName,
+    procedureName_en: entry.procedureName_en,
+    procedureName_uk: entry.procedureName_uk,
     procedureId: matchedProcedure?.id,
     procedureDurationMin: durationMin,
     startTime: start,

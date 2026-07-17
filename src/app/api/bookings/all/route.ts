@@ -64,7 +64,7 @@ export async function GET(req: NextRequest) {
       },
       include: {
         client:  { select: { id: true, name: true, phone: true, email: true } },
-        service: { select: { id: true, name_pl: true, duration: true, price: true } },
+        service: { select: { id: true, name_pl: true, name_en: true, name_uk: true, duration: true, price: true } },
       },
       orderBy: [{ date: "asc" }, { startTime: "asc" }],
     })
@@ -163,7 +163,9 @@ export async function GET(req: NextRequest) {
         lastName,
         phone:         client.phone ?? "",
         email:         client.email ?? "",
-        procedureName: service.name_pl,
+        procedureName:    service.name_pl,
+        procedureName_en: service.name_en,
+        procedureName_uk: service.name_uk,
         procedureId:   service.id,
         masterName:    masterNameById.get(appt.masterId) ?? "",
         masterId:      appt.masterId,

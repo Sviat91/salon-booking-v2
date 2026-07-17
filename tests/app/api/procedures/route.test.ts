@@ -35,6 +35,8 @@ describe('GET /api/procedures', () => {
         service: {
           id: 'svc_1',
           name_pl: 'Pedeciure',
+          name_en: 'Pedicure',
+          name_uk: 'Педикюр',
           duration: 60,
           price: 150,
         },
@@ -49,6 +51,8 @@ describe('GET /api/procedures', () => {
       {
         id: 'svc_1',
         name_pl: 'Pedeciure',
+        name_en: 'Pedicure',
+        name_uk: 'Педикюр',
         duration_min: 60,
         price_pln: 170,
         price_default_pln: 150,
@@ -59,7 +63,7 @@ describe('GET /api/procedures', () => {
 
   it('returns global services with null override when masterId is missing', async () => {
     mockPrisma.service.findMany.mockResolvedValue([
-      { id: 'svc_2', name_pl: 'Classic M', duration: 90, price: 150 },
+      { id: 'svc_2', name_pl: 'Classic M', name_en: null, name_uk: null, duration: 90, price: 150 },
     ])
 
     const res = await GET({ url: 'http://localhost/api/procedures' } as any)
@@ -71,6 +75,8 @@ describe('GET /api/procedures', () => {
       {
         id: 'svc_2',
         name_pl: 'Classic M',
+        name_en: null,
+        name_uk: null,
         duration_min: 90,
         price_pln: 150,
         price_default_pln: 150,

@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { format } from 'date-fns'
 import { pl, enGB, uk } from 'date-fns/locale'
 import { useCurrentLanguage } from '@/contexts/LanguageContext'
-import { translateProcedureName } from '@/lib/procedure-translator'
+import { resolveLocalized } from '@/lib/localized-content'
 import type { BookingResult, ProcedureOption } from './types'
 
 interface ProcedureChangeSuccessPanelProps {
@@ -30,7 +30,7 @@ export default function ProcedureChangeSuccessPanel({
   }, [language])
 
   const dateLabel = format(booking.startTime, 'EEEE, d MMMM, HH:mm', { locale: dateLocale })
-  const procedureName = translateProcedureName(newProcedure.name_pl, language)
+  const procedureName = resolveLocalized({ pl: newProcedure.name_pl, en: newProcedure.name_en, uk: newProcedure.name_uk }, language)
 
   return (
     <div className="space-y-4">

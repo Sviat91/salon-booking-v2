@@ -12,9 +12,9 @@ import { fullDateFormatter, formatTimeRange } from '@/lib/utils/date-formatters'
 import { validateName, validatePhone, validateEmail, validateTurnstileToken } from '@/lib/validation/client-validators'
 import { useSelectedMasterId } from '@/contexts/MasterContext'
 import { useCurrentLanguage } from '@/contexts/LanguageContext'
-import { translateProcedureName } from '@/lib/procedure-translator'
+import { resolveLocalized } from '@/lib/localized-content'
 
-type Procedure = { id: string; name_pl: string; price_pln?: number }
+type Procedure = { id: string; name_pl: string; name_en?: string; name_uk?: string; price_pln?: number }
 type ProceduresResponse = { items: Procedure[] }
 
 export default function BookingForm({
@@ -80,7 +80,7 @@ export default function BookingForm({
 
   const selectedProcedureName = useMemo(() => {
     if (!selectedProcedure) return null
-    return translateProcedureName(selectedProcedure.name_pl, language)
+    return resolveLocalized({ pl: selectedProcedure.name_pl, en: selectedProcedure.name_en, uk: selectedProcedure.name_uk }, language)
   }, [selectedProcedure, language])
 
   const {

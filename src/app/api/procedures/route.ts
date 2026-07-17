@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic"
 /**
  * GET /api/procedures?masterId=xxx
  * Returns services available for a specific master.
- * Format: { items: [{ id, name_pl, duration_min, price_pln, price_default_pln?, price_override_pln? }] }
+ * Format: { items: [{ id, name_pl, name_en, name_uk, duration_min, price_pln, price_default_pln?, price_override_pln? }] }
  * Used by ProcedureSelect, BookingForm, BookingSuccessPanel.
  */
 export async function GET(req: NextRequest) {
@@ -25,6 +25,8 @@ export async function GET(req: NextRequest) {
         items: services.map((s) => ({
           id: s.id,
           name_pl: s.name_pl,
+          name_en: s.name_en,
+          name_uk: s.name_uk,
           duration_min: s.duration,
           price_pln: s.price,
           price_default_pln: s.price,
@@ -51,6 +53,8 @@ export async function GET(req: NextRequest) {
           items: masterServices.map((ms) => ({
             id: ms.service.id,
             name_pl: ms.service.name_pl,
+            name_en: ms.service.name_en,
+            name_uk: ms.service.name_uk,
             duration_min: ms.service.duration,
             // Use price override if set, otherwise default service price
             price_pln: ms.priceOverride ?? ms.service.price,
@@ -73,6 +77,8 @@ export async function GET(req: NextRequest) {
       items: services.map((s) => ({
         id: s.id,
         name_pl: s.name_pl,
+        name_en: s.name_en,
+        name_uk: s.name_uk,
         duration_min: s.duration,
         price_pln: s.price,
         price_default_pln: s.price,

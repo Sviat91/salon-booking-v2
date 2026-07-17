@@ -22,6 +22,8 @@ export type ManagementState =
 export interface BookingResult {
   eventId: string
   procedureName: string
+  procedureName_en?: string
+  procedureName_uk?: string
   procedureId?: string
   procedureDurationMin: number
   startTime: Date
@@ -40,6 +42,8 @@ export interface BookingResult {
 export interface ProcedureOption {
   id: string
   name_pl: string
+  name_en?: string
+  name_uk?: string
   duration_min: number
   price_pln: number
 }

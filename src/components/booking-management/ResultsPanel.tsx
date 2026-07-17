@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { format } from 'date-fns'
 import { pl, enGB, uk } from 'date-fns/locale'
 import { useCurrentLanguage } from '@/contexts/LanguageContext'
-import { translateProcedureName } from '@/lib/procedure-translator'
+import { resolveLocalized } from '@/lib/localized-content'
 import type { BookingResult, ProcedureOption } from './types'
 
 interface ResultsPanelProps {
@@ -78,10 +78,11 @@ export default function ResultsPanel({
             const dateStr = format(booking.startTime, 'EEEE, d MMMM', { locale: dateLocale })
             const timeStr = `${format(booking.startTime, 'HH:mm')}–${format(booking.endTime, 'HH:mm')}`
 
-            // Translate procedure name
+            // Resolve localized procedure name
             const matchedProcedure = procedures?.find(p => p.id === booking.procedureId)
-            const nameToTranslate = matchedProcedure?.name_pl || booking.procedureName
-            const procedureName = translateProcedureName(nameToTranslate, language)
+            const procedureName = matchedProcedure
+              ? resolveLocalized({ pl: matchedProcedure.name_pl, en: matchedProcedure.name_en, uk: matchedProcedure.name_uk }, language)
+              : resolveLocalized({ pl: booking.procedureName, en: booking.procedureName_en, uk: booking.procedureName_uk }, language)
 
             return (
               <div

@@ -4,11 +4,13 @@ import { useEffect, useState, useMemo, MouseEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSelectedMasterId } from '@/contexts/MasterContext'
 import { useCurrentLanguage } from '@/contexts/LanguageContext'
-import { translateProcedureName } from '@/lib/procedure-translator'
+import { resolveLocalized } from '@/lib/localized-content'
 
 type Procedure = {
   id: string
   name_pl: string
+  name_en?: string
+  name_uk?: string
   duration_min: number
   price_pln?: number | string
   price_default_pln?: number | string | null
@@ -56,7 +58,7 @@ export default function ProcedureSelect({ valueId, onChange }: { valueId?: strin
 
   // Helper to format procedure display
   const formatProcedure = (p: Procedure) => {
-    const name = translateProcedureName(p.name_pl, language)
+    const name = resolveLocalized({ pl: p.name_pl, en: p.name_en, uk: p.name_uk }, language)
     return `${name} - ${p.duration_min} ${t('booking.minutes')}${p.price_pln ? ` / ${p.price_pln} zł` : ''}`
   }
 

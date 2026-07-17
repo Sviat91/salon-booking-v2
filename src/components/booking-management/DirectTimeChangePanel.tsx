@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { format } from 'date-fns'
 import { pl, enGB, uk } from 'date-fns/locale'
 import { useCurrentLanguage } from '@/contexts/LanguageContext'
-import { translateProcedureName } from '@/lib/procedure-translator'
+import { resolveLocalized } from '@/lib/localized-content'
 import type { BookingResult, SlotSelection, ProcedureOption } from './types'
 
 interface DirectTimeChangePanelProps {
@@ -65,9 +65,11 @@ export default function DirectTimeChangePanel({
     newTimeStr = t('management.selectTimeLabel')
   }
 
-  // Translations
-  const bookingProcedureName = translateProcedureName(booking.procedureName, language)
-  const newProcedureName = newProcedure ? translateProcedureName(newProcedure.name_pl, language) : ''
+  // Localized names
+  const bookingProcedureName = resolveLocalized({ pl: booking.procedureName, en: booking.procedureName_en, uk: booking.procedureName_uk }, language)
+  const newProcedureName = newProcedure
+    ? resolveLocalized({ pl: newProcedure.name_pl, en: newProcedure.name_en, uk: newProcedure.name_uk }, language)
+    : ''
 
   return (
     <div className="space-y-4">

@@ -8,8 +8,17 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useMaster } from '@/contexts/MasterContext'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
+import { useCurrentLanguage } from '@/contexts/LanguageContext'
+import { resolveLocalized } from '@/lib/localized-content'
 
-type DbMaster = { id: string; name: string; avatar: string | null; bio: string | null }
+type DbMaster = {
+  id: string
+  name: string
+  avatar: string | null
+  bio_pl: string | null
+  bio_en: string | null
+  bio_uk: string | null
+}
 
 /**
  * Master Selector Component
@@ -20,6 +29,7 @@ type DbMaster = { id: string; name: string; avatar: string | null; bio: string |
 export default function MasterSelector() {
   const router = useRouter()
   const { t } = useTranslation()
+  const language = useCurrentLanguage()
   const { setMaster } = useMaster()
   const prefersReducedMotion = useReducedMotion()
   const scrollContainerRef = useRef<HTMLDivElement>(null)
@@ -64,6 +74,9 @@ export default function MasterSelector() {
     flushSync(() => { setMaster(master.id) })
     router.push(`/${master.id}`)
   }
+
+  const getMasterBio = (master: DbMaster) =>
+    resolveLocalized({ pl: master.bio_pl, en: master.bio_en, uk: master.bio_uk }, language)
 
   const scrollLeft = () => {
     if (scrollContainerRef.current) {
@@ -197,9 +210,9 @@ export default function MasterSelector() {
               transition={{ duration: 0.5, ease: "easeOut" }}
             />
           </motion.button>
-          {master.bio && (
+          {getMasterBio(master) && (
             <p className="mt-2 w-full text-center text-xs sm:text-sm text-muted-foreground line-clamp-2 px-1">
-              {master.bio}
+              {getMasterBio(master)}
             </p>
           )}
           </div>
