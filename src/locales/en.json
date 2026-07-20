@@ -1186,7 +1186,18 @@
       "prompt": "Choose your language 👇"
     },
     "master": {
-      "comingSoon": "Master selection is coming soon. Send /start to begin again."
+      "prompt": "Choose your specialist 👇"
+    },
+    "procedure": {
+      "prompt": "Choose a service 👇",
+      "noServices": "This specialist has no services assigned yet. Please choose another specialist."
+    },
+    "date": {
+      "comingSoon": "Date selection is coming soon. Send /start to begin again."
+    },
+    "common": {
+      "back": "‹ Back",
+      "noLongerAvailable": "This option is no longer available. Please try again."
     }
   }
 }

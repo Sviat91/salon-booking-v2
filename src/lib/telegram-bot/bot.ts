@@ -6,12 +6,14 @@
  */
 import { Bot } from 'grammy'
 import { registerStartHandler } from './handlers/start'
+import { registerSelectHandlers } from './handlers/select'
 
 let cachedBot: Bot | null = null
 let cachedToken: string | null = null
 
 function registerHandlers(bot: Bot) {
   registerStartHandler(bot)
+  registerSelectHandlers(bot)
 }
 
 /** Returns the cached `Bot` for `token`, creating (and registering handlers on) a new one if the token changed. */

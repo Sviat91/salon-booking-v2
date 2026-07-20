@@ -108,19 +108,19 @@ Independently verifiable: admin can enter a token + enable the bot; sending `/st
 ### Group 2 — Master & procedure selection
 Independently verifiable: after language pick, bot shows master buttons; picking one shows that master's procedures (localized name + duration + price); picking one advances state.
 
-- [ ] **Step 2.1: Catalog data helpers for the bot**
+- [x] **Step 2.1: Catalog data helpers for the bot**
   - Files: `src/lib/telegram-bot/catalog.ts` (new)
   - Details: `listBookableMasters()` — prisma query mirroring `src/app/api/masters/route.ts` (`role: 'MASTER'`, `masterProfile.showOnHomepage: true`, ordered `createdAt asc`), returning `{ id, name }[]`. `listMasterProcedures(masterId)` — mirror `src/app/api/procedures/route.ts` logic (MasterService assignments with price override, fallback to global + own services), returning `{ id, nameField: {pl,en,uk}, duration, price }[]` (keep the raw `{pl,en,uk}` object so the handler resolves per the picked language via `resolveLocalized`). Reuse the SAME underlying prisma shape as the routes; do NOT HTTP self-call. (Optional, do not force: the API routes MAY later be refactored to call these helpers — out of scope here.)
 
-- [ ] **Step 2.2: Master & procedure keyboards**
+- [x] **Step 2.2: Master & procedure keyboards**
   - Files: `src/lib/telegram-bot/keyboards.ts`
   - Details: `mastersKeyboard(masters)` — one inline button per master, callback `m:<masterId>` (one per row for readable long names), plus a `‹ Back` button (`back:lang`). `proceduresKeyboard(procedures, lang)` — one button per procedure labeled `resolveLocalized(nameField, lang) · {duration}min · {price} zł` (use `common.currency`), callback `p:<procedureId>`, plus `back:master`.
 
-- [ ] **Step 2.3: Selection handlers**
+- [x] **Step 2.3: Selection handlers**
   - Files: `src/lib/telegram-bot/handlers/select.ts` (new), register in `bot.ts`
   - Details: On `m:<masterId>` (step must be `MASTER`) → store `masterId`+`masterName`, load `listMasterProcedures`, if empty show a localized "no services" message, else store nothing yet and render procedures, set step `PROCEDURE`. On `p:<procedureId>` (step `PROCEDURE`) → look up the procedure, store `procedureId`, `procedureName` (resolved to `state.lang`), `durationMin`, advance to `DATE` (Group 3 renders the calendar; Group 2 may edit to a localized placeholder to stay testable). Wire the `back:*` callbacks to re-render the previous step. Handlers read/write via `getState`/`setState`; guard on `state.step` and `answerCallbackQuery` on every callback.
 
-- [ ] **Step 2.4: i18n keys — group 2**
+- [x] **Step 2.4: i18n keys — group 2**
   - Files: `src/locales/{pl,en,uk}.json`
   - Details: `bot.master.prompt`, `bot.procedure.prompt`, `bot.procedure.noServices`, `bot.common.back`. Reuse `common.currency`. `npm run i18n:check`.
 
@@ -131,16 +131,16 @@ Independently verifiable: after procedure pick, bot shows a month calendar with 
   - Files: `src/lib/telegram-bot/keyboards.ts`
   - Details:
     - `calendarKeyboard(month, availableDays, horizon)` where `month = 'YYYY-MM'` and `availableDays` is the set of `'YYYY-MM-DD'` with `hasWindow` from `getAvailableDays`:
-      - Row 1 (nav): `‹` = `m:prev` (rendered as noop `nop` when prev month is fully before today), a centered noop label button showing the localized `Month YYYY` (via `Intl.DateTimeFormat(localeFor(lang), {month:'long', year:'numeric'})`), `›` = `m:next` (noop when next month exceeds the horizon).
+      - Row 1 (nav): `‹` = `cal:prev` (rendered as noop `nop` when prev month is fully before today), a centered noop label button showing the localized `Month YYYY` (via `Intl.DateTimeFormat(localeFor(lang), {month:'long', year:'numeric'})`), `›` = `cal:next` (noop when next month exceeds the horizon). **Note:** the calendar month-nav prefix is `cal:` (NOT `m:`) so it never collides with Group 2's master-select callback `m:<masterId>` (grammy `callbackQuery` matchers are global on the `Bot` instance, not scoped per wizard step).
       - Row 2 (weekday headers): 7 noop buttons with localized short weekday initials (Intl), Monday-first.
       - 6 week rows × 7 buttons: leading/trailing blanks and past/unavailable days → noop `nop` button (label `·`); bookable days → callback `d:<YYYY-MM-DD>`, label = day number.
       - Final row: `‹ Back` (`back:procedure`).
-      - `callback_data` budget is fine (`d:2026-07-15` = 12 chars, `m:next` short).
+      - `callback_data` budget is fine (`d:2026-07-15` = 12 chars, `cal:next` short).
     - `slotsKeyboard(slots, page, lang)`: buttons `HH:mm` (derive from `startISO` via `Intl.DateTimeFormat(localeFor(lang), {hour, minute}, timeZone:'Europe/Warsaw')` or slice the already-Warsaw-formatted ISO), callback `t:<idx>` (index into `state.slots`), 3 per row. Paginate at e.g. 24 slots/page with `‹`/`›` (`sp:prev`/`sp:next`) when needed. Final row: `‹ Back` (`back:date`).
 
 - [ ] **Step 3.2: Date/time handlers**
   - Files: `src/lib/telegram-bot/handlers/datetime.ts` (new), register in `bot.ts`
-  - Details: Define `BOOKING_HORIZON_DAYS = 60` (flag: align with the web booking horizon if one is later found; availability.ts itself takes an explicit range from the caller). On entering `DATE`: default `calMonth` = current Warsaw month; compute the visible-month range clamped to `[today, today+horizon]`, call `getAvailableDays(fromISO, untilISO, state.durationMin, { masterId: state.masterId })`, render `calendarKeyboard`. On `m:prev`/`m:next` → shift `calMonth` within horizon bounds, recompute, edit message. On `d:<date>` (step `DATE`) → store `dateISO`, call `getDaySlots(dateISO, state.durationMin, 15, state.masterId)`; if empty (raced to full) show a localized "no free slots, pick another day" and re-render the calendar; else store `slots`, `slotPage: 0`, set step `TIME`, render `slotsKeyboard`. On `sp:prev`/`sp:next` → adjust `slotPage`, re-render. On `t:<idx>` (step `TIME`) → read `state.slots[idx]`, store `startISO`/`endISO`/`slotLabel`, advance to `CONTACT` (Group 4). Wire `back:date`/`back:procedure`. Use `editMessageText`/`editMessageReplyMarkup` to keep the flow in one message where possible; `answerCallbackQuery` always.
+  - Details: Define `BOOKING_HORIZON_DAYS = 60` (flag: align with the web booking horizon if one is later found; availability.ts itself takes an explicit range from the caller). On entering `DATE`: default `calMonth` = current Warsaw month; compute the visible-month range clamped to `[today, today+horizon]`, call `getAvailableDays(fromISO, untilISO, state.durationMin, { masterId: state.masterId })`, render `calendarKeyboard`. On `cal:prev`/`cal:next` → shift `calMonth` within horizon bounds, recompute, edit message. On `d:<date>` (step `DATE`) → store `dateISO`, call `getDaySlots(dateISO, state.durationMin, 15, state.masterId)`; if empty (raced to full) show a localized "no free slots, pick another day" and re-render the calendar; else store `slots`, `slotPage: 0`, set step `TIME`, render `slotsKeyboard`. On `sp:prev`/`sp:next` → adjust `slotPage`, re-render. On `t:<idx>` (step `TIME`) → read `state.slots[idx]`, store `startISO`/`endISO`/`slotLabel`, advance to `CONTACT` (Group 4). Wire `back:date`/`back:procedure`. Use `editMessageText`/`editMessageReplyMarkup` to keep the flow in one message where possible; `answerCallbackQuery` always.
 
 - [ ] **Step 3.3: i18n keys — group 3**
   - Files: `src/locales/{pl,en,uk}.json`
@@ -205,6 +205,7 @@ Independently verifiable: full end-to-end booking from Telegram creates a real `
 - **Do NOT touch** the existing salon-notification bot fields/code: `TenantConfig.telegramBotToken` / `telegramBotUsername` / `notifTelegramEnabled` / `notifAdminChatId`, `src/lib/notifications/telegram.ts`, `src/app/api/admin/notification-settings/route.ts`, `NotificationSettingsForm.tsx`. This plan is a SEPARATE bot.
 - **`createBooking` extraction is the highest-risk change** (it rewrites the core booking transaction shared by the live web flow). It must be behavior-preserving and gated on `consent-gate.test.ts` staying green + a manual web-booking smoke test BEFORE the bot is wired to it. Do not change the double-booking `$transaction` re-check, phone normalization, find-or-create-guest identity `(phone+name)`, or consent gating semantics.
 - **`bot.start()` is fire-and-forget** — it returns a promise that resolves only when the bot stops, so `instrumentation.ts`/`startClientBot()` must NOT `await` it or server boot will hang. The lifecycle module must guard against double-start (calling `bot.start()` twice on one instance throws).
+- **Callback-data prefix namespace (global on the `Bot`):** grammy's `bot.callbackQuery()` matchers are registered on the `Bot` instance and tested against every update regardless of the user's current wizard step. Every prefix must therefore be globally unique. Reserved prefixes: `lang:` (language), `m:` (master select), `p:` (procedure select), `back:` (back nav), `nop` (noop cells), `cal:` (calendar month nav — `cal:prev`/`cal:next`), `d:` (day select), `t:` (slot select), `sp:` (slot pagination), `consent:` (consent), `confirm:` (final confirm). Do NOT reuse `m:` for calendar navigation — that is why month-nav is `cal:`, not `m:prev`/`m:next`.
 - **Single-process / 409 Conflict:** only ONE Node process may long-poll a given token. A single-VPS `next start` is fine. If the deployment later runs a multi-worker cluster (PM2 `instances > 1`), Telegram returns 409 and updates get split — flag this and, if it arises, gate `startClientBot()` to a single worker.
 - **`instrumentationHook`:** `instrumentation.ts` only runs when `experimental.instrumentationHook: true` is set in `next.config.mjs` (Next 14.2). Missing this = the bot silently never starts on boot. In `next dev`, `register()` may fire on each restart/HMR of the server process — the double-start guard covers this.
 - **Consent simplification** in-chat: one "agree" collapses the web's two required checkboxes and sets `notifications: true`. Recorded as an intentional v1 choice; revisit if legal wants the three toggles separated in-chat.
@@ -216,6 +217,6 @@ Independently verifiable: full end-to-end booking from Telegram creates a real `
 ## Manual Verification (hand to user after each group)
 - **Group 1:** Create a bot via @BotFather, paste its token in Admin → Settings → Client Bot, enable, save. (No domain, tunnel, or public URL needed.) Then, whether you're running `npm run dev` locally or the app is running on the VPS, send `/start` to the bot from any device → the language keyboard appears immediately; tap a language → the wizard advances (state persisted in Redis).
 - **Group 2:** Continue: master buttons appear → tap → procedures with duration/price appear → tap → advances.
-- **Group 3:** Calendar shows only bookable days; month arrows respect the horizon; tap a day → time slots; tap a slot → advances.
+- **Group 3:** Calendar shows only bookable days; month arrows (`cal:prev`/`cal:next`) respect the horizon and do NOT get swallowed by the master-select handler; tap a day → time slots; tap a slot → advances.
 - **Group 4:** Share contact → (consent prompt only if that phone+name has no valid consent) → confirm → booking appears in Admin calendar with correct master/service/time and the picked language; the existing confirmation notification fires. Re-run with a taken slot (book same slot twice quickly) → "slot taken", no duplicate row. Re-book with the same contact → consent step is skipped.
 - **Toggle:** Disable the bot in Settings and save → `/start` gets no response (polling loop stopped in-process, no server restart). Re-enable and save → `/start` works again.

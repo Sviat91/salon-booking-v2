@@ -1186,7 +1186,18 @@
       "prompt": "Wybierz język 👇"
     },
     "master": {
-      "comingSoon": "Wybór specjalisty pojawi się wkrótce. Wpisz /start, aby zacząć od nowa."
+      "prompt": "Wybierz specjalistę 👇"
+    },
+    "procedure": {
+      "prompt": "Wybierz usługę 👇",
+      "noServices": "Ten specjalista nie ma jeszcze przypisanych usług. Wybierz innego specjalistę."
+    },
+    "date": {
+      "comingSoon": "Wybór daty pojawi się wkrótce. Wpisz /start, aby zacząć od nowa."
+    },
+    "common": {
+      "back": "‹ Wstecz",
+      "noLongerAvailable": "Ta opcja nie jest już dostępna. Spróbuj ponownie."
     }
   }
 }
