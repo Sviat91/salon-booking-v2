@@ -73,3 +73,30 @@ Group 2's catalog-mirroring, localization, and wizard-state logic are correctly 
 
 ### Summary
 Both minor fixes from the prior Group 2 review are implemented correctly and match existing patterns in the file. The zero-procedures branch now refreshes wizard-state TTL consistently with all other transitions, and stale master/procedure callbacks now give localized user feedback with the correct re-rendered keyboard instead of silently no-op'ing. The new `bot.common.noLongerAvailable` key is correctly and identically placed across all three locale files with no duplication. The plan's `cal:` rename for Group 3 calendar navigation is fully propagated with no leftover `m:prev`/`m:next` references and no new prefix collisions. Changes are surgical. Group 2 is now fully approved.
+
+---
+
+# Review: Telegram Client Booking Bot — Group 3 (Date & Time Picker)
+**Date:** 2026-07-20
+**Verdict:** APPROVED
+
+## Critical/Architectural Issues
+(none)
+
+## Minor/Syntax Issues
+(none)
+
+## Passed Checks
+- [x] **Availability integration correct**: `renderDateStep()` (`src/lib/telegram-bot/handlers/datetime.ts:35`) calls `getAvailableDays(fromISO, untilISO, durationMin, { masterId })` and the `d:<date>` handler calls `getDaySlots(dateISO, durationMin, 15, masterId)` — both verified against `src/lib/availability.ts` signatures and actual return shapes. `getDaySlots` returns `{ slots: {startISO,endISO}[] }` directly (used without a cast, correctly). `getAvailableDays` returns `Record<string, unknown>` (`{ days, debug? }`); the local cast to `{ days: {date,hasWindow}[] }` is safe because `debug` is only added when `opts.debug` is passed, which it never is here — the cast doesn't mask a shape mismatch.
+- [x] **Timezone handling consistent with existing code**: `warsawHorizon()` reuses the exact `toZonedTime(new Date(), SCHEDULE_TZ)` → `isoDate()` pattern already used inside `availability.ts` itself (hide-past-slots logic), so no new timezone risk. `d:<date>` values are plain `'YYYY-MM-DD'` strings from `buildMonthGrid`, round-tripped verbatim through callback_data — no Date reparsing that could shift by a day. Slot labels are derived via `formatInTimeZone(new Date(slot.startISO), SCHEDULE_TZ, 'HH:mm')`, matching how `startISO` was constructed.
+- [x] **No callback-data collisions**: `nop`, `cal:prev`, `cal:next`, `sp:prev`, `sp:next` are exact-string matches; `d:` and `t:` use anchored regexes (`/^d:(\d{4}-\d{2}-\d{2})$/`, `/^t:(\d+)$/`). None overlap with `lang:`, `m:`, `p:`, `back:*`, `consent:`, `confirm:`. `back:date`/`back:procedure` are distinct, no collision with `back:master`/`back:lang`.
+- [x] **`t:<idx>` index safety**: `idx = Number(ctx.match[1])`, then `state.slots[idx]` is checked with a null-guard before use — an out-of-range/malformed index can't crash the handler or leak attacker-controlled data (the array is server-side Redis state, not client-supplied).
+- [x] **Wizard state transitions correct**: `DATE`→`TIME` on `d:<date>` stores `dateISO`/`slots`/`slotPage: 0`; `back:date` recomputes availability fresh (no stale-slot leakage risk, `TIME`-step reads always gated on `state.step === 'TIME'`); `back:procedure` resets cleanly to `PROCEDURE`. No path found where stale `slots`/`dateISO` could book the wrong slot.
+- [x] **Slot pagination boundaries safe**: `sp:prev`/`sp:next` clamp correctly at first/last/single-page; pagination row omitted entirely when not needed; no out-of-bounds slice.
+- [x] **Localization**: calendar month label/weekday initials use `Intl.DateTimeFormat(localeFor(lang), ...)` via `calendar-utils.ts`, driven by `state.lang` — reuses the project's existing `localeFor()` helper, not hardcoded Polish.
+- [x] **500-line limit**: `datetime.ts` 234 lines, `keyboards.ts` 115 lines, `calendar-utils.ts` 59 lines — all well under the limit.
+- [x] **i18n parity**: `bot.date.prompt`, `bot.date.noSlots`, `bot.time.prompt`, `bot.contact.comingSoon` present at identical positions across pl/en/uk, translations sound. No leftover functional reference to removed `bot.date.comingSoon`.
+- [x] **Plan fidelity / deviations reasonable**: all four coder-flagged deviations (new `calendar-utils.ts` split, `back:procedure`'s small duplication to avoid a real circular import, natural 4-6 row calendar grid instead of fixed 6, pre-authorized `bot.contact.comingSoon` placeholder mirroring Group 2's precedent) are sound engineering judgment within the plan's own stated allowances — none warranted stopping to ask first.
+
+## Summary
+Group 3 is a correct, well-scoped implementation of the calendar/time-slot picker. Availability integration is faithful to `availability.ts`'s actual signatures/return shapes, the flagged type cast is genuinely safe, timezone handling reuses the established pattern already in `availability.ts` (no new off-by-one-day risk), and the new callback-data prefixes are all correctly anchored/exact-matched with zero collisions against the reserved namespace. Pagination, wizard-state transitions, and localization all check out. No issues found.

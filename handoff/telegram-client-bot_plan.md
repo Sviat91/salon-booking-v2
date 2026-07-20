@@ -127,7 +127,7 @@ Independently verifiable: after language pick, bot shows master buttons; picking
 ### Group 3 — Date & time picker (inline calendar + slot list)
 Independently verifiable: after procedure pick, bot shows a month calendar with only bookable days tappable; month arrows page within the horizon; picking a day shows time-slot buttons (paginated); picking a slot advances state. This is the trickiest UI piece — designed concretely below, not hand-waved.
 
-- [ ] **Step 3.1: Calendar + slots keyboards**
+- [x] **Step 3.1: Calendar + slots keyboards**
   - Files: `src/lib/telegram-bot/keyboards.ts`
   - Details:
     - `calendarKeyboard(month, availableDays, horizon)` where `month = 'YYYY-MM'` and `availableDays` is the set of `'YYYY-MM-DD'` with `hasWindow` from `getAvailableDays`:
@@ -138,11 +138,11 @@ Independently verifiable: after procedure pick, bot shows a month calendar with 
       - `callback_data` budget is fine (`d:2026-07-15` = 12 chars, `cal:next` short).
     - `slotsKeyboard(slots, page, lang)`: buttons `HH:mm` (derive from `startISO` via `Intl.DateTimeFormat(localeFor(lang), {hour, minute}, timeZone:'Europe/Warsaw')` or slice the already-Warsaw-formatted ISO), callback `t:<idx>` (index into `state.slots`), 3 per row. Paginate at e.g. 24 slots/page with `‹`/`›` (`sp:prev`/`sp:next`) when needed. Final row: `‹ Back` (`back:date`).
 
-- [ ] **Step 3.2: Date/time handlers**
+- [x] **Step 3.2: Date/time handlers**
   - Files: `src/lib/telegram-bot/handlers/datetime.ts` (new), register in `bot.ts`
   - Details: Define `BOOKING_HORIZON_DAYS = 60` (flag: align with the web booking horizon if one is later found; availability.ts itself takes an explicit range from the caller). On entering `DATE`: default `calMonth` = current Warsaw month; compute the visible-month range clamped to `[today, today+horizon]`, call `getAvailableDays(fromISO, untilISO, state.durationMin, { masterId: state.masterId })`, render `calendarKeyboard`. On `cal:prev`/`cal:next` → shift `calMonth` within horizon bounds, recompute, edit message. On `d:<date>` (step `DATE`) → store `dateISO`, call `getDaySlots(dateISO, state.durationMin, 15, state.masterId)`; if empty (raced to full) show a localized "no free slots, pick another day" and re-render the calendar; else store `slots`, `slotPage: 0`, set step `TIME`, render `slotsKeyboard`. On `sp:prev`/`sp:next` → adjust `slotPage`, re-render. On `t:<idx>` (step `TIME`) → read `state.slots[idx]`, store `startISO`/`endISO`/`slotLabel`, advance to `CONTACT` (Group 4). Wire `back:date`/`back:procedure`. Use `editMessageText`/`editMessageReplyMarkup` to keep the flow in one message where possible; `answerCallbackQuery` always.
 
-- [ ] **Step 3.3: i18n keys — group 3**
+- [x] **Step 3.3: i18n keys — group 3**
   - Files: `src/locales/{pl,en,uk}.json`
   - Details: `bot.date.prompt`, `bot.date.noSlots`, `bot.time.prompt`. Month/weekday NAMES come from `Intl` (do not hardcode). `npm run i18n:check`.
 

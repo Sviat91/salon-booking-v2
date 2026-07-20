@@ -1,14 +1,14 @@
 /**
  * Master & procedure selection steps of the client booking wizard. Advances
- * `MASTER` → `PROCEDURE` → `DATE` (Group 3 renders the calendar; Group 2 ends
- * on a localized placeholder for the `DATE` step so this group is testable
- * in isolation).
+ * `MASTER` → `PROCEDURE` → `DATE`, handing off to `renderDateStep`
+ * (`handlers/datetime.ts`, Group 3) which renders the calendar.
  */
 import type { Bot, Context } from 'grammy'
 import { botT } from '../i18n'
 import { languageKeyboard, mastersKeyboard, proceduresKeyboard } from '../keyboards'
-import { getState, setState } from '../wizard-state'
+import { getState, setState, type WizardState } from '../wizard-state'
 import { listBookableMasters, listMasterProcedures } from '../catalog'
+import { renderDateStep } from './datetime'
 import { resolveLocalized } from '@/lib/localized-content'
 import { DEFAULT_LANGUAGE, type Language } from '@/lib/i18n-shared'
 
@@ -99,16 +99,14 @@ export function registerSelectHandlers(bot: Bot) {
     }
 
     await ctx.answerCallbackQuery()
-    await setState(chatId, {
+    const nextState: WizardState = {
       ...state,
       procedureId: procedure.id,
       procedureName: resolveLocalized(procedure.nameField, state.lang),
       durationMin: procedure.duration,
       step: 'DATE',
-    })
-
-    const t = botT(state.lang)
-    await ctx.editMessageText(t('bot.date.comingSoon'))
+    }
+    await renderDateStep(ctx, chatId, nextState)
   })
 
   bot.callbackQuery('back:lang', async (ctx) => {

@@ -3,6 +3,7 @@ const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: ['googleapis', 'pino'],
     instrumentationHook: true,
+    staleTimes: { dynamic: 0, static: 0 },
   },
   images: {
     remotePatterns: [

@@ -1193,7 +1193,14 @@
       "noServices": "Ten specjalista nie ma jeszcze przypisanych usług. Wybierz innego specjalistę."
     },
     "date": {
-      "comingSoon": "Wybór daty pojawi się wkrótce. Wpisz /start, aby zacząć od nowa."
+      "prompt": "Wybierz datę 👇",
+      "noSlots": "Brak wolnych terminów w tym dniu. Wybierz inny dzień 👇"
+    },
+    "time": {
+      "prompt": "Wybierz godzinę 👇"
+    },
+    "contact": {
+      "comingSoon": "Podanie kontaktu pojawi się wkrótce. Wpisz /start, aby zacząć od nowa."
     },
     "common": {
       "back": "‹ Wstecz",

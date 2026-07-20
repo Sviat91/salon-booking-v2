@@ -15,7 +15,7 @@ export default function Providers({ children, enabledLocales }: { children: Reac
   if (!clientRef.current) clientRef.current = new QueryClient({
     defaultOptions: {
       queries: { 
-        staleTime: 10 * 60 * 1000, // 10 minutes default
+        staleTime: 0,
         gcTime: 30 * 60 * 1000, // 30 minutes - keep unused cache longer for better UX
         refetchOnWindowFocus: false,
       },

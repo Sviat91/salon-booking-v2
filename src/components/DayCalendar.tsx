@@ -67,7 +67,6 @@ export default function DayCalendar({ procedureId, onChange }: { procedureId?: s
       const res = await fetch(`/api/availability?${qs.toString()}`)
       return res.json()
     },
-    staleTime: 10 * 60 * 1000,
   })
 
   // Merge fetched days into an accumulator map; clear on procedure or master change

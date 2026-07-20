@@ -1193,7 +1193,14 @@
       "noServices": "This specialist has no services assigned yet. Please choose another specialist."
     },
     "date": {
-      "comingSoon": "Date selection is coming soon. Send /start to begin again."
+      "prompt": "Choose a date 👇",
+      "noSlots": "No free slots that day. Please choose another day 👇"
+    },
+    "time": {
+      "prompt": "Choose a time 👇"
+    },
+    "contact": {
+      "comingSoon": "Sharing your contact is coming soon. Send /start to begin again."
     },
     "common": {
       "back": "‹ Back",
