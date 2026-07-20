@@ -112,6 +112,7 @@
       "email": "E-mail",
       "socialAuth": "Logowanie społecznościowe",
       "notifications": "Powiadomienia",
+      "clientBot": "Bot rezerwacyjny",
       "database": "Baza danych",
       "admins": "Administratorzy",
       "dbBrowser": "Przeglądarka bazy danych",
@@ -662,6 +663,28 @@
         "reminder24hDesc": "Przypomnij klientom dzień przed wizytą.",
         "reminder2hLabel": "Przypomnienie 2-godzinne",
         "reminder2hDesc": "Przypomnij klientom dwie godziny przed wizytą."
+      },
+      "clientBot": {
+        "pageDesc": "Skonfiguruj interaktywnego bota Telegram, który pozwala klientom rezerwować wizyty bezpośrednio na czacie.",
+        "sectionTitle": "Bot rezerwacyjny",
+        "sectionDesc": "Osobny bot Telegram (własny token) do interaktywnej rezerwacji wizyt przez klientów. Nie wymaga publicznego adresu URL ani tunelu — działa od razu, lokalnie i na serwerze.",
+        "enableLabel": "Włącz bota rezerwacyjnego",
+        "enableDesc": "Gdy włączony, bot odpowiada na wiadomości i pozwala klientom zarezerwować wizytę na czacie.",
+        "tokenLabel": "Token bota",
+        "tokenPlaceholder": "1234567890:ABCdef...",
+        "tokenDesc": "Uzyskaj go od <code>@BotFather</code> → /newbot lub /mybots.",
+        "usernameLabel": "Nazwa użytkownika bota",
+        "usernamePlaceholder": "np. moj_salon_bot",
+        "usernameDesc": "Opcjonalne — używane w instrukcjach konfiguracji i linku t.me.",
+        "setupSectionTitle": "Jak skonfigurować",
+        "setupSectionDesc": "Kilka kroków, aby uruchomić bota rezerwacyjnego.",
+        "setupStep1": "Utwórz bota u <code>@BotFather</code> na Telegramie i skopiuj jego token.",
+        "setupStep2": "Wklej token powyżej i zapisz.",
+        "setupStep3": "Włącz bota powyżej i zapisz ponownie.",
+        "setupStep4": "Gotowe — nie jest wymagany żaden publiczny adres URL ani domena. Wyślij /start do bota, aby przetestować.",
+        "loadFailed": "Nie udało się załadować ustawień bota rezerwacyjnego",
+        "saveFailed": "Zapis nie powiódł się",
+        "saveSuccess": "Ustawienia bota rezerwacyjnego zostały zapisane"
       }
     }
   },
@@ -1157,5 +1180,13 @@
     "prevMonth": "Poprzedni miesiąc",
     "nextMonth": "Następny miesiąc",
     "searchingDays": "Wyszukujemy dostępne dni…"
+  },
+  "bot": {
+    "language": {
+      "prompt": "Wybierz język 👇"
+    },
+    "master": {
+      "comingSoon": "Wybór specjalisty pojawi się wkrótce. Wpisz /start, aby zacząć od nowa."
+    }
   }
 }

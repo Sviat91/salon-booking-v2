@@ -258,6 +258,13 @@ model TenantConfig {
   telegramBotToken   String?
   telegramBotUsername  String?
 
+  // Separate interactive Telegram CLIENT BOOKING bot (own token, own toggle).
+  // Do NOT confuse with telegramBotToken/telegramBotUsername above, which are
+  // the one-way salon-notification bot.
+  clientBotToken     String?
+  clientBotUsername  String?
+  clientBotEnabled   Boolean  @default(false)
+
   notifEmailEnabled       Boolean  @default(false)
   notifTelegramEnabled    Boolean  @default(false)
   notifAdminChatId        String?

@@ -53,6 +53,9 @@ const DEFAULT_CONFIG = {
   notifReminder2hEnabled: false,
   telegramBotToken: null,
   telegramBotUsername: null,
+  clientBotToken: null,
+  clientBotUsername: null,
+  clientBotEnabled: false,
   enabledLocales: '["pl","en","uk"]',
 }
 

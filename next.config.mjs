@@ -1,7 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
-    serverComponentsExternalPackages: ['googleapis', 'pino']
+    serverComponentsExternalPackages: ['googleapis', 'pino'],
+    instrumentationHook: true,
   },
   images: {
     remotePatterns: [

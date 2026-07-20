@@ -10,6 +10,7 @@ import {
   UserCog,
   Table2,
   Bell,
+  Bot,
   type LucideIcon,
 } from "lucide-react"
 
@@ -62,6 +63,11 @@ export const adminNavItems: NavItem[] = [
     labelKey: "admin.nav.notifications",
     href: "/admin/settings/notifications",
     icon: Bell,
+  },
+  {
+    labelKey: "admin.nav.clientBot",
+    href: "/admin/settings/client-bot",
+    icon: Bot,
   },
   {
     labelKey: "admin.nav.database",

@@ -112,6 +112,7 @@
       "email": "Email",
       "socialAuth": "Social Auth",
       "notifications": "Notifications",
+      "clientBot": "Booking bot",
       "database": "Database",
       "admins": "Admins",
       "dbBrowser": "DB Browser",
@@ -662,6 +663,28 @@
         "reminder24hDesc": "Remind clients one day before their appointment.",
         "reminder2hLabel": "2-hour reminder",
         "reminder2hDesc": "Remind clients two hours before their appointment."
+      },
+      "clientBot": {
+        "pageDesc": "Configure the interactive Telegram bot that lets clients book appointments directly in chat.",
+        "sectionTitle": "Booking bot",
+        "sectionDesc": "A separate Telegram bot (own token) for interactive client booking. No public URL or tunnel needed — works immediately, locally and on the server.",
+        "enableLabel": "Enable booking bot",
+        "enableDesc": "When enabled, the bot replies to messages and lets clients book an appointment in chat.",
+        "tokenLabel": "Bot token",
+        "tokenPlaceholder": "1234567890:ABCdef...",
+        "tokenDesc": "Get it from <code>@BotFather</code> → /newbot or /mybots.",
+        "usernameLabel": "Bot username",
+        "usernamePlaceholder": "e.g. my_salon_bot",
+        "usernameDesc": "Optional — used in setup instructions and the t.me link.",
+        "setupSectionTitle": "How to set up",
+        "setupSectionDesc": "A few steps to get the booking bot running.",
+        "setupStep1": "Create a bot with <code>@BotFather</code> on Telegram and copy its token.",
+        "setupStep2": "Paste the token above and save.",
+        "setupStep3": "Enable the bot above and save again.",
+        "setupStep4": "Done — no public URL or domain is required. Send /start to the bot to test it.",
+        "loadFailed": "Failed to load booking bot settings",
+        "saveFailed": "Save failed",
+        "saveSuccess": "Booking bot settings saved"
       }
     }
   },
@@ -1157,5 +1180,13 @@
     "prevMonth": "Previous month",
     "nextMonth": "Next month",
     "searchingDays": "Searching for available days…"
+  },
+  "bot": {
+    "language": {
+      "prompt": "Choose your language 👇"
+    },
+    "master": {
+      "comingSoon": "Master selection is coming soon. Send /start to begin again."
+    }
   }
 }
