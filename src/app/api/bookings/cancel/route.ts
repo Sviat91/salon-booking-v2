@@ -3,6 +3,7 @@ import { formatInTimeZone } from "date-fns-tz"
 import prisma from "@/lib/prisma"
 import { phonesMatchE164 } from "@/lib/utils/phone-normalization"
 import { canModifyBooking } from "@/lib/booking-helpers"
+import { notifyBookingCancellation } from "@/lib/notifications"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -101,10 +102,13 @@ export async function POST(req: NextRequest) {
     }
 
     // ── Cancel ─────────────────────────────────────────────────────────────
-    await prisma.appointment.update({
+    const updated = await prisma.appointment.update({
       where: { id: eventId },
       data:  { status: "CANCELLED" },
+      include: { client: true, master: true, service: true },
     })
+
+    notifyBookingCancellation(updated, 'client').catch(console.error)
 
     return NextResponse.json({ success: true })
   } catch (error) {

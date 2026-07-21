@@ -203,7 +203,7 @@ export async function POST(req: NextRequest) {
         }
       })
       createdAppointments.push(appt)
-      notifyBookingConfirmation(appt.id).catch(console.error)
+      notifyBookingConfirmation(appt.id, 'master').catch(console.error)
     }
 
     return NextResponse.json({ success: true, count: createdAppointments.length })

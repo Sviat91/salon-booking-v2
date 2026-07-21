@@ -247,7 +247,7 @@ export async function createBooking(input: CreateBookingInput): Promise<CreateBo
       return { ok: false, code: "CONFLICT", message: "Time slot is already booked" }
     }
 
-    notifyBookingConfirmation(created.id).catch(console.error)
+    notifyBookingConfirmation(created.id, 'client').catch(console.error)
     return { ok: true, appointmentId: created.id }
   } catch (error) {
     console.error("Error creating booking:", error)

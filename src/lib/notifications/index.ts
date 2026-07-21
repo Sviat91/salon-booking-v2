@@ -7,8 +7,16 @@ import prisma from '@/lib/prisma'
 import { getTenantConfig } from '@/lib/tenant'
 import { resolveLocalized } from '@/lib/localized-content'
 import { DEFAULT_LANGUAGE, type Language } from '@/lib/i18n-shared'
-import { sendTelegramMessage } from './telegram'
 import { sendClientBookingReminder } from './client-telegram'
+import {
+  logNotification,
+  formatDate,
+  getTelegramRecipients,
+  broadcastTelegram,
+  actorLabel,
+  buildBookingUpdateMessage,
+  type BookingActor,
+} from './internal'
 import {
   sendBookingConfirmationToClient,
   sendBookingConfirmationToAdmin,
@@ -18,65 +26,10 @@ import {
 } from './email'
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Helpers
-// ─────────────────────────────────────────────────────────────────────────────
-
-async function logNotification(params: {
-  type: string
-  channel: string
-  appointmentId?: string
-  recipientId?: string
-  status: 'sent' | 'failed' | 'skipped'
-  error?: string
-}) {
-  try {
-    await prisma.notificationLog.create({
-      data: {
-        type: params.type,
-        channel: params.channel,
-        appointmentId: params.appointmentId ?? null,
-        recipientId: params.recipientId ?? null,
-        status: params.status,
-        error: params.error ?? null,
-      },
-    })
-  } catch (err) {
-    console.error('[notifications] Failed to write NotificationLog:', err)
-  }
-}
-
-function formatDate(date: Date): string {
-  return date.toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric' })
-}
-
-async function getTelegramRecipients(): Promise<string[]> {
-  const rows = await prisma.telegramNotificationRecipient.findMany({ select: { chatId: true } })
-  return rows.map((r) => r.chatId)
-}
-
-async function broadcastTelegram(
-  botToken: string,
-  recipients: string[],
-  html: string
-): Promise<{ anySuccess: boolean; lastError: Error | null }> {
-  let anySuccess = false
-  let lastError: Error | null = null
-  for (const chatId of recipients) {
-    const err = await sendTelegramMessage(botToken, chatId, html)
-    if (err) {
-      lastError = err
-    } else {
-      anySuccess = true
-    }
-  }
-  return { anySuccess, lastError }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
 // Booking confirmation
 // ─────────────────────────────────────────────────────────────────────────────
 
-export async function notifyBookingConfirmation(appointmentId: string): Promise<void> {
+export async function notifyBookingConfirmation(appointmentId: string, actor: BookingActor): Promise<void> {
   try {
     const config = await getTenantConfig()
     const brandName = config.brandName || 'Salon Booking'
@@ -169,7 +122,7 @@ export async function notifyBookingConfirmation(appointmentId: string): Promise<
     if (config.notifTelegramEnabled && config.telegramBotToken) {
       const recipients = await getTelegramRecipients()
       if (recipients.length > 0) {
-        const msg = `<b>Nowa rezerwacja</b>\n👤 ${data.name}\n💆 ${data.service}\n👩‍🎨 ${data.master}\n📅 ${data.date} ${data.time}`
+        const msg = `<b>Nowa rezerwacja</b>\n👤 ${data.name}\n💆 ${data.service}\n👩‍🎨 ${data.master}\n📅 ${data.date} ${data.time}\n✍️ Utworzone przez: ${actorLabel(actor, appointment.master.name)}`
         const { anySuccess, lastError } = await broadcastTelegram(config.telegramBotToken, recipients, msg)
         await logNotification({
           type: 'BOOKING_CONFIRMATION',
@@ -378,6 +331,119 @@ export async function notifyBookingReminders(): Promise<{ sent: number; skipped:
   }
 
   return { sent, skipped }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Cancellation
+// ─────────────────────────────────────────────────────────────────────────────
+
+type CancellationAppointment = {
+  id: string
+  date: Date
+  startTime: string
+  client: { name: string | null }
+  master: { name: string | null }
+  service: { name_pl: string; name_en: string | null; name_uk: string | null }
+}
+
+export async function notifyBookingCancellation(
+  appointment: CancellationAppointment,
+  actor: BookingActor
+): Promise<void> {
+  try {
+    const config = await getTenantConfig()
+
+    if (!config.notifTelegramEnabled || !config.telegramBotToken) return
+
+    const recipients = await getTelegramRecipients()
+    if (recipients.length === 0) return
+
+    const serviceVariants = {
+      pl: appointment.service.name_pl,
+      en: appointment.service.name_en,
+      uk: appointment.service.name_uk,
+    }
+
+    const name = appointment.client.name ?? 'Klient'
+    const service = resolveLocalized(serviceVariants, DEFAULT_LANGUAGE)
+    const master = appointment.master.name ?? 'Mistrz'
+    const date = formatDate(appointment.date)
+
+    const msg = `<b>❌ Rezerwacja odwołana</b>\n👤 ${name}\n💆 ${service}\n👩‍🎨 ${master}\n📅 ${date} ${appointment.startTime}\n✍️ Odwołane przez: ${actorLabel(actor, appointment.master.name)}`
+    const { anySuccess, lastError } = await broadcastTelegram(config.telegramBotToken, recipients, msg)
+    await logNotification({
+      type: 'BOOKING_CANCELLATION',
+      channel: 'telegram',
+      appointmentId: appointment.id,
+      status: anySuccess ? 'sent' : 'failed',
+      error: lastError?.message,
+    })
+  } catch (err) {
+    console.error('[notifications] notifyBookingCancellation error:', err)
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Update (service and/or date/time change after creation)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export async function notifyBookingUpdate(
+  appointmentId: string,
+  previous: { date: Date; startTime: string; serviceId: string; serviceName: string },
+  actor: BookingActor
+): Promise<void> {
+  try {
+    const config = await getTenantConfig()
+
+    if (!config.notifTelegramEnabled || !config.telegramBotToken) return
+
+    const appointment = await prisma.appointment.findUnique({
+      where: { id: appointmentId },
+      include: { client: true, master: true, service: true },
+    })
+
+    if (!appointment) {
+      console.error('[notifications] Appointment not found:', appointmentId)
+      return
+    }
+
+    const serviceVariants = {
+      pl: appointment.service.name_pl,
+      en: appointment.service.name_en,
+      uk: appointment.service.name_uk,
+    }
+
+    const current = {
+      date: appointment.date,
+      startTime: appointment.startTime,
+      serviceId: appointment.serviceId,
+      serviceName: resolveLocalized(serviceVariants, DEFAULT_LANGUAGE),
+    }
+
+    const msg = buildBookingUpdateMessage({
+      clientName: appointment.client.name ?? 'Klient',
+      masterName: appointment.master.name ?? 'Mistrz',
+      previous,
+      current,
+      actorLabel: actorLabel(actor, appointment.master.name),
+    })
+
+    if (!msg) return
+
+    const recipients = await getTelegramRecipients()
+    if (recipients.length === 0) return
+
+    const { anySuccess, lastError } = await broadcastTelegram(config.telegramBotToken, recipients, msg)
+    await logNotification({
+      type: 'BOOKING_UPDATE',
+      channel: 'telegram',
+      appointmentId,
+      status: anySuccess ? 'sent' : 'failed',
+      error: lastError?.message,
+    })
+  } catch (err) {
+    console.error('[notifications] notifyBookingUpdate error:', err)
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

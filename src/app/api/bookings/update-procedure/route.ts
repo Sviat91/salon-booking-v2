@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma"
 import { t2m, m2t } from "@/lib/schedule-utils"
 import { phonesMatchE164 } from "@/lib/utils/phone-normalization"
 import { canModifyBooking } from "@/lib/booking-helpers"
+import { notifyBookingUpdate } from "@/lib/notifications"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -68,6 +69,7 @@ export async function POST(req: NextRequest) {
       where: { id: eventId },
       include: {
         client: { select: { phone: true } },
+        service: { select: { name_pl: true } },
       },
     })
 
@@ -140,6 +142,17 @@ export async function POST(req: NextRequest) {
         endTime: newEndTime,
       },
     })
+
+    notifyBookingUpdate(
+      eventId,
+      {
+        date: appointment.date,
+        startTime: appointment.startTime,
+        serviceId: appointment.serviceId,
+        serviceName: appointment.service.name_pl,
+      },
+      'client'
+    ).catch(console.error)
 
     return NextResponse.json({ success: true })
   } catch (error) {

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { phonesMatchE164 } from "@/lib/utils/phone-normalization"
+import { notifyBookingUpdate } from "@/lib/notifications"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -189,6 +190,17 @@ export async function PATCH(
         { status: 409 }
       )
     }
+
+    notifyBookingUpdate(
+      appointmentId,
+      {
+        date: appointment.date,
+        startTime: appointment.startTime,
+        serviceId: appointment.serviceId,
+        serviceName: appointment.service.name_pl,
+      },
+      'client'
+    ).catch(console.error)
 
     return NextResponse.json({ changes })
   } catch (error) {

@@ -3,6 +3,7 @@ import { formatInTimeZone } from "date-fns-tz"
 import { z } from "zod"
 import prisma from "@/lib/prisma"
 import { auth } from "@/auth"
+import { notifyBookingCancellation, notifyBookingUpdate } from "@/lib/notifications"
 
 export const runtime = "nodejs"
 
@@ -182,6 +183,17 @@ export async function PATCH(
       data: updateData,
     })
 
+    notifyBookingUpdate(
+      appointment.id,
+      {
+        date: appointment.date,
+        startTime: appointment.startTime,
+        serviceId: appointment.serviceId,
+        serviceName: appointment.service.name_pl,
+      },
+      'client'
+    ).catch(console.error)
+
     return NextResponse.json({ success: true, changes })
   } catch (error) {
     console.error("[Client appointment PATCH] Error:", error)
@@ -232,10 +244,13 @@ export async function DELETE(
       )
     }
 
-    await prisma.appointment.update({
+    const updated = await prisma.appointment.update({
       where: { id: appointment.id },
       data: { status: "CANCELLED" },
+      include: { client: true, master: true, service: true },
     })
+
+    notifyBookingCancellation(updated, 'client').catch(console.error)
 
     return NextResponse.json({ success: true })
   } catch (error) {

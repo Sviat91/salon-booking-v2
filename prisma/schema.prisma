@@ -288,7 +288,7 @@ model TelegramNotificationRecipient {
 
 model NotificationLog {
   id            String   @id @default(cuid())
-  type          String   // BOOKING_CONFIRMATION | BOOKING_REMINDER_24H | BOOKING_REMINDER_2H | BOOKING_CANCELLATION | BOOKING_RESCHEDULE | CONTACT_FORM
+  type          String   // BOOKING_CONFIRMATION | BOOKING_REMINDER_24H | BOOKING_REMINDER_2H | BOOKING_CANCELLATION | BOOKING_UPDATE | CONTACT_FORM
   channel       String   // email | telegram | telegram_client
   appointmentId String?
   recipientId   String?

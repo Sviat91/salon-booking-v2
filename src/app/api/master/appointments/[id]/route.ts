@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
 import prisma from "@/lib/prisma"
+import { notifyBookingCancellation, notifyBookingUpdate } from "@/lib/notifications"
 
 export const runtime = "nodejs"
 
@@ -56,8 +57,11 @@ export async function PATCH(
       include: {
         service: { select: { name_pl: true, name_en: true, name_uk: true } },
         client: { select: { name: true, phone: true } },
+        master: { select: { name: true } },
       },
     })
+
+    notifyBookingCancellation(updated, 'master').catch(console.error)
 
     return NextResponse.json({ appointment: updated })
   } catch (error) {
@@ -88,6 +92,7 @@ export async function DELETE(
   try {
     const appointment = await prisma.appointment.findUnique({
       where: { id },
+      include: { client: true, master: true, service: true },
     })
 
     if (!appointment) {
@@ -97,6 +102,8 @@ export async function DELETE(
     if (appointment.masterId !== session.user.id) {
       return NextResponse.json({ error: "You can only delete your own appointments" }, { status: 403 })
     }
+
+    notifyBookingCancellation(appointment, 'master').catch(console.error)
 
     await prisma.appointment.delete({
       where: { id },
@@ -131,6 +138,7 @@ export async function PUT(
   try {
     const appointment = await prisma.appointment.findUnique({
       where: { id },
+      include: { service: { select: { name_pl: true } } },
     })
 
     if (!appointment) return NextResponse.json({ error: "Not found" }, { status: 404 })
@@ -182,6 +190,17 @@ export async function PUT(
         notes: notes || null,
       }
     })
+
+    notifyBookingUpdate(
+      updated.id,
+      {
+        date: appointment.date,
+        startTime: appointment.startTime,
+        serviceId: appointment.serviceId,
+        serviceName: appointment.service.name_pl,
+      },
+      'master'
+    ).catch(console.error)
 
     return NextResponse.json({ appointment: updated })
   } catch (error) {

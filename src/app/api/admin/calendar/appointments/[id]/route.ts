@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
 import prisma from "@/lib/prisma"
+import { notifyBookingCancellation, notifyBookingUpdate } from "@/lib/notifications"
 
 export const runtime = "nodejs"
 
@@ -23,11 +24,14 @@ export async function DELETE(
   try {
     const appointment = await prisma.appointment.findUnique({
       where: { id },
+      include: { client: true, master: true, service: true },
     })
 
     if (!appointment) {
       return NextResponse.json({ error: "Appointment not found" }, { status: 404 })
     }
+
+    notifyBookingCancellation(appointment, 'admin').catch(console.error)
 
     await prisma.appointment.delete({
       where: { id },
@@ -62,6 +66,7 @@ export async function PUT(
   try {
     const appointment = await prisma.appointment.findUnique({
       where: { id },
+      include: { service: { select: { name_pl: true } } },
     })
 
     if (!appointment) return NextResponse.json({ error: "Not found" }, { status: 404 })
@@ -115,6 +120,17 @@ export async function PUT(
         masterId: finalMasterId,
       }
     })
+
+    notifyBookingUpdate(
+      updated.id,
+      {
+        date: appointment.date,
+        startTime: appointment.startTime,
+        serviceId: appointment.serviceId,
+        serviceName: appointment.service.name_pl,
+      },
+      'admin'
+    ).catch(console.error)
 
     return NextResponse.json({ appointment: updated })
   } catch (error) {
