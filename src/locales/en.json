@@ -673,9 +673,13 @@
         "tokenLabel": "Bot token",
         "tokenPlaceholder": "1234567890:ABCdef...",
         "tokenDesc": "Get it from <code>@BotFather</code> → /newbot or /mybots.",
-        "usernameLabel": "Bot username",
+        "usernameLabel": "Bot username (@username)",
         "usernamePlaceholder": "e.g. my_salon_bot",
-        "usernameDesc": "Optional — used in setup instructions and the t.me link.",
+        "usernameDesc": "The bot's technical @username from @BotFather — always ends in \"bot\" (e.g. my_salon_bot). This is NOT the bot's display name, which is a separate setting in BotFather.",
+        "openBotLink": "Open bot in Telegram →",
+        "siteUrlLabel": "Website URL",
+        "siteUrlPlaceholder": "https://my-salon.com",
+        "siteUrlDesc": "Shown as the terms & privacy links in the bot's consent message and as the \"Open website\" button after a successful booking. Optional — leave empty to fall back to the server's NEXT_PUBLIC_SITE_URL. Use a real publicly reachable domain; \"localhost\" only opens correctly from a browser on this same machine, not from Telegram on another device such as a phone.",
         "setupSectionTitle": "How to set up",
         "setupSectionDesc": "A few steps to get the booking bot running.",
         "setupStep1": "Create a bot with <code>@BotFather</code> on Telegram and copy its token.",
@@ -1183,7 +1187,7 @@
   },
   "bot": {
     "language": {
-      "prompt": "Choose your language 👇"
+      "prompt": "👋 {{brandName}}"
     },
     "master": {
       "prompt": "Choose your specialist 👇"
@@ -1200,7 +1204,30 @@
       "prompt": "Choose a time 👇"
     },
     "contact": {
-      "comingSoon": "Sharing your contact is coming soon. Send /start to begin again."
+      "prompt": "Please share your phone number to finish the booking 👇",
+      "button": "📞 Share phone number",
+      "invalid": "That phone number is invalid. Please try again 👇",
+      "received": "Thanks! 👍"
+    },
+    "consent": {
+      "prompt": "Before we finish the booking, please confirm your consent to personal data processing.",
+      "termsButton": "📄 Terms",
+      "privacyButton": "🔒 Privacy Policy",
+      "agree": "✅ I agree",
+      "decline": "❌ I don't agree",
+      "declined": "Booking requires consent to data processing. Send /start to try again."
+    },
+    "confirm": {
+      "summary": "Booking summary:\n👤 Specialist: {{master}}\n💇 Service: {{procedure}}\n📅 Date: {{date}}\n🕐 Time: {{time}}\n💰 Price: {{price}}\n\nConfirm this booking?",
+      "book": "✅ Book",
+      "success": "Booking confirmed! ✅\n👤 Specialist: {{master}}\n💇 Service: {{procedure}}\n📅 Date: {{date}}\n🕐 Time: {{time}}\n💰 Price: {{price}}\n\nWe've sent a confirmation. See you soon 👋",
+      "bookAgain": "🆕 Book again",
+      "openWebsite": "🌐 Open website"
+    },
+    "error": {
+      "slotTaken": "Sorry, that slot was just taken. Please choose another 👇",
+      "generic": "Something went wrong. Send /start to try again.",
+      "rateLimited": "Too many booking attempts. Please try again later."
     },
     "common": {
       "back": "‹ Back",

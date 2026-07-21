@@ -673,9 +673,13 @@
         "tokenLabel": "Token bota",
         "tokenPlaceholder": "1234567890:ABCdef...",
         "tokenDesc": "Uzyskaj go od <code>@BotFather</code> → /newbot lub /mybots.",
-        "usernameLabel": "Nazwa użytkownika bota",
+        "usernameLabel": "Nazwa użytkownika bota (@username)",
         "usernamePlaceholder": "np. moj_salon_bot",
-        "usernameDesc": "Opcjonalne — używane w instrukcjach konfiguracji i linku t.me.",
+        "usernameDesc": "Techniczna nazwa użytkownika bota z @BotFather — zawsze kończy się na „bot” (np. moj_salon_bot). To NIE jest nazwa wyświetlana bota, która jest osobnym ustawieniem w BotFather.",
+        "openBotLink": "Otwórz bota w Telegramie →",
+        "siteUrlLabel": "Adres URL strony",
+        "siteUrlPlaceholder": "https://moj-salon.pl",
+        "siteUrlDesc": "Wyświetlany jako linki do regulaminu i polityki prywatności w wiadomości o zgodzie bota oraz jako przycisk „Otwórz stronę” po udanej rezerwacji. Opcjonalne — pozostaw puste, aby użyć zmiennej serwerowej NEXT_PUBLIC_SITE_URL. Użyj prawdziwej, publicznie dostępnej domeny — adres „localhost” otwiera się poprawnie tylko w przeglądarce na tym samym komputerze, a nie z Telegrama na innym urządzeniu, np. telefonie.",
         "setupSectionTitle": "Jak skonfigurować",
         "setupSectionDesc": "Kilka kroków, aby uruchomić bota rezerwacyjnego.",
         "setupStep1": "Utwórz bota u <code>@BotFather</code> na Telegramie i skopiuj jego token.",
@@ -1183,7 +1187,7 @@
   },
   "bot": {
     "language": {
-      "prompt": "Wybierz język 👇"
+      "prompt": "👋 {{brandName}}"
     },
     "master": {
       "prompt": "Wybierz specjalistę 👇"
@@ -1200,7 +1204,30 @@
       "prompt": "Wybierz godzinę 👇"
     },
     "contact": {
-      "comingSoon": "Podanie kontaktu pojawi się wkrótce. Wpisz /start, aby zacząć od nowa."
+      "prompt": "Podaj swój numer telefonu, aby dokończyć rezerwację 👇",
+      "button": "📞 Udostępnij numer telefonu",
+      "invalid": "Ten numer telefonu jest nieprawidłowy. Spróbuj ponownie 👇",
+      "received": "Dziękujemy! 👍"
+    },
+    "consent": {
+      "prompt": "Zanim dokończymy rezerwację, potwierdź zgodę na przetwarzanie Twoich danych osobowych.",
+      "termsButton": "📄 Regulamin",
+      "privacyButton": "🔒 Polityka prywatności",
+      "agree": "✅ Zgadzam się",
+      "decline": "❌ Nie zgadzam się",
+      "declined": "Rezerwacja wymaga zgody na przetwarzanie danych. Wpisz /start, aby spróbować ponownie."
+    },
+    "confirm": {
+      "summary": "Podsumowanie rezerwacji:\n👤 Specjalista: {{master}}\n💇 Usługa: {{procedure}}\n📅 Data: {{date}}\n🕐 Godzina: {{time}}\n💰 Cena: {{price}}\n\nPotwierdzasz rezerwację?",
+      "book": "✅ Rezerwuj",
+      "success": "Rezerwacja potwierdzona! ✅\n👤 Specjalista: {{master}}\n💇 Usługa: {{procedure}}\n📅 Data: {{date}}\n🕐 Godzina: {{time}}\n💰 Cena: {{price}}\n\nWysłaliśmy potwierdzenie. Do zobaczenia 👋",
+      "bookAgain": "🆕 Zarezerwuj ponownie",
+      "openWebsite": "🌐 Otwórz stronę"
+    },
+    "error": {
+      "slotTaken": "Niestety ten termin został właśnie zajęty. Wybierz inny 👇",
+      "generic": "Coś poszło nie tak. Wpisz /start, aby spróbować ponownie.",
+      "rateLimited": "Zbyt wiele prób rezerwacji. Spróbuj ponownie za jakiś czas."
     },
     "common": {
       "back": "‹ Wstecz",

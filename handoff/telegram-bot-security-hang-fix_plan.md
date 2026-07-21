@@ -1,0 +1,31 @@
+# Plan: Bot token leaking into server logs + wizard hang after phone entry
+
+Two connected bugs found live: after entering a phone number the bot hangs (no reply ever sent), and the server console dump the user pasted showed the bot's raw token in plaintext (`api: Api { token: '890...' }`).
+
+## Root cause
+
+`src/lib/telegram-bot/lifecycle.ts`'s `bot.catch((err) => { console.error('[telegram-bot lifecycle] middleware error:', err) })` (from Group 1) logs the RAW grammy `BotError` object. grammy's `BotError` wraps `{ error: <original cause>, ctx: <Context at time of failure> }`, and `ctx` exposes `update`/`api`/`me` as its own properties — `ctx.api` is the `Api` instance, which holds the bot token internally. `console.error('...', err)` on this object triggers Node's default object inspection, which recursively prints every enumerable property, including the token buried inside `ctx.api`. This is a real secret-leakage bug — server logs (which may be captured by hosting providers, log aggregators, or just left in a terminal scrollback) should never contain the token in plaintext.
+
+The underlying error being wrapped is very likely thrown from `renderConsentStep` (`src/lib/telegram-bot/handlers/consent.ts`)'s `ctx.reply(...)` call — this is the first place in the flow (right after phone submission) that sends a message containing a `url`-type inline button (Fix G from the previous round: terms/privacy buttons, resolved from `TenantConfig.clientBotSiteUrl`, which the user has set to `http://localhost:3000` for local testing). Telegram's Bot API can reject `sendMessage` calls whose `reply_markup` contains a malformed/unusable `url` button, surfacing as a `GrammyError`/`HttpError` that grammy wraps into a `BotError` and routes to `bot.catch()` — and because nothing catches this at the call site, the wizard is left permanently stuck at that step (no fallback message, no error shown to the user, no way to retry). The exact Telegram-side reason isn't something we can fully confirm without a live repro, but the fix must be robust regardless of the precise cause: sending a message with a URL button must never be able to permanently strand a conversation.
+
+## Fixes
+
+- [x] **Fix K (security, do first): stop logging raw error/context objects that can contain the bot token.**
+  - File: `src/lib/telegram-bot/lifecycle.ts`
+  - Add a small local helper, e.g. `function describeError(err: unknown): string` that extracts only a safe string summary: if `err` has an `.error` property (grammy's `BotError` shape), describe that inner value (`${inner.name}: ${inner.message}` if it's an `Error`, else `String(inner)`); otherwise if `err` is an `Error`, use `${err.name}: ${err.message}`; otherwise `String(err)`. Never pass the raw `err`/`ctx`/`api` object to `console.error`.
+  - Replace both `console.error(...)` calls in the file (the `bot.catch()` middleware-error handler, and the `bot.start().catch()` handler) to use `describeError(err)` instead of the raw `err`.
+  - Grep the rest of `src/lib/telegram-bot/` and `src/app/api/admin/client-bot-settings/route.ts` for any other `console.error`/`console.log`/`console.warn` that logs a raw error/context/config object — apply the same safe-summary treatment anywhere a grammy `Context`/`BotError`/`Api` instance or a `TenantConfig` object (which contains `clientBotToken` in plaintext) could end up in the logged value. Do not touch logging that's already provably safe (e.g., logging just a chat ID or a string message).
+
+- [x] **Fix L: sending a message with a URL button must never permanently strand the wizard.**
+  - Files: `src/lib/telegram-bot/handlers/consent.ts`, `src/lib/telegram-bot/handlers/confirm.ts`
+  - In `renderConsentStep` (`consent.ts`): wrap the `ctx.reply(t('bot.consent.prompt'), { reply_markup: consentKeyboard(...) })` call in try/catch. On failure, retry sending the SAME prompt text with `consentKeyboard(state.lang, {})` (i.e. no terms/privacy URL buttons — just agree/decline, which cannot itself trigger a URL-button-related rejection) so the user is never stuck without any way to proceed. Log the failure via the Fix K helper (do not silently swallow — the admin should be able to tell from logs that the configured site URL is likely broken, e.g. localhost during dev, without leaking the token).
+  - Apply the same try/catch-and-retry-without-the-url-button pattern to `confirm.ts`'s post-booking success message (which uses `confirmSuccessKeyboard(lang, siteUrl)` — also has a URL button). The booking itself will have already succeeded by that point (this is purely a message-delivery robustness fix, not a booking-integrity one) — on failure, retry with `confirmSuccessKeyboard(lang, undefined)` so at minimum the "book again" button still reaches the user.
+  - Do not add retry logic anywhere else (e.g. the calendar/slots keyboards never carry `url` buttons, no risk there) — scope this to the two call sites that actually send `url`-type buttons.
+
+- [x] **Fix M (small, defense in depth): warn the admin in the Settings UI that `localhost`/private-network URLs won't work as clickable links from other devices.**
+  - File: `src/locales/{pl,en,uk}.json`
+  - Append a short clarifying sentence to `admin.settings.clientBot.siteUrlDesc` — e.g. "Use a real publicly reachable domain; `localhost` only opens correctly from a browser on this same machine, not from Telegram on a phone." Keep it brief, don't restructure the existing description.
+
+- [x] Run `npx tsc --noEmit`, `npm run lint`, `npm run i18n:check`, `npx vitest run`, `npm run build`. No schema/migration changes this round.
+
+**Manual verification (user):** restart the dev server fully. (1) With `clientBotSiteUrl` still set to `http://localhost:3000`, go through the bot up to the consent step — it should now show the agree/decline prompt (with or without the terms/privacy buttons, whichever Telegram accepts) instead of hanging; check the server console — any error logged there must show only a short error description, never the token string. (2) Complete a booking and confirm the success message still arrives even with the localhost site URL configured. (3) For a real end-to-end test of the URL buttons actually working, set `clientBotSiteUrl` to a real reachable HTTPS domain if/when available — buttons should appear and open correctly.

@@ -263,6 +263,7 @@ model TenantConfig {
   // the one-way salon-notification bot.
   clientBotToken     String?
   clientBotUsername  String?
+  clientBotSiteUrl   String?
   clientBotEnabled   Boolean  @default(false)
 
   notifEmailEnabled       Boolean  @default(false)

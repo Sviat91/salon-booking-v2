@@ -2,10 +2,8 @@
  * Date & time selection steps of the client booking wizard. Renders an
  * inline month calendar (only bookable days tappable, month arrows clamped
  * to the booking horizon) and, once a day is picked, a paginated time-slot
- * list. Advances `DATE` → `TIME` → `CONTACT` — Group 4 renders the contact
- * step; Group 3 ends on a localized placeholder so this group is testable in
- * isolation (mirrors the `bot.date.comingSoon` placeholder Group 2 used for
- * the DATE step).
+ * list. Advances `DATE` → `TIME` → `CONTACT`, handing off to
+ * `renderContactStep` (`handlers/contact.ts`, Group 4).
  */
 import type { Bot, Context } from 'grammy'
 import { addDays } from 'date-fns'
@@ -15,6 +13,7 @@ import { calendarKeyboard, slotsKeyboard, mastersKeyboard, proceduresKeyboard, S
 import { shiftMonth, monthBounds } from '../calendar-utils'
 import { getState, setState, type WizardState } from '../wizard-state'
 import { listBookableMasters, listMasterProcedures } from '../catalog'
+import { renderContactStep } from './contact'
 import { getAvailableDays, getDaySlots } from '@/lib/availability'
 import { isoDate, SCHEDULE_TZ } from '@/lib/schedule-utils'
 
@@ -203,15 +202,14 @@ export function registerDatetimeHandlers(bot: Bot) {
     await ctx.answerCallbackQuery()
 
     const slotLabel = formatInTimeZone(new Date(slot.startISO), SCHEDULE_TZ, 'HH:mm')
-    await setState(chatId, {
+    const nextState: WizardState = {
       ...state,
       startISO: slot.startISO,
       endISO: slot.endISO,
       slotLabel,
       step: 'CONTACT',
-    })
-    const t = botT(state.lang)
-    await ctx.editMessageText(t('bot.contact.comingSoon'))
+    }
+    await renderContactStep(ctx, chatId, nextState)
   })
 
   bot.callbackQuery('back:date', async (ctx) => {

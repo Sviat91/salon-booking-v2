@@ -55,6 +55,7 @@ const DEFAULT_CONFIG = {
   telegramBotUsername: null,
   clientBotToken: null,
   clientBotUsername: null,
+  clientBotSiteUrl: null,
   clientBotEnabled: false,
   enabledLocales: '["pl","en","uk"]',
 }

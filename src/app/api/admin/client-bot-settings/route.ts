@@ -8,6 +8,7 @@ const PatchSchema = z.object({
   clientBotEnabled: z.boolean().optional(),
   clientBotToken: z.string().trim().max(256).nullable().optional(),
   clientBotUsername: z.string().trim().max(64).nullable().optional(),
+  clientBotSiteUrl: z.string().trim().max(512).nullable().optional(),
 })
 
 export async function GET() {
@@ -22,6 +23,7 @@ export async function GET() {
     clientBotEnabled: config?.clientBotEnabled ?? false,
     clientBotToken: config?.clientBotToken ?? '',
     clientBotUsername: config?.clientBotUsername ?? '',
+    clientBotSiteUrl: config?.clientBotSiteUrl ?? '',
   })
 }
 
@@ -41,6 +43,7 @@ export async function PATCH(req: Request) {
     if (data.clientBotEnabled !== undefined) updateData.clientBotEnabled = data.clientBotEnabled
     if (data.clientBotToken !== undefined) updateData.clientBotToken = data.clientBotToken || null
     if (data.clientBotUsername !== undefined) updateData.clientBotUsername = data.clientBotUsername || null
+    if (data.clientBotSiteUrl !== undefined) updateData.clientBotSiteUrl = data.clientBotSiteUrl || null
 
     if (!existing) {
       await prisma.tenantConfig.create({ data: updateData as Parameters<typeof prisma.tenantConfig.create>[0]['data'] })

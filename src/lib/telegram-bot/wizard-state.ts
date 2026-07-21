@@ -59,3 +59,26 @@ export async function setState(chatId: number | string, state: WizardState): Pro
 export async function clearState(chatId: number | string): Promise<void> {
   await cacheDel(stateKey(chatId))
 }
+
+/**
+ * Separate, longer-lived record of the last-picked language per chat —
+ * independent of the wizard-session key/TTL above, so a returning user
+ * doesn't have to re-pick their language on every new booking. Refreshed on
+ * every read and write; long TTL rather than no-expiry so truly-abandoned
+ * chat histories eventually clean up.
+ */
+const LANGUAGE_TTL_SECONDS = 60 * 60 * 24 * 180 // 180 days
+
+function languageKey(chatId: number | string): string {
+  return `tgbotlang:${chatId}`
+}
+
+export async function getRememberedLanguage(chatId: number | string): Promise<Language | null> {
+  const lang = await cacheGet<Language>(languageKey(chatId))
+  if (lang) await cacheSet(languageKey(chatId), lang, LANGUAGE_TTL_SECONDS)
+  return lang
+}
+
+export async function setRememberedLanguage(chatId: number | string, lang: Language): Promise<void> {
+  await cacheSet(languageKey(chatId), lang, LANGUAGE_TTL_SECONDS)
+}

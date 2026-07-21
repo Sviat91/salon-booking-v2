@@ -24,6 +24,24 @@ interface ValidateTokenResult {
 let runningBot: Bot | null = null
 let runningToken: string | null = null
 
+/**
+ * Extracts a safe, short summary from an unknown error value — never returns
+ * the raw value itself. grammy's `BotError` wraps `{ error: <cause>, ctx }`,
+ * and `ctx` exposes the `Api` instance (which holds the bot token) as an
+ * enumerable property, so passing the raw error/context to `console.error`
+ * risks leaking the token via Node's default object inspection. Exported so
+ * handler modules (e.g. `handlers/consent.ts`) can reuse it for the same
+ * reason.
+ */
+export function describeError(err: unknown): string {
+  if (err && typeof err === 'object' && 'error' in err) {
+    const inner = (err as { error: unknown }).error
+    return inner instanceof Error ? `${inner.name}: ${inner.message}` : String(inner)
+  }
+  if (err instanceof Error) return `${err.name}: ${err.message}`
+  return String(err)
+}
+
 /** Reads `TenantConfig` and starts long polling if enabled+token are set. No-op (not an error) otherwise. Never throws. */
 export async function startClientBot(): Promise<LifecycleResult> {
   try {
@@ -43,12 +61,12 @@ export async function startClientBot(): Promise<LifecycleResult> {
 
     const bot = getClientBot(clientBotToken)
     bot.catch((err) => {
-      console.error('[telegram-bot lifecycle] middleware error:', err)
+      console.error('[telegram-bot lifecycle] middleware error:', describeError(err))
     })
 
     // Fire-and-forget: bot.start() resolves only when the bot stops.
     bot.start().catch((err) => {
-      console.error('[telegram-bot lifecycle] start() failed:', err)
+      console.error('[telegram-bot lifecycle] start() failed:', describeError(err))
     })
 
     runningBot = bot

@@ -1,13 +1,13 @@
 /**
- * Inline keyboard builders for the Telegram client booking bot.
- * Group 1 shipped the language picker; Group 2 added master/procedure
- * keyboards; Group 3 adds the calendar + time-slot keyboards. Consent/confirm
- * keyboards are added in Group 4. Keep all `callback_data` short (<64 bytes,
- * Telegram's hard limit).
+ * Inline (and, for the contact step, reply) keyboard builders for the
+ * Telegram client booking bot. Group 1 shipped the language picker; Group 2
+ * added master/procedure keyboards; Group 3 added the calendar + time-slot
+ * keyboards; Group 4 adds the contact/consent/confirm keyboards. Keep all
+ * `callback_data` short (<64 bytes, Telegram's hard limit).
  */
-import { InlineKeyboard } from 'grammy'
+import { InlineKeyboard, Keyboard } from 'grammy'
 import { formatInTimeZone } from 'date-fns-tz'
-import { SUPPORTED_LANGUAGES, LANGUAGE_NAMES, type Language } from '@/lib/i18n-shared'
+import { LANGUAGE_NAMES, type Language } from '@/lib/i18n-shared'
 import { SCHEDULE_TZ } from '@/lib/schedule-utils'
 import { resolveLocalized } from '@/lib/localized-content'
 import { botT } from './i18n'
@@ -15,12 +15,12 @@ import { buildMonthGrid, weekdayLabels, monthLabel } from './calendar-utils'
 import type { BookableMaster, BookableProcedure } from './catalog'
 import type { WizardSlot } from './wizard-state'
 
-/** One button per supported language, one per row, callback_data `lang:<code>`. */
-export function languageKeyboard(): InlineKeyboard {
+/** One button per enabled language (`TenantConfig.enabledLocales`), one per row, callback_data `lang:<code>`. */
+export function languageKeyboard(enabledLocales: Language[]): InlineKeyboard {
   const keyboard = new InlineKeyboard()
-  SUPPORTED_LANGUAGES.forEach((lang, index) => {
+  enabledLocales.forEach((lang, index) => {
     keyboard.text(LANGUAGE_NAMES[lang], `lang:${lang}`)
-    if (index < SUPPORTED_LANGUAGES.length - 1) keyboard.row()
+    if (index < enabledLocales.length - 1) keyboard.row()
   })
   return keyboard
 }
@@ -125,5 +125,54 @@ export function slotsKeyboard(params: { slots: WizardSlot[]; page: number; lang:
   }
 
   keyboard.text(t('bot.common.back'), 'back:date')
+  return keyboard
+}
+
+/** Reply keyboard with a single native "share contact" button, shown for the CONTACT step. */
+export function contactKeyboard(lang: Language): Keyboard {
+  const t = botT(lang)
+  return new Keyboard().requestContact(t('bot.contact.button')).resized().oneTime()
+}
+
+/**
+ * Inline agree/decline buttons for the CONSENT step, preceded by `/terms`/
+ * `/privacy` URL button rows when the caller resolved a real absolute site
+ * URL (Telegram rejects relative-path URLs for `url`-type buttons — the
+ * caller must pass `undefined` rather than a relative path when unavailable).
+ */
+export function consentKeyboard(lang: Language, links: { termsUrl?: string; privacyUrl?: string }): InlineKeyboard {
+  const t = botT(lang)
+  const keyboard = new InlineKeyboard()
+  if (links.termsUrl) {
+    keyboard.url(t('bot.consent.termsButton'), links.termsUrl).row()
+  }
+  if (links.privacyUrl) {
+    keyboard.url(t('bot.consent.privacyButton'), links.privacyUrl).row()
+  }
+  keyboard.text(t('bot.consent.agree'), 'consent:yes').row().text(t('bot.consent.decline'), 'consent:no')
+  return keyboard
+}
+
+/** Inline confirm/back-to-time buttons for the CONFIRM step. */
+export function confirmKeyboard(lang: Language): InlineKeyboard {
+  const t = botT(lang)
+  return new InlineKeyboard()
+    .text(t('bot.confirm.book'), 'confirm:yes')
+    .row()
+    .text(t('bot.common.back'), 'back:time')
+}
+
+/**
+ * "Book again" (+ "Open website", only when a site URL is resolved — DB
+ * `TenantConfig.clientBotSiteUrl`, falling back to `NEXT_PUBLIC_SITE_URL`)
+ * buttons shown on the post-booking success message. Caller resolves
+ * `siteUrl` (see `resolveSiteUrl()` in `../site-url`).
+ */
+export function confirmSuccessKeyboard(lang: Language, siteUrl: string | undefined): InlineKeyboard {
+  const t = botT(lang)
+  const keyboard = new InlineKeyboard().text(t('bot.confirm.bookAgain'), 'restart:book')
+  if (siteUrl) {
+    keyboard.row().url(t('bot.confirm.openWebsite'), siteUrl)
+  }
   return keyboard
 }

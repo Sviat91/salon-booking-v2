@@ -144,6 +144,15 @@ export default function ModernCalendar({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dateRange, isMounted, selectedMasterId])
 
+  // Polls for out-of-band changes (e.g. bookings made via the Telegram bot,
+  // or another admin's tab) while this page stays mounted and in focus.
+  useEffect(() => {
+    if (!isMounted) return
+    const interval = setInterval(fetchData, 15000)
+    return () => clearInterval(interval)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dateRange, isMounted, selectedMasterId])
+
   const navigate = (direction: "prev" | "next" | "today") => {
     if (direction === "today") {
       setCurrentDate(new Date())

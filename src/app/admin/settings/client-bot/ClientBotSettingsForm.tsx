@@ -25,6 +25,10 @@ const formSchema = z.object({
   clientBotEnabled: z.boolean(),
   clientBotToken: z.string().trim().max(256).optional(),
   clientBotUsername: z.string().trim().max(64).optional(),
+  clientBotSiteUrl: z.union([
+    z.literal(''),
+    z.string().trim().max(512).url({ message: 'Enter a valid URL (e.g. https://example.com)' }),
+  ]).optional(),
 })
 
 type FormValues = z.infer<typeof formSchema>
@@ -70,6 +74,7 @@ export default function ClientBotSettingsForm() {
       clientBotEnabled: false,
       clientBotToken: '',
       clientBotUsername: '',
+      clientBotSiteUrl: '',
     },
   })
 
@@ -90,6 +95,7 @@ export default function ClientBotSettingsForm() {
           clientBotEnabled: data.clientBotEnabled ?? false,
           clientBotToken: data.clientBotToken ?? '',
           clientBotUsername: data.clientBotUsername ?? '',
+          clientBotSiteUrl: data.clientBotSiteUrl ?? '',
         })
       } catch {
         toast.error(t('admin.settings.clientBot.loadFailed'))
@@ -174,13 +180,41 @@ export default function ClientBotSettingsForm() {
           <FormField
             control={form.control}
             name="clientBotUsername"
+            render={({ field }) => {
+              const username = field.value?.trim().replace(/^@/, '')
+              return (
+                <FormItem>
+                  <FormLabel>{t('admin.settings.clientBot.usernameLabel')}</FormLabel>
+                  <FormControl>
+                    <Input placeholder={t('admin.settings.clientBot.usernamePlaceholder')} {...field} />
+                  </FormControl>
+                  <FormDescription>{t('admin.settings.clientBot.usernameDesc')}</FormDescription>
+                  {username && (
+                    <a
+                      href={`https://t.me/${username}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs underline text-neutral-500 dark:text-dark-muted hover:text-primary dark:hover:text-accent transition-colors"
+                    >
+                      {t('admin.settings.clientBot.openBotLink')}
+                    </a>
+                  )}
+                  <FormMessage />
+                </FormItem>
+              )
+            }}
+          />
+
+          <FormField
+            control={form.control}
+            name="clientBotSiteUrl"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t('admin.settings.clientBot.usernameLabel')}</FormLabel>
+                <FormLabel>{t('admin.settings.clientBot.siteUrlLabel')}</FormLabel>
                 <FormControl>
-                  <Input placeholder={t('admin.settings.clientBot.usernamePlaceholder')} {...field} />
+                  <Input placeholder={t('admin.settings.clientBot.siteUrlPlaceholder')} {...field} />
                 </FormControl>
-                <FormDescription>{t('admin.settings.clientBot.usernameDesc')}</FormDescription>
+                <FormDescription>{t('admin.settings.clientBot.siteUrlDesc')}</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
