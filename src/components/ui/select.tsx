@@ -57,12 +57,12 @@ function SelectContent({
         sideOffset={4}
         alignItemWithTrigger={false}
         data-slot="select-positioner"
-        className="isolate z-50 outline-none"
+        className="isolate z-[200] outline-none"
       >
         <SelectPrimitive.Popup
           data-slot="select-content"
           className={cn(
-            "z-50 min-w-[var(--anchor-width)] origin-[var(--transform-origin)] overflow-auto rounded-[--radius] border border-border bg-popover p-1 text-popover-foreground shadow-md outline-none duration-150 data-[side=bottom]:slide-in-from-top-2 data-[side=top]:slide-in-from-bottom-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[open]:animate-in data-[open]:fade-in-0 data-[open]:zoom-in-90 data-[closed]:animate-out data-[closed]:fade-out-0 data-[closed]:zoom-out-90",
+            "z-[200] min-w-[var(--anchor-width)] max-h-80 origin-[var(--transform-origin)] overflow-auto rounded-[--radius] border border-border bg-popover p-1 text-popover-foreground shadow-md outline-none duration-150 data-[side=bottom]:slide-in-from-top-2 data-[side=top]:slide-in-from-bottom-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[open]:animate-in data-[open]:fade-in-0 data-[open]:zoom-in-90 data-[closed]:animate-out data-[closed]:fade-out-0 data-[closed]:zoom-out-90",
             className
           )}
           {...props}

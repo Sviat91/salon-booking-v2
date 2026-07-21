@@ -288,15 +288,15 @@ export default function ModernCalendar({
       )}
 
       {(bookingDate || editingAppointment) && (
-        <AppointmentModal 
-          date={bookingDate || undefined} 
+        <AppointmentModal
+          date={bookingDate || undefined}
           initialAppointment={editingAppointment?.appt}
           mode={editingAppointment?.mode}
           apiPrefix={apiPrefix}
           isAdminView={isAdminView}
           selectedMasterId={selectedMasterId}
-          onClose={() => { setBookingDate(null); setEditingAppointment(null); }} 
-          onSuccess={() => { setBookingDate(null); setEditingAppointment(null); fetchData(); }} 
+          onClose={() => { setBookingDate(null); setEditingAppointment(null); }}
+          onSuccess={() => { setBookingDate(null); setEditingAppointment(null); fetchData(); }}
         />
       )}
 

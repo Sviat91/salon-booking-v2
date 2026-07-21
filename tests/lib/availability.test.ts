@@ -109,5 +109,13 @@ describe('availability', () => {
       const { days } = await getAvailableDays(DAY_OFF, WORKING_DAY, 60, {})
       expect(days).toEqual([])
     })
+
+    it('marks past dates as hasWindow:false even on a normally-working weekday', async () => {
+      // 2020-01-06 is a Monday (working day per template) but far in the past.
+      const { days } = await getAvailableDays('2020-01-01', '2020-01-07', 60, { masterId: MASTER_ID })
+
+      expect(days.every((d: { hasWindow: boolean }) => d.hasWindow === false)).toBe(true)
+      expect(fetchBusyRanges).not.toHaveBeenCalled()
+    })
   })
 })

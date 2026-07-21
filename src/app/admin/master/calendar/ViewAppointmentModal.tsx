@@ -22,6 +22,7 @@ export default function ViewAppointmentModal({ appointment, onClose, onDelete, o
   const { t } = useTranslation()
   const language = useCurrentLanguage()
   const [isDeleting, setIsDeleting] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const statusLabel = (status: string) => {
     if (status === "PENDING") return t('profile.statusPending')
     if (status === "CONFIRMED") return t('profile.statusConfirmed')
@@ -39,7 +40,6 @@ export default function ViewAppointmentModal({ appointment, onClose, onDelete, o
       : ""
 
   const handleDelete = async () => {
-    if (!confirm(t('admin.calendar.deleteAppointmentConfirm'))) return
     setIsDeleting(true)
     try {
       await onDelete(appointment.id)
@@ -129,7 +129,7 @@ export default function ViewAppointmentModal({ appointment, onClose, onDelete, o
            <Button
              variant="destructive"
              className="flex-1 gap-2"
-             onClick={handleDelete}
+             onClick={() => setShowDeleteConfirm(true)}
              disabled={isDeleting}
            >
              <Trash2 className="w-4 h-4" /> {isDeleting ? t('admin.calendar.deletingBtn') : t('admin.calendar.deleteBtn')}
@@ -137,6 +137,31 @@ export default function ViewAppointmentModal({ appointment, onClose, onDelete, o
         </div>
 
       </div>
+
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 p-4 animate-in fade-in">
+          <div className="bg-background rounded-xl shadow-xl w-full max-w-sm p-6 space-y-4">
+            <h3 className="text-lg font-bold">{t('admin.calendar.deleteConfirmTitle')}</h3>
+            <p className="text-sm text-muted-foreground">{t('admin.calendar.deleteAppointmentConfirm')}</p>
+            <div className="flex gap-3 justify-end">
+              <Button
+                variant="outline"
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={isDeleting}
+              >
+                {t('common.cancel')}
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleDelete}
+                disabled={isDeleting}
+              >
+                {isDeleting ? t('admin.calendar.deletingBtn') : t('admin.calendar.deleteBtn')}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

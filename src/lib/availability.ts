@@ -52,8 +52,18 @@ export async function getAvailableDays(
   let cursor  = new Date(fromISO  + 'T00:00:00')
   const endDate = new Date(untilISO + 'T00:00:00')
 
+  const nowLocal = toZonedTime(new Date(), SCHEDULE_TZ)
+  const todayISO = isoDate(nowLocal)
+
   while (cursor <= endDate) {
     const date = isoDate(cursor)
+
+    if (date < todayISO) {
+      days.push({ date, hasWindow: false })
+      cursor = addDays(cursor, 1)
+      continue
+    }
+
     const dow  = jsDayOfWeek(cursor)
 
     let isDayOff   = false
@@ -110,7 +120,8 @@ export async function getDaySlots(
   dateISO: string,
   minDuration: number,
   stepMin: number = 15,
-  masterId?: string
+  masterId?: string,
+  excludeAppointmentId?: string
 ) {
   if (!masterId) {
     return { slots: [] as { startISO: string; endISO: string }[] }
@@ -148,7 +159,7 @@ export async function getDaySlots(
     return { slots: [] as { startISO: string; endISO: string }[] }
   }
 
-  const busyRanges = await fetchBusyRanges(masterId, dateISO)
+  const busyRanges = await fetchBusyRanges(masterId, dateISO, excludeAppointmentId)
   const free       = minusBusy(openRanges, busyRanges)
 
   // Hide past slots when viewing today (Warsaw time)

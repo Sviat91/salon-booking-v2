@@ -10,6 +10,8 @@ const appointmentSchema = z.object({
     date: z.string(),
     startTime: z.string(),
     duration: z.number().min(5),
+    serviceId: z.string().optional(),
+    serviceName: z.string().optional(),
   })).min(1),
   serviceId: z.string().optional(),
   serviceName: z.string().optional(),
@@ -100,15 +102,6 @@ export async function POST(req: NextRequest) {
        }
     }
 
-    let finalServiceId = parsed.serviceId
-    if (!finalServiceId) {
-      if (!parsed.serviceName) return NextResponse.json({ error: "Service Name is required" }, { status: 400 })
-      const customService = await prisma.service.create({
-        data: { name_pl: parsed.serviceName, duration: parsed.entries[0].duration, price: 0, masterId }
-      })
-      finalServiceId = customService.id
-    }
-
     const createdAppointments = []
     for (const entry of parsed.entries) {
       const { date, startTime, duration } = entry
@@ -118,11 +111,20 @@ export async function POST(req: NextRequest) {
       const endM = endMins % 60
       const endTime = `${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')}`
 
+      let entryServiceId = entry.serviceId
+      if (!entryServiceId) {
+        if (!entry.serviceName) return NextResponse.json({ error: "Service Name is required" }, { status: 400 })
+        const customService = await prisma.service.create({
+          data: { name_pl: entry.serviceName, duration, price: 0, masterId }
+        })
+        entryServiceId = customService.id
+      }
+
       const appt = await prisma.appointment.create({
         data: {
           clientId: finalClientId,
           masterId,
-          serviceId: finalServiceId,
+          serviceId: entryServiceId,
           date: new Date(date),
           startTime,
           endTime,

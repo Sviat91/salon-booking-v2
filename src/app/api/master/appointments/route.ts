@@ -11,6 +11,8 @@ const appointmentSchema = z.object({
     date: z.string(), // "2026-03-20"
     startTime: z.string(), // "10:00"
     duration: z.number().min(5),
+    serviceId: z.string().optional(),
+    serviceName: z.string().optional(),
   })).min(1),
   serviceId: z.string().optional(),
   serviceName: z.string().optional(),
@@ -158,41 +160,40 @@ export async function POST(req: NextRequest) {
        }
     }
 
-    // 2. Resolve Service
-    let finalServiceId = parsed.serviceId
-    if (!finalServiceId) {
-      if (!parsed.serviceName) {
-        return NextResponse.json({ error: "Service Name is required if no existing service selected" }, { status: 400 })
-      }
-      // Create a custom service on the fly for this master
-      const customService = await prisma.service.create({
-        data: {
-          name_pl: parsed.serviceName,
-          duration: parsed.entries[0].duration, // base it on the first entry
-          price: 0,
-          masterId: masterId
-        }
-      })
-      finalServiceId = customService.id
-    }
-
-    // 3. Insert Appointments
+    // 2. Insert Appointments (resolving a service per entry, AD-B3)
     const createdAppointments = []
 
     for (const entry of parsed.entries) {
       const { date, startTime, duration } = entry
-      
+
       const [h, m] = startTime.split(':').map(Number)
       const endMins = h * 60 + m + duration
       const endH = Math.floor(endMins / 60)
       const endM = endMins % 60
       const endTime = `${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')}`
 
+      let entryServiceId = entry.serviceId
+      if (!entryServiceId) {
+        if (!entry.serviceName) {
+          return NextResponse.json({ error: "Service Name is required if no existing service selected" }, { status: 400 })
+        }
+        // Create a custom service on the fly for this master
+        const customService = await prisma.service.create({
+          data: {
+            name_pl: entry.serviceName,
+            duration,
+            price: 0,
+            masterId: masterId
+          }
+        })
+        entryServiceId = customService.id
+      }
+
       const appt = await prisma.appointment.create({
         data: {
           clientId: finalClientId,
           masterId: masterId,
-          serviceId: finalServiceId,
+          serviceId: entryServiceId,
           date: new Date(date),
           startTime,
           endTime,

@@ -14,6 +14,22 @@ export async function GET() {
   }
 
   try {
+    const profile = await prisma.masterProfile.findUnique({
+      where: { userId: session.user.id },
+    })
+
+    if (profile) {
+      const masterServices = await prisma.masterService.findMany({
+        where: { masterProfileId: profile.id },
+        include: { service: true },
+        orderBy: { service: { name_pl: "asc" } },
+      })
+
+      if (masterServices.length > 0) {
+        return NextResponse.json({ services: masterServices.map((ms) => ms.service) })
+      }
+    }
+
     const services = await prisma.service.findMany({
       where: {
         OR: [
