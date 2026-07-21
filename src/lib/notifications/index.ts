@@ -49,6 +49,29 @@ function formatDate(date: Date): string {
   return date.toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric' })
 }
 
+async function getTelegramRecipients(): Promise<string[]> {
+  const rows = await prisma.telegramNotificationRecipient.findMany({ select: { chatId: true } })
+  return rows.map((r) => r.chatId)
+}
+
+async function broadcastTelegram(
+  botToken: string,
+  recipients: string[],
+  html: string
+): Promise<{ anySuccess: boolean; lastError: Error | null }> {
+  let anySuccess = false
+  let lastError: Error | null = null
+  for (const chatId of recipients) {
+    const err = await sendTelegramMessage(botToken, chatId, html)
+    if (err) {
+      lastError = err
+    } else {
+      anySuccess = true
+    }
+  }
+  return { anySuccess, lastError }
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Booking confirmation
 // ─────────────────────────────────────────────────────────────────────────────
@@ -143,16 +166,19 @@ export async function notifyBookingConfirmation(appointmentId: string): Promise<
     }
 
     // Telegram notification
-    if (config.notifTelegramEnabled && config.telegramBotToken && config.notifAdminChatId) {
-      const msg = `<b>Nowa rezerwacja</b>\n👤 ${data.name}\n💆 ${data.service}\n👩‍🎨 ${data.master}\n📅 ${data.date} ${data.time}`
-      const err = await sendTelegramMessage(config.telegramBotToken, config.notifAdminChatId, msg)
-      await logNotification({
-        type: 'BOOKING_CONFIRMATION',
-        channel: 'telegram',
-        appointmentId,
-        status: err ? 'failed' : 'sent',
-        error: err?.message,
-      })
+    if (config.notifTelegramEnabled && config.telegramBotToken) {
+      const recipients = await getTelegramRecipients()
+      if (recipients.length > 0) {
+        const msg = `<b>Nowa rezerwacja</b>\n👤 ${data.name}\n💆 ${data.service}\n👩‍🎨 ${data.master}\n📅 ${data.date} ${data.time}`
+        const { anySuccess, lastError } = await broadcastTelegram(config.telegramBotToken, recipients, msg)
+        await logNotification({
+          type: 'BOOKING_CONFIRMATION',
+          channel: 'telegram',
+          appointmentId,
+          status: anySuccess ? 'sent' : 'failed',
+          error: lastError?.message,
+        })
+      }
     }
   } catch (err) {
     console.error('[notifications] notifyBookingConfirmation error:', err)
@@ -174,7 +200,7 @@ export async function notifyBookingReminders(): Promise<{ sent: number; skipped:
       return { sent, skipped }
     }
 
-    if (!config.notifEmailEnabled && !config.notifTelegramEnabled && !config.clientBotEnabled) {
+    if (!config.notifEmailEnabled && !config.clientBotEnabled) {
       return { sent, skipped }
     }
 
@@ -266,15 +292,6 @@ export async function notifyBookingReminders(): Promise<{ sent: number; skipped:
           },
         })
 
-        const alreadyTelegram = await prisma.notificationLog.findFirst({
-          where: {
-            appointmentId: appt.id,
-            type: window.type,
-            channel: 'telegram',
-            status: 'sent',
-          },
-        })
-
         const alreadyClientTelegram = await prisma.notificationLog.findFirst({
           where: { appointmentId: appt.id, type: window.type, channel: 'telegram_client', status: 'sent' },
         })
@@ -282,9 +299,8 @@ export async function notifyBookingReminders(): Promise<{ sent: number; skipped:
           config.clientBotEnabled && !!config.clientBotToken && !!appt.client.telegramChatId
 
         const emailDone = alreadyEmail !== null || !config.notifEmailEnabled
-        const telegramDone = alreadyTelegram !== null || !config.notifTelegramEnabled
         const clientTelegramDone = alreadyClientTelegram !== null || !clientTelegramEligible
-        if (emailDone && telegramDone && clientTelegramDone) {
+        if (emailDone && clientTelegramDone) {
           skipped++
           continue
         }
@@ -330,20 +346,6 @@ export async function notifyBookingReminders(): Promise<{ sent: number; skipped:
               error: String(err),
             })
           }
-        }
-
-        if (config.notifTelegramEnabled && config.telegramBotToken && config.notifAdminChatId && !alreadyTelegram) {
-          const label = window.hours === 24 ? 'jutro' : 'za 2h'
-          const msg = `<b>Przypomnienie o wizycie (${label})</b>\n👤 ${data.name}\n💆 ${data.service}\n👩‍🎨 ${data.master}\n📅 ${data.date} ${data.time}`
-          const sendErr = await sendTelegramMessage(config.telegramBotToken, config.notifAdminChatId, msg)
-          await logNotification({
-            type: window.type,
-            channel: 'telegram',
-            appointmentId: appt.id,
-            status: sendErr ? 'failed' : 'sent',
-            error: sendErr?.message,
-          })
-          if (!sendErr) sent++
         }
 
         if (clientTelegramEligible && !alreadyClientTelegram) {
@@ -400,17 +402,20 @@ export async function notifyContactForm(data: ContactFormData): Promise<void> {
       }
     }
 
-    if (config.notifTelegramEnabled && config.telegramBotToken && config.notifAdminChatId) {
-      const subjectLine = data.subject ? `\n📌 ${data.subject}` : ''
-      const emailLine = data.senderEmail ? `\n📧 ${data.senderEmail}` : ''
-      const msg = `<b>Formularz kontaktowy</b>${subjectLine}\n👤 ${data.senderName}${emailLine}\n\n${data.message}`
-      const err = await sendTelegramMessage(config.telegramBotToken, config.notifAdminChatId, msg)
-      await logNotification({
-        type: 'CONTACT_FORM',
-        channel: 'telegram',
-        status: err ? 'failed' : 'sent',
-        error: err?.message,
-      })
+    if (config.notifTelegramEnabled && config.telegramBotToken) {
+      const recipients = await getTelegramRecipients()
+      if (recipients.length > 0) {
+        const subjectLine = data.subject ? `\n📌 ${data.subject}` : ''
+        const emailLine = data.senderEmail ? `\n📧 ${data.senderEmail}` : ''
+        const msg = `<b>Formularz kontaktowy</b>${subjectLine}\n👤 ${data.senderName}${emailLine}\n\n${data.message}`
+        const { anySuccess, lastError } = await broadcastTelegram(config.telegramBotToken, recipients, msg)
+        await logNotification({
+          type: 'CONTACT_FORM',
+          channel: 'telegram',
+          status: anySuccess ? 'sent' : 'failed',
+          error: lastError?.message,
+        })
+      }
     }
   } catch (err) {
     console.error('[notifications] notifyContactForm error:', err)

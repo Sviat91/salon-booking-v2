@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
 import prisma from "@/lib/prisma"
 import { z } from "zod"
+import { notifyBookingConfirmation } from "@/lib/notifications"
 
 export const runtime = "nodejs"
 
@@ -202,10 +203,11 @@ export async function POST(req: NextRequest) {
         }
       })
       createdAppointments.push(appt)
+      notifyBookingConfirmation(appt.id).catch(console.error)
     }
 
     return NextResponse.json({ success: true, count: createdAppointments.length })
-    
+
   } catch (error: any) {
     console.error("Error creating appointment:", error)
     if (error instanceof z.ZodError) {

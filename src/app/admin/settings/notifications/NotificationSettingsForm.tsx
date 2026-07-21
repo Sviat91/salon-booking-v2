@@ -20,12 +20,12 @@ import {
 } from '@/components/ui/form'
 import { SettingsSection } from '@/app/admin/settings/FormFields'
 import { apiErrorKey } from '@/lib/errors/apiErrorKey'
+import TelegramRecipientsField from './TelegramRecipientsField'
 
 const formSchema = z.object({
   notifEmailEnabled: z.boolean(),
   notifTelegramEnabled: z.boolean(),
   telegramBotToken: z.string().trim().max(256).optional(),
-  notifAdminChatId: z.string().trim().max(64).optional(),
   notifReminder24hEnabled: z.boolean(),
   notifReminder2hEnabled: z.boolean(),
 })
@@ -76,7 +76,6 @@ export default function NotificationSettingsForm() {
       notifEmailEnabled: false,
       notifTelegramEnabled: false,
       telegramBotToken: '',
-      notifAdminChatId: '',
       notifReminder24hEnabled: false,
       notifReminder2hEnabled: false,
     },
@@ -107,7 +106,6 @@ export default function NotificationSettingsForm() {
           notifEmailEnabled: notifData.notifEmailEnabled ?? false,
           notifTelegramEnabled: notifData.notifTelegramEnabled ?? false,
           telegramBotToken: notifData.telegramBotToken ?? '',
-          notifAdminChatId: notifData.notifAdminChatId ?? '',
           notifReminder24hEnabled: notifData.notifReminder24hEnabled ?? false,
           notifReminder2hEnabled: notifData.notifReminder2hEnabled ?? false,
         })
@@ -224,22 +222,7 @@ export default function NotificationSettingsForm() {
             )}
           />
 
-          <FormField
-            control={form.control}
-            name="notifAdminChatId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t('admin.settings.notifications.adminChatIdLabel')}</FormLabel>
-                <FormControl>
-                  <Input placeholder={t('admin.settings.notifications.adminChatIdPlaceholder')} {...field} />
-                </FormControl>
-                <FormDescription>
-                  <Trans i18nKey="admin.settings.notifications.adminChatIdDesc" components={{ code: <code /> }} />
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <TelegramRecipientsField />
         </SettingsSection>
 
         {/* Reminders */}

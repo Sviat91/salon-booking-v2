@@ -48,7 +48,6 @@ const DEFAULT_CONFIG = {
   salonLegalAddress: null,
   notifEmailEnabled: false,
   notifTelegramEnabled: false,
-  notifAdminChatId: null,
   notifReminder24hEnabled: false,
   notifReminder2hEnabled: false,
   telegramBotToken: null,

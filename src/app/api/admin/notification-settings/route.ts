@@ -6,7 +6,6 @@ import { z } from 'zod'
 const PatchSchema = z.object({
   notifEmailEnabled: z.boolean().optional(),
   notifTelegramEnabled: z.boolean().optional(),
-  notifAdminChatId: z.string().trim().max(64).nullable().optional(),
   notifReminder24hEnabled: z.boolean().optional(),
   notifReminder2hEnabled: z.boolean().optional(),
   telegramBotToken: z.string().trim().max(256).nullable().optional(),
@@ -23,7 +22,6 @@ export async function GET() {
   return NextResponse.json({
     notifEmailEnabled: config?.notifEmailEnabled ?? false,
     notifTelegramEnabled: config?.notifTelegramEnabled ?? false,
-    notifAdminChatId: config?.notifAdminChatId ?? '',
     notifReminder24hEnabled: config?.notifReminder24hEnabled ?? false,
     notifReminder2hEnabled: config?.notifReminder2hEnabled ?? false,
     telegramBotToken: config?.telegramBotToken ?? '',
@@ -45,7 +43,6 @@ export async function PATCH(req: Request) {
     const updateData: Record<string, unknown> = {}
     if (data.notifEmailEnabled !== undefined) updateData.notifEmailEnabled = data.notifEmailEnabled
     if (data.notifTelegramEnabled !== undefined) updateData.notifTelegramEnabled = data.notifTelegramEnabled
-    if (data.notifAdminChatId !== undefined) updateData.notifAdminChatId = data.notifAdminChatId || null
     if (data.notifReminder24hEnabled !== undefined) updateData.notifReminder24hEnabled = data.notifReminder24hEnabled
     if (data.notifReminder2hEnabled !== undefined) updateData.notifReminder2hEnabled = data.notifReminder2hEnabled
     if (data.telegramBotToken !== undefined) updateData.telegramBotToken = data.telegramBotToken || null
