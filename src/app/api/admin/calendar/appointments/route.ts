@@ -55,7 +55,7 @@ export async function GET(req: NextRequest) {
         notes: true,
         service: { select: { id: true, name_pl: true, name_en: true, name_uk: true, duration: true, price: true } },
         client: { select: { id: true, name: true, phone: true, email: true } },
-        master: { select: { masterProfile: { select: { color: true } } } },
+        master: { select: { id: true, name: true, masterProfile: { select: { color: true } } } },
       },
       orderBy: [{ date: "asc" }, { startTime: "asc" }],
     })

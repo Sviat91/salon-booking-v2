@@ -1232,6 +1232,11 @@
     "common": {
       "back": "‹ Wstecz",
       "noLongerAvailable": "Ta opcja nie jest już dostępna. Spróbuj ponownie."
+    },
+    "reminder": {
+      "heading24h": "⏰ Przypomnienie: Twoja wizyta jest jutro",
+      "heading2h": "⏰ Przypomnienie: Twoja wizyta jest za 2 godziny",
+      "details": "👤 Specjalista: {{master}}\n💇 Usługa: {{service}}\n📅 Data: {{date}}\n🕐 Godzina: {{time}}"
     }
   }
 }

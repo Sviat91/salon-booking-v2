@@ -281,7 +281,7 @@ model TenantConfig {
 model NotificationLog {
   id            String   @id @default(cuid())
   type          String   // BOOKING_CONFIRMATION | BOOKING_REMINDER_24H | BOOKING_REMINDER_2H | BOOKING_CANCELLATION | CONTACT_FORM
-  channel       String   // email | telegram
+  channel       String   // email | telegram | telegram_client
   appointmentId String?
   recipientId   String?
   status        String   // sent | failed | skipped

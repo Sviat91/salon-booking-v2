@@ -1232,6 +1232,11 @@
     "common": {
       "back": "‹ Back",
       "noLongerAvailable": "This option is no longer available. Please try again."
+    },
+    "reminder": {
+      "heading24h": "⏰ Reminder: your appointment is tomorrow",
+      "heading2h": "⏰ Reminder: your appointment is in 2 hours",
+      "details": "👤 Specialist: {{master}}\n💇 Service: {{service}}\n📅 Date: {{date}}\n🕐 Time: {{time}}"
     }
   }
 }

@@ -27,7 +27,7 @@ export type Appointment = {
   notes: string | null
   service: { id: string, name_pl: string, name_en?: string | null, name_uk?: string | null, duration: number, price: number }
   client: { id: string, name: string | null, phone: string | null, email: string | null }
-  master?: { masterProfile?: { color?: string | null } }
+  master?: { id: string, name: string | null, masterProfile?: { color?: string | null } }
 }
 export type Template = { dayOfWeek: number; isDayOff: boolean; intervals: Interval[] }
 export type Override = { date: string; isDayOff: boolean; intervals: Interval[] }

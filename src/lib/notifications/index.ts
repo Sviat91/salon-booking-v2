@@ -8,6 +8,7 @@ import { getTenantConfig } from '@/lib/tenant'
 import { resolveLocalized } from '@/lib/localized-content'
 import { DEFAULT_LANGUAGE, type Language } from '@/lib/i18n-shared'
 import { sendTelegramMessage } from './telegram'
+import { sendClientBookingReminder } from './client-telegram'
 import {
   sendBookingConfirmationToClient,
   sendBookingConfirmationToAdmin,
@@ -173,7 +174,7 @@ export async function notifyBookingReminders(): Promise<{ sent: number; skipped:
       return { sent, skipped }
     }
 
-    if (!config.notifEmailEnabled && !config.notifTelegramEnabled) {
+    if (!config.notifEmailEnabled && !config.notifTelegramEnabled && !config.clientBotEnabled) {
       return { sent, skipped }
     }
 
@@ -274,9 +275,16 @@ export async function notifyBookingReminders(): Promise<{ sent: number; skipped:
           },
         })
 
+        const alreadyClientTelegram = await prisma.notificationLog.findFirst({
+          where: { appointmentId: appt.id, type: window.type, channel: 'telegram_client', status: 'sent' },
+        })
+        const clientTelegramEligible =
+          config.clientBotEnabled && !!config.clientBotToken && !!appt.client.telegramChatId
+
         const emailDone = alreadyEmail !== null || !config.notifEmailEnabled
         const telegramDone = alreadyTelegram !== null || !config.notifTelegramEnabled
-        if (emailDone && telegramDone) {
+        const clientTelegramDone = alreadyClientTelegram !== null || !clientTelegramEligible
+        if (emailDone && telegramDone && clientTelegramDone) {
           skipped++
           continue
         }
@@ -334,6 +342,30 @@ export async function notifyBookingReminders(): Promise<{ sent: number; skipped:
             appointmentId: appt.id,
             status: sendErr ? 'failed' : 'sent',
             error: sendErr?.message,
+          })
+          if (!sendErr) sent++
+        }
+
+        if (clientTelegramEligible && !alreadyClientTelegram) {
+          const sendErr = await sendClientBookingReminder({
+            botToken: config.clientBotToken!,
+            chatId: appt.client.telegramChatId!,
+            lang: (appt.clientLanguage as Language) || DEFAULT_LANGUAGE,
+            hours: window.hours,
+            labels: {
+              master: clientData.master,
+              service: clientData.service,
+              date: clientData.date,
+              time: clientData.time,
+            },
+          })
+          await logNotification({
+            type: window.type,
+            channel: 'telegram_client',
+            appointmentId: appt.id,
+            recipientId: appt.client.id,
+            status: sendErr ? 'failed' : 'sent',
+            error: sendErr ? sendErr.message : undefined,
           })
           if (!sendErr) sent++
         }
