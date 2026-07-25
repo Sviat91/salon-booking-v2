@@ -321,7 +321,7 @@ model Page {
   ownerType  String   // 'global' | 'master'
   masterId   String?  // set when ownerType = 'master'
   slug       String
-  title_pl   String
+  title_pl   String?
   title_en   String?
   title_uk   String?
   enabled    Boolean  @default(true)

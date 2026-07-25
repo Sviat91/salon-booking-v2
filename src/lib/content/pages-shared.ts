@@ -48,7 +48,8 @@ export type NavPage = {
   id: string
   slug: string
   href: string
-  title_pl: string
+  // C-3: nullable — no locale is privileged/required at the DB level.
+  title_pl: string | null
   title_en: string | null
   title_uk: string | null
 }

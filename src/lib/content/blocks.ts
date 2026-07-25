@@ -23,8 +23,11 @@ export const photoGalleryConfigSchema = z.object({
 })
 export type PhotoGalleryConfig = z.infer<typeof photoGalleryConfigSchema>
 
+// C-3: no locale is privileged here — `text_pl` is not the required one. Save-time
+// validation ("at least one enabled locale is non-empty") lives in the caller via
+// `hasAnyEnabledLocaleValue` (src/lib/localized-content.ts), not in this shape schema.
 export const textBlockConfigSchema = z.object({
-  text_pl: z.string(),
+  text_pl: z.string().optional(),
   text_en: z.string().optional(),
   text_uk: z.string().optional(),
 })
@@ -38,10 +41,15 @@ function schemaFor(type: BlockType) {
   return textBlockConfigSchema
 }
 
+/** Exposed for server actions that need to re-validate a submitted config directly. */
+export function blockConfigSchemaFor(type: BlockType) {
+  return schemaFor(type)
+}
+
 export function defaultConfigFor(type: BlockType): BlockConfig {
   if (type === 'photoWidget') return { style: 'strip', photos: [] }
   if (type === 'photoGallery') return { photos: [] }
-  return { text_pl: '' }
+  return {}
 }
 
 /**

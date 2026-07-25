@@ -23,8 +23,10 @@ The spec describes `TenantConfig.homepageWidgetBlock` as "JSON config for one ph
 ### AD-3 — App-level slug uniqueness is the real guard
 `@@unique([ownerType, masterId, slug])` is declared as specified, **but SQLite treats NULLs as distinct**, so it does not prevent two `ownerType='global'` rows (where `masterId IS NULL`) sharing a slug. `generateUniqueSlug()` in `src/lib/content/pages-server.ts` is the actual enforcement (query existing slugs in scope, append `-2`, `-3`, …). Slugs are generated **on create only** — renaming a page's title never changes its URL.
 
-### AD-4 — Reorder via up/down buttons, not drag-and-drop
-The spec says "drag-reorder"; no DnD library is installed (`package.json` has no `dnd-kit`/`react-beautiful-dnd`), and adding a dependency is out of scope. Page order and block order are changed with `ChevronUp`/`ChevronDown` icon buttons calling a `move…(id, 'up'|'down')` server action that swaps `order` with the adjacent row. Same UX in the global and master screens. Flag this to the user in the completion report.
+### AD-4 — ~~Reorder via up/down buttons, not drag-and-drop~~ — **REVISED 2026-07-25 → see Correction C-1**
+> **Original text (superseded, kept for traceability):** The spec says "drag-reorder"; no DnD library is installed (`package.json` has no `dnd-kit`/`react-beautiful-dnd`), and adding a dependency is out of scope. Page order and block order are changed with `ChevronUp`/`ChevronDown` icon buttons calling a `move…(id, 'up'|'down')` server action that swaps `order` with the adjacent row. Same UX in the global and master screens. Flag this to the user in the completion report.
+
+**Why revised:** the user originally agreed to defer DnD and ship buttons first ("see how it goes, add DnD later if needed"), then saw the buttons in live Stage-3 testing and reversed the call: real drag-and-drop now, buttons removed. Reordering becomes true DnD via `@dnd-kit/*`, and the single-step `movePage`/`moveBlock` swaps are replaced by whole-list `reorderPages`/`reorderBlocks` actions. **Correction C-1 is the binding version.**
 
 ### AD-5 — One shared set of server actions, owner scope derived from the session
 Admin CRUD in this repo uses `app/**/actions.ts` server actions (see `admin/services/actions.ts`, `admin/masters/actions.ts`), not API routes — follow that. To avoid duplicating page/block CRUD twice, **one** implementation lives in `src/app/admin/pages/actions.ts` + `block-actions.ts` and is imported by both `/admin/pages` and `/admin/master/pages` client components. Owner scope is never passed from the client — it is resolved inside every action from `auth()`:
@@ -34,6 +36,8 @@ Admin CRUD in this repo uses `app/**/actions.ts` server actions (see `admin/serv
 - anything else → reject
 
 Every mutation targeting an existing `Page`/`Block` re-loads the row and verifies it matches the resolved owner before writing. MVP scope: an admin manages global pages only, a master manages their own only (matches the spec's "Admin & Master UI" section). Admin-creating-a-page-on-a-master's-behalf is **not** built.
+
+*(Unchanged by the 2026-07-25 corrections — the new `reorderPages`/`reorderBlocks` actions must apply the same per-row ownership discipline.)*
 
 ### AD-6 — Public reads: Server Components read Prisma directly; the nav line uses one public API route
 `/pages/[slug]` and `/[masterId]/pages/[slug]` are Server Components reading `src/lib/content/pages-server.ts`. The nav line and master footer slot must also render on `src/app/[masterId]/page.tsx`, which is a `"use client"` component — so they get their data from one new public route, `GET /api/content?masterId=<optional>` → `{ pages, footerBlock }`, consumed via React Query with the shared key `['content-nav', masterId ?? 'home']` so `TopNavLine` and `MasterFooterBlock` share a single request. No Redis caching for content pages (cheap indexed reads; adding a cache layer means new invalidation obligations in `src/lib/cache.ts` for no measurable win).
@@ -53,12 +57,15 @@ No file in this feature may approach 500 lines. The split is fixed up-front:
 - one renderer file per block type, plus one per `photoWidget` style variant;
 - one config-editor file per block type, plus a shared photo-list editor;
 - page CRUD actions and block CRUD actions in separate files;
-- list UI, form sheet, and block editor as three separate admin components.
+- list UI, form sheet, and block editor as three separate admin components;
+- (added by C-1) one shared, generic `SortableList` wrapper rather than duplicating dnd-kit wiring in each list.
 
 `src/app/admin/settings/SettingsForm.tsx` is already **477 lines** — the homepage widget section may add **at most ~8 lines** there (one import + one JSX element, mirroring `LanguagesSection`). Verify with `wc -l` after editing; if it would exceed 500, stop and report instead of inventing a refactor.
 
-### AD-11 — No new UI primitives or dropdown portals
-Block-type pickers use the existing `src/components/ui/select.tsx`; checkboxes use `ui/checkbox.tsx`; sheets/dialogs use `ui/sheet.tsx`/`ui/dialog.tsx`. The lightbox is a plain `fixed inset-0` overlay with `framer-motion` (already a dependency) — no portal-positioning helper needed, so `TimePickerDropdown.tsx`'s pattern is **not** required here. Do not add any npm dependency.
+### AD-11 — ~~No new UI primitives or dropdown portals~~ — **PARTIALLY REVISED 2026-07-25 → see Correction C-1**
+Still binding: block-type pickers use the existing `src/components/ui/select.tsx`; checkboxes use `ui/checkbox.tsx`; sheets/dialogs use `ui/sheet.tsx`/`ui/dialog.tsx`. The lightbox is a plain `fixed inset-0` overlay with `framer-motion` (already a dependency) — no portal-positioning helper needed, so `TimePickerDropdown.tsx`'s pattern is **not** required here.
+
+> **Superseded clause:** ~~"Do not add any npm dependency."~~ **Why revised:** the user's reversal on AD-4 requires a drag-and-drop library. Exactly three new dependencies are authorised — `@dnd-kit/core`, `@dnd-kit/sortable`, `@dnd-kit/utilities` — and **nothing else**. Every other "do not add a dependency" instruction in this plan stands: no lightbox library, no rich-text editor, no `@dnd-kit/modifiers`, no carousel/marquee package.
 
 ---
 
@@ -97,6 +104,7 @@ Work in stages. **Stop at each `⏸ STOP` marker, report, and wait for the user'
     - `parseBlockConfig(type, json): BlockConfig` — never throws; returns `defaultConfigFor(type)` on any parse/validation failure
     - `type BlockSlot = { type: BlockType; config: BlockConfig }`, `parseBlockSlot(json): BlockSlot | null` (for the two singleton columns, AD-2), `serializeBlockSlot(slot): string`
   - Keep under 150 lines.
+  - ⚠️ **Amended by Correction C-3** — `text_pl` must become optional (no privileged language).
 
 - [x] **Step 4: Pure page helpers**
   - Files: `src/lib/content/pages-shared.ts` (new)
@@ -105,6 +113,7 @@ Work in stages. **Stop at each `⏸ STOP` marker, report, and wait for the user'
     - `parseVisibility(json: string | null): string[]` (safe, `[]` on failure), `serializeVisibility(ids: string[]): string`
     - `slugify(title: string): string` — lowercase, map `ł→l`/`Ł→l`, `String.normalize('NFD')` + strip combining marks, non-`[a-z0-9]` → `-`, collapse/trim dashes, cap at 60 chars, fall back to `'page'` when the result is empty
     - `type NavPage = { id: string; slug: string; href: string; title_pl: string; title_en: string | null; title_uk: string | null }`
+  - ⚠️ **Amended by Correction C-3** — `NavPage.title_pl` becomes `string | null`.
 
 - [x] **Step 5: Server-side page data access**
   - Files: `src/lib/content/pages-server.ts` (new)
@@ -121,6 +130,7 @@ Work in stages. **Stop at each `⏸ STOP` marker, report, and wait for the user'
   - Files: `tests/lib/content/blocks.test.ts` (new), `tests/lib/content/pages-shared.test.ts` (new)
   - Details: no Prisma mocking needed (both modules are pure). Cover: `parseBlockConfig` returns the default on malformed/empty/wrong-shape JSON and round-trips a valid config; `parseBlockSlot` returns `null` for `null`/garbage; `slugify` handles Polish diacritics (`"Nasze Zdjęcia — Wnętrze"` → `nasze-zdjecia-wnetrze`), `ł`, punctuation-only input (→ `page`), and length capping; `parseVisibility` is safe on garbage.
   - Verify: `npx vitest run tests/lib/content/`
+  - ⚠️ **Extended by Correction C-3** — add coverage for the new `hasAnyEnabledLocaleValue` helper.
 
 ⏸ **STOP — report Stage 1. User verifies the migration applied cleanly (`npx prisma studio`) before Stage 2.**
 
@@ -131,13 +141,15 @@ All files below are `"use client"`, live in `src/components/admin/content/`, use
 - [x] **Step 7: Shared photo list editor**
   - Files: `src/components/admin/content/PhotoListEditor.tsx` (new)
   - Details: props `{ photos: string[]; onChange: (photos: string[]) => void }`. Renders a responsive thumbnail grid (`next/image`, local `/uploads/...` paths), each thumb with move-left / move-right / remove icon buttons, plus an "Upload photo" `<label><input type="file" hidden>` that POSTs `FormData` to **`/api/upload` unmodified** (same call shape as `MasterForm.tsx`'s `handleAvatarUpload`) and appends `json.url`. `accept="image/png,image/jpeg,image/webp,image/gif"` to match the endpoint's `ALLOWED_TYPES`. Show a per-upload pending state and an inline `text-destructive` error. No client-side size/type re-validation — the endpoint owns that.
+  - Note: the photo-level move-left/move-right buttons are **out of scope for C-1** — C-1 covers page and block reordering only. Leave `PhotoListEditor`'s buttons as they are unless the user asks otherwise.
 
 - [x] **Step 8: Per-type config editors**
   - Files:
     - `src/components/admin/content/PhotoWidgetConfigEditor.tsx` (new) — style `<Select>` (`strip`/`fade`/`stack`, localized labels) + `<PhotoListEditor>`
     - `src/components/admin/content/PhotoGalleryConfigEditor.tsx` (new) — `<PhotoListEditor>` only
-    - `src/components/admin/content/TextBlockConfigEditor.tsx` (new) — one `<Textarea>` per enabled locale, driven by an `enabledLocales: Language[]` prop; mirror `LocalizedFieldInput.tsx`'s tab UI conceptually but keep it controlled (`value`/`onChange`), since this editor writes into a JSON config object rather than emitting form fields. `text_pl` is required (non-empty) before the block can be saved.
+    - `src/components/admin/content/TextBlockConfigEditor.tsx` (new) — one `<Textarea>` per enabled locale, driven by an `enabledLocales: Language[]` prop; mirror `LocalizedFieldInput.tsx`'s tab UI conceptually but keep it controlled (`value`/`onChange`), since this editor writes into a JSON config object rather than emitting form fields. ~~`text_pl` is required (non-empty) before the block can be saved.~~
   - Details: each takes `{ config, onChange(config) }` and is purely controlled. Keep each under 120 lines.
+  - ⚠️ **Amended by Correction C-3** — the struck clause was wrong: the requirement is "at least one *enabled* locale non-empty", never a hardcoded language.
 
 - [x] **Step 9: Type picker + config-editor switch + singleton slot editor**
   - Files:
@@ -154,7 +166,7 @@ All files below are `"use client"`, live in `src/components/admin/content/`, use
 
 ### Stage 3 — Admin global pages CRUD (`/admin/pages`)
 
-- [ ] **Step 11: Page CRUD server actions**
+- [x] **Step 11: Page CRUD server actions**
   - Files: `src/app/admin/pages/actions.ts` (new)
   - Details: `"use server"`. Follow `src/app/admin/services/actions.ts` exactly: `getServerT()` for messages, a `build…Schema(t)` factory (never a module-scope schema), `safeParse`, `{ error?, fieldErrors?, success? }` state, `revalidatePath` at the end. Every action starts by calling `auth()` → `resolvePageOwner()`; `null` owner ⇒ return `{ error: t('errors.UNAUTHORIZED') }`.
     - `createPage(prev, formData)` — reads `title_pl` (required) / `title_en` / `title_uk` (only when present in the FormData — reuse the `readOptionalLocaleField` pattern so a disabled locale never nulls a saved translation), `enabled` checkbox, `visibility` (hidden JSON input, ignored for master owners). Slug via `slugify(title_pl)` → `generateUniqueSlug`. `order` = current max + 1 within the owner scope.
@@ -164,33 +176,193 @@ All files below are `"use client"`, live in `src/components/admin/content/`, use
     - `togglePageEnabled(id, enabled)`.
     - All of them: load the row first and reject if `ownerType`/`masterId` don't match the resolved owner.
     - `revalidatePath("/admin/pages")`, `revalidatePath("/admin/master/pages")`, `revalidatePath("/", "layout")`.
+  - ⚠️ **Amended by Corrections C-1** (`movePage` → `reorderPages`) **and C-3** (title validation).
 
-- [ ] **Step 12: Block CRUD server actions**
+- [x] **Step 12: Block CRUD server actions**
   - Files: `src/app/admin/pages/block-actions.ts` (new)
   - Details: `"use server"`, same auth/ownership gate, resolved through the block's parent page.
     - `createBlock(pageId, type)` — validates `type` against `BLOCK_TYPES`, stores `defaultConfigFor(type)`, `order` = max + 1.
     - `updateBlockConfig(blockId, configJson)` — re-validate with the type's Zod schema server-side before persisting; reject invalid JSON.
     - `deleteBlock(blockId)`, `moveBlock(blockId, direction)`.
+  - ⚠️ **Amended by Corrections C-1** (`moveBlock` → `reorderBlocks`) **and C-3** (text validation).
 
-- [ ] **Step 13: Shared admin page-management components**
+- [x] **Step 13: Shared admin page-management components**
   - Files:
     - `src/components/admin/content/PageListClient.tsx` (new) — the list surface, shared by `/admin/pages` and `/admin/master/pages`. Props `{ pages, scope: 'global' | 'master', enabledLocales, detailHrefBase: string }`. Follow the list chrome convention in `src/app/admin/AGENTS.md`: desktop `<table>` in `hidden lg:block rounded-[20px] border border-border bg-card shadow-sm overflow-hidden` with `bg-muted/50` uppercase micro-label `<th>`s, plus a `lg:hidden` `DataCard` list. Columns: title (resolved with `useCurrentLanguage()` + `resolveLocalized`), slug, blocks count, visibility badges (`scope === 'global'` only), enabled `Badge variant="success"/"muted"`, actions (manage blocks link → `${detailHrefBase}/${page.id}`, edit, move up/down, delete with `confirm()`). ONE shared edit `Sheet` controlled by `editTarget`/`editOpen` — never a per-row Sheet (that convention is explicit in the admin AGENTS.md).
     - `src/components/admin/content/PageFormSheet.tsx` (new) — the create/edit form body. `LocalizedFieldInput baseName="title"` for the title, an `enabled` checkbox, and — for `scope === 'global'` only — the visibility checkbox group built from `PAGE_VISIBILITY_TARGETS` with a hidden `visibility` JSON input, styled like `LogoEditor.tsx`'s `AVAILABLE_PAGES` block (`Checkbox` + `onCheckedChange`).
     - `src/components/admin/content/PageBlocksEditor.tsx` (new) — the per-page block list: ordered block cards, each showing its type label, move up/down, delete, and an inline `BlockConfigEditor` with an explicit per-block "Save block" button calling `updateBlockConfig`; plus an "Add block" row (`BlockTypePicker` + add button) calling `createBlock`. Local optimistic state is fine, but truth comes from the server action + `router.refresh()`.
+  - ⚠️ **Amended by Corrections C-1** (drag handles replace move buttons) **and C-2** (single row entry point; `PageFormSheet` gains the "Manage blocks →" link).
 
-- [ ] **Step 14: `/admin/pages` routes**
+- [x] **Step 14: `/admin/pages` routes**
   - Files:
     - `src/app/admin/pages/page.tsx` (new) — `async` Server Component; `auth()` guard redirecting to `/auth/login` unless role is `ADMIN`/`SUPERADMIN` (the page must guard itself — middleware is only a first pass); loads `listPagesForOwner({ ownerType: 'global', masterId: null })` + `parseEnabledLocales(config.enabledLocales)`; renders the eyebrow + muted subtitle header (no `<h1>`; the topbar supplies the title) and `<PageListClient scope="global" detailHrefBase="/admin/pages">`.
     - `src/app/admin/pages/loading.tsx` (new) — `TableSkeleton` from `src/components/admin/skeletons/`, wrapped in the same outer container classes as the real page.
     - `src/app/admin/pages/[id]/page.tsx` (new) — Server Component, same guard; loads the page + ordered blocks, 404s (`notFound()`) when the row isn't global-owned; renders `<PageBlocksEditor>` plus a "back to pages" link and the page's public URL.
     - `src/app/admin/pages/[id]/loading.tsx` (new) — `FormSkeleton`.
 
-- [ ] **Step 15: Sidebar nav entry**
+- [x] **Step 15: Sidebar nav entry**
   - Files: `src/components/admin/adminNavItems.ts`, `src/locales/{pl,en,uk}.json`
   - Details: add `{ labelKey: "admin.nav.pages", href: "/admin/pages", icon: FileText }` to `adminNavItems` (own top-level entry, **not** nested under Settings — explicit user requirement), importing `FileText` from `lucide-react`. Add the `admin.nav.pages` key to all three locale files. `superadminNavItems` inherits it via the spread; `AdminTopBar`'s title resolves automatically through `getPageTitleKey`.
   - Verify: no `startsWith` collision with `/admin/masters` or any other existing href.
 
 ⏸ **STOP — user manually creates a global page with a text block and a gallery block in `/admin/pages`.**
+
+**Known issues found during this manual verification (2026-07-25), to resolve before Stage 4:**
+
+1. ~~Every `admin.pages.*` string rendered as the raw dotted key (e.g. `admin.pages.editPageTitle`, and visually all-caps in table headers like `ADMIN.PAGES.COLTITLE` due to the header's `uppercase` CSS class — cosmetic case difference only, same underlying bug).~~ **Resolved by a hard page refresh** — confirmed root cause: `src/lib/i18n.ts` statically `import`s the locale JSON files at build time into the `resources` object; the dev server's already-running browser bundle had the pre-Stage-2/3 JSON baked in, and a soft/client navigation doesn't re-execute that top-level import. Not a code bug — no fix needed, just a stale-bundle artifact of live-editing during a running dev session. Worth a one-line note to the user in future stages: **a hard refresh (or dev server restart) is needed after any locale-file change before judging the UI.**
+2. **Investigated (2026-07-25) — no code bug found; root cause is almost certainly a dev-server artifact, not Step 13/14 logic.** Traced every candidate the coordinator listed, all clean:
+   - `PageListClient.tsx`'s Actions column does render a real link: `<Button variant="ghost" size="icon-sm" render={<Link href={`${detailHrefBase}/${p.id}`} />}>` — `detailHrefBase="/admin/pages"` is passed correctly from `page.tsx`. Traced base-ui's `useRenderElement`/`evaluateRenderProp` merge logic line-by-line: the Button's own child (`<FolderOpen/>`) is correctly merged into the cloned `<Link>` element's `children`, and `href` passes straight through — same mechanism already used and working everywhere else in the app (`admin/page.tsx`'s dashboard quick-action buttons, every `SheetContent`'s close button). No z-index/overlay issue — both `Sheet`s default to closed and don't portal anything until opened.
+   - `[id]/page.tsx`'s guard/`notFound()` logic is correct: queried the live dev DB directly (`prisma.page.findMany`) and confirmed the "Test Page" row the user created has exactly `ownerType: "global"`, `masterId: null` — the shape the route's `if (!page || page.ownerType !== "global" || page.masterId !== null) notFound()` check expects. It would **not** 404 for this row.
+   - `params: { id: string }` is the correct Next 14 (non-Promise) shape — matches every other dynamic page in this repo; no `await` needed at this Next version.
+   - No route collision/casing issue: `find src/app/admin -maxdepth 1 -type d` shows no conflicting segment, `[id]` folder is lowercase and matches `params.id`. No stray duplicate `PageFormSheet.tsx`/case-duplicated folder left over from an earlier misplacement (checked and confirmed clean).
+   - `npm run build` (production) compiles `/admin/pages` and `/admin/pages/[id]` as working dynamic routes with **no errors**, both before and after this investigation — a real typo/broken-import/logic bug of the kind being searched for here would fail `next build`, and it doesn't.
+   - **Most likely actual explanation:** this Coder session ran `npm run build` (production) multiple times during Stage 1/2/3 verification, each of which fully regenerates the repo's single `.next/` directory (confirmed via `.next`'s mtime matching the last build run). If the user's `next dev` process was running concurrently against that same `.next/` folder, a `next build` run underneath it is a known way to leave the dev server's on-demand route registration in a broken state — especially for a **brand-new nested dynamic segment** (`[id]`) added after the dev server started — where a browser hard refresh (which fixed issue 1) doesn't help because the problem is server-side, not just a stale client bundle.
+   - **Recommended remediation:** stop `next dev` if it's running, delete `.next/`, then restart `npm run dev` fresh, then retry: Pages list → click the folder icon in the Actions column of "Test Page" → should land on `/admin/pages/<id>` showing "Page blocks" + the empty-state message + an "Add block" row.
+   - **Process note for later stages:** avoid running `npm run build` for verification while the user has a `next dev` session open against the same working copy; if it's run, the dev server should be restarted afterward before the next round of manual testing.
+   - No code changes were made for this item — verification re-run clean: `npm run lint`/`npx tsc --noEmit` (targeted to Stage 3 files)/`npm run test` (25 files, 155 tests)/`npm run build` all pass.
+   - *(Superseded by Correction C-2: the folder icon this item refers to is being removed entirely — the manage-blocks screen is now reached from inside the edit Sheet.)*
+
+---
+
+## Corrections (2026-07-25, post-Stage-3 live testing)
+
+Four real problems surfaced when the user exercised the Stage 1–3 build. **Do these before starting Stage 4** — they retrofit already-shipped files, and Stage 4–7 steps below have been annotated where they assumed the old behavior.
+
+These corrections supersede parts of AD-4 and AD-11 (both marked REVISED above). AD-5's ownership discipline, AD-10's file-size cap, and every "must not be touched" constraint are unchanged and still binding.
+
+### C-1 — Real drag-and-drop reordering (replaces the up/down buttons)
+
+**Problem:** the user asked for drag-and-drop after seeing the `ChevronUp`/`ChevronDown` buttons in `PageListClient.tsx`. Buttons out, DnD in — for both the page list and the block list.
+
+- [x] **C-1.1: Add the three authorised dependencies**
+  - Files: `package.json`, `package-lock.json`
+  - Details: `npm install @dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities`. Verify all three land in `dependencies` before importing them anywhere (Core Mandate: never import a library that isn't in `package.json`). Do **not** add `@dnd-kit/modifiers` or any other package. Confirm the install doesn't bump React or any existing dependency — if `npm install` wants to change an unrelated version, stop and report.
+
+- [x] **C-1.2: Replace the swap actions with whole-list reorder actions**
+  - Files: `src/app/admin/pages/actions.ts` (edit), `src/app/admin/pages/block-actions.ts` (edit)
+  - Details: a drag-end event hands you the complete new ordering, so a single-step swap is the wrong shape. Delete `movePage(id, direction)` and `moveBlock(blockId, direction)` outright (they become orphaned by this change — removing them is correct per the surgical-changes rule) and add:
+    - `reorderPages(orderedIds: string[]): Promise<void>` — `auth()` → `resolvePageOwner()`; load every page in the owner scope; **assert the submitted id set is exactly equal to the scope's id set** (same length, no foreign ids, no missing ids) and reject otherwise — this is how per-row ownership is enforced for a bulk write (AD-5 discipline unchanged); then write `order = index` for each id inside one `prisma.$transaction([...])`; then `revalidateAll()`.
+    - `reorderBlocks(pageId: string, orderedIds: string[]): Promise<void>` — `verifyPageOwnership(pageId)` first, then the same exact-set assertion against that page's block ids, then one `$transaction` writing `order = index`, then `revalidateAll()`.
+    - Keep the existing `verifyPageOwnership`/`verifyBlockOwnership` helpers; do not weaken them.
+  - Rationale to record in the code comment: bulk reorder is atomic, matches the drag-end payload, and removes the repeated-round-trip behavior of the old swap.
+
+- [x] **C-1.3: Shared sortable list wrapper**
+  - Files: `src/components/admin/content/SortableList.tsx` (new)
+  - Details: `"use client"`, generic, one place where dnd-kit is wired (AD-10). Renders its own `DndContext` (`PointerSensor` with a small `activationConstraint: { distance: 4 }` so a click on a nested button isn't swallowed, plus `KeyboardSensor` for a11y, `closestCenter` collision detection) wrapping a `SortableContext` with `verticalListSortingStrategy`. Props roughly `{ ids: string[]; onReorder: (orderedIds: string[]) => void; children: (id: string, handle: DragHandleProps) => ReactNode }` where the render-prop `handle` exposes `setNodeRef`, `style` (`{ transform: CSS.Transform.toString(transform), transition }`), `attributes`, `listeners`, and `isDragging`. On `onDragEnd`, compute the new order with `arrayMove` from `@dnd-kit/sortable` and call `onReorder`.
+  - **Do not use `DragOverlay`** — a table row rendered into an overlay loses its `<td>` widths. In-place transform only.
+  - **Duplicate-id caveat:** the page list renders two simultaneous DOM trees (desktop `<table>` + `lg:hidden` `DataCard` list) with the same row ids. dnd-kit requires ids to be unique *within a `DndContext`*, so each list must get its **own** `SortableList` instance (its own `DndContext`), never one context spanning both. The CSS-hidden list registers zero-size droppables and is harmless.
+
+- [x] **C-1.4: Wire DnD into the page list**
+  - Files: `src/components/admin/content/PageListClient.tsx` (edit)
+  - Details: remove the `ChevronUp`/`ChevronDown` buttons, the `handleMove` callback, the `movePage` import, and the now-unused `index` parameter threading. Wrap the `<tbody>` rows in one `SortableList` and the mobile `DataCard` list in a second one, both calling `reorderPages(orderedIds)` inside the existing `startTransition`. Drag handle: a `GripVertical` icon button (`cursor-grab active:cursor-grabbing`, `touch-none` so touch drags aren't stolen by scrolling) as the **first cell** of each desktop row and the leading element of each mobile card. Optimistically render the dragged order locally so the list doesn't snap back before the server round-trip completes.
+
+- [x] **C-1.5: Wire DnD into the block list**
+  - Files: `src/components/admin/content/PageBlocksEditor.tsx` (edit)
+  - Details: same treatment — remove the two chevron buttons, `handleMove`, and the `moveBlock` import; wrap the block cards in a single `SortableList` calling `reorderBlocks(pageId, orderedIds)`; `GripVertical` handle in each card's header row next to the block-type label. The per-block "Save block" button, delete button, and inline `BlockConfigEditor` are unchanged — verify a drag started on the card header never triggers the save/delete buttons (that's what the `distance: 4` activation constraint is for).
+
+- [x] **C-1.6: i18n + a11y strings for the handle**
+  - Files: `src/locales/{pl,en,uk}.json`
+  - Details: add one `admin.pages.dragHandleLabel` key (used as the handle's `aria-label`/`title`), remove any now-unused `admin.pages.move*` keys the buttons used. `npm run i18n:check` must stay green (it fails on both missing and orphaned-across-locales keys).
+
+### C-2 — One entry point per row (pencil = edit; blocks reached from inside the sheet)
+
+**Problem:** two icons per row (pencil = edit metadata, folder = manage blocks) confused the user badly. Confirmed UX: **one** affordance per row.
+
+- [x] **C-2.1: Remove the second entry point from the row**
+  - Files: `src/components/admin/content/PageListClient.tsx` (edit)
+  - Details: delete the `FolderOpen` link button and its `lucide-react` import from `renderActions`. The row keeps exactly one entry point — the existing `Pencil` button opening the shared edit `Sheet` (matching `ServicesClient.tsx`'s convention). Delete stays as a separate destructive action and the new `GripVertical` handle stays as a drag affordance — those are not "entry points". Do **not** also make the row itself clickable: a click-to-open row would fight the drag handle added in C-1.4.
+  - `detailHrefBase` is still needed — pass it down to `PageFormSheet` (see C-2.2) instead of using it in the row.
+
+- [x] **C-2.2: Add "Manage blocks →" inside the edit sheet**
+  - Files: `src/components/admin/content/PageFormSheet.tsx` (edit)
+  - Details: add a `detailHrefBase: string` prop. When `page` is defined (edit mode only — a brand-new page has no id yet, and blocks require one), render below the submit button, separated by a `border-t border-border pt-4` divider: a `<Button variant="outline" render={<Link href={`${detailHrefBase}/${page.id}`} />}>` labelled from a new `admin.pages.manageBlocksBtn` key, with a small muted hint that unsaved title/visibility edits are not carried over when navigating. Use the `render={<Link/>}` base-ui pattern already used across this repo — never `buttonVariants()`. Do **not** rebuild the block-management screen; `/admin/pages/[id]` from Step 14 already works and is the navigation target.
+  - Add `admin.pages.manageBlocksBtn` + its hint key to all three locale files.
+
+- [x] **C-2.3: Confirm the master screens inherit this automatically**
+  - Files: none (verification only)
+  - Details: `PageListClient`/`PageFormSheet` are the single shared implementation (AD-5), so `/admin/master/pages` in Stage 6 gets the corrected one-entry-point UX for free. **Stage 6 must not reintroduce a second icon** — this is called out again in Step 24 below.
+
+### C-3 — No privileged default language in *input validation*
+
+**Problem (confirmed):** `Page.title_pl` is `String` (NOT NULL) in `prisma/schema.prisma`, and `TextBlockConfigEditor.tsx` marks Polish with a required asterisk and blocks save on empty `text_pl`. The user's explicit correction: the rule is "**at least one of the tenant's currently enabled locales has a non-empty value**", never a specific hardcoded language.
+
+**Scope note:** this is about *input/save validation only*. `resolveLocalized()`'s **display** fallback chain (`lang` → `pl` → any non-empty) is correct as-is and must not change. `Service.name_pl` / `MasterProfile.bio_pl` genuinely are required-non-null at the DB level by an earlier deliberate decision — **do not change their behavior.**
+
+- [x] **C-3.1: Make `Page.title_pl` nullable**
+  - Files: `prisma/schema.prisma` (edit), `prisma/migrations/<timestamp>_page_title_pl_nullable/migration.sql` (new)
+  - Details: change `title_pl String` → `title_pl String?`. Generate the migration with the same non-interactive workflow as Step 2 (`prisma migrate diff --from-migrations prisma/migrations --to-schema-datamodel prisma/schema.prisma --script`, hand-place the timestamped folder, `npx prisma migrate deploy`, `npx prisma generate`).
+  - ⚠️ **SQLite cannot `ALTER COLUMN`**, so the generated SQL will be a **table rebuild** for `Page` (create `new_Page`, `INSERT INTO new_Page SELECT … FROM Page`, drop, rename, recreate the unique index). That is expected here. Before applying, verify: (a) the `INSERT … SELECT` data-preserving statement is present, (b) the `@@unique([ownerType, masterId, slug])` index is recreated, (c) **only `Page` is rebuilt** — if the diff also wants to rebuild `TenantConfig`, `MasterProfile`, `User`, or `Block`, stop and report.
+
+- [x] **C-3.2: Shared "at least one enabled locale" helper**
+  - Files: `src/lib/localized-content.ts` (edit)
+  - Details: add one pure function next to the existing `resolveLocalized`/`parseEnabledLocales`:
+    `export function hasAnyEnabledLocaleValue(field: LocalizedField, enabledLocales: Language[]): boolean` — returns `true` when at least one `enabledLocales` entry has a non-empty trimmed value. This file is the right home: it is already the framework-free, client-and-server-safe module for per-locale DB columns, already imported by both sides, and already documented as such in `src/lib/AGENTS.md`. Purely additive — no change to `resolveLocalized` or `parseEnabledLocales`.
+
+- [x] **C-3.3: Drop the hardcoded `text_pl` requirement from the block config schema**
+  - Files: `src/lib/content/blocks.ts` (edit)
+  - Details: `textBlockConfigSchema` becomes `{ text_pl: z.string().optional(), text_en: z.string().optional(), text_uk: z.string().optional() }`, and `defaultConfigFor('text')` returns `{}` instead of `{ text_pl: '' }`. **Then audit every reader for a bare `config.text_pl.trim()`/`config.text_pl` access** — with the field optional, those now throw on `undefined`. Known call sites to fix: `PageBlocksEditor.tsx`'s `isTextInvalid`, `TextBlockConfigEditor.tsx`'s required-hint, and (not yet written) Stage 4's `TextBlockRenderer.tsx`. Use `?? ''` or the shared helper everywhere.
+  - The existing `tests/lib/content/blocks.test.ts` compares against `defaultConfigFor('text')` rather than a literal, so it should keep passing — re-run it to confirm.
+
+- [x] **C-3.4: Server-side validation via the shared helper**
+  - Files: `src/app/admin/pages/actions.ts` (edit), `src/app/admin/pages/block-actions.ts` (edit)
+  - Details:
+    - `createPage`/`updatePage`: `title_pl` is no longer `.min(1)` in the Zod object — all three title fields become optional strings. After parsing, load the tenant's locales (`getTenantConfig()` from `src/lib/tenant.ts` + `parseEnabledLocales()`) and reject with a **form-level** `{ error: t('admin.pages.titleRequiredAnyLocale') }` when `hasAnyEnabledLocaleValue({ pl: title_pl, en: title_en, uk: title_uk }, enabledLocales)` is false. Use the form-level `error` (not `fieldErrors`), since pinning the message to one locale's field is exactly the bias being removed.
+    - `createPage`'s slug source can no longer be `title_pl`: derive it from `slugify(resolveLocalized({ pl: title_pl, en: title_en, uk: title_uk }, DEFAULT_LANGUAGE))` — `resolveLocalized` already falls back to `pl` then any non-empty locale, which is precisely the right "pick whatever the admin actually filled in" behavior, and `slugify` already falls back to `'page'` for an empty/unslugifiable result.
+    - `updateBlockConfig`: after the existing shape validation, when `block.type === 'text'`, apply the same `hasAnyEnabledLocaleValue` check and return `{ error: t('admin.pages.textRequiredAnyLocale') }` when it fails.
+    - Write `title_pl: parsed.data.title_pl || null` (the column is nullable now).
+
+- [x] **C-3.5: Client-side — remove the "Polski *" treatment**
+  - Files: `src/components/admin/content/TextBlockConfigEditor.tsx` (edit), `src/components/admin/content/PageBlocksEditor.tsx` (edit), `src/components/admin/content/PageFormSheet.tsx` (edit)
+  - Details:
+    - `TextBlockConfigEditor`: delete the `required = lang === DEFAULT_LANGUAGE` logic, the per-locale `*` asterisk, and the `!config.text_pl.trim()` error. Replace with one generic hint below the whole field group — a new `admin.pages.anyLocaleRequiredHint` key — shown only while `hasAnyEnabledLocaleValue(...)` is false, computed from `enabledLocales` and never pinned to a tab. Keep the `locales` list exactly as the tenant's enabled locales (drop the `DEFAULT_LANGUAGE` force-prepend, which is another form of the same bias).
+    - `PageBlocksEditor`: `isTextInvalid` becomes `block.type === 'text' && !hasAnyEnabledLocaleValue({ pl: config.text_pl, en: config.text_en, uk: config.text_uk }, enabledLocales)` — same disabled-save-button behavior, non-language-specific rule.
+    - `PageFormSheet`: stop passing `required` to `LocalizedFieldInput` for the title, and add the same generic hint under it.
+  - **`LocalizedFieldInput.tsx` needs no change.** Investigated: its pl-is-required behavior is entirely driven by its own `required` prop (`required={required && lang === DEFAULT_LANGUAGE}`) — passing `required={false}` (the default) switches it off completely. That is the least invasive option and leaves `ServiceForm`/`MasterServiceForm`/`MasterForm` behavior untouched. **Do not** modify `LocalizedFieldInput` or its other callers.
+
+- [x] **C-3.6: Type fallout + i18n + tests**
+  - Files: `src/lib/content/pages-shared.ts`, `src/lib/content/pages-server.ts`, `src/components/admin/content/PageListClient.tsx`, `src/locales/{pl,en,uk}.json`, `tests/lib/content/` (all edits)
+  - Details: `NavPage.title_pl` and `PageListClient`'s `PageWithBlocks.title_pl` become `string | null`; `resolveLocalized` already accepts null so the display call sites need no logic change, only the type widening. Add `admin.pages.titleRequiredAnyLocale`, `admin.pages.textRequiredAnyLocale`, `admin.pages.anyLocaleRequiredHint` to all three locale files and remove any now-unused `admin.pages.titleRequired`/`admin.pages.textRequired` keys. Extend `tests/lib/content/` with `hasAnyEnabledLocaleValue` coverage: true when only `en` is filled and `en` is enabled; false when only `pl` is filled but `pl` is **not** in `enabledLocales`; false for whitespace-only values; false for an empty field object.
+
+### C-4 — Sheet slide-in animation is too subtle (shared UI primitive)
+
+**Problem:** `SheetContent` offsets by only `2.5rem` during enter/exit. On a `sm:max-w-sm` (~384px) panel that is a ~10% shift over 200ms, which reads as a flash/pop rather than a slide.
+
+- [x] **C-4.1: Increase the travel distance for all four sides**
+  - Files: `src/components/ui/sheet.tsx` (edit)
+  - Details: in `SheetContent`'s className, replace the four `2.5rem` offsets with full off-screen travel, keeping the existing arbitrary-value authoring style (this file targets **Tailwind v3** — see the note in `src/components/AGENTS.md` about v4-only syntax):
+    - `data-[side=right]:data-ending-style:translate-x-[100%]` and the matching `data-starting-style` variant
+    - `data-[side=left]:…:translate-x-[-100%]`
+    - `data-[side=bottom]:…:translate-y-[100%]`
+    - `data-[side=top]:…:translate-y-[-100%]`
+    Percentages are relative to the element's own size, so this lands each panel fully off-screen regardless of its `w-3/4`/`sm:max-w-sm`/`h-auto` sizing. Also bump the popup's `duration-200` → `duration-300` so full travel reads as a deliberate slide; leave `ease-in-out` and the backdrop's `duration-150` alone. No other change to this file — do not touch the close button, the portal, or `SheetOverlay`'s opacity transition.
+
+- [x] **C-4.2: Sanity-check the other Sheet consumers**
+  - Files: none (read-only verification)
+  - Details: this is a shared primitive used at 7 sites. Read through and confirm nothing assumes a small travel distance or a specific transform: `src/components/admin/AdminSidebar.tsx` (`side="left"`, `w-72 max-w-[85vw]` mobile drawer), `src/app/admin/master/calendar/CalendarToolbar.tsx` (`side="bottom"`, `max-h-[80vh] overflow-y-auto`), `src/app/admin/services/ServicesClient.tsx`, `src/app/admin/masters/MastersClient.tsx`, `src/app/admin/master/services/MasterServicesClient.tsx`, `src/app/admin/admins/AdminsClient.tsx`, and the corrected `PageListClient.tsx`. The bottom sheet is the one to look at hardest (`h-auto` + 100% Y travel must still start fully below the fold). Report the result; make no code changes in these files.
+
+- [ ] **C-4.3: Record the shared-component change**
+  - Files: covered by Step 29's DOX pass
+  - Details: `src/components/AGENTS.md` gets one line noting `SheetContent`'s full-travel slide (all four sides, `duration-300`) so nobody "optimises" it back to a small offset later.
+  - **Intentionally left unchecked here** — this item is explicitly deferred to Step 29's DOX pass (its own "Files" line says so); nothing to do during the correction round itself.
+
+### C-5 — Verification for the correction round
+
+- [x] **C-5.1: Re-verify before resuming Stage 4**
+  - Commands: `npm run lint` → `npm run i18n:check` → `npm run test` → `npm run build`, then `wc -l` on every touched file.
+  - Also: after the C-3.1 migration, confirm in `npx prisma studio` that the existing "Test Page" row survived the table rebuild with its `title_pl`, `slug`, `order`, and `visibility` intact, and that its blocks are still attached.
+  - Per the Stage-3 process note: do **not** run `npm run build` while the user has a `next dev` session open on this working copy; if it is run, tell the user to restart the dev server before manual testing.
+
+**C-5.1 results (2026-07-25):**
+- `npm run lint` → same 45 pre-existing problems (40 errors/5 warnings) as the Stage-1 baseline, in files this feature never touches — zero new lint issues from the correction round. Still deferred to Step 30 per standing instruction.
+- `npm run i18n:check` → PASS (1195 keys in sync across pl/en/uk, all referenced keys resolve).
+- `npm run test` → 26 files / 161 tests, all passing (was 25/155 before this round; +1 file/+6 tests from `tests/lib/content/localized-content.test.ts`).
+- `npm run build` → succeeds, `/admin/pages` and `/admin/pages/[id]` still compile cleanly. **This was run** — per the process note, the user should restart `next dev` before manual testing.
+- `wc -l` on every touched file → max 293 lines (`PageListClient.tsx`), all well under 500.
+- "Test Page" row confirmed via direct `prisma.page.findMany` query (not the Studio GUI, which isn't launchable from this agent) to have survived the C-3.1 table rebuild with `title_pl`, `slug`, `order`, `visibility`, and both attached blocks all intact — see the migration section above for the before/after JSON dump. The user can additionally eyeball it in `npx prisma studio` if they want the GUI confirmation.
+
+⏸ **STOP — user re-tests `/admin/pages`: drag a page and a block to reorder, single pencil click → sheet → "Manage blocks →", create a page with an English-only title, create a text block with only Ukrainian filled, and watch a Sheet actually slide in.**
+
+---
 
 ### Stage 4 — Public block rendering
 
@@ -208,11 +380,13 @@ All files `"use client"` unless noted, in `src/components/content/`.
     - `src/components/content/Lightbox.tsx` (new) — shared `fixed inset-0 z-50` overlay: backdrop, zoom/fade transition (framer-motion), prev/next arrows, `ArrowLeft`/`ArrowRight`/`Escape` key handling, touch-swipe navigation, click-outside to close, `document.body` scroll lock while open. Props `{ photos: string[]; index: number; onClose(); onIndexChange(i) }`.
     - `src/components/content/PhotoGalleryRenderer.tsx` (new) — full-bleed responsive grid (`grid-cols-2 sm:grid-cols-3 lg:grid-cols-4`, rounded thumbs), click → `Lightbox`. Distinct from `PhotoWidgetRenderer`: no style variants.
     - `src/components/content/TextBlockRenderer.tsx` (new) — resolves the active locale via `useCurrentLanguage()` + `resolveLocalized({ pl: text_pl, en: text_en, uk: text_uk }, lang)`; renders with `whitespace-pre-line` so line breaks survive. Plain text only — no HTML, no `dangerouslySetInnerHTML`.
+    - ⚠️ **Per C-3:** `text_pl` is optional — never dereference it directly. `resolveLocalized` handles `undefined` fields already; render `null` when it returns an empty string.
 
 - [ ] **Step 18: Block/page composition**
   - Files:
     - `src/components/content/BlockRenderer.tsx` (new) — `parseBlockConfig(block.type, block.config)` then switch to the matching renderer; unknown type ⇒ `null`.
     - `src/components/content/PageRenderer.tsx` (new) — props `{ page, blocks, masterId?: string }`. Renders: the `TopNavLine` (Step 20), the localized page title (`resolveLocalized` on `title_*`), then the ordered blocks. Layout container matching the rest of the site (`mx-auto w-full max-w-5xl px-4`).
+    - ⚠️ **Per C-3:** `page.title_pl` is `string | null`; resolve through `resolveLocalized` and skip the heading entirely if the result is empty.
 
 - [ ] **Step 19: Public page routes**
   - Files:
@@ -230,6 +404,7 @@ All files `"use client"` unless noted, in `src/components/content/`.
     - `src/app/api/content/route.ts` (new) — public `GET /api/content?masterId=<optional>`. No auth (public content). Returns `{ pages: NavPage[], footerBlock: BlockSlot | null }` (`footerBlock` is `null` when no `masterId`). `export const runtime = "nodejs"`; wrap in `try/catch` returning `{ pages: [], footerBlock: null }` on failure (match `/api/masters`'s soft-fail style — a content error must never break the booking page).
     - `src/components/content/TopNavLine.tsx` (new) — `"use client"`. Props `{ masterId?: string }`. React Query `useQuery({ queryKey: ['content-nav', masterId ?? 'home'], queryFn: () => fetch(`/api/content${masterId ? `?masterId=${masterId}` : ''}`).then(r => r.json()), staleTime: 60_000 })`. Returns `null` when the list is empty (AD-7). Renders: a 1px `bg-border` rule spanning the width, faded on the left with `[mask-image:linear-gradient(to_right,transparent,black_18%,black_100%)]` so the logo/back-button corner stays clean; tabs (`next/link`, active state via `usePathname()`) laid along it, titles resolved with `useCurrentLanguage()` + `resolveLocalized`. Mobile: the tab row is `overflow-x-auto custom-scrollbar` (the shared utility in `src/styles/globals.css`) — never wraps into the icon clusters.
     - `src/components/content/MasterFooterBlock.tsx` (new) — `"use client"`, reads the **same** query key so it costs no extra request; renders `<BlockRenderer>` for `footerBlock` or `null`.
+    - ⚠️ **Per C-3:** a tab whose title resolves to an empty string should be skipped rather than rendered blank.
 
 - [ ] **Step 21: Mount the nav line**
   - Files: `src/components/home/HomeClient.tsx` (edit), `src/app/[masterId]/page.tsx` (edit)
@@ -258,14 +433,16 @@ All files `"use client"` unless noted, in `src/components/content/`.
     - `src/app/admin/master/pages/page.tsx` (new) — Server Component with an explicit `session.user.role !== "MASTER"` → `redirect('/auth/login')` guard; loads the master's own pages (`listPagesForOwner`) + `enabledLocales` + their current `footerBlock`; renders `<MasterFooterBlockSection>` then `<PageListClient scope="master" detailHrefBase="/admin/master/pages">`.
     - `src/app/admin/master/pages/loading.tsx` (new), `src/app/admin/master/pages/[id]/page.tsx` (new, `<PageBlocksEditor>`), `src/app/admin/master/pages/[id]/loading.tsx` (new).
     - `src/components/admin/adminNavItems.ts` (edit) — add `{ labelKey: "admin.nav.pages", href: "/admin/master/pages", icon: FileText }` to `masterNavItems` (own entry, reusing the same label key).
+  - ⚠️ **Per C-2.3:** this screen reuses the corrected `PageListClient`/`PageFormSheet` verbatim — **one** row entry point (pencil → sheet → "Manage blocks →"), drag handles for reorder. Do **not** reintroduce a `FolderOpen` row link or chevron move buttons here, and do not fork a master-specific copy of either component.
 
 - [ ] **Step 25: Master footer slot — master's own editor**
   - Files: `src/app/admin/master/pages/actions.ts` (new), `src/app/admin/master/pages/MasterFooterBlockSection.tsx` (new)
   - Details: `actions.ts` exports one `"use server"` action, `saveMasterFooterBlock(prev, formData)`, gated on `session.user.role === "MASTER"`, writing `MasterProfile.footerBlock` for `session.user.id` only (upsert on `userId`), then `revalidatePath("/admin/master/pages")` + `revalidatePath("/", "layout")`. `MasterFooterBlockSection.tsx` is a small `<form action={...}>` wrapping `SingleBlockSlotEditor` (`allowed={['photoWidget','text']}`, `name="footerBlock"`) with its own submit button.
+  - ⚠️ **Per C-3:** don't add a language-specific requirement to the slot. A `text` slot whose every enabled-locale value is empty is stored as `null` (treated as "none") rather than rejected — one line in the action, no new validation surface.
 
 - [ ] **Step 26: Master footer slot — admin side**
   - Files: `src/app/admin/masters/MasterFooterBlockField.tsx` (new), `src/app/admin/masters/MasterForm.tsx` (edit), `src/app/admin/masters/actions.ts` (edit), `src/app/admin/masters/page.tsx` + `MastersClient.tsx` (edit — thread `footerBlock` and `enabledLocales` through if not already available)
-  - Details: `MasterFooterBlockField.tsx` wraps `SingleBlockSlotEditor` with a `<Label>` + hint, sized for the Sheet. Add it to `MasterForm.tsx` after the "Show on homepage" block (import + ~6 lines JSX). In `masters/actions.ts`, add `footerBlock: z.string().optional().default("")` to **both** the create and update schemas, read it in `raw`, and write `footerBlock: parsed.data.footerBlock || null` into the `masterProfile` `create`/`update` payloads. Do not touch the password/encryption logic in that file.
+  - Details: `MasterFooterBlockField.tsx` wraps `SingleBlockSlotEditor` with a `<Label>` + hint, sized for the Sheet. Add it to `MasterForm.tsx` after the "Show on homepage" block (import + ~6 lines JSX). In `masters/actions.ts`, add `footerBlock: z.string().optional().default("")` to **both** the create and update schemas, read it in `raw`, and write `footerBlock: parsed.data.footerBlock || null` into the `masterProfile` `create`/`update` payloads. Do not touch the password/encryption logic in that file, and do not change `bio_pl`'s existing required/nullable semantics (C-3 is scoped to `Page`/`Block` only).
 
 - [ ] **Step 27: Master footer slot — public side**
   - Files: `src/app/[masterId]/page.tsx` (edit)
@@ -282,12 +459,12 @@ All files `"use client"` unless noted, in `src/components/content/`.
 - [ ] **Step 29: DOX pass**
   - Files: `prisma/AGENTS.md`, `src/lib/AGENTS.md`, `src/app/AGENTS.md`, `src/app/api/AGENTS.md`, `src/app/admin/AGENTS.md`, `src/components/AGENTS.md`
   - Details (one focused bullet each, no diary entries):
-    - `prisma/AGENTS.md` — add `Page`/`Block` to the Ownership model list; record the singleton JSON columns and the AD-3 NULL-uniqueness caveat.
-    - `src/lib/AGENTS.md` — the `content/` module contract: `blocks.ts` and `pages-shared.ts` are pure/client-safe, `pages-server.ts` is Prisma-only; block config is never trusted (`parseBlockConfig` never throws).
+    - `prisma/AGENTS.md` — add `Page`/`Block` to the Ownership model list; record the singleton JSON columns, the AD-3 NULL-uniqueness caveat, and (per C-3) that `Page.title_pl` is **nullable on purpose** — content pages require "any enabled locale", unlike `Service.name_pl`/`MasterProfile.bio_pl` which stay required.
+    - `src/lib/AGENTS.md` — the `content/` module contract: `blocks.ts` and `pages-shared.ts` are pure/client-safe, `pages-server.ts` is Prisma-only; block config is never trusted (`parseBlockConfig` never throws); `localized-content.ts` now also owns `hasAnyEnabledLocaleValue` as the shared *input-validation* counterpart to `resolveLocalized`'s *display* fallback (C-3).
     - `src/app/api/AGENTS.md` — `GET /api/content` is public, soft-fails to an empty payload.
-    - `src/app/admin/AGENTS.md` — `/admin/pages` + `/admin/master/pages`; the shared-actions/session-derived-owner rule (AD-5); the singleton-slot hidden-input pattern; up/down reorder instead of DnD (AD-4).
+    - `src/app/admin/AGENTS.md` — `/admin/pages` + `/admin/master/pages`; the shared-actions/session-derived-owner rule (AD-5); the singleton-slot hidden-input pattern; ~~up/down reorder instead of DnD~~ → **dnd-kit drag reorder via whole-list `reorderPages`/`reorderBlocks` actions with exact-id-set ownership assertion** (C-1); the one-entry-point-per-row rule (C-2).
     - `src/app/AGENTS.md` — the two new public routes.
-    - `src/components/AGENTS.md` — the `content/` (public renderers) and `admin/content/` (config editors) families and their one-file-per-variant split rule.
+    - `src/components/AGENTS.md` — the `content/` (public renderers) and `admin/content/` (config editors) families and their one-file-per-variant split rule; `SortableList.tsx` as the single dnd-kit wiring point, including the "one `DndContext` per rendered list, never one spanning the desktop table and the mobile card list" caveat (C-1.3); `SheetContent`'s full-travel slide (C-4.3).
     - No new `AGENTS.md` files, so the root `CLAUDE.md` Child DOX Index needs no change — state that explicitly in the report.
 
 - [ ] **Step 30: Full verification sweep**
@@ -304,16 +481,23 @@ All files `"use client"` unless noted, in `src/components/content/`.
 - [ ] `npm run i18n:check` passes (pl/en/uk key parity, every referenced key resolves)
 - [ ] `npm run build` succeeds
 - [ ] Every new/edited file is under 500 lines (`SettingsForm.tsx` explicitly re-checked)
+- [ ] Exactly three new dependencies exist in `package.json` (`@dnd-kit/core`, `@dnd-kit/sortable`, `@dnd-kit/utilities`) and nothing else was added or version-bumped
 - [ ] Follows project conventions: server actions mirror `admin/services/actions.ts`; list surfaces use the desktop-table + `lg:hidden` `DataCard` pairing with a single shared edit `Sheet`; every admin `page.tsx` re-checks its own role; `async` Server Component pages have a sibling `loading.tsx`; no hardcoded user-facing strings
 - [ ] With zero pages created and both slots unset, the homepage and `/[masterId]` render **exactly** as before (no nav line, no footer, no layout shift)
-- [ ] An admin can create a global page, choose Home / Master-booking visibility, toggle enabled, reorder pages, add/reorder/remove blocks, and edit each block's config
+- [ ] An admin can create a global page, choose Home / Master-booking visibility, toggle enabled, **drag pages into a new order**, add/**drag-reorder**/remove blocks, and edit each block's config — with **no** up/down chevron buttons anywhere in the pages UI
+- [ ] Each page row has exactly **one** entry point (the pencil → edit Sheet); the block-management screen is reached only from the "Manage blocks →" link inside that Sheet, and only when editing an existing page
+- [ ] Reordering survives a page reload (the new `order` was actually persisted), and a `reorderPages`/`reorderBlocks` call carrying a foreign or missing id is rejected server-side
+- [ ] A page can be created and saved with **only** English (or only Ukrainian) filled in — no field is marked required for a specific language anywhere in the pages UI; saving with *every* enabled locale empty is rejected with the generic "at least one language" message
+- [ ] A `text` block saves with only one enabled locale filled and renders that locale's text publicly
 - [ ] A master can do the same for their own pages from `/admin/master/pages`, sees no visibility checkboxes, and cannot read or mutate another owner's page or block (verified by the ownership re-check in every action)
 - [ ] A master page's tab appears only on that master's booking page; a global page's tabs appear only where its `visibility` says
 - [ ] `/pages/<slug>` and `/<masterId>/pages/<slug>` render title + blocks; a disabled or unknown slug 404s
 - [ ] `photoGallery` opens a lightbox with arrow-key, swipe, and Escape handling; `photoWidget` renders all three styles and honours reduced-motion
-- [ ] `text` blocks render in the visitor's active locale with `pl` fallback and preserved line breaks
+- [ ] `text` blocks render in the visitor's active locale with fallback to any non-empty locale and preserved line breaks
+- [ ] Every `Sheet` in the app (right, left, bottom) visibly slides in from off-screen rather than popping, with no layout/content regression at the seven existing call sites
 - [ ] Homepage widget slot and master footer slot both save from admin **and** render publicly; unsetting either removes it
 - [ ] All photo uploads go through the unmodified `/api/upload`; `src/app/api/upload/route.ts` is byte-identical after the change
+- [ ] `Service.name_pl` / `MasterProfile.bio_pl` required-field behavior is unchanged, and `LocalizedFieldInput.tsx` was not modified
 - [ ] DOX pass complete: the six listed `AGENTS.md` files updated, no stale text left
 - [ ] Completion report lists manual verification steps for the user; confirms `ReviewsMarquee.tsx` / `src/lib/reviews.ts` (and any test covering them) were deleted with no remaining importers
 
@@ -327,15 +511,22 @@ All files `"use client"` unless noted, in `src/components/content/`.
 - `src/auth.ts`, `src/auth.config.ts`, `src/middleware.ts` — the new routes are already covered by the `/admin/:path*` matcher; page-level `auth()` guards do the real work.
 - Existing migrations and `prisma/app.db` — never hand-edit.
 - Encryption/secrets paths (`src/lib/encryption.ts` consumers) — untouched by this feature.
+- **`src/components/admin/LocalizedFieldInput.tsx`** and its `ServiceForm`/`MasterServiceForm`/`MasterForm` callers — C-3 is achieved by *not passing* `required`, not by changing the component (see C-3.5).
+- **`Service.name_pl` / `MasterProfile.bio_pl` nullability and required-ness** — a separate earlier deliberate decision; C-3 applies only to `Page.title_*` and the `text` block config.
 
 **Prisma migration gotcha (known from a prior session in this repo)**
-`npx prisma migrate dev` cannot run non-interactively in this environment. Use the documented workaround (Step 2): `prisma migrate diff --from-migrations … --to-schema-datamodel … --script` → hand-create the timestamped `prisma/migrations/<ts>_<name>/migration.sql` → `npx prisma migrate deploy` → `npx prisma generate`. Also note `prisma/AGENTS.md`: `DATABASE_URL`'s relative path resolves against `schema.prisma`'s directory, so the live dev DB is `prisma/prisma/app.db`, not the stray `prisma/app.db`.
+`npx prisma migrate dev` cannot run non-interactively in this environment. Use the documented workaround (Step 2, and again in C-3.1): `prisma migrate diff --from-migrations … --to-schema-datamodel … --script` → hand-create the timestamped `prisma/migrations/<ts>_<name>/migration.sql` → `npx prisma migrate deploy` → `npx prisma generate`. Also note `prisma/AGENTS.md`: `DATABASE_URL`'s relative path resolves against `schema.prisma`'s own directory, so the live dev DB is `prisma/prisma/app.db`, not the stray `prisma/app.db`.
 
 **Other risks**
+- **C-3.1 is a SQLite table rebuild, not an `ALTER COLUMN`.** Making `Page.title_pl` nullable means create-copy-drop-rename. Verify the `INSERT … SELECT` and the recreated unique index before applying, confirm only `Page` is rebuilt, and check the existing test row survived afterwards.
+- **dnd-kit duplicate ids.** The page list renders the same row ids twice (desktop table + mobile cards). Each list needs its own `DndContext`; one context spanning both is a real bug (C-1.3).
+- **dnd-kit vs. nested buttons.** Rows/cards contain click targets (pencil, delete, save). Use a dedicated drag handle plus a `distance: 4` activation constraint; do not make the whole row draggable.
 - **Prisma client types lag.** `prisma.page` / `prisma.block` only exist after `prisma generate`. If TS still complains, use the repo's existing `(prisma.x.findMany as any)` escape hatch with the same eslint-disable comment style — do not restructure the schema.
 - **Test mocks.** `tests/app/api/**` mock `@/lib/prisma`; any new model used in a mocked route needs its mock shape added, and routes importing `@/auth` need `vi.mock('@/auth', …)`.
 - **SQLite NULL uniqueness** (AD-3) — the composite unique index does not protect global-page slugs; `generateUniqueSlug` must be called on every create.
 - **`SettingsForm.tsx` is at 477/500 lines** — the homepage widget section must be a separate file with a ≤8-line touch there.
 - **`/api/tenant-config` returns the whole `TenantConfig` row** (a pre-existing over-exposure, out of scope). `homepageWidgetBlock` is non-sensitive, so this is acceptable — but do not add anything sensitive to that model as part of this work.
 - **Uploaded photos are never garbage-collected** — deleting a block or page leaves its files in `public/uploads/`. Consistent with existing logo/avatar behavior; explicitly out of scope (the spec defers storage quotas).
-- **Scope creep guard:** real client-review collection (submission form, moderation, appointment linkage) is a separate future project. Do not add review models, forms, or endpoints. Likewise: no rich-text editor, no drag-and-drop canvas, no storage quotas, no admin-creates-a-page-for-a-master flow.
+- **`sheet.tsx` is a shared primitive** — C-4 changes the animation for all seven existing call sites. CSS-only and low risk, but it must be called out to the user, and C-4.2's read-through is not optional.
+- **Dev-server staleness** (learned in Stage 3): after any locale-file change the user needs a hard refresh; after any `npm run build` run against a working copy with `next dev` open, the dev server needs a restart before manual testing.
+- **Scope creep guard:** real client-review collection (submission form, moderation, appointment linkage) is a separate future project. Do not add review models, forms, or endpoints. Likewise: no rich-text editor, no drag-and-drop *canvas* builder (the spec's non-goal — sortable lists are not a canvas), no storage quotas, no admin-creates-a-page-for-a-master flow.

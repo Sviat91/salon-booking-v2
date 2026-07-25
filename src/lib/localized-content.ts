@@ -28,6 +28,16 @@ export function resolveLocalized(field: LocalizedField, lang: Language): string 
 }
 
 /**
+ * Input-validation counterpart to `resolveLocalized`'s display fallback:
+ * returns `true` when at least one of the tenant's currently *enabled*
+ * locales has a non-empty (trimmed) value on `field`. No locale is
+ * privileged — deliberately does not special-case `DEFAULT_LANGUAGE`/`pl`.
+ */
+export function hasAnyEnabledLocaleValue(field: LocalizedField, enabledLocales: Language[]): boolean {
+  return enabledLocales.some((lang) => !!field[lang]?.trim())
+}
+
+/**
  * Parses a tenant's `enabledLocales` JSON string into a validated, non-empty
  * array of `Language` values (preserving `SUPPORTED_LANGUAGES` order). Falls
  * back to all supported locales on parse failure or an empty/invalid result.

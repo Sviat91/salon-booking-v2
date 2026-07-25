@@ -11,6 +11,7 @@ import {
   Table2,
   Bell,
   Bot,
+  FileText,
   type LucideIcon,
 } from "lucide-react"
 
@@ -42,6 +43,11 @@ export const adminNavItems: NavItem[] = [
     labelKey: "admin.nav.masters",
     href: "/admin/masters",
     icon: Users,
+  },
+  {
+    labelKey: "admin.nav.pages",
+    href: "/admin/pages",
+    icon: FileText,
   },
   {
     labelKey: "admin.nav.settings",
