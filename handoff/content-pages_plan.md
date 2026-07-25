@@ -277,6 +277,7 @@ These corrections supersede parts of AD-4 and AD-11 (both marked REVISED above).
   - Files: `src/components/admin/content/PageFormSheet.tsx` (edit)
   - Details: add a `detailHrefBase: string` prop. When `page` is defined (edit mode only — a brand-new page has no id yet, and blocks require one), render below the submit button, separated by a `border-t border-border pt-4` divider: a `<Button variant="outline" render={<Link href={`${detailHrefBase}/${page.id}`} />}>` labelled from a new `admin.pages.manageBlocksBtn` key, with a small muted hint that unsaved title/visibility edits are not carried over when navigating. Use the `render={<Link/>}` base-ui pattern already used across this repo — never `buttonVariants()`. Do **not** rebuild the block-management screen; `/admin/pages/[id]` from Step 14 already works and is the navigation target.
   - Add `admin.pages.manageBlocksBtn` + its hint key to all three locale files.
+  - **Follow-up (2026-07-25, landed directly by the coordinator, not a full round-trip):** create-mode now skips the sheet-close step entirely — `createPage` returns `pageId` on success, and `PageFormSheet`'s success effect calls `router.push(`${detailHrefBase}/${pageId}`)` when `!page && state.pageId` (i.e. create only), going straight to the block editor instead of "create → close → reopen → click Manage blocks". Edit-mode is unaffected — it still uses the explicit "Manage blocks →" button described above, since an edit has other unsaved-edit-loss considerations a fresh create doesn't. Lint + `tsc --noEmit` re-confirmed clean on both touched files (`src/app/admin/pages/actions.ts`, `src/components/admin/content/PageFormSheet.tsx`).
 
 - [x] **C-2.3: Confirm the master screens inherit this automatically**
   - Files: none (verification only)
@@ -368,32 +369,41 @@ These corrections supersede parts of AD-4 and AD-11 (both marked REVISED above).
 
 All files `"use client"` unless noted, in `src/components/content/`.
 
-- [ ] **Step 16: Photo widget renderers (one file per style)**
+- [x] **Step 16: Photo widget renderers (one file per style)**
   - Files:
     - `src/components/content/photo-widget/StripWidget.tsx` (new) — the scrolling marquee. Port the animation approach from `src/components/reviews/ReviewsMarquee.tsx` (framer-motion `animate={{ x: ['0%','-33.33%'] }}`, content tripled for a seamless loop); source photos from `config.photos` instead of `ReviewImage[]`. Respect `useReducedMotion()` (`src/hooks/useReducedMotion.ts`) — no animation when the user prefers reduced motion.
     - `src/components/content/photo-widget/FadeWidget.tsx` (new) — photos cross-fading in/out at different positions; framer-motion `AnimatePresence`, fixed-height container, also reduced-motion aware (falls back to a static row).
     - `src/components/content/photo-widget/StackWidget.tsx` (new) — Mac-Photos-style stacked thumbnails (slight rotation/offset), click expands via the shared `Lightbox`.
     - `src/components/content/PhotoWidgetRenderer.tsx` (new) — switch on `config.style`; renders `null` for an empty `photos` array.
 
-- [ ] **Step 17: Gallery, lightbox, text**
+- [x] **Step 17: Gallery, lightbox, text**
   - Files:
     - `src/components/content/Lightbox.tsx` (new) — shared `fixed inset-0 z-50` overlay: backdrop, zoom/fade transition (framer-motion), prev/next arrows, `ArrowLeft`/`ArrowRight`/`Escape` key handling, touch-swipe navigation, click-outside to close, `document.body` scroll lock while open. Props `{ photos: string[]; index: number; onClose(); onIndexChange(i) }`.
     - `src/components/content/PhotoGalleryRenderer.tsx` (new) — full-bleed responsive grid (`grid-cols-2 sm:grid-cols-3 lg:grid-cols-4`, rounded thumbs), click → `Lightbox`. Distinct from `PhotoWidgetRenderer`: no style variants.
     - `src/components/content/TextBlockRenderer.tsx` (new) — resolves the active locale via `useCurrentLanguage()` + `resolveLocalized({ pl: text_pl, en: text_en, uk: text_uk }, lang)`; renders with `whitespace-pre-line` so line breaks survive. Plain text only — no HTML, no `dangerouslySetInnerHTML`.
     - ⚠️ **Per C-3:** `text_pl` is optional — never dereference it directly. `resolveLocalized` handles `undefined` fields already; render `null` when it returns an empty string.
 
-- [ ] **Step 18: Block/page composition**
+- [x] **Step 18: Block/page composition**
   - Files:
     - `src/components/content/BlockRenderer.tsx` (new) — `parseBlockConfig(block.type, block.config)` then switch to the matching renderer; unknown type ⇒ `null`.
     - `src/components/content/PageRenderer.tsx` (new) — props `{ page, blocks, masterId?: string }`. Renders: the `TopNavLine` (Step 20), the localized page title (`resolveLocalized` on `title_*`), then the ordered blocks. Layout container matching the rest of the site (`mx-auto w-full max-w-5xl px-4`).
     - ⚠️ **Per C-3:** `page.title_pl` is `string | null`; resolve through `resolveLocalized` and skip the heading entirely if the result is empty.
+    - **Sequencing note:** `TopNavLine` doesn't exist yet at this point (it's Step 20, Stage 5) — `PageRenderer.tsx` accepts `masterId` in its props type now (satisfying Step 19's call shape) but does not render `<TopNavLine>` yet, since importing a not-yet-existing component would break Stage 4's build. `<TopNavLine masterId={masterId} />` will be added as the first child of `PageRenderer` when Step 20/21 actually build `TopNavLine` — a small necessary addition to `PageRenderer.tsx` not explicitly listed in Step 20's file list, but directly implied by this step's own "Renders: the TopNavLine (Step 20)" text.
 
-- [ ] **Step 19: Public page routes**
+- [x] **Step 19: Public page routes**
   - Files:
     - `src/app/pages/[slug]/page.tsx` (new) — Server Component, `export const dynamic = 'force-dynamic'`; `getPageWithBlocks({ ownerType: 'global', masterId: null, slug })`; `notFound()` when missing/disabled; renders `<BackButton />`, the top-right `LanguageToggle` + `ThemeToggle` cluster (same markup as `src/app/[masterId]/page.tsx` lines 255–258), and `<PageRenderer>`.
     - `src/app/[masterId]/pages/[slug]/page.tsx` (new) — same, with `ownerType: 'master'`, `masterId: params.masterId`; `notFound()` if the master doesn't exist or the page isn't theirs; passes `masterId` to `PageRenderer`; `<BackButton href={`/${params.masterId}`} />`.
     - `src/components/BackButton.tsx` (edit) — add an optional `href` prop defaulting to `'/'`. Additive only; do not change its styling or any existing call site.
   - Note: `app/pages/[slug]` (two segments) never collides with the one-segment `app/[masterId]` route.
+
+**Stage 4 verification results (2026-07-25):**
+- `npx tsc --noEmit` → clean.
+- `npx eslint` on all new/edited files → clean.
+- `npm run i18n:check` → PASS, no new keys needed (no user-facing copy strings added in this stage — image `alt=""` and icon-only Lightbox/gallery controls, consistent with the codebase's existing icon-only-button convention).
+- `npm run test` → 26 files / 161 tests, all passing, no regressions.
+- `npm run build` → succeeds; confirmed `/pages/[slug]` and `/[masterId]/pages/[slug]` both compile as separate dynamic routes with no collision against `/[masterId]`.
+- `wc -l` on all new/edited files → max 108 lines (`Lightbox.tsx`), all well under 500.
 
 ⏸ **STOP — user opens the page created in Stage 3 at its public URL.**
 
