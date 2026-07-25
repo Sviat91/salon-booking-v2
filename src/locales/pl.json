@@ -540,6 +540,8 @@
         "languagesSectionTitle": "Języki treści",
         "languagesSectionDesc": "Języki dostępne dla nazw usług i opisów specjalistów",
         "languagesSectionHint": "Polski jest zawsze włączony jako język domyślny. Wyłączenie języka ukrywa jego pole w formularzach, ale nie usuwa zapisanych tłumaczeń.",
+        "homepageWidgetSectionTitle": "Widżet strony głównej",
+        "homepageWidgetSectionDesc": "Opcjonalny widżet zdjęć wyświetlany na dole strony głównej",
         "lightThemeTitle": "Motyw jasny",
         "lightThemeDesc": "Kolory używane, gdy aktywny jest motyw jasny",
         "resetToM3": "Przywróć domyślne M3",

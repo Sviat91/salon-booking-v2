@@ -42,8 +42,10 @@ Every mutation targeting an existing `Page`/`Block` re-loads the row and verifie
 ### AD-6 — Public reads: Server Components read Prisma directly; the nav line uses one public API route
 `/pages/[slug]` and `/[masterId]/pages/[slug]` are Server Components reading `src/lib/content/pages-server.ts`. The nav line and master footer slot must also render on `src/app/[masterId]/page.tsx`, which is a `"use client"` component — so they get their data from one new public route, `GET /api/content?masterId=<optional>` → `{ pages, footerBlock }`, consumed via React Query with the shared key `['content-nav', masterId ?? 'home']` so `TopNavLine` and `MasterFooterBlock` share a single request. No Redis caching for content pages (cheap indexed reads; adding a cache layer means new invalidation obligations in `src/lib/cache.ts` for no measurable win).
 
-### AD-7 — The nav line renders **nothing** when there are no eligible tabs
-`TopNavLine` returns `null` when its page list is empty. Until an admin creates the first page, the homepage and master booking page are pixel-identical to today. Same rule for both singleton slots (`null`/unset ⇒ render nothing).
+### AD-7 — ~~The nav line renders nothing when there are no eligible tabs~~ — **PARTIALLY REVISED 2026-07-25 → see Correction C-6**
+> **Original text (superseded for `TopNavLine` only, kept for traceability):** `TopNavLine` returns `null` when its page list is empty. Until an admin creates the first page, the homepage and master booking page are pixel-identical to today. Same rule for both singleton slots (`null`/unset ⇒ render nothing).
+
+**Why revised:** live testing showed `TopNavLine` and the icon clusters as two independently-positioned elements that only *looked* related by accident, plus filled-pill tabs that read as buttons rather than a nav bar. The user's confirmed fix: one permanent bar (hairline + tabs + icons together) that never disappears, so toggling a page never shifts the layout — the "pixel-identical until first page" guarantee is dropped for `TopNavLine` specifically. **`TopNavLine` is now a permanent fixture; the singleton-slot half of AD-7 (`homepageWidgetBlock`/`footerBlock` render nothing when unset) is unchanged and still binding — this correction is scoped to the nav line only.** See Correction C-6 below for the implementation.
 
 ### AD-8 — The homepage widget slot replaces the (already-empty) `ReviewsMarquee` mount
 `src/lib/reviews.ts`'s `getCachedReviews()` returns `[]` unconditionally today, so `ReviewsMarquee` already renders `null` on every load — swapping it is zero-risk. Remove the `ReviewsMarquee` usage and the now-orphaned `initialReviews` prop plumbing (`src/app/page.tsx` → `HomeClient`). **Delete** `src/components/reviews/ReviewsMarquee.tsx` and `src/lib/reviews.ts` outright as part of Step 23 — confirmed by the user (2026-07-25): no point keeping known-dead code around. Grep for any other importer of either file before deleting; if one exists, stop and report instead of deleting.
@@ -409,20 +411,20 @@ All files `"use client"` unless noted, in `src/components/content/`.
 
 ### Stage 5 — Top nav line + homepage widget slot
 
-- [ ] **Step 20: Public content API + nav line**
+- [x] **Step 20: Public content API + nav line**
   - Files:
     - `src/app/api/content/route.ts` (new) — public `GET /api/content?masterId=<optional>`. No auth (public content). Returns `{ pages: NavPage[], footerBlock: BlockSlot | null }` (`footerBlock` is `null` when no `masterId`). `export const runtime = "nodejs"`; wrap in `try/catch` returning `{ pages: [], footerBlock: null }` on failure (match `/api/masters`'s soft-fail style — a content error must never break the booking page).
     - `src/components/content/TopNavLine.tsx` (new) — `"use client"`. Props `{ masterId?: string }`. React Query `useQuery({ queryKey: ['content-nav', masterId ?? 'home'], queryFn: () => fetch(`/api/content${masterId ? `?masterId=${masterId}` : ''}`).then(r => r.json()), staleTime: 60_000 })`. Returns `null` when the list is empty (AD-7). Renders: a 1px `bg-border` rule spanning the width, faded on the left with `[mask-image:linear-gradient(to_right,transparent,black_18%,black_100%)]` so the logo/back-button corner stays clean; tabs (`next/link`, active state via `usePathname()`) laid along it, titles resolved with `useCurrentLanguage()` + `resolveLocalized`. Mobile: the tab row is `overflow-x-auto custom-scrollbar` (the shared utility in `src/styles/globals.css`) — never wraps into the icon clusters.
     - `src/components/content/MasterFooterBlock.tsx` (new) — `"use client"`, reads the **same** query key so it costs no extra request; renders `<BlockRenderer>` for `footerBlock` or `null`.
     - ⚠️ **Per C-3:** a tab whose title resolves to an empty string should be skipped rather than rendered blank.
 
-- [ ] **Step 21: Mount the nav line**
+- [x] **Step 21: Mount the nav line**
   - Files: `src/components/home/HomeClient.tsx` (edit), `src/app/[masterId]/page.tsx` (edit)
   - Details:
     - `HomeClient.tsx`: render `<TopNavLine />` as the first child of `<main>`, absolutely positioned `top-4 left-0 right-0 z-10` with right padding reserved for the existing icon cluster. **Do not move, restyle, or re-parent** the existing `UserDropdown`/`LanguageToggle`/`ThemeToggle` blocks or the logo blocks.
     - `src/app/[masterId]/page.tsx`: render `<TopNavLine masterId={masterId} />` immediately after `<BackButton />`, with left padding reserved for the back button and right padding for the toggles. **Do not touch** anything else in this file in this step — no changes to the calendar/service/booking UI, its state, its refs, or its framer-motion config.
 
-- [ ] **Step 22: Homepage widget slot — admin side**
+- [x] **Step 22: Homepage widget slot — admin side**
   - Files: `src/app/admin/settings/HomepageWidgetSection.tsx` (new), `src/app/admin/settings/SettingsForm.tsx` (edit, ≤8 lines), `src/app/admin/settings/actions.ts` (edit), `src/app/admin/settings/page.tsx` (edit)
   - Details:
     - `HomepageWidgetSection.tsx`: wraps `SingleBlockSlotEditor` (`allowed={['photoWidget']}`, `name="homepageWidgetBlock"`) in the shared `SettingsSection` from `./FormFields`, and calls the `onChange` prop to mark the form dirty — exactly like `LanguagesSection.tsx`.
@@ -430,11 +432,101 @@ All files `"use client"` unless noted, in `src/components/content/`.
     - `actions.ts`: add `homepageWidgetBlock: z.string().optional().default("")` to the schema, `formData.get("homepageWidgetBlock") || ""` to `raw`, and `homepageWidgetBlock: parsed.data.homepageWidgetBlock || null` to `data`.
     - `settings/page.tsx`: thread `homepageWidgetBlock` through `fullConfig`.
 
-- [ ] **Step 23: Homepage widget slot — public side**
+- [x] **Step 23: Homepage widget slot — public side**
   - Files: `src/app/page.tsx` (edit), `src/components/home/HomeClient.tsx` (edit)
   - Details: pass `config.homepageWidgetBlock` into `HomeClient`; where `<ReviewsMarquee>` is mounted today, render `<BlockRenderer>` for the parsed slot (or `null`). Keep the wrapper `<div className="mt-auto pt-12 w-full">` but **drop `hidden lg:block`** so an admin-configured widget is visible on mobile too — when the slot is unset the wrapper's content is `null`, so today's layout is unchanged. Remove the `ReviewsMarquee` import, the `initialReviews` prop, and the `getCachedReviews()` call orphaned by this change. Then **delete** `src/components/reviews/ReviewsMarquee.tsx` and `src/lib/reviews.ts` (AD-8) — verify with a grep first that nothing else imports them.
+  - Confirmed via grep before deleting: only `HomeClient.tsx` (removed in this same step) and the files themselves imported them; a hit in `StripWidget.tsx` was just a doc-comment mention, not an import. Both files deleted; `src/components/reviews/` is now empty and was removed with it.
+  - `PageRenderer.tsx` also updated here (not a separate file in this step's list, but the natural fulfillment of Step 18's deferred "Renders: the TopNavLine" note) to actually mount `<TopNavLine masterId={masterId} />` now that it exists.
+
+**Stage 5 verification results (2026-07-25):**
+- `npx tsc --noEmit` → clean.
+- `npm run i18n:check` → PASS (1197 keys in sync across pl/en/uk).
+- `npm run lint` (full repo) → still exactly 45 pre-existing problems (40 errors/5 warnings), same count as every prior check. Scoped `eslint` on Stage 5's own new files was clean; a scoped check that happened to include `[masterId]/page.tsx`, `SettingsForm.tsx`, and `HomeClient.tsx` surfaced 3 unused-import errors in those files — confirmed via `git stash` (reverting to the pre-Stage-5 commit) that all three already exist at that commit, so they're part of the existing deferred baseline, not something Stage 4/5 introduced. Left for Step 30 as before.
+- `npm run test` → 26 files / 161 tests, all passing, no regressions.
+- `npm run build` → succeeds; confirmed `/api/content` and `/pages/[slug]` compile. **This was run** — restart `next dev` before manual testing.
+- `wc -l` on every touched file → max 480 lines (`SettingsForm.tsx`, +3 lines from its ≤8-line budget), all under 500.
 
 ⏸ **STOP — user verifies the nav line on the homepage + booking page and the homepage widget.**
+
+## Correction C-6 (2026-07-25, post-Stage-5 live testing)
+
+**Problem (confirmed structural, not a styling nitpick):** `TopNavLine` and the icon clusters (`UserDropdown`/`LanguageToggle`/`ThemeToggle`) were two independently absolutely-positioned elements that only shared a vertical band by coincidence — not visually one bar. Tabs rendered as filled `bg-card` pill chips over the hairline, reading as separate buttons rather than an integrated nav bar. And `TopNavLine` returned `null` entirely with zero tabs (AD-7), which is exactly why toggling a page shifted the layout.
+
+**Confirmed fix (user-provided a reference screenshot for structure only, not color treatment):** one persistent top bar containing the hairline, the page tabs, and the control icons together — icons live inside the bar, not outside it. The bar never disappears (no layout shift when pages toggle) and never renders as a solid-colored rectangle — the fade-to-nothing hairline is the only visual separation.
+
+- [x] **C-6.1: `TopNavLine.tsx` — permanent bar, plain-text tabs**
+  - Removed `if (tabs.length === 0) return null` entirely — the `<nav>` (hairline + layout shell) always renders now; only the tabs *within* it are conditional. This is the AD-7 reversal recorded above.
+  - Restyled tabs: dropped the `bg-card`/`shadow-sm` filled-pill treatment; tabs are now plain text links (`text-sm font-medium text-muted-foreground hover:text-foreground`), active state via `border-b-2 border-primary text-foreground` (default `border-b-2 border-transparent` reserves the same space so the underline never shifts layout on hover/active) — no background fill anywhere. The hairline's fade-mask gradient is unchanged.
+  - Dropped the component's own `w-full` default (now just `relative`) since both call sites now embed it as a `flex-1 min-w-0` child of a shared flex row rather than a standalone full-width block.
+
+- [x] **C-6.2: `HomeClient.tsx` — merge nav line + desktop icon cluster**
+  - The old separate "nav line absolute div" + "desktop icon cluster absolute div" are now one `hidden lg:flex absolute top-4 left-4 right-4 z-20 items-center justify-between gap-3` wrapper: `<TopNavLine className="min-w-0 flex-1" />` followed by a `<div className="flex shrink-0 items-center gap-2">` holding `UserDropdown`/`LanguageToggle`/`ThemeToggle`. Scoped to `lg:` only, per the confirmed brief.
+  - The two mobile-specific icon divs (`flex lg:hidden absolute top-4 right-4` with `ThemeToggle`; `flex lg:hidden absolute top-4 left-4` with `UserDropdown`+`LanguageToggle`) are untouched, still independently positioned exactly as before.
+  - `TopNavLine` still renders on mobile too (own `lg:hidden` wrapper, same padding it had before this correction) — the brief only asked to scope the *icon merge* to desktop, not to hide the nav line on mobile.
+  - Logo blocks, `MasterSelector`, and the homepage widget block below were not touched.
+
+- [x] **C-6.3: `[masterId]/page.tsx` — merge nav line + icon cluster**
+  - Same merge, applied at all breakpoints (this file never had a separate mobile/desktop icon split to preserve): one `absolute top-4 left-0 right-0 z-20 flex items-center justify-between gap-3 pl-28 sm:pl-32` wrapper holding `<TopNavLine masterId={masterId} className="min-w-0 flex-1" />` then `<div className="flex shrink-0 items-center gap-2 pr-4">` with `LanguageToggle`/`ThemeToggle`.
+  - `BackButton`'s own position is untouched. The `pl-28 sm:pl-32` left padding (clearance for the fixed `BackButton`) is kept exactly as it was; the old `pr-24 sm:pr-28` right padding is dropped since the icons are now real flex-row content positioned by `justify-between`, not independently-absolutely-positioned content the nav line had to reserve dead space for.
+  - Confirmed via `git diff` that nothing else in this file changed — the calendar/service/booking `motion.div`, its state, refs, and autoscroll effects are untouched.
+
+- [x] **C-6.4: Verification**
+  - `npx tsc --noEmit` → clean. `npx eslint` on the three touched files → the same 2 pre-existing unused-import errors already tracked in Stage 5's verification note (`[masterId]/page.tsx`'s `Image`, `HomeClient.tsx`'s `Link`) — confirmed unrelated to this fix, deferred to Step 30. `npm run lint` (full repo) → still exactly 45 pre-existing problems, zero new. `npm run test` → 26 files / 161 tests, all passing. `npm run build` → succeeds, `/[masterId]` and `/[masterId]/pages/[slug]` still compile. `wc -l`: `TopNavLine.tsx` 73, `HomeClient.tsx` 147, `[masterId]/page.tsx` 417 — all well under 500.
+
+- [x] **C-6.5: Follow-up fix — two remaining structural bugs found by the user live-testing C-6.1–C-6.4 (fixed directly by the orchestrator, not the Coder)**
+  - **Bug 1:** the hairline was `top-1/2 -translate-y-1/2` — vertically centered *through* the tab/icon row, so text and icons visually looked pierced by the line ("elements stuck into the line") instead of sitting above it.
+  - **Bug 2:** `TopNavLine`'s own box only spanned the tabs' width (icons were a separate flex sibling outside it per C-6.2/C-6.3), so the fade-mask gradient's 18%-transparent-then-solid transition landed right at the start of the first tab's text instead of in the empty space reserved for a corner logo — and the line then stopped abruptly right before the icon cluster instead of continuing solid underneath it.
+  - **Fix:** `TopNavLine` now takes an `actions?: ReactNode` prop and owns the *entire* bar — tabs and the caller's icon cluster render together inside it, in a `pb-2.5` row, with the hairline moved to `absolute inset-x-0 bottom-0` (a bottom-border-style divider below the content, not through its middle) and its fade-mask now spanning the bar's true full width (`black_15%`) so it fades only at the true left edge and stays solid underneath tabs and icons alike. `HomeClient.tsx` (desktop only, mobile untouched) and `[masterId]/page.tsx` updated to pass their icon clusters via the new `actions` prop instead of rendering them as an independent flex sibling.
+  - Verified: `npx eslint` on the three files → same 2 pre-existing unused-import errors as C-6.4, nothing new; `npx tsc --noEmit` → clean. No test suite covers these UI components. Did **not** run `npm run build` (user's dev server may be running) — no restart needed for this round.
+
+- [x] **C-6.6: Follow-up polish — spacing, right-edge reach, tab styling (fixed directly by the orchestrator, per user request to use the `frontend-design` skill for the tab visuals)**
+  - Bar felt too tall (`pb-2.5` gap before the hairline, `top-4` offset) and the line stopped visibly short of the true right edge (`right-4` inset). Tightened: `pb-2.5 → pb-1.5`, wrapper `top-4 → top-3`, wrapper `right-4 → right-2` (both `HomeClient.tsx` and `[masterId]/page.tsx`), tab `gap-4 → gap-1.5`.
+  - Fade zone shrunk (`black_15% → black_8%`) so the reserved-for-logo space at the far left is smaller and tabs/solid line start closer to the true left edge.
+  - Tabs restyled per the user's ask ("not just text, but not the flat colored buttons either"): `rounded-full` chip shape, no fill at rest (`text-muted-foreground`, `hover:bg-muted/50`), active tab gets a soft `bg-primary/12` tint + `ring-1 ring-inset ring-primary/25` outline instead of a hard solid fill — reads as an intentional, designed control without repeating the flat `bg-card` pill look that was rejected in C-6.
+  - Verified: `npx eslint`/`npx tsc --noEmit` clean (same 2 pre-existing unused-import errors as before, unrelated). `npm run build` not run (user's dev server may be running).
+
+- [x] **C-6.7: Follow-up — C-6.6's changes were real but imperceptible; root cause found and fixed**
+  - Two problems, not one: (1) the tab restyling in C-6.6 only gave the *active* tab a visible treatment — but no tab is ever active while standing on the homepage itself (none of their `href`s match `/`), so the user was only ever looking at the resting state, which barely differed from plain text. (2) the spacing/edge tweaks (`right-4→right-2`, `top-4→top-3`) were only 4-8px changes — not perceptible on a ~2000px-wide screen.
+  - Fixed: tabs now get a visible `rounded-full border` chip at rest too (`border-border/70 bg-card/50 text-foreground/75`), not just when active (active: `border-primary/40 bg-primary/15 text-primary`) — so the "is this a button" question is answered immediately regardless of route. Cut spacing much harder: `pb-1.5 → pb-0.5`, wrapper `top-3 → top-2`, wrapper `right-2 → right-0` (both files) with a small internal `pr-2` on the content row so the hairline itself still reaches the true edge while the icon cluster keeps a hair of breathing room. Fade zone shrunk again, `black_8% → black_4%`.
+  - Verified: `npx eslint`/`npx tsc --noEmit` clean, same 2 pre-existing unrelated errors. `npm run build` not run.
+
+- [x] **C-6.8: Follow-up — fade zone was too aggressively shrunk in C-6.6/C-6.7; user marked the correct fade-conclude point on a screenshot**
+  - Tab shape/placement confirmed correct this round (circled as good). The fade zone had been progressively shrunk (`15%→8%→4%`) in earlier rounds while chasing a different bug (the vertical-centering/narrow-box issues, fixed in C-6.5) — never actually the right lever. The user annotated a screenshot marking where the fade should visually conclude, roughly 26-28% into the bar's width. Set `black_4% → black_28%`.
+  - Tab chip vertical padding trimmed once more (`py-1 → py-0.5`) per "make it thinner still".
+  - Verified: `npx eslint`/`npx tsc --noEmit` on `TopNavLine.tsx` clean.
+
+- [x] **C-6.9: Root cause found — fade-mask % and tab position were never linked; added a real reserved leading space**
+  - The user restarted their dev server (confirmed via `ps`/`lsof` it was a genuine fresh process on port 3001) and still saw no visible change, which correctly ruled out the stale-bundle theory from C-6.8. Verified directly with `curl` against the live server: the `black_28%` fade change from C-6.8 WAS being served (present in the static SSR HTML), but the tab pills themselves are only rendered client-side after `TopNavLine`'s React Query fetch resolves — so a plain `curl` can't see them, and more importantly, **the tabs' horizontal starting position was never actually tied to the hairline's fade percentage at all** — they're two unrelated style properties. Every round of adjusting `black_N%` changed only the invisible 1px underline's own gradient; the tab content itself always started at the same fixed position (right after the wrapper's `left-4`). That's the real reason nothing looked different: the fade edits were correct but affected the wrong, barely-visible element.
+  - Added a new `leadingSpaceClassName` prop to `TopNavLine` — real Tailwind padding applied to the tabs `<nav>` specifically (not the outer wrapper, so the hairline still spans and fades across the *full* bar width underneath). `HomeClient.tsx` passes `pl-24` (homepage only — reserves real empty space for a future logo before "Test3" starts). `[masterId]/page.tsx` does not pass it (no logo on that page, already gets its own clearance from `pl-28`/`pl-32` for `BackButton`).
+  - Verified with `curl` directly against the live dev server (not a screenshot) that `pl-24` is now actually present in the served HTML, so this one is confirmed landing before asking the user to re-check. `npx eslint`/`npx tsc --noEmit` clean (same 1 pre-existing unrelated error in `HomeClient.tsx`).
+
+- [x] **C-6.10: Bigger leading space, applied to master pages too, plus master-page avatar/line overlap fixed**
+  - `leadingSpaceClassName` doubled (`pl-24 → pl-48`) on the homepage, and now also passed on `[masterId]/page.tsx` — user wants consistent tab starting position across homepage and every master page, not conditioned on whether a logo exists there yet ("no logo there, you're right, but we'll think about that more later").
+  - Found and fixed a real bug the user caught live: on a master's booking page, the permanent nav bar (absolutely positioned, sits above the flow) had nothing reserving space below it, so `BrandHeader`'s circular avatar rendered directly underneath and visually collided with the hairline. Added `pt-12` to the content wrapper in `[masterId]/page.tsx` so the avatar clears the bar.
+  - Bar trimmed once more (`pb-0.5 → pb-0`) per the repeated "make the bar thinner" request.
+  - Verified live, not by screenshot: `curl`'d both the homepage and the actual master route from the user's screenshot (`/cmqr00i5c0003ox6yxwrqpct0`) against the running dev server and confirmed `pl-48` and `pt-12` are both present in the served HTML before asking for another visual check. `npx eslint`/`npx tsc --noEmit` clean (same 2 pre-existing unrelated errors).
+
+- [x] **C-6.11: Leading space increased again by the same increment (`pl-48 → pl-72`, +96px, matching the size of the previous bump), both pages. Verified live via `curl` on both routes before reporting.**
+
+- [x] **C-6.12: Leading space increased by half the previous increment (`pl-72 → pl-[21rem]`, +48px = half of the prior +96px bump), both pages. Verified live via `curl`.**
+
+- [x] **C-6.13: Leading space increased again by the same increment (`pl-[21rem] → pl-96`, +48px), both pages. Verified live via `curl`. Now at 384px reserved before the tabs start.**
+
+- [x] **C-6.14: Hairline fade-mask reduced ~40% (`black_28% → black_17%`), so the underline itself reaches solid sooner. Verified live via `curl` on both routes.**
+
+⏸ **STOP — user re-verifies.**
+
+## Paused 2026-07-25 — do this before Stage 6, not after
+
+C-6 is **not** considered resolved. The user stopped mid-iteration (out of time/patience, not because it's right) after C-6.14 still showed no visible fade change despite `curl`-confirmed live CSS. Do not resume Stage 6 until this section is worked through with the user first, live, screenshot-in-hand — the last several rounds of blind percentage/spacing tweaks (C-6.6 through C-6.14) were not an effective way to converge on this; treat it as a fresh design pass, not another numeric nudge.
+
+1. **Tab styling is explicitly rejected as-is** ("уебищные кнопки" — user's own words). The `rounded-full border` chip treatment from C-6.6/C-6.7 needs a real redesign, not another parameter tweak. The user has no fixed vision for this yet and said so directly — needs a proper design conversation (possibly the visual companion, or a few concrete mockup options to react to) rather than more one-shot CSS edits.
+2. **New idea raised, unexplored:** tabs should feel visually related/"attracted" to the logo when one is configured — logo as an anchor the tabs cluster toward, rather than tabs sitting in an independent flat row. Vague on purpose (user's own words: "не знаю, короче") — needs to be workshopped, not assumed.
+3. **Master booking page has no logo**, so whatever "tabs relate to the logo" concept means needs a distinct, deliberate answer for master pages specifically — right now the reserved leading space just leaves them looking centered/floating with nothing to anchor to. Don't assume the homepage's eventual solution auto-transfers.
+4. **Unrelated, older, still-open item — do NOT lose track of this:** the master booking page's calendar card has an unused gap below it that was flagged back at the very start of this feature's brainstorming (`docs/superpowers/specs/2026-07-25-content-pages-design.md` background) — shrink the calendar, remove the dead gap. Never implemented. Explicitly not part of C-6, but the user wants it bundled into the same "master page isn't done yet" pass.
+5. **Public content-page rendering itself (`/pages/[slug]`, `PageRenderer` + block renderers) is rough/unfinished visually** ("там всё вообще ужасно сейчас") — needs its own design pass, separate from the nav bar. The user's instinct is that whatever visual language gets figured out for the tabs will likely extend to this too, but that's not confirmed — check before assuming.
+
+None of Stage 6 (master pages CRUD + footer slot — the functional/data-plumbing work) is blocked by this list; it's specifically the *visual* layer above it (Stage 5's nav bar, plus these newly-raised page-rendering/calendar items) that needs to be resolved first per the user's explicit ordering request.
 
 ### Stage 6 — Master pages + footer slot
 

@@ -34,6 +34,7 @@ export default async function SettingsPage() {
     salonNip: c.salonNip as string | null ?? null,
     salonLegalAddress: c.salonLegalAddress as string | null ?? null,
     enabledLocales: c.enabledLocales as string || '["pl","en","uk"]',
+    homepageWidgetBlock: c.homepageWidgetBlock as string | null ?? null,
   }
 
   return (

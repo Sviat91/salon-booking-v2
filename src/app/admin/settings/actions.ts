@@ -59,6 +59,7 @@ function buildSettingsSchema(t: (key: string) => string) {
   salonNip:         z.string().max(30).optional().default(""),
   salonLegalAddress:z.string().max(200).optional().default(""),
   enabledLocales:   z.string().optional().default('["pl","en","uk"]'),
+  homepageWidgetBlock: z.string().optional().default(""),
   })
 }
 
@@ -121,6 +122,7 @@ export async function saveSettings(
     salonNip:         formData.get("salonNip") || "",
     salonLegalAddress:formData.get("salonLegalAddress") || "",
     enabledLocales:   formData.get("enabledLocales") || '["pl","en","uk"]',
+    homepageWidgetBlock: formData.get("homepageWidgetBlock") || "",
   }
 
   const parsed = buildSettingsSchema(t).safeParse(raw)
@@ -148,6 +150,7 @@ export async function saveSettings(
     bgApplyToDark:  parsed.data.bgApplyToDark === 'true',
     logoFullscreen: parsed.data.logoFullscreen === 'true',
     darkBgImageUrl: parsed.data.darkBgImageUrl || null,
+    homepageWidgetBlock: parsed.data.homepageWidgetBlock || null,
   }
 
   try {

@@ -540,6 +540,8 @@
         "languagesSectionTitle": "Content Languages",
         "languagesSectionDesc": "Languages available for service names and master bios",
         "languagesSectionHint": "Polish is always enabled as the default language. Disabling a language hides its input in authoring forms but does not delete saved translations.",
+        "homepageWidgetSectionTitle": "Homepage widget",
+        "homepageWidgetSectionDesc": "Optional photo widget shown at the bottom of the homepage",
         "lightThemeTitle": "Light Theme",
         "lightThemeDesc": "Colors used when the light theme is active",
         "resetToM3": "Reset to M3 defaults",

@@ -1,12 +1,13 @@
 "use client"
 import { useQueryClient } from '@tanstack/react-query'
 import MasterSelector from '@/components/MasterSelector'
-import ReviewsMarquee from '@/components/reviews/ReviewsMarquee'
 import ThemeToggle from '@/components/ThemeToggle'
 import LanguageToggle from '@/components/LanguageToggle'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ReviewImage } from '@/lib/reviews'
+import TopNavLine from '@/components/content/TopNavLine'
+import BlockRenderer from '@/components/content/BlockRenderer'
+import { parseBlockSlot } from '@/lib/content/blocks'
 
 import UserDropdown from '@/components/auth/UserDropdown'
 
@@ -20,10 +21,10 @@ type LogoConfig = {
   logoPages?: string
   logoLayer?: string
   brandName?: string
+  homepageWidgetBlock?: string | null
 }
 
 interface HomeClientProps {
-  initialReviews: ReviewImage[]
   config: LogoConfig
   isPreview?: boolean
 }
@@ -37,8 +38,10 @@ function shouldShowLogo(logoPages: string | undefined, page: string): boolean {
   }
 }
 
-export default function HomeClient({ initialReviews, config, isPreview }: HomeClientProps) {
+export default function HomeClient({ config, isPreview }: HomeClientProps) {
   useQueryClient()
+
+  const homepageWidgetSlot = parseBlockSlot(config.homepageWidgetBlock ?? null)
 
   const showLogo = shouldShowLogo(config.logoPages, "home") && !isPreview
   const logoSrc = config.logoUrl || "/head_logo.png"
@@ -59,11 +62,23 @@ export default function HomeClient({ initialReviews, config, isPreview }: HomeCl
 
   return (
     <main className="flex-1 flex flex-col relative pb-4">
-      {/* Desktop: all three icons together on the right — unchanged from before */}
-      <div className="hidden lg:flex absolute top-4 right-4 z-20 items-center gap-2">
-        <UserDropdown />
-        <LanguageToggle />
-        <ThemeToggle />
+      {/* Desktop: nav line owns the whole bar, tabs + icon cluster together. */}
+      <div className="hidden lg:block absolute top-2 left-4 right-0 z-20">
+        <TopNavLine
+          leadingSpaceClassName="pl-96"
+          actions={
+            <>
+              <UserDropdown />
+              <LanguageToggle />
+              <ThemeToggle />
+            </>
+          }
+        />
+      </div>
+
+      {/* Mobile: nav line on its own row — icon clusters below stay independent */}
+      <div className="absolute top-4 left-0 right-0 z-10 pl-20 pr-20 lg:hidden">
+        <TopNavLine />
       </div>
 
       {/* Mobile: split so nothing crowds the centered logo below — theme toggle stays top-right */}
@@ -125,8 +140,10 @@ export default function HomeClient({ initialReviews, config, isPreview }: HomeCl
         <MasterSelector />
       </div>
 
-      <div className="hidden lg:block mt-auto pt-12 w-full">
-        <ReviewsMarquee initialReviews={initialReviews} />
+      <div className="mt-auto pt-12 w-full">
+        {homepageWidgetSlot && (
+          <BlockRenderer type={homepageWidgetSlot.type} config={homepageWidgetSlot.config} />
+        )}
       </div>
     </main>
   )

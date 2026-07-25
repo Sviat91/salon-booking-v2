@@ -14,6 +14,7 @@ import BackgroundSection from "./BackgroundSection"
 import { ColorRow, ImageUploadField, SubmitButton, SettingsSection } from "./FormFields"
 import { apiErrorKey } from "@/lib/errors/apiErrorKey"
 import LanguagesSection from "./LanguagesSection"
+import HomepageWidgetSection from "./HomepageWidgetSection"
 import { parseEnabledLocales } from "@/lib/localized-content"
 
 const M3_LIGHT_DEFAULTS = {
@@ -84,6 +85,7 @@ type TenantConfig = {
   salonNip:          string | null
   salonLegalAddress: string | null
   enabledLocales:    string
+  homepageWidgetBlock: string | null
 }
 
 const initialState: SettingsFormState = {}
@@ -377,6 +379,7 @@ export default function SettingsForm({ config }: { config: TenantConfig }) {
 
       {/* ── Content Languages ────────────────────────────────────── */}
       <LanguagesSection enabledLocales={parseEnabledLocales(config.enabledLocales)} onChange={() => setIsDirty(true)} />
+      <HomepageWidgetSection value={config.homepageWidgetBlock} enabledLocales={parseEnabledLocales(config.enabledLocales)} onChange={() => setIsDirty(true)} />
 
       {/* ── Light theme ──────────────────────────────────────────── */}
       <SettingsSection

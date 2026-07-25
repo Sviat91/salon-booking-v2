@@ -20,6 +20,7 @@ import LanguageToggle from '../../components/LanguageToggle'
 import BackButton from '../../components/BackButton'
 import LogoDisplay from '../../components/LogoDisplay'
 import GuestConversionBanner from '../../components/GuestConversionBanner'
+import TopNavLine from '@/components/content/TopNavLine'
 
 interface PageProps {
   params: {
@@ -252,14 +253,24 @@ export default function Page({ params }: PageProps) {
   return (
     <main className="px-3 py-4 sm:p-6 relative flex-1 flex flex-col w-full max-w-full box-border overflow-x-hidden">
       <BackButton />
-      <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
-        <LanguageToggle />
-        <ThemeToggle />
+      {/* Nav line owns the whole bar, tabs + icon cluster together. */}
+      <div className="absolute top-2 left-0 right-0 z-20 pl-28 sm:pl-32">
+        <TopNavLine
+          masterId={masterId}
+          leadingSpaceClassName="pl-96"
+          actions={
+            <>
+              <LanguageToggle />
+              <ThemeToggle />
+            </>
+          }
+        />
       </div>
 
       <LogoDisplay page="booking" />
       {/* основной центрированный контейнер */}
-      <div className="mx-auto w-full max-w-5xl px-0">
+      {/* pt-12: clears the absolutely-positioned nav bar above so the avatar never sits under it */}
+      <div className="mx-auto w-full max-w-5xl px-0 pt-12">
         <BrandHeader onLogoClick={closeBookingManagement} />
         <motion.div 
           className="mt-8 space-y-6 lg:grid lg:grid-cols-[auto,auto] lg:items-start lg:justify-center lg:gap-6 lg:space-y-0"
