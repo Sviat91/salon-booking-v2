@@ -39,6 +39,7 @@ model User {
   consentRecords       ConsentRecord[]
   passwordResetTokens  PasswordResetToken[]
   accounts             Account[]
+  pages                Page[]
 
   @@index([phone])
   @@index([email])
@@ -54,6 +55,7 @@ model MasterProfile {
   specialties     String?  // Stored as JSON string or comma-separated
   showOnHomepage  Boolean  @default(true)
   color           String?  @default("#166534")
+  footerBlock     String?  // JSON: {"type":"photoWidget"|"text","config":{...}} — single block shown at the bottom of this master's booking page
 
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -272,6 +274,7 @@ model TenantConfig {
   notifReminder2hEnabled  Boolean  @default(false)
 
   enabledLocales  String   @default("[\"pl\",\"en\",\"uk\"]")
+  homepageWidgetBlock String? // JSON: {"type":"photoWidget","config":{...}} — single block shown on the homepage
 
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -311,6 +314,40 @@ model PasswordResetToken {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([token])
+}
+
+model Page {
+  id         String   @id @default(cuid())
+  ownerType  String   // 'global' | 'master'
+  masterId   String?  // set when ownerType = 'master'
+  slug       String
+  title_pl   String
+  title_en   String?
+  title_uk   String?
+  enabled    Boolean  @default(true)
+  order      Int      @default(0)
+  visibility String?  // JSON string[] of page-types, e.g. ["home","booking"] — only meaningful when ownerType='global'
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  master     User?    @relation(fields: [masterId], references: [id], onDelete: Cascade)
+  blocks     Block[]
+
+  @@unique([ownerType, masterId, slug])
+}
+
+model Block {
+  id        String   @id @default(cuid())
+  pageId    String
+  type      String   // 'photoWidget' | 'photoGallery' | 'text'
+  order     Int      @default(0)
+  config    String   // JSON, shape depends on type
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  page      Page @relation(fields: [pageId], references: [id], onDelete: Cascade)
 }
 
 // NextAuth standardized Account model (required for OAuth linking)

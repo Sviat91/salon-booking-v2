@@ -396,6 +396,26 @@
       "invalidEmail": "Недійсний email",
       "invalidHex": "Недійсний колір hex"
     },
+    "pages": {
+      "blockType": {
+        "photoWidget": "Віджет фото",
+        "photoGallery": "Фотогалерея",
+        "text": "Текст",
+        "none": "Немає"
+      },
+      "widgetStyleLabel": "Стиль віджета",
+      "widgetStyle": {
+        "strip": "Стрічка, що прокручується",
+        "fade": "Плавний перехід",
+        "stack": "Стос"
+      },
+      "addPhoto": "Додати фото",
+      "movePhotoLeft": "Перемістити ліворуч",
+      "movePhotoRight": "Перемістити праворуч",
+      "removePhoto": "Видалити фото",
+      "textBlockPlaceholder": "Введіть текст…",
+      "textRequired": "Текст польською мовою обов'язковий"
+    },
     "admins": {
       "accessEyebrow": "Доступ",
       "registeredCount": "Зареєстровано адміністраторів: {{count}}",

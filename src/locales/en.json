@@ -396,6 +396,26 @@
       "invalidEmail": "Invalid email",
       "invalidHex": "Invalid hex"
     },
+    "pages": {
+      "blockType": {
+        "photoWidget": "Photo widget",
+        "photoGallery": "Photo gallery",
+        "text": "Text",
+        "none": "None"
+      },
+      "widgetStyleLabel": "Widget style",
+      "widgetStyle": {
+        "strip": "Scrolling strip",
+        "fade": "Fade",
+        "stack": "Stack"
+      },
+      "addPhoto": "Add photo",
+      "movePhotoLeft": "Move left",
+      "movePhotoRight": "Move right",
+      "removePhoto": "Remove photo",
+      "textBlockPlaceholder": "Enter text…",
+      "textRequired": "Polish text is required"
+    },
     "admins": {
       "accessEyebrow": "Access",
       "registeredCount": "{{count}} admins registered",

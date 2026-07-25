@@ -396,6 +396,26 @@
       "invalidEmail": "Nieprawidłowy e-mail",
       "invalidHex": "Nieprawidłowy kolor hex"
     },
+    "pages": {
+      "blockType": {
+        "photoWidget": "Widżet zdjęć",
+        "photoGallery": "Galeria zdjęć",
+        "text": "Tekst",
+        "none": "Brak"
+      },
+      "widgetStyleLabel": "Styl widżetu",
+      "widgetStyle": {
+        "strip": "Pasek przewijany",
+        "fade": "Przenikanie",
+        "stack": "Stos"
+      },
+      "addPhoto": "Dodaj zdjęcie",
+      "movePhotoLeft": "Przesuń w lewo",
+      "movePhotoRight": "Przesuń w prawo",
+      "removePhoto": "Usuń zdjęcie",
+      "textBlockPlaceholder": "Wpisz treść…",
+      "textRequired": "Treść w języku polskim jest wymagana"
+    },
     "admins": {
       "accessEyebrow": "Dostęp",
       "registeredCount": "Zarejestrowanych administratorów: {{count}}",
