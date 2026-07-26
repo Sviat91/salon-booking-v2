@@ -1252,7 +1252,6 @@
     "legalNotice": ""
   },
   "slots": {
-    "selectServiceFirst": "Najpierw wybierz usługę",
     "searching": "Wyszukujemy wolne godziny…",
     "loadError": "Błąd ładowania terminów",
     "noAvailable": "Brak dostępnych terminów"

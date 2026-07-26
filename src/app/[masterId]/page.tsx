@@ -272,8 +272,8 @@ export default function Page({ params }: PageProps) {
       {/* pt-12: clears the absolutely-positioned nav bar above so the avatar never sits under it */}
       <div className="mx-auto w-full max-w-5xl px-0 pt-12">
         <BrandHeader onLogoClick={closeBookingManagement} />
-        <motion.div 
-          className="mt-8 space-y-6 lg:grid lg:grid-cols-[auto,auto] lg:items-start lg:justify-center lg:gap-6 lg:space-y-0"
+        <motion.div
+          className="mt-4 space-y-6 lg:grid lg:grid-cols-[auto,auto] lg:items-start lg:justify-center lg:gap-6 lg:space-y-0"
           initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={prefersReducedMotion ? { duration: 0 } : { 

@@ -343,6 +343,13 @@ body:has(.admin-layout)::before {
   display: none !important;
 }
 
+/* react-day-picker v9 renamed .rdp-caption to .rdp-month_caption; the old
+   selector above no longer matches, leaving this wrapper's own height
+   reserved even with its (hidden) children collapsed. */
+.rdp-month_caption {
+  display: none !important;
+}
+
 /* Date input fixes for mobile */
 input[type="date"] {
   max-width: 100%;

@@ -89,7 +89,16 @@ export default function TopNavLine({ masterId, className, actions, leadingSpaceC
         </nav>
         {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
       </div>
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-border [mask-image:linear-gradient(to_right,transparent,black_17%,black_100%)]" />
+      {/* Fade stop is a fixed length, not a %, so it lines up with the pl-96
+          reserved leading space exactly regardless of viewport width. */}
+      <div
+        className={cn(
+          "pointer-events-none absolute inset-x-0 bottom-0 h-px bg-border",
+          leadingSpaceClassName
+            ? "[mask-image:linear-gradient(to_right,transparent,black_24rem,black_100%)]"
+            : "[mask-image:linear-gradient(to_right,transparent,black_1rem,black_100%)]"
+        )}
+      />
     </div>
   )
 }

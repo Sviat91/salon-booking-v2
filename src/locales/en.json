@@ -1252,7 +1252,6 @@
     "legalNotice": "The full legal text is available in Polish."
   },
   "slots": {
-    "selectServiceFirst": "First, select a service",
     "searching": "Searching for available times…",
     "loadError": "Error loading time slots",
     "noAvailable": "No available time slots"

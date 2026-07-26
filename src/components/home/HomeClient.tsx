@@ -62,8 +62,11 @@ export default function HomeClient({ config, isPreview }: HomeClientProps) {
 
   return (
     <main className="flex-1 flex flex-col relative pb-4">
-      {/* Desktop: nav line owns the whole bar, tabs + icon cluster together. */}
-      <div className="hidden lg:block absolute top-2 left-4 right-0 z-20">
+      {/* Desktop: nav line owns the whole bar, tabs + icon cluster together.
+          Outer offset (pl-28 sm:pl-32) matches the master booking page and
+          content pages exactly, so tabs land at the same x position on every
+          route and don't jump when navigating between them. */}
+      <div className="hidden lg:block absolute top-2 left-0 right-0 z-20 pl-28 sm:pl-32">
         <TopNavLine
           leadingSpaceClassName="pl-96"
           actions={

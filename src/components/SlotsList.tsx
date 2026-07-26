@@ -42,7 +42,6 @@ export default function SlotsList({ date, procedureId, selected, onPick }: { dat
 
   return (
     <div>
-      {!procedureId && <div className="text-sm text-muted-foreground">{t('slots.selectServiceFirst', 'Najpierw wybierz usługę')}</div>}
       {procedureId && !dateISO && <div className="text-sm text-muted-foreground">{t('booking.selectDate')}</div>}
       <div className={`relative overflow-x-hidden transition-[max-height,opacity] duration-300 ease-out ${panelState}`}>
         <div className={`relative rounded-2xl border border-border bg-card text-card-foreground p-4 ${ready ? 'max-h-[24rem]' : ''}`}>
