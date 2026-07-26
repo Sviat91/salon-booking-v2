@@ -1,5 +1,7 @@
 "use client"
+import { useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
+import { motion } from 'framer-motion'
 import MasterSelector from '@/components/MasterSelector'
 import ThemeToggle from '@/components/ThemeToggle'
 import LanguageToggle from '@/components/LanguageToggle'
@@ -8,6 +10,7 @@ import Link from 'next/link'
 import TopNavLine from '@/components/content/TopNavLine'
 import BlockRenderer from '@/components/content/BlockRenderer'
 import { parseBlockSlot } from '@/lib/content/blocks'
+import { useReducedMotion } from '@/hooks/useReducedMotion'
 
 import UserDropdown from '@/components/auth/UserDropdown'
 
@@ -40,6 +43,8 @@ function shouldShowLogo(logoPages: string | undefined, page: string): boolean {
 
 export default function HomeClient({ config, isPreview }: HomeClientProps) {
   useQueryClient()
+  const prefersReducedMotion = useReducedMotion()
+  const [isNavigatingAway, setIsNavigatingAway] = useState(false)
 
   const homepageWidgetSlot = parseBlockSlot(config.homepageWidgetBlock ?? null)
 
@@ -140,12 +145,28 @@ export default function HomeClient({ config, isPreview }: HomeClientProps) {
       </div>
 
       <div className="flex justify-center px-4 pt-8 lg:pt-24">
-        <MasterSelector />
+        <MasterSelector onNavigateAway={() => setIsNavigatingAway(true)} />
       </div>
 
       <div className="mt-auto pt-12 w-full">
         {homepageWidgetSlot && (
-          <BlockRenderer type={homepageWidgetSlot.type} config={homepageWidgetSlot.config} />
+          <motion.div
+            initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+            animate={{ opacity: isNavigatingAway ? 0 : 1, y: 0 }}
+            transition={
+              prefersReducedMotion
+                ? { duration: 0 }
+                : {
+                    duration: isNavigatingAway ? 0.25 : 0.6,
+                    // Entrance only: let the title + master cards (last card settles ~0.9s) finish first.
+                    // No delay on exit — that fade should start immediately on click.
+                    delay: isNavigatingAway ? 0 : 1.3,
+                    ease: [0.22, 1, 0.36, 1],
+                  }
+            }
+          >
+            <BlockRenderer type={homepageWidgetSlot.type} config={homepageWidgetSlot.config} />
+          </motion.div>
         )}
       </div>
     </main>

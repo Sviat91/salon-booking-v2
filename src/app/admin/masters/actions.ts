@@ -21,6 +21,7 @@ function buildCreateMasterSchema(t: (key: string) => string) {
     avatarUrl:     pathOrEmpty,
     showOnHomepage:z.coerce.boolean().default(true),
     color:         z.string().regex(/^#[0-9A-Fa-f]{6}$/, t('admin.masters.invalidHex')).default("#166534"),
+    footerBlock:   z.string().optional().default(""),
   })
 }
 
@@ -33,6 +34,7 @@ function buildUpdateMasterSchema(t: (key: string) => string) {
     avatarUrl:     pathOrEmpty,
     showOnHomepage:z.coerce.boolean().default(true),
     color:         z.string().regex(/^#[0-9A-Fa-f]{6}$/, t('admin.masters.invalidHex')).default("#166534"),
+    footerBlock:   z.string().optional().default(""),
   })
 }
 
@@ -78,6 +80,7 @@ export async function createMaster(
     avatarUrl:      formData.get("avatarUrl") || "",
     showOnHomepage: formData.get("showOnHomepage") === "on" || formData.get("showOnHomepage") === "true",
     color:          formData.get("color") || "#166534",
+    footerBlock:    formData.get("footerBlock") || "",
   }
 
   const parsed = buildCreateMasterSchema(t).safeParse(raw)
@@ -110,6 +113,7 @@ export async function createMaster(
             avatarUrl:     parsed.data.avatarUrl || null,
             showOnHomepage:parsed.data.showOnHomepage,
             color:         parsed.data.color,
+            footerBlock:   parsed.data.footerBlock || null,
           } as any,
         },
       },
@@ -141,6 +145,7 @@ export async function updateMaster(
     avatarUrl:      formData.get("avatarUrl") || "",
     showOnHomepage: formData.get("showOnHomepage") === "on" || formData.get("showOnHomepage") === "true",
     color:          formData.get("color") || "#166534",
+    footerBlock:    formData.get("footerBlock") || "",
   }
 
   const parsed = buildUpdateMasterSchema(t).safeParse(raw)
@@ -163,6 +168,7 @@ export async function updateMaster(
               avatarUrl:     parsed.data.avatarUrl || null,
               showOnHomepage:parsed.data.showOnHomepage,
               color:         parsed.data.color,
+              footerBlock:   parsed.data.footerBlock || null,
             } as any,
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             update: {
@@ -172,6 +178,7 @@ export async function updateMaster(
               avatarUrl:     parsed.data.avatarUrl || null,
               showOnHomepage:parsed.data.showOnHomepage,
               color:         parsed.data.color,
+              footerBlock:   parsed.data.footerBlock || null,
             } as any,
           },
         },

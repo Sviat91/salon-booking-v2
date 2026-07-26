@@ -227,6 +227,7 @@ export default function SettingsForm({ config }: { config: TenantConfig }) {
             logoLayer,
             logoFullscreen,
           }}
+          homepageWidgetBlock={config.homepageWidgetBlock}
           onLogoUpload={(url) => { setLogoUrl(url); setIsDirty(true) }}
           onDarkLogoUpload={(url) => { setDarkLogoUrl(url); setIsDirty(true) }}
           onPositionChange={(x, y) => { setLogoPositionX(x); setLogoPositionY(y); setIsDirty(true) }}

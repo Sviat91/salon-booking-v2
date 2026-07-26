@@ -113,6 +113,11 @@ export const masterNavItems: NavItem[] = [
     href: "/admin/master/schedule",
     icon: CalendarDays,
   },
+  {
+    labelKey: "admin.nav.pages",
+    href: "/admin/master/pages",
+    icon: FileText,
+  },
 ]
 
 export function getNavItemsForRole(role?: string): NavItem[] {

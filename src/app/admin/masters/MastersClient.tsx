@@ -30,6 +30,7 @@ type Master = {
     avatarUrl: string | null
     showOnHomepage: boolean
     color: string | null
+    footerBlock: string | null
   } | null
 }
 

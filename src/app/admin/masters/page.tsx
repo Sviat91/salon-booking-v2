@@ -15,6 +15,7 @@ type MasterWithProfile = {
     avatarUrl: string | null
     showOnHomepage: boolean
     color: string | null
+    footerBlock: string | null
   } | null
 }
 
@@ -31,7 +32,7 @@ export default async function MastersPage() {
       name: true,
       email: true,
       masterProfile: {
-        select: { bio_pl: true, bio_en: true, bio_uk: true, avatarUrl: true, showOnHomepage: true, color: true },
+        select: { bio_pl: true, bio_en: true, bio_uk: true, avatarUrl: true, showOnHomepage: true, color: true, footerBlock: true },
       },
     },
   }) as MasterWithProfile[]

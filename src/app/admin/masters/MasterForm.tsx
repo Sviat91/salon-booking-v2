@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label"
 import { createMaster, updateMaster, resetMasterPassword, getMasterPassword, type MasterFormState } from "./actions"
 import { apiErrorKey } from "@/lib/errors/apiErrorKey"
 import LocalizedFieldInput from "@/components/admin/LocalizedFieldInput"
+import MasterFooterBlockField from "./MasterFooterBlockField"
 import type { Language } from "@/lib/i18n-shared"
 
 type Master = {
@@ -24,6 +25,7 @@ type Master = {
     avatarUrl: string | null
     showOnHomepage: boolean
     color: string | null
+    footerBlock: string | null
   } | null
 }
 
@@ -280,6 +282,12 @@ export default function MasterForm({ master, enabledLocales, onSuccess }: Master
           </p>
         </div>
       </div>
+
+      {/* Footer block (master's own booking-page footer slot) */}
+      <MasterFooterBlockField
+        value={master?.masterProfile?.footerBlock ?? null}
+        enabledLocales={enabledLocales}
+      />
 
       {state.error && <p className="text-sm text-destructive">{state.error}</p>}
       {state.success && master && <div className="rounded bg-[var(--md-success-container)] p-2 text-center text-xs font-medium text-[var(--md-on-success-container)]">{t('admin.masters.settingsSaved')}</div>}

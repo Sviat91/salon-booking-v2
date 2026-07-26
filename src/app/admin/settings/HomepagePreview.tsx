@@ -18,6 +18,7 @@ export default function HomepagePreview({
   onDragStart,
   previewRef,
   containerHeight,
+  homepageWidgetBlock,
 }: {
   logoUrl: string | null
   posX: number
@@ -31,6 +32,10 @@ export default function HomepagePreview({
    * Acts as a MAX, not a fixed override — the preview never exceeds its natural
    * width-driven `visibleHeight`, so it still scales down proportionally on mobile. */
   containerHeight: number
+  /** Current homepage widget slot value — included in the iframe's `key` so saving a
+   * change to it forces the preview iframe to remount and refetch, same as the
+   * existing dark/light remount-on-change behavior. */
+  homepageWidgetBlock?: string | null
 }) {
   const { t } = useTranslation()
   const containerRef = useRef<HTMLDivElement>(null)
@@ -66,7 +71,7 @@ export default function HomepagePreview({
       style={{ height: containerHeight ? Math.min(containerHeight, visibleHeight) : visibleHeight }}
     >
       <iframe
-        key={isDark ? 'preview-dark' : 'preview-light'}
+        key={`${isDark ? 'preview-dark' : 'preview-light'}-${homepageWidgetBlock ?? ''}`}
         src="/?preview=1"
         title={t('admin.settings.general.homepagePreviewTitle')}
         className="origin-top-left pointer-events-none"

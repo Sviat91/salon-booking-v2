@@ -23,6 +23,7 @@ type LogoConfig = {
 
 type LogoEditorProps = {
   config: LogoConfig
+  homepageWidgetBlock?: string | null
   onLogoUpload: (url: string) => void
   onDarkLogoUpload: (url: string) => void
   onPositionChange: (x: number, y: number) => void
@@ -70,6 +71,7 @@ async function uploadImage(
 
 export default function LogoEditor({
   config,
+  homepageWidgetBlock,
   onLogoUpload,
   onDarkLogoUpload,
   onPositionChange,
@@ -223,6 +225,7 @@ export default function LogoEditor({
               onDragStart={handleDragStart}
               previewRef={previewRef}
               containerHeight={0}
+              homepageWidgetBlock={homepageWidgetBlock}
             />
           </div>
         </div>
@@ -434,6 +437,7 @@ export default function LogoEditor({
               onDragStart={handleDragStart}
               previewRef={previewRef}
               containerHeight={256}
+              homepageWidgetBlock={homepageWidgetBlock}
             />
 
             <input type="hidden" name="logoPositionX" value={config.logoPositionX} />

@@ -368,6 +368,8 @@
       "colorHint": "Color for master's bookings in the calendar",
       "showOnHomepage": "Show on homepage",
       "showOnHomepageHint": "The master's card will be visible to clients on the site",
+      "footerBlockLabel": "Booking page footer block",
+      "footerBlockHint": "Optional photo widget or text block shown at the bottom of this master's booking page",
       "settingsSaved": "Settings saved successfully!",
       "saveChangesBtn": "Save Changes",
       "createMasterBtn": "Create Master",
@@ -453,10 +455,15 @@
       "deleteBlockConfirm": "Delete this block? This cannot be undone.",
       "noBlocksTitle": "No blocks yet. Add the first one below.",
       "saveBlockBtn": "Save block",
+      "saveAllBtn": "Save all",
       "addBlockBtn": "Add block",
       "backToPages": "Back to pages",
       "blocksEyebrow": "Page blocks",
-      "publicUrlLabel": "Public URL"
+      "publicUrlLabel": "Public URL",
+      "footerBlockSectionTitle": "Booking page footer block",
+      "footerBlockSectionDesc": "Optional block (photo widget or text) shown at the bottom of your booking page",
+      "footerBlockSaved": "Footer block saved",
+      "footerBlockSaveError": "Failed to save the footer block. Please try again."
     },
     "admins": {
       "accessEyebrow": "Access",

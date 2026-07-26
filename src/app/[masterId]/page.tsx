@@ -21,6 +21,7 @@ import BackButton from '../../components/BackButton'
 import LogoDisplay from '../../components/LogoDisplay'
 import GuestConversionBanner from '../../components/GuestConversionBanner'
 import TopNavLine from '@/components/content/TopNavLine'
+import MasterFooterBlock from '@/components/content/MasterFooterBlock'
 
 interface PageProps {
   params: {
@@ -416,6 +417,8 @@ export default function Page({ params }: PageProps) {
             <GuestConversionBanner show={showBookingSuccess} />
           </div>
         </motion.div>
+
+        <MasterFooterBlock masterId={masterId} />
       </div>
     </main>
   )

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useTranslation } from "react-i18next"
-import { GripVertical, Plus, Trash2 } from "lucide-react"
+import { GripVertical, Plus, Save, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import BlockTypePicker from "./BlockTypePicker"
 import BlockConfigEditor from "./BlockConfigEditor"
@@ -30,6 +30,7 @@ export default function PageBlocksEditor({ pageId, blocks, enabledLocales }: Pag
   const [pendingType, setPendingType] = useState<BlockType>(BLOCK_TYPES[0])
   const [drafts, setDrafts] = useState<Record<string, BlockConfig>>({})
   const [savingId, setSavingId] = useState<string | null>(null)
+  const [savingAll, setSavingAll] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   useEffect(() => { setLocalBlocks(blocks) }, [blocks])
@@ -87,6 +88,37 @@ export default function PageBlocksEditor({ pageId, blocks, enabledLocales }: Pag
     return !hasAnyEnabledLocaleValue({ pl: text_pl, en: text_en, uk: text_uk }, enabledLocales)
   }
 
+  async function handleSaveAll() {
+    const entries = Object.entries(drafts)
+    if (entries.length === 0) return
+    setSavingAll(true)
+    const nextErrors: Record<string, string> = {}
+    const savedIds: string[] = []
+    for (const [blockId, config] of entries) {
+      const block = localBlocks.find((b) => b.id === blockId)
+      if (block && isTextInvalid(block, config)) {
+        nextErrors[blockId] = t('admin.pages.textRequiredAnyLocale')
+        continue
+      }
+      const result = await updateBlockConfig(blockId, JSON.stringify(config))
+      if (result.error) {
+        nextErrors[blockId] = result.error
+      } else {
+        nextErrors[blockId] = ""
+        savedIds.push(blockId)
+      }
+    }
+    setErrors((prev) => ({ ...prev, ...nextErrors }))
+    setDrafts((prev) => {
+      const next = { ...prev }
+      savedIds.forEach((id) => delete next[id])
+      return next
+    })
+    setSavingAll(false)
+    router.refresh()
+  }
+
+  const draftCount = Object.keys(drafts).length
   const ids = localBlocks.map((b) => b.id)
 
   return (
@@ -165,6 +197,25 @@ export default function PageBlocksEditor({ pageId, blocks, enabledLocales }: Pag
           {t('admin.pages.addBlockBtn')}
         </Button>
       </div>
+
+      {/* Floating "Save all" — mirrors SettingsForm.tsx's page-level Save FAB
+          (same fixed bottom-right circular button, primary/muted treatment),
+          shown at all breakpoints since this page has no sidebar equivalent. */}
+      <button
+        type="button"
+        onClick={handleSaveAll}
+        disabled={draftCount === 0 || savingAll}
+        aria-label={t('admin.pages.saveAllBtn')}
+        title={t('admin.pages.saveAllBtn')}
+        className={cn(
+          "fixed bottom-4 right-4 z-50 flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-all",
+          draftCount > 0 && !savingAll
+            ? "bg-primary text-primary-foreground hover:bg-primary/90"
+            : "bg-muted text-muted-foreground opacity-50 pointer-events-none"
+        )}
+      >
+        <Save className="h-5 w-5" />
+      </button>
     </div>
   )
 }

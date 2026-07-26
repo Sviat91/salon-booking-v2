@@ -532,27 +532,57 @@ None of Stage 6 (master pages CRUD + footer slot — the functional/data-plumbin
 
 ### Stage 6 — Master pages + footer slot
 
-- [ ] **Step 24: `/admin/master/pages` routes + nav entry**
+- [x] **Step 24: `/admin/master/pages` routes + nav entry**
   - Files:
     - `src/app/admin/master/pages/page.tsx` (new) — Server Component with an explicit `session.user.role !== "MASTER"` → `redirect('/auth/login')` guard; loads the master's own pages (`listPagesForOwner`) + `enabledLocales` + their current `footerBlock`; renders `<MasterFooterBlockSection>` then `<PageListClient scope="master" detailHrefBase="/admin/master/pages">`.
     - `src/app/admin/master/pages/loading.tsx` (new), `src/app/admin/master/pages/[id]/page.tsx` (new, `<PageBlocksEditor>`), `src/app/admin/master/pages/[id]/loading.tsx` (new).
     - `src/components/admin/adminNavItems.ts` (edit) — add `{ labelKey: "admin.nav.pages", href: "/admin/master/pages", icon: FileText }` to `masterNavItems` (own entry, reusing the same label key).
   - ⚠️ **Per C-2.3:** this screen reuses the corrected `PageListClient`/`PageFormSheet` verbatim — **one** row entry point (pencil → sheet → "Manage blocks →"), drag handles for reorder. Do **not** reintroduce a `FolderOpen` row link or chevron move buttons here, and do not fork a master-specific copy of either component.
 
-- [ ] **Step 25: Master footer slot — master's own editor**
+- [x] **Step 25: Master footer slot — master's own editor**
   - Files: `src/app/admin/master/pages/actions.ts` (new), `src/app/admin/master/pages/MasterFooterBlockSection.tsx` (new)
   - Details: `actions.ts` exports one `"use server"` action, `saveMasterFooterBlock(prev, formData)`, gated on `session.user.role === "MASTER"`, writing `MasterProfile.footerBlock` for `session.user.id` only (upsert on `userId`), then `revalidatePath("/admin/master/pages")` + `revalidatePath("/", "layout")`. `MasterFooterBlockSection.tsx` is a small `<form action={...}>` wrapping `SingleBlockSlotEditor` (`allowed={['photoWidget','text']}`, `name="footerBlock"`) with its own submit button.
   - ⚠️ **Per C-3:** don't add a language-specific requirement to the slot. A `text` slot whose every enabled-locale value is empty is stored as `null` (treated as "none") rather than rejected — one line in the action, no new validation surface.
 
-- [ ] **Step 26: Master footer slot — admin side**
+- [x] **Step 26: Master footer slot — admin side**
   - Files: `src/app/admin/masters/MasterFooterBlockField.tsx` (new), `src/app/admin/masters/MasterForm.tsx` (edit), `src/app/admin/masters/actions.ts` (edit), `src/app/admin/masters/page.tsx` + `MastersClient.tsx` (edit — thread `footerBlock` and `enabledLocales` through if not already available)
   - Details: `MasterFooterBlockField.tsx` wraps `SingleBlockSlotEditor` with a `<Label>` + hint, sized for the Sheet. Add it to `MasterForm.tsx` after the "Show on homepage" block (import + ~6 lines JSX). In `masters/actions.ts`, add `footerBlock: z.string().optional().default("")` to **both** the create and update schemas, read it in `raw`, and write `footerBlock: parsed.data.footerBlock || null` into the `masterProfile` `create`/`update` payloads. Do not touch the password/encryption logic in that file, and do not change `bio_pl`'s existing required/nullable semantics (C-3 is scoped to `Page`/`Block` only).
 
-- [ ] **Step 27: Master footer slot — public side**
+- [x] **Step 27: Master footer slot — public side**
   - Files: `src/app/[masterId]/page.tsx` (edit)
   - Details: render `<MasterFooterBlock masterId={masterId} />` as the last child inside the existing `mx-auto w-full max-w-5xl` container, **below** the booking `motion.div`. One added line plus the import. No other change to this file.
 
 ⏸ **STOP — user verifies the master panel and the booking-page footer.**
+
+## Round 2 — post-Stage-6 live-testing corrections (2026-07-26)
+
+User tested Stage 3-6 live with real photos and found a large batch of issues, grouped into 6 buckets by the orchestrator and confirmed with the user before starting. **Only Group 1 (D-1 through D-4) is planned below.** Groups 2-6 (strip/fade/stack widget visual tuning, gallery row-cap-then-stack, and a new "admin manages per-master pages" feature) are explicitly deferred to their own rounds, one bounded chunk at a time with live verification — do not pull them forward into this pass.
+
+- [x] **D-1: `SheetContent` has no scroll — long forms can't reach their own Save button**
+  - Root cause (confirmed): `src/components/ui/sheet.tsx`'s `SheetContent` is `fixed ... flex flex-col h-full` with no `overflow-y-auto`/`max-h-*` anywhere. `MasterForm.tsx` (rendered inside it via `MastersClient.tsx`) just wraps its fields in a plain `<div className="px-4 pb-4">` — once the new footer-block field pushed it past viewport height, there is no way to scroll to Submit or the password-recovery section below it. `PageFormSheet.tsx` has the identical missing wrapper but is short enough not to visibly break yet — it is not a working pattern to copy, it just hasn't hit the ceiling.
+  - Fix this at the `SheetContent` level (`src/components/ui/sheet.tsx`), not just in `MasterForm.tsx` — it's a structural omission that will hit every long-form Sheet consumer eventually, and this project already has precedent for shared-Sheet-level changes (the full-travel slide-animation fix, C-4.3) after checking all consumers first. Before changing `sheet.tsx`, grep every `<SheetContent` usage (there were 7 at the time of C-4.3) and confirm none of them rely on `SheetContent`'s children NOT being independently scrollable (e.g. a consumer that already manages its own internal scroll region would double-scroll). The likely fix: give `SheetContent`'s content slot `flex-1 overflow-y-auto` so it scrolls within the fixed-height panel, keeping header/footer (if any) outside that scroll region. `SheetFooter` (`sheet.tsx` lines ~93-101, already has `mt-auto`) exists but is unused by any current consumer — do not force any consumer to adopt it as part of this fix; that's a bigger restructuring than this bug needs. Just make the scrollable region actually scroll.
+  - Verify live: open `/admin/masters`, edit a master with a footer block configured, confirm you can scroll to and click Save.
+
+- [x] **D-2: Settings homepage-widget preview doesn't refresh after Save**
+  - Root cause (confirmed): `src/components/admin/settings/HomepagePreview.tsx` renders `<iframe src="/?preview=1">` keyed only on `isDark` (light/dark), driven by a `MutationObserver` watching `document.documentElement`'s class. `SettingsForm.tsx`'s save handler calls `router.refresh()` on success, which re-renders the *admin* Server Component tree, but does nothing to the iframe — iframes don't reload because their parent React tree re-rendered, and the key never changes on content save, only on theme toggle.
+  - Fix: extend the iframe's `key` to also depend on whatever prop actually changes when the homepage widget slot (or other settings that affect this preview) is saved — e.g. `key={`${isDark}-${config.homepageWidgetBlock}`}` — so changing/disabling the widget and saving forces the iframe to remount and refetch `/api/content`, exactly like the dark/light fix already does for theme.
+  - Verify live: toggle the homepage widget off, Save, confirm the preview updates without a manual page reload.
+
+- [x] **D-3: Page block editor needs one "Save all" button, not per-block only**
+  - Confirmed this is a small aggregation, not a restructuring: `PageBlocksEditor.tsx` already owns a parent-level `drafts` state (`Record<string, BlockConfig>`, line ~31) that every block's `BlockConfigEditor` already reports into via `onChange`. Each block's own Save button independently calls `updateBlockConfig(block.id, ...)` then `router.refresh()`.
+  - Add one additional "Save all" action (placement: match whatever convention Settings already uses for its page-level Save, verify by reading `SettingsForm.tsx`/its layout before picking a spot — don't guess) that iterates `Object.keys(drafts)`, calls `updateBlockConfig` for each, aggregates any per-block errors using the existing `errors` state, then calls `router.refresh()` once at the end. Keep the existing per-block Save buttons — this is additive, not a replacement.
+  - Verify live: add 3+ blocks to a page, edit all of them without saving individually, click the new global Save, confirm all persist after refresh.
+
+- [x] **D-4: No entrance/exit animation on the homepage widget or the master footer widget**
+  - Confirmed via code read: `src/app/providers.tsx` wraps the app in a single `<LayoutGroup>`, and `master-photo-${id}` `layoutId` on the avatar in `MasterSelector.tsx` + `BrandHeader.tsx` is what currently makes the avatar "fly" between the homepage and a master's page — this already works and the user likes it. There is **no** `AnimatePresence` anywhere in the actual routing path today; `src/components/PageTransition.tsx` implements one (`mode="wait"`, keyed on pathname) but is dead code, imported nowhere.
+  - ⚠️ **Do not wire up `PageTransition.tsx` or add a root-level `AnimatePresence` around route children to solve this.** `mode="wait"` forces the exiting tree to fully finish its exit animation *before* the entering tree mounts — that would break the existing shared-`layoutId` avatar flight, which needs both instances mounted at overlapping times for Framer to interpolate between them. This is a real, non-obvious trap: it would look like the "correct" tool for the job and would visibly regress something already approved.
+  - What's actually being asked, mapped to two independent, achievable pieces:
+    1. **Homepage's own bottom widget** (`HomeClient.tsx`, the `BlockRenderer` built from `parseBlockSlot(config.homepageWidgetBlock)`) needs: (a) a smooth fade-out *before* navigating away when a master card is clicked — do this locally in `MasterSelector.tsx`'s click handler: on click, first flip a local state flag that fades the widget's `motion.div` opacity to 0 (short duration, e.g. ~200-300ms), *then* call `router.push`, rather than navigating instantly. (b) a smooth fade/slide-in on mount (covers both first load and landing back here via Back) — wrap it in a `motion.div` with `initial`/`animate` opacity+y, matching the existing entrance-animation convention already used for `BrandHeader`'s avatar and the booking `motion.div` in `[masterId]/page.tsx` (including respecting `useReducedMotion()`, same as those).
+    2. **Master's own footer widget** (`src/components/content/MasterFooterBlock.tsx`) currently has zero animation — it pops in the instant its `useQuery` resolves. Wrap its rendered content in the same `motion.div initial/animate` fade+slight-y pattern as above, so it emerges smoothly on page load instead of popping in.
+  - **Follow-up 2026-07-26 (live-tested after the `.next` cache clear):** the first pass had no `delay` on either bottom-widget entrance, so both widgets started fading in at t=0 — before the primary content above them (master cards / avatar+calendar) had finished its own entrance animation, reading as uncoordinated/jerky rather than sequenced. Fixed by adding explicit entrance delays so the bottom widget only starts *after* the content above it settles: `MasterFooterBlock.tsx` → `delay: 1.5` (avatar+calendar box settles ~1.1s: `delay 0.5 + duration 0.6` in `[masterId]/page.tsx`). `HomeClient.tsx`'s homepage widget → `delay: 1.3` on entrance only (title+cards stagger `index*0.2 + duration 0.5`, last card settles ~0.9s at 3 masters); the exit fade (on navigating away) keeps `delay: 0` — that one should start immediately on click, not wait. Exact delay values are a first live-tested guess, not derived from a fixed spec — tune further if it still feels off.
+  - Verify live: from the homepage (with the widget enabled), select a master and watch the widget fade out before the transition; click Back and watch it fade back in (not jerk into place); load a master's page that has its own footer widget configured and watch it fade in rather than pop.
+
+⏸ **STOP — user verifies all four D-1..D-4 fixes live before Group 2 (widget visual tuning) starts.**
 
 ### Stage 7 — Tests, docs, verification
 

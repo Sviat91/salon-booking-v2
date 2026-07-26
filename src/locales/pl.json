@@ -368,6 +368,8 @@
       "colorHint": "Kolor wizyt specjalisty w kalendarzu",
       "showOnHomepage": "Pokaż na stronie głównej",
       "showOnHomepageHint": "Karta specjalisty będzie widoczna dla klientów na stronie",
+      "footerBlockLabel": "Blok stopki strony rezerwacji",
+      "footerBlockHint": "Opcjonalny widżet zdjęć lub blok tekstowy wyświetlany na dole strony rezerwacji tego specjalisty",
       "settingsSaved": "Ustawienia zostały pomyślnie zapisane!",
       "saveChangesBtn": "Zapisz zmiany",
       "createMasterBtn": "Utwórz specjalistę",
@@ -453,10 +455,15 @@
       "deleteBlockConfirm": "Usunąć ten blok? Tej operacji nie można cofnąć.",
       "noBlocksTitle": "Brak bloków. Dodaj pierwszy poniżej.",
       "saveBlockBtn": "Zapisz blok",
+      "saveAllBtn": "Zapisz wszystko",
       "addBlockBtn": "Dodaj blok",
       "backToPages": "Powrót do stron",
       "blocksEyebrow": "Bloki strony",
-      "publicUrlLabel": "Publiczny adres"
+      "publicUrlLabel": "Publiczny adres",
+      "footerBlockSectionTitle": "Blok w stopce strony rezerwacji",
+      "footerBlockSectionDesc": "Opcjonalny blok (widżet zdjęć lub tekst) wyświetlany na dole Twojej strony rezerwacji",
+      "footerBlockSaved": "Blok stopki został zapisany",
+      "footerBlockSaveError": "Nie udało się zapisać bloku stopki. Spróbuj ponownie."
     },
     "admins": {
       "accessEyebrow": "Dostęp",

@@ -20,13 +20,19 @@ type DbMaster = {
   bio_uk: string | null
 }
 
+interface MasterSelectorProps {
+  /** Called the instant a master is picked, before navigation — lets a parent
+   * (e.g. the homepage widget below this selector) fade itself out first. */
+  onNavigateAway?: () => void
+}
+
 /**
  * Master Selector Component
  * Fetches masters from DB (showOnHomepage = true) and falls back to hardcoded config.
  * For hardcoded masters ('olga', 'yuliia') → navigates to /{id}
  * For DB-only masters → navigates to /{userId}
  */
-export default function MasterSelector() {
+export default function MasterSelector({ onNavigateAway }: MasterSelectorProps) {
   const router = useRouter()
   const { t } = useTranslation()
   const language = useCurrentLanguage()
@@ -72,7 +78,10 @@ export default function MasterSelector() {
 
   const handleMasterSelect = (master: DbMaster) => {
     flushSync(() => { setMaster(master.id) })
-    router.push(`/${master.id}`)
+    onNavigateAway?.()
+    // Give the homepage widget below a moment to fade out before we navigate away,
+    // rather than yanking it off-screen instantly. Skipped when reduced motion is preferred.
+    setTimeout(() => router.push(`/${master.id}`), prefersReducedMotion ? 0 : 250)
   }
 
   const getMasterBio = (master: DbMaster) =>
