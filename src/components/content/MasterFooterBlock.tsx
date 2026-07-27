@@ -23,6 +23,7 @@ export default function MasterFooterBlock({ masterId }: MasterFooterBlockProps) 
 
   return (
     <motion.div
+      className="mt-16"
       initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       // delay: let the avatar + calendar/booking box (delay 0.5s, duration 0.6s — settles ~1.1s) finish first.

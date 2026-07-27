@@ -9,8 +9,10 @@ interface FadeWidgetProps {
   photos: string[]
 }
 
-const SLOT_COUNT_MAX = 5
-const CYCLE_MS = 3000
+const SLOT_COUNT = 5
+const CYCLE_MS = 6000
+const TILE_HEIGHT = 240 // deliberately bigger than StripWidget's 140 — reads as its own gallery block, not a paused marquee
+const TILE_WIDTH = TILE_HEIGHT * 0.8
 
 function FadeSlot({ photos, startIndex }: { photos: string[]; startIndex: number }) {
   const [index, setIndex] = useState(startIndex % photos.length)
@@ -24,15 +26,18 @@ function FadeSlot({ photos, startIndex }: { photos: string[]; startIndex: number
   }, [photos.length])
 
   return (
-    <div className="relative h-full w-full overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
-      <AnimatePresence mode="wait">
+    <div
+      className="relative overflow-hidden rounded-2xl border border-border bg-card shadow-sm"
+      style={{ height: TILE_HEIGHT, width: TILE_WIDTH }}
+    >
+      <AnimatePresence>
         <motion.div
           key={index}
           className="absolute inset-0"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 1 }}
+          transition={{ duration: 2 }}
         >
           <Image src={photos[index]} alt="" fill className="object-cover" />
         </motion.div>
@@ -47,14 +52,16 @@ export default function FadeWidget({ photos }: FadeWidgetProps) {
 
   if (photos.length === 0) return null
 
-  const slotCount = Math.min(SLOT_COUNT_MAX, photos.length)
-
   if (prefersReducedMotion) {
     return (
-      <div className="grid h-40 gap-3" style={{ gridTemplateColumns: `repeat(${slotCount}, minmax(0, 1fr))` }}>
-        {photos.slice(0, slotCount).map((url, i) => (
-          <div key={`${url}-${i}`} className="relative overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
-            <Image src={url} alt="" fill className="object-cover" />
+      <div className="flex flex-wrap items-center justify-center gap-3">
+        {Array.from({ length: SLOT_COUNT }, (_, i) => i).map((i) => (
+          <div
+            key={i}
+            className="relative overflow-hidden rounded-2xl border border-border bg-card shadow-sm"
+            style={{ height: TILE_HEIGHT, width: TILE_WIDTH }}
+          >
+            <Image src={photos[i % photos.length]} alt="" fill className="object-cover" />
           </div>
         ))}
       </div>
@@ -62,8 +69,8 @@ export default function FadeWidget({ photos }: FadeWidgetProps) {
   }
 
   return (
-    <div className="grid h-40 gap-3" style={{ gridTemplateColumns: `repeat(${slotCount}, minmax(0, 1fr))` }}>
-      {Array.from({ length: slotCount }, (_, i) => i).map((slotIndex) => (
+    <div className="flex flex-wrap items-center justify-center gap-3">
+      {Array.from({ length: SLOT_COUNT }, (_, i) => i).map((slotIndex) => (
         <FadeSlot key={slotIndex} photos={photos} startIndex={slotIndex} />
       ))}
     </div>

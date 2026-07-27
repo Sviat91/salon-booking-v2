@@ -9,6 +9,14 @@ interface StripWidgetProps {
 }
 
 const HEIGHT = 140
+const TILE_TOTAL_WIDTH = HEIGHT * 0.8 + 24 // tile width + gap-6 (24px)
+const MIN_TOTAL_WIDTH = 4200 // px — comfortably covers ultra-wide screens
+const MIN_COPIES = 3
+
+function getRepeatCount(photoCount: number) {
+  const setWidth = photoCount * TILE_TOTAL_WIDTH
+  return Math.max(MIN_COPIES, Math.ceil(MIN_TOTAL_WIDTH / setWidth))
+}
 
 /**
  * Scrolling marquee — ported from `src/components/reviews/ReviewsMarquee.tsx`
@@ -20,7 +28,7 @@ export default function StripWidget({ photos }: StripWidgetProps) {
 
   if (prefersReducedMotion) {
     return (
-      <div className="w-full overflow-x-auto custom-scrollbar py-4">
+      <div className="relative left-1/2 w-screen -ml-[50vw] overflow-x-auto custom-scrollbar py-4">
         <div className="flex w-fit items-center gap-6 px-4">
           {photos.map((url, i) => (
             <div
@@ -36,13 +44,14 @@ export default function StripWidget({ photos }: StripWidgetProps) {
     )
   }
 
-  const content = [...photos, ...photos, ...photos]
+  const repeatCount = getRepeatCount(photos.length)
+  const content = Array.from({ length: repeatCount }, () => photos).flat()
 
   return (
-    <div className="w-full select-none overflow-hidden bg-transparent py-4">
+    <div className="relative left-1/2 w-screen -ml-[50vw] select-none overflow-hidden bg-transparent py-4">
       <motion.div
         className="flex items-center gap-6 px-4"
-        animate={{ x: ["0%", "-33.33%"] }}
+        animate={{ x: ["0%", `-${100 / repeatCount}%`] }}
         transition={{
           x: {
             repeat: Infinity,
