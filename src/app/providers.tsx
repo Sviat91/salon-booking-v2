@@ -6,6 +6,8 @@ import { SessionProvider } from 'next-auth/react'
 import { MasterProvider } from '@/contexts/MasterContext'
 import { LanguageProvider } from '@/contexts/LanguageContext'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
+import AppToaster from '@/components/AppToaster'
+import { ConfirmDialogProvider } from '@/components/ConfirmDialogProvider'
 
 // Initialize i18n
 import '@/lib/i18n'
@@ -29,11 +31,14 @@ export default function Providers({ children, enabledLocales }: { children: Reac
       <SessionProvider>
         <QueryClientProvider client={clientRef.current}>
           <LanguageProvider enabledLocales={enabledLocales}>
-            <MasterProvider>
-              <LayoutGroup>
-                {children}
-              </LayoutGroup>
-            </MasterProvider>
+            <ConfirmDialogProvider>
+              <MasterProvider>
+                <LayoutGroup>
+                  {children}
+                </LayoutGroup>
+              </MasterProvider>
+            </ConfirmDialogProvider>
+            <AppToaster />
           </LanguageProvider>
         </QueryClientProvider>
       </SessionProvider>

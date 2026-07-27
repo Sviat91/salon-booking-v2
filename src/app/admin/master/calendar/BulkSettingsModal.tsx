@@ -8,6 +8,7 @@ import { ChevronLeft, ChevronRight, X, Plus, Trash2, Info, Users, Clock, User } 
 import { TimePickerDropdown } from "@/components/TimePickerDropdown"
 import { useCurrentLanguage } from "@/contexts/LanguageContext"
 import { dateFnsLocale } from "@/lib/utils/date-fns-locale"
+import { toast } from "sonner"
 
 type Interval = { start: string; end: string }
 type Override = { date: string; isDayOff: boolean; intervals: Interval[] }
@@ -197,11 +198,11 @@ export default function BulkSettingsModal({ onClose, onSave, templates = [], api
 
   const handleSave = async () => {
     if (selectedDates.size === 0) {
-      alert(t('admin.calendar.bulk.selectDateAlert'))
+      toast.error(t('admin.calendar.bulk.selectDateAlert'))
       return
     }
     if (isAdminView && targetMasterIds.size === 0) {
-      alert(t('admin.calendar.bulk.selectMasterAlert'))
+      toast.error(t('admin.calendar.bulk.selectMasterAlert'))
       return
     }
     setSaving(true)
@@ -210,7 +211,7 @@ export default function BulkSettingsModal({ onClose, onSave, templates = [], api
       setSelectedDates(new Set())
       await fetchMonthOverrides(currentMonth)
     } catch (e: any) {
-      alert(t('admin.calendar.bulk.saveErrorPrefix', { message: e.message }))
+      toast.error(t('admin.calendar.bulk.saveErrorPrefix', { message: e.message }))
     } finally {
       setSaving(false)
     }

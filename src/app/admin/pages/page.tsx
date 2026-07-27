@@ -18,6 +18,7 @@ export default async function AdminPagesPage() {
   return (
     <PageListClient
       pages={pages}
+      owner={{ ownerType: "global", masterId: null }}
       scope="global"
       enabledLocales={enabledLocales}
       detailHrefBase="/admin/pages"

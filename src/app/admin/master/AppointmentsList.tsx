@@ -10,6 +10,8 @@ import { Clock, Phone, User as UserIcon } from "lucide-react"
 import { apiErrorKey } from "@/lib/errors/apiErrorKey"
 import { useCurrentLanguage } from "@/contexts/LanguageContext"
 import { resolveLocalized } from "@/lib/localized-content"
+import { useConfirm } from "@/components/ConfirmDialogProvider"
+import { toast } from "sonner"
 
 type AppointmentProps = {
   id: string
@@ -22,12 +24,13 @@ type AppointmentProps = {
 
 export default function AppointmentsList({ appointments }: { appointments: AppointmentProps[] }) {
   const { t } = useTranslation()
+  const confirm = useConfirm()
   const router = useRouter()
   const language = useCurrentLanguage()
   const [cancellingId, setCancellingId] = useState<string | null>(null)
 
   const handleCancel = async (id: string) => {
-    if (!confirm(t('admin.appointments.confirmCancel'))) return
+    if (!(await confirm(t('admin.appointments.confirmCancel')))) return
 
     setCancellingId(id)
     try {
@@ -40,7 +43,7 @@ export default function AppointmentsList({ appointments }: { appointments: Appoi
       }
       router.refresh()
     } catch (error: any) {
-      alert(error.message)
+      toast.error(error.message)
     } finally {
       setCancellingId(null)
     }

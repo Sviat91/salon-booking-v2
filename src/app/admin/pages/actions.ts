@@ -6,8 +6,8 @@ import { auth } from "@/auth"
 import prisma from "@/lib/prisma"
 import { getServerT } from "@/lib/i18n-server"
 import { getTenantConfig } from "@/lib/tenant"
-import { resolvePageOwner, generateUniqueSlug } from "@/lib/content/pages-server"
-import { slugify, parseVisibility, serializeVisibility } from "@/lib/content/pages-shared"
+import { authorizePageOwner, canManagePage, generateUniqueSlug } from "@/lib/content/pages-server"
+import { slugify, parseVisibility, serializeVisibility, type PageOwner } from "@/lib/content/pages-shared"
 import { parseEnabledLocales, hasAnyEnabledLocaleValue, resolveLocalized } from "@/lib/localized-content"
 import { DEFAULT_LANGUAGE } from "@/lib/i18n-shared"
 
@@ -44,16 +44,19 @@ export type PageFormState = {
 function revalidateAll() {
   revalidatePath("/admin/pages")
   revalidatePath("/admin/master/pages")
+  revalidatePath("/admin/masters/[masterId]/pages", "page")
+  revalidatePath("/admin/masters/[masterId]/pages/[id]", "page")
   revalidatePath("/", "layout")
 }
 
 export async function createPage(
+  requestedOwner: PageOwner,
   _prev: PageFormState,
   formData: FormData
 ): Promise<PageFormState> {
   const t = getServerT()
   const session = await auth()
-  const owner = resolvePageOwner(session?.user)
+  const owner = await authorizePageOwner(session?.user, requestedOwner)
   if (!owner) return { error: t('errors.UNAUTHORIZED') }
 
   const parsed = buildPageSchema(t).safeParse({
@@ -117,11 +120,9 @@ export async function updatePage(
 ): Promise<PageFormState> {
   const t = getServerT()
   const session = await auth()
-  const owner = resolvePageOwner(session?.user)
-  if (!owner) return { error: t('errors.UNAUTHORIZED') }
 
   const existing = await prisma.page.findUnique({ where: { id } })
-  if (!existing || existing.ownerType !== owner.ownerType || existing.masterId !== owner.masterId) {
+  if (!existing || !canManagePage(session?.user, existing)) {
     return { error: t('errors.UNAUTHORIZED') }
   }
 
@@ -143,7 +144,7 @@ export async function updatePage(
 
   // Slug is intentionally never touched here (AD-3) — renaming a page never changes its URL.
   const visibility =
-    owner.ownerType === "global" ? serializeVisibility(parseVisibility(parsed.data.visibility)) : existing.visibility
+    existing.ownerType === "global" ? serializeVisibility(parseVisibility(parsed.data.visibility)) : existing.visibility
 
   try {
     await prisma.page.update({
@@ -166,14 +167,10 @@ export async function updatePage(
 async function verifyPageOwnership(id: string) {
   const t = getServerT()
   const session = await auth()
-  const owner = resolvePageOwner(session?.user)
-  if (!owner) throw new Error(t('errors.UNAUTHORIZED'))
 
   const page = await prisma.page.findUnique({ where: { id } })
-  if (!page || page.ownerType !== owner.ownerType || page.masterId !== owner.masterId) {
-    throw new Error(t('errors.UNAUTHORIZED'))
-  }
-  return { page, owner }
+  if (!page || !canManagePage(session?.user, page)) throw new Error(t('errors.UNAUTHORIZED'))
+  return page
 }
 
 export async function deletePage(id: string): Promise<void> {
@@ -191,10 +188,10 @@ export async function deletePage(id: string): Promise<void> {
  * exactly equal to this owner's scope — a foreign or partial id set is rejected
  * outright rather than silently reordering only the ids that happen to match.
  */
-export async function reorderPages(orderedIds: string[]): Promise<void> {
+export async function reorderPages(orderedIds: string[], requestedOwner: PageOwner): Promise<void> {
   const t = getServerT()
   const session = await auth()
-  const owner = resolvePageOwner(session?.user)
+  const owner = await authorizePageOwner(session?.user, requestedOwner)
   if (!owner) throw new Error(t('errors.UNAUTHORIZED'))
 
   const scoped = await prisma.page.findMany({

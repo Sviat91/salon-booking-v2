@@ -14,6 +14,7 @@ Routing, page composition, and server/client component boundaries for everything
 - Route handlers under `api/` follow the contract in [api/AGENTS.md](api/AGENTS.md).
 - Admin/master dashboard pages follow the contract in [admin/AGENTS.md](admin/AGENTS.md).
 - Files must stay under 500 lines (root constraint) — split page components into `src/components/` pieces rather than growing a single `page.tsx`.
+- `providers.tsx` is the single app-wide client provider stack (`ErrorBoundary` → `SessionProvider` → `QueryClientProvider` → `LanguageProvider` → `ConfirmDialogProvider` → `MasterProvider` → `LayoutGroup`, plus `AppToaster`); anything needing `useTranslation()` must be mounted inside `LanguageProvider`.
 
 ## Work Guidance
 

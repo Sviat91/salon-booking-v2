@@ -19,6 +19,7 @@ import { apiErrorKey } from "@/lib/errors/apiErrorKey"
 import { useCurrentLanguage } from "@/contexts/LanguageContext"
 import { localeFor } from "@/lib/i18n"
 import DataCard from "@/components/admin/DataCard"
+import { useConfirm } from "@/components/ConfirmDialogProvider"
 
 type ClientRow = {
   id: string
@@ -43,6 +44,7 @@ interface EditState {
 
 export default function ClientsTable({ clients: initialClients, permissions }: Props) {
   const { t } = useTranslation()
+  const confirm = useConfirm()
   const language = useCurrentLanguage()
   const router = useRouter()
   const [search, setSearch] = useState("")
@@ -89,7 +91,7 @@ export default function ClientsTable({ clients: initialClients, permissions }: P
   }
 
   async function handleDelete(id: string, name: string | null) {
-    if (!confirm(t('admin.database.deleteConfirm', { name: name ?? t('admin.database.thisClient') }))) return
+    if (!(await confirm(t('admin.database.deleteConfirm', { name: name ?? t('admin.database.thisClient') })))) return
     const res = await fetch(`/api/admin/database/clients/${id}`, { method: "DELETE" })
     if (res.ok) {
       router.refresh()

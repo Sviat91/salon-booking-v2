@@ -11,6 +11,7 @@ import type { AdminPermissions } from "@/lib/admin-permissions"
 import { useCurrentLanguage } from "@/contexts/LanguageContext"
 import { localeFor } from "@/lib/i18n"
 import DataCard from "@/components/admin/DataCard"
+import { useConfirm } from "@/components/ConfirmDialogProvider"
 
 type ConsentRow = {
   id: string
@@ -46,6 +47,7 @@ function StatusBadge({ status }: { status: string }) {
 
 export default function GdprTable({ records, permissions }: Props) {
   const { t } = useTranslation()
+  const confirm = useConfirm()
   const language = useCurrentLanguage()
   const router = useRouter()
   const [search, setSearch] = useState("")
@@ -57,7 +59,7 @@ export default function GdprTable({ records, permissions }: Props) {
   })
 
   async function handleWithdraw(id: string, name: string) {
-    if (!confirm(t('admin.gdpr.withdrawConfirm', { name }))) return
+    if (!(await confirm(t('admin.gdpr.withdrawConfirm', { name })))) return
     setLoading(id + "-withdraw")
     const res = await fetch(`/api/admin/database/gdpr/${id}/withdraw`, { method: "POST" })
     setLoading(null)
@@ -65,7 +67,7 @@ export default function GdprTable({ records, permissions }: Props) {
   }
 
   async function handleErase(id: string, name: string) {
-    if (!confirm(t('admin.gdpr.eraseConfirm', { name })))
+    if (!(await confirm(t('admin.gdpr.eraseConfirm', { name }))))
       return
     setLoading(id + "-erase")
     const res = await fetch(`/api/admin/database/gdpr/${id}/erase`, { method: "POST" })

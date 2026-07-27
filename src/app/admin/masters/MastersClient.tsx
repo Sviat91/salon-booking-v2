@@ -18,6 +18,7 @@ import { deleteMaster } from "./actions"
 import { useCurrentLanguage } from "@/contexts/LanguageContext"
 import { resolveLocalized } from "@/lib/localized-content"
 import type { Language } from "@/lib/i18n-shared"
+import { useConfirm } from "@/components/ConfirmDialogProvider"
 
 type Master = {
   id: string
@@ -36,6 +37,7 @@ type Master = {
 
 export default function MastersClient({ masters, enabledLocales }: { masters: Master[]; enabledLocales: Language[] }) {
   const { t } = useTranslation()
+  const confirm = useConfirm()
   const language = useCurrentLanguage()
   const displayBio = (master: Master) =>
     master.masterProfile
@@ -49,13 +51,13 @@ export default function MastersClient({ masters, enabledLocales }: { masters: Ma
   const [editOpen, setEditOpen] = useState(false)
   const [, startTransition] = useTransition()
 
-  const handleDelete = useCallback((id: string, name: string | null) => {
-    if (!confirm(t('admin.masters.deleteConfirm', { name: name ?? t('admin.masters.thisMaster') })))
+  const handleDelete = useCallback(async (id: string, name: string | null) => {
+    if (!(await confirm(t('admin.masters.deleteConfirm', { name: name ?? t('admin.masters.thisMaster') }))))
       return
     startTransition(() => {
       deleteMaster(id)
     })
-  }, [t])
+  }, [t, confirm])
 
   return (
     <div className="mx-auto max-w-3xl">

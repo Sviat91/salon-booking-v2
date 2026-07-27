@@ -26,6 +26,7 @@ export default async function MasterPagesPage() {
       <MasterFooterBlockSection value={masterProfile?.footerBlock ?? null} enabledLocales={enabledLocales} />
       <PageListClient
         pages={pages}
+        owner={{ ownerType: "master", masterId: session.user.id }}
         scope="master"
         enabledLocales={enabledLocales}
         detailHrefBase="/admin/master/pages"

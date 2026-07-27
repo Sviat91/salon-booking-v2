@@ -9,6 +9,7 @@ import { useTranslation } from "react-i18next"
 import { useCurrentLanguage } from "@/contexts/LanguageContext"
 import { resolveLocalized } from "@/lib/localized-content"
 import { dateFnsLocale } from "@/lib/utils/date-fns-locale"
+import { toast } from "sonner"
 
 interface Props {
   appointment: Appointment
@@ -44,7 +45,7 @@ export default function ViewAppointmentModal({ appointment, onClose, onDelete, o
     try {
       await onDelete(appointment.id)
     } catch {
-      alert(t('admin.calendar.deleteAppointmentFailed'))
+      toast.error(t('admin.calendar.deleteAppointmentFailed'))
       setIsDeleting(false)
     }
   }

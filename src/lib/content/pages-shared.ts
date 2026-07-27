@@ -53,3 +53,13 @@ export type NavPage = {
   title_en: string | null
   title_uk: string | null
 }
+
+/**
+ * The owner scope a set of pages belongs to: the query scope for
+ * `listPagesForOwner`, and the scope a client surface *requests* from
+ * `createPage`/`reorderPages`. A requested scope is authorized against the
+ * session server-side by `authorizePageOwner` (AD-5) — never trusted as-is.
+ */
+export type PageOwner =
+  | { ownerType: 'global'; masterId: null }
+  | { ownerType: 'master'; masterId: string }

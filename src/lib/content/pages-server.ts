@@ -4,26 +4,60 @@
  */
 import prisma from '@/lib/prisma'
 import { parseBlockSlot, type BlockSlot } from './blocks'
-import { parseVisibility, type NavPage } from './pages-shared'
-
-export type PageOwner =
-  | { ownerType: 'global'; masterId: null }
-  | { ownerType: 'master'; masterId: string }
+import { parseVisibility, type NavPage, type PageOwner } from './pages-shared'
 
 /**
- * Derives the owner scope a session's role is allowed to manage — never
- * trust an owner scope supplied by the client (AD-5). Returns `null` for any
- * role that isn't ADMIN/SUPERADMIN/MASTER.
+ * Row-targeted authorization (update/delete/toggle/block actions/reorderBlocks):
+ * the row itself carries its real owner, so nothing has to be supplied by the
+ * client — the session is authorized *against the row*, never against a
+ * client-supplied scope (AD-5). ADMIN/SUPERADMIN may manage any row,
+ * including master-owned ones (the deliberate widening this feature adds);
+ * MASTER only their own.
  */
-export function resolvePageOwner(
-  user: { id?: string; role?: string } | null | undefined
-): PageOwner | null {
-  if (!user) return null
-  if (user.role === 'ADMIN' || user.role === 'SUPERADMIN') {
-    return { ownerType: 'global', masterId: null }
+export function canManagePage(
+  user: { id?: string; role?: string } | null | undefined,
+  page: { ownerType: string; masterId: string | null }
+): boolean {
+  if (!user) return false
+  if (user.role === 'ADMIN' || user.role === 'SUPERADMIN') return true
+  if (user.role === 'MASTER') {
+    return !!user.id && page.ownerType === 'master' && page.masterId === user.id
   }
-  if (user.role === 'MASTER' && user.id) {
-    return { ownerType: 'master', masterId: user.id }
+  return false
+}
+
+/**
+ * Authorizes a client-*requested* scope for the two actions that have no row
+ * to derive a scope from (`createPage`, `reorderPages`) — the requested scope
+ * is authorized against the session, never trusted as-is (AD-5). Returns a
+ * freshly constructed scope (never the caller's `requested` object) or
+ * `null` when the session isn't allowed to act in that scope.
+ */
+export async function authorizePageOwner(
+  user: { id?: string; role?: string } | null | undefined,
+  requested: PageOwner
+): Promise<PageOwner | null> {
+  if (!user) return null
+
+  if (requested.ownerType === 'global') {
+    if (user.role === 'ADMIN' || user.role === 'SUPERADMIN') {
+      return { ownerType: 'global', masterId: null }
+    }
+    return null
+  }
+
+  // requested.ownerType === 'master'
+  if (user.role === 'MASTER') {
+    return user.id === requested.masterId
+      ? { ownerType: 'master', masterId: requested.masterId }
+      : null
+  }
+  if (user.role === 'ADMIN' || user.role === 'SUPERADMIN') {
+    const target = await prisma.user.findUnique({
+      where: { id: requested.masterId },
+      select: { role: true },
+    })
+    return target?.role === 'MASTER' ? { ownerType: 'master', masterId: requested.masterId } : null
   }
   return null
 }

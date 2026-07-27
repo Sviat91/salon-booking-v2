@@ -10,13 +10,14 @@ import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import LocalizedFieldInput from "@/components/admin/LocalizedFieldInput"
 import { createPage, updatePage, type PageFormState } from "@/app/admin/pages/actions"
-import { PAGE_VISIBILITY_TARGETS, parseVisibility, serializeVisibility } from "@/lib/content/pages-shared"
+import { PAGE_VISIBILITY_TARGETS, parseVisibility, serializeVisibility, type PageOwner } from "@/lib/content/pages-shared"
 import type { Language } from "@/lib/i18n-shared"
 import type { PageWithBlocks } from "./PageListClient"
 
 interface PageFormSheetProps {
   page?: PageWithBlocks
-  scope: "global" | "master"
+  owner: PageOwner
+  scope: "global" | "master" | "master-as-admin"
   enabledLocales: Language[]
   detailHrefBase: string
   onSuccess: () => void
@@ -34,15 +35,19 @@ function SubmitButton({ label }: { label: string }) {
   )
 }
 
-export default function PageFormSheet({ page, scope, enabledLocales, detailHrefBase, onSuccess }: PageFormSheetProps) {
+export default function PageFormSheet({ page, owner, scope, enabledLocales, detailHrefBase, onSuccess }: PageFormSheetProps) {
   const { t } = useTranslation()
   const router = useRouter()
-  const action = page ? updatePage.bind(null, page.id) : createPage
+  const action = page ? updatePage.bind(null, page.id) : createPage.bind(null, owner)
   const [state, formAction] = useFormState(action, initialState)
   const [visibility, setVisibility] = useState<string[]>(parseVisibility(page?.visibility))
 
   useEffect(() => {
     if (!state.success) return
+    // Always close the sheet first — otherwise it can linger open on top of
+    // the page we're about to navigate to, making the redirect below
+    // invisible (looks like "nothing happened" even though it worked).
+    onSuccess()
     // Creating a page has nothing to configure yet but blocks — skip the
     // "create, close, reopen, click into blocks" round trip and go straight
     // to the block editor. Editing an existing page keeps the explicit
@@ -50,9 +55,7 @@ export default function PageFormSheet({ page, scope, enabledLocales, detailHrefB
     // doesn't apply on create, since there's nothing else to lose yet).
     if (!page && state.pageId) {
       router.push(`${detailHrefBase}/${state.pageId}`)
-      return
     }
-    onSuccess()
   }, [state.success, state.pageId, page, detailHrefBase, router, onSuccess])
 
   function toggleVisibility(id: string, checked: boolean) {

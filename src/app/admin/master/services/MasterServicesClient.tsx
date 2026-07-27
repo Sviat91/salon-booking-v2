@@ -18,6 +18,8 @@ import { apiErrorKey } from "@/lib/errors/apiErrorKey"
 import { useCurrentLanguage } from "@/contexts/LanguageContext"
 import { resolveLocalized } from "@/lib/localized-content"
 import type { Language } from "@/lib/i18n-shared"
+import { useConfirm } from "@/components/ConfirmDialogProvider"
+import { toast } from "sonner"
 
 type Service = {
   id: string
@@ -40,6 +42,7 @@ export default function MasterServicesClient({
   enabledLocales: Language[]
 }) {
   const { t } = useTranslation()
+  const confirm = useConfirm()
   const router = useRouter()
   const language = useCurrentLanguage()
   const displayName = (svc: Service) =>
@@ -50,7 +53,7 @@ export default function MasterServicesClient({
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
   const handleDelete = async (id: string) => {
-    if (!confirm(t('admin.services.deleteCustomConfirm'))) return
+    if (!(await confirm(t('admin.services.deleteCustomConfirm')))) return
     setDeletingId(id)
     try {
       const res = await fetch(`/api/master/services/${id}`, { method: "DELETE" })
@@ -60,7 +63,7 @@ export default function MasterServicesClient({
       }
       router.refresh()
     } catch (e: any) {
-      alert(t('admin.services.errorPrefix', { message: e.message }))
+      toast.error(t('admin.services.errorPrefix', { message: e.message }))
     } finally {
       setDeletingId(null)
     }

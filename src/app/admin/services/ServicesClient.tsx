@@ -18,6 +18,7 @@ import { deleteService } from "./actions"
 import { useCurrentLanguage } from "@/contexts/LanguageContext"
 import { resolveLocalized } from "@/lib/localized-content"
 import type { Language } from "@/lib/i18n-shared"
+import { useConfirm } from "@/components/ConfirmDialogProvider"
 
 type Service = {
   id: string
@@ -41,6 +42,7 @@ export default function ServicesClient({
   enabledLocales: Language[]
 }) {
   const { t } = useTranslation()
+  const confirm = useConfirm()
   const language = useCurrentLanguage()
   const displayName = (svc: Service) =>
     resolveLocalized({ pl: svc.name_pl, en: svc.name_en, uk: svc.name_uk }, language)
@@ -49,12 +51,12 @@ export default function ServicesClient({
   const [editOpen, setEditOpen] = useState(false)
   const [, startTransition] = useTransition()
 
-  const handleDelete = useCallback((id: string) => {
-    if (!confirm(t('admin.services.deleteConfirm'))) return
+  const handleDelete = useCallback(async (id: string) => {
+    if (!(await confirm(t('admin.services.deleteConfirm')))) return
     startTransition(() => {
       deleteService(id)
     })
-  }, [t])
+  }, [t, confirm])
 
   const masterNameByProfileId = new Map(
     masters.map((m) => [m.masterProfileId, m.name])

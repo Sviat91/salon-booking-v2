@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/sheet"
 import AdminForm from "./AdminForm"
 import { parseAdminPermissions } from "@/lib/admin-permissions"
+import { useConfirm } from "@/components/ConfirmDialogProvider"
 
 type AdminUser = {
   id: string
@@ -38,13 +39,14 @@ function PermBadge({ label, granted }: { label: string; granted: boolean }) {
 
 export default function AdminsClient({ admins }: Props) {
   const { t } = useTranslation()
+  const confirm = useConfirm()
   const router = useRouter()
   const [addOpen, setAddOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<AdminUser | null>(null)
   const [editOpen, setEditOpen] = useState(false)
 
   async function handleDelete(id: string, name: string | null) {
-    if (!confirm(t('admin.admins.deleteConfirm', { name: name ?? t('admin.admins.thisAdmin') }))) return
+    if (!(await confirm(t('admin.admins.deleteConfirm', { name: name ?? t('admin.admins.thisAdmin') })))) return
     const res = await fetch(`/api/admin/admins/${id}`, { method: "DELETE" })
     if (res.ok) router.refresh()
   }

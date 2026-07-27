@@ -5,39 +5,33 @@ import { auth } from "@/auth"
 import prisma from "@/lib/prisma"
 import { getServerT } from "@/lib/i18n-server"
 import { getTenantConfig } from "@/lib/tenant"
-import { resolvePageOwner } from "@/lib/content/pages-server"
+import { canManagePage } from "@/lib/content/pages-server"
 import { BLOCK_TYPES, defaultConfigFor, blockConfigSchemaFor, type BlockType, type TextBlockConfig } from "@/lib/content/blocks"
 import { parseEnabledLocales, hasAnyEnabledLocaleValue } from "@/lib/localized-content"
 
 function revalidateAll() {
   revalidatePath("/admin/pages")
   revalidatePath("/admin/master/pages")
+  revalidatePath("/admin/masters/[masterId]/pages", "page")
+  revalidatePath("/admin/masters/[masterId]/pages/[id]", "page")
   revalidatePath("/", "layout")
 }
 
 async function verifyPageOwnership(pageId: string) {
   const t = getServerT()
   const session = await auth()
-  const owner = resolvePageOwner(session?.user)
-  if (!owner) throw new Error(t('errors.UNAUTHORIZED'))
 
   const page = await prisma.page.findUnique({ where: { id: pageId } })
-  if (!page || page.ownerType !== owner.ownerType || page.masterId !== owner.masterId) {
-    throw new Error(t('errors.UNAUTHORIZED'))
-  }
+  if (!page || !canManagePage(session?.user, page)) throw new Error(t('errors.UNAUTHORIZED'))
   return page
 }
 
 async function verifyBlockOwnership(blockId: string) {
   const t = getServerT()
   const session = await auth()
-  const owner = resolvePageOwner(session?.user)
-  if (!owner) throw new Error(t('errors.UNAUTHORIZED'))
 
   const block = await prisma.block.findUnique({ where: { id: blockId }, include: { page: true } })
-  if (!block || block.page.ownerType !== owner.ownerType || block.page.masterId !== owner.masterId) {
-    throw new Error(t('errors.UNAUTHORIZED'))
-  }
+  if (!block || !canManagePage(session?.user, block.page)) throw new Error(t('errors.UNAUTHORIZED'))
   return block
 }
 

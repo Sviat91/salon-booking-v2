@@ -43,6 +43,9 @@ export default [
       ],
       '@typescript-eslint/triple-slash-reference': 'off',
       'no-empty': ['error', { allowEmptyCatch: true }],
+      // Native browser dialogs are banned app-wide: use `useConfirm()`
+      // (src/components/ConfirmDialogProvider.tsx) and `toast.*()` from sonner.
+      'no-alert': 'error',
     },
   },
   {

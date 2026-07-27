@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ChevronLeft, ChevronRight, Trash2 } from "lucide-react"
+import { useConfirm } from "@/components/ConfirmDialogProvider"
 
 const TABLES = [
   "user",
@@ -31,6 +32,7 @@ type BrowseResult = {
 
 export default function DbBrowserClient() {
   const { t } = useTranslation()
+  const confirm = useConfirm()
   const [selectedTable, setSelectedTable] = useState<TableName>("user")
   const [page, setPage] = useState(1)
   const [data, setData] = useState<BrowseResult | null>(null)
@@ -66,7 +68,7 @@ export default function DbBrowserClient() {
 
   async function handleDelete(id: unknown) {
     if (typeof id !== "string") return
-    if (!confirm(t('admin.database.deleteRowConfirm', { id, table: selectedTable }))) return
+    if (!(await confirm(t('admin.database.deleteRowConfirm', { id, table: selectedTable })))) return
     setDeletingId(id)
     try {
       const res = await fetch(`/api/admin/db-browser/${selectedTable}`, {

@@ -11,6 +11,7 @@ import AppointmentTimeSelect from "./AppointmentTimeSelect"
 import AppointmentDateSelect from "./AppointmentDateSelect"
 import AppointmentServiceSelect from "./AppointmentServiceSelect"
 import { useCurrentLanguage } from "@/contexts/LanguageContext"
+import { toast } from "sonner"
 
 interface AppointmentModalProps {
   date?: Date
@@ -193,7 +194,7 @@ export default function AppointmentModal({ date, initialAppointment, mode, apiPr
       }
       onSuccess()
     } catch (err: any) {
-      alert(err.message)
+      toast.error(err.message)
       setLoading(false)
     }
   }

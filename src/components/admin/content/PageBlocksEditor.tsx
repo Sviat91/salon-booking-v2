@@ -13,6 +13,7 @@ import { BLOCK_TYPES, parseBlockConfig, type BlockConfig, type BlockType, type T
 import { cn } from "@/lib/utils"
 import { hasAnyEnabledLocaleValue } from "@/lib/localized-content"
 import type { Language } from "@/lib/i18n-shared"
+import { useConfirm } from "@/components/ConfirmDialogProvider"
 
 type BlockRow = { id: string; type: string; order: number; config: string }
 
@@ -25,6 +26,7 @@ interface PageBlocksEditorProps {
 /** Per-page block list: drag-reorderable cards (delete + inline config editor + explicit save), plus an "add block" row. */
 export default function PageBlocksEditor({ pageId, blocks, enabledLocales }: PageBlocksEditorProps) {
   const { t } = useTranslation()
+  const confirm = useConfirm()
   const router = useRouter()
   const [localBlocks, setLocalBlocks] = useState(blocks)
   const [pendingType, setPendingType] = useState<BlockType>(BLOCK_TYPES[0])
@@ -62,7 +64,7 @@ export default function PageBlocksEditor({ pageId, blocks, enabledLocales }: Pag
   }
 
   async function handleDelete(blockId: string) {
-    if (!confirm(t('admin.pages.deleteBlockConfirm'))) return
+    if (!(await confirm(t('admin.pages.deleteBlockConfirm')))) return
     await deleteBlock(blockId)
     router.refresh()
   }

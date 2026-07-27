@@ -4,6 +4,7 @@ import { useState } from "react"
 import { useFormState, useFormStatus } from "react-dom"
 import { useTranslation } from "react-i18next"
 import Image from "next/image"
+import Link from "next/link"
 import { Copy, Check, Upload, X, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -294,6 +295,22 @@ export default function MasterForm({ master, enabledLocales, onSuccess }: Master
 
       <SubmitButton label={master ? t('admin.masters.saveChangesBtn') : t('admin.masters.createMasterBtn')} />
     </form>
+
+    {master && (
+      <div className="flex flex-col gap-2 pt-6 border-t border-border">
+        <Button
+          type="button"
+          variant="outline"
+          className="w-fit"
+          render={<Link href={`/admin/masters/${master.id}/pages`} />}
+        >
+          {t('admin.masters.managePages')}
+        </Button>
+        <p className="text-xs text-muted-foreground">
+          {t('admin.masters.managePagesHint')}
+        </p>
+      </div>
+    )}
 
     {master && (
       <div className="flex flex-col gap-4 pt-6 border-t border-border">

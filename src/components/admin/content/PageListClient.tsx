@@ -18,9 +18,10 @@ import SortableList from "./SortableList"
 import { deletePage, reorderPages, togglePageEnabled } from "@/app/admin/pages/actions"
 import { useCurrentLanguage } from "@/contexts/LanguageContext"
 import { resolveLocalized } from "@/lib/localized-content"
-import { PAGE_VISIBILITY_TARGETS, parseVisibility } from "@/lib/content/pages-shared"
+import { PAGE_VISIBILITY_TARGETS, parseVisibility, type PageOwner } from "@/lib/content/pages-shared"
 import { cn } from "@/lib/utils"
 import type { Language } from "@/lib/i18n-shared"
+import { useConfirm } from "@/components/ConfirmDialogProvider"
 
 export type PageWithBlocks = {
   id: string
@@ -36,14 +37,26 @@ export type PageWithBlocks = {
 
 interface PageListClientProps {
   pages: PageWithBlocks[]
-  scope: "global" | "master"
+  /** Authorization payload forwarded verbatim to createPage/reorderPages. */
+  owner: PageOwner
+  /** UI copy variant only — never used for authorization. */
+  scope: "global" | "master" | "master-as-admin"
+  /** Only read by the "master-as-admin" header copy. */
+  masterName?: string
   enabledLocales: Language[]
   detailHrefBase: string
 }
 
-/** Shared list surface for `/admin/pages` and `/admin/master/pages` (AD-5, one implementation for both owners). */
-export default function PageListClient({ pages, scope, enabledLocales, detailHrefBase }: PageListClientProps) {
+const SCOPE_COPY = {
+  global:            { eyebrow: 'admin.pages.globalEyebrow',      desc: 'admin.pages.globalDesc' },
+  master:            { eyebrow: 'admin.pages.masterEyebrow',      desc: 'admin.pages.masterDesc' },
+  "master-as-admin": { eyebrow: 'admin.pages.masterAdminEyebrow', desc: 'admin.pages.masterAdminDesc' },
+} as const
+
+/** Shared list surface for `/admin/pages`, `/admin/master/pages`, and `/admin/masters/[masterId]/pages` (AD-5, one implementation for all three owners/surfaces). */
+export default function PageListClient({ pages, owner, scope, masterName, enabledLocales, detailHrefBase }: PageListClientProps) {
   const { t } = useTranslation()
+  const confirm = useConfirm()
   const language = useCurrentLanguage()
   const displayTitle = (p: PageWithBlocks) =>
     resolveLocalized({ pl: p.title_pl, en: p.title_en, uk: p.title_uk }, language)
@@ -55,10 +68,10 @@ export default function PageListClient({ pages, scope, enabledLocales, detailHre
 
   useEffect(() => { setLocalPages(pages) }, [pages])
 
-  const handleDelete = useCallback((id: string) => {
-    if (!confirm(t('admin.pages.deletePageConfirm'))) return
+  const handleDelete = useCallback(async (id: string) => {
+    if (!(await confirm(t('admin.pages.deletePageConfirm')))) return
     startTransition(() => { deletePage(id) })
-  }, [t])
+  }, [t, confirm])
 
   const handleToggle = useCallback((id: string, enabled: boolean) => {
     startTransition(() => { togglePageEnabled(id, !enabled) })
@@ -69,8 +82,8 @@ export default function PageListClient({ pages, scope, enabledLocales, detailHre
       const byId = new Map(prev.map((p) => [p.id, p]))
       return orderedIds.map((id) => byId.get(id)).filter((p): p is PageWithBlocks => Boolean(p))
     })
-    startTransition(() => { reorderPages(orderedIds) })
-  }, [])
+    startTransition(() => { reorderPages(orderedIds, owner) })
+  }, [owner])
 
   const visibilityBadges = (p: PageWithBlocks) => {
     const ids = parseVisibility(p.visibility)
@@ -122,10 +135,10 @@ export default function PageListClient({ pages, scope, enabledLocales, detailHre
       <div className="mb-6 flex items-center justify-between">
         <div>
           <p className="text-xs font-medium uppercase tracking-wider text-primary">
-            {t(scope === "global" ? 'admin.pages.globalEyebrow' : 'admin.pages.masterEyebrow')}
+            {t(SCOPE_COPY[scope].eyebrow)}
           </p>
           <p className="mt-1 text-sm text-muted-foreground">
-            {t(scope === "global" ? 'admin.pages.globalDesc' : 'admin.pages.masterDesc')}
+            {t(SCOPE_COPY[scope].desc, { name: masterName ?? '' })}
           </p>
         </div>
 
@@ -144,6 +157,7 @@ export default function PageListClient({ pages, scope, enabledLocales, detailHre
             </SheetHeader>
             <div className="px-4 pb-4">
               <PageFormSheet
+                owner={owner}
                 scope={scope}
                 enabledLocales={enabledLocales}
                 detailHrefBase={detailHrefBase}
@@ -276,6 +290,7 @@ export default function PageListClient({ pages, scope, enabledLocales, detailHre
             {editTarget && (
               <PageFormSheet
                 page={editTarget}
+                owner={owner}
                 scope={scope}
                 enabledLocales={enabledLocales}
                 detailHrefBase={detailHrefBase}
