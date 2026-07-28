@@ -2,8 +2,10 @@
 
 import type { ReactNode } from "react"
 import Link from "next/link"
+import { motion } from "framer-motion"
 import { usePathname } from "next/navigation"
 import { useQuery } from "@tanstack/react-query"
+import { useReducedMotion } from "@/hooks/useReducedMotion"
 import { useCurrentLanguage } from "@/contexts/LanguageContext"
 import { resolveLocalized } from "@/lib/localized-content"
 import { cn } from "@/lib/utils"
@@ -55,6 +57,7 @@ interface TopNavLineProps {
 export default function TopNavLine({ masterId, className, actions, leadingSpaceClassName }: TopNavLineProps) {
   const pathname = usePathname()
   const lang = useCurrentLanguage()
+  const prefersReducedMotion = useReducedMotion()
   const { data } = useQuery<ContentResponse>({
     queryKey: ["content-nav", masterId ?? "home"],
     queryFn: () =>
@@ -73,25 +76,30 @@ export default function TopNavLine({ masterId, className, actions, leadingSpaceC
     <div className={cn("relative", className)}>
       <div className="flex items-center justify-between gap-3 pr-2 pb-0">
         <nav className={cn("min-w-0 flex-1 overflow-x-auto custom-scrollbar", leadingSpaceClassName)}>
-          <div className="flex w-max items-center gap-5 px-1">
+          <motion.div layout={!prefersReducedMotion} className="flex w-max items-center gap-5 px-1">
             {tabs.map((tab) => {
               const active = pathname === tab.href
               return (
-                <Link
-                  key={tab.id}
-                  href={tab.href}
-                  className={cn(
-                    "shrink-0 whitespace-nowrap border-b-2 px-0.5 pb-0 text-sm font-medium tracking-tight transition-colors duration-200",
-                    active
-                      ? "border-primary text-foreground"
-                      : "border-transparent text-foreground/60 hover:text-foreground"
-                  )}
-                >
-                  {tab.title}
-                </Link>
+                // Its own layout animation — a tab's width changes with the
+                // active language's translation length, and this smooths that
+                // resize (and the resulting shift of tabs after it) instead of
+                // an instant jump.
+                <motion.div key={tab.id} layout={!prefersReducedMotion} transition={{ duration: 0.25, ease: "easeOut" }}>
+                  <Link
+                    href={tab.href}
+                    className={cn(
+                      "block shrink-0 whitespace-nowrap border-b-2 px-0.5 pb-0 text-sm font-medium tracking-tight transition-colors duration-200",
+                      active
+                        ? "border-primary text-foreground"
+                        : "border-transparent text-foreground/60 hover:text-foreground"
+                    )}
+                  >
+                    {tab.title}
+                  </Link>
+                </motion.div>
               )
             })}
-          </div>
+          </motion.div>
         </nav>
         {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
       </div>
