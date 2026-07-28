@@ -6,7 +6,7 @@ Data model and migration history for the SQLite (libSQL) database at `prisma/app
 
 ## Ownership
 
-`schema.prisma` (models: `User`, `MasterProfile`, `Service`, `MasterService`, `ConsentRecord`, `Schedule`, `Appointment`, `DateOverride`, `TenantConfig`, `TelegramNotificationRecipient`, `NotificationLog`, `PasswordResetToken`, `Account`) and the `migrations/` history.
+`schema.prisma` (models: `User`, `MasterProfile`, `Service`, `MasterService`, `ConsentRecord`, `Schedule`, `Appointment`, `DateOverride`, `TenantConfig`, `TelegramNotificationRecipient`, `NotificationLog`, `PasswordResetToken`, `Account`, `Discount`, `DiscountService`, `DiscountRedemption`) and the `migrations/` history.
 
 ## Local Contracts
 
@@ -17,6 +17,7 @@ Data model and migration history for the SQLite (libSQL) database at `prisma/app
 - `Service.name` and `MasterProfile.bio` are per-locale columns, not translations tables: `name_pl`/`name_en`/`name_uk` (`name_pl` is NOT NULL — the canonical default) and `bio_pl`/`bio_en`/`bio_uk` (all nullable). `TenantConfig.enabledLocales` is a JSON string array (default `["pl","en","uk"]`) gating which locales an admin can author. Resolve a display value with `resolveLocalized()`/`parseEnabledLocales()` from `src/lib/localized-content.ts` — never read the bare `name`/`bio` fields (they no longer exist).
 - `Appointment.clientLanguage String @default("pl")` (NOT NULL) stores the client's UI language at booking time, validated against `SUPPORTED_LANGUAGES` and defaulted to `pl` by `POST /api/book` for missing/invalid input — never written directly from an unvalidated request field. Used only by `src/lib/notifications/index.ts` to pick the language of the **client-facing** confirmation/reminder copy; admin/salon-facing copy always stays `DEFAULT_LANGUAGE`.
 - `TelegramNotificationRecipient` (`id`, `chatId`, `label?`, `createdAt`) replaces the old single `TenantConfig.notifAdminChatId String?` field (removed) — a flat, unrelated list of chat IDs the salon's admin/salon-facing Telegram notifications broadcast to (see `src/lib/notifications/index.ts` in `../src/lib/AGENTS.md`). No FK; implicitly tenant-scoped since there is one `TenantConfig` singleton.
+- `Appointment.originalPrice`/`finalPrice`/`discountId` are a **nullable snapshot** written by all three `appointment.create` sites (`booking-service.ts`, `master/appointments`, `admin/calendar/appointments`); `null` means "pre-discounts row" and readers fall back to the live `MasterService.priceOverride ?? Service.price` via `resolveAppointmentPrice()` (`src/lib/discounts/shared.ts`) — there is no backfill. `Discount.masterId` mirrors `Service.masterId` semantics (`null` = admin/global, filled = that master's own). `Discount.code` is stored uppercase-normalized via `normalizeDiscountCode()` — that is what makes the `@unique` index case-insensitive on SQLite. `label`/`percent` are deliberately **not** denormalized onto `Appointment` — `Appointment.discountId` is `onDelete: SetNull`, so deleting a `Discount` drops the join but the percentage stays derivable from the price snapshot (`discountPercentFromSnapshot()`).
 
 ## Work Guidance
 

@@ -15,14 +15,15 @@ const STATUS_FOR_CODE: Record<CreateBookingErrorCode, number> = {
   CONFLICT: 409,
   UNAUTHORIZED: 401,
   INTERNAL_ERROR: 500,
+  DISCOUNT_INVALID: 400,
 }
 
 /**
  * POST /api/book
  * Creates a new booking (guest flow — no auth required).
  *
- * Body: { startISO, endISO, procedureId?, masterId?, name, phone, email?, turnstileToken?, language?, consents? }
- * Returns: { eventId: string }
+ * Body: { startISO, endISO, procedureId?, masterId?, name, phone, email?, turnstileToken?, language?, discountCode?, consents? }
+ * Returns: { eventId: string, originalPrice: number, finalPrice: number, discountPercent: number | null }
  *
  * Thin HTTP wrapper around the shared `createBooking()` transaction
  * (`@/lib/booking-service`), which is also used by the Telegram client
@@ -60,6 +61,7 @@ export async function POST(req: NextRequest) {
     consents: body.consents,
     ip: getRequestIp(req),
     authenticatedUserId: isAuth ? session!.user!.id : null,
+    discountCode: body.discountCode,
   })
 
   if (!result.ok) {
@@ -69,5 +71,10 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  return NextResponse.json({ eventId: result.appointmentId })
+  return NextResponse.json({
+    eventId: result.appointmentId,
+    originalPrice: result.originalPrice,
+    finalPrice: result.finalPrice,
+    discountPercent: result.discountPercent,
+  })
 }

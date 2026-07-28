@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
 import prisma from "@/lib/prisma"
 import { notifyBookingCancellation, notifyBookingUpdate } from "@/lib/notifications"
+import { resnapshotAppointmentPrice } from "@/lib/discounts/server"
 
 export const runtime = "nodejs"
 
@@ -190,6 +191,12 @@ export async function PUT(
         notes: notes || null,
       }
     })
+
+    // Service changed — re-snapshot the price, clearing any applied discount
+    // (AD-7).
+    if (finalServiceId !== appointment.serviceId) {
+      await resnapshotAppointmentPrice(id)
+    }
 
     notifyBookingUpdate(
       updated.id,

@@ -97,6 +97,9 @@ export interface ProcedureItem {
   price_override_pln?: number | null
   active: boolean
   order?: number
+  discount_percent?: number | null
+  discount_label?: string | null
+  price_after_discount_pln?: number | null
 }
 
 // ============================================

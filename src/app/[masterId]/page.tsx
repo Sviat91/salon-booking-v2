@@ -14,6 +14,7 @@ import DayCalendar from '../../components/DayCalendar'
 import SlotsList from '../../components/SlotsList'
 import BookingForm from '../../components/BookingForm'
 import BookingSuccessPanel from '../../components/BookingSuccessPanel'
+import type { BookedPricing } from '../../components/hooks/useBookingSubmit'
 import BookingManagement, { BookingManagementRef } from '../../components/booking-management'
 import ThemeToggle from '../../components/ThemeToggle'
 import LanguageToggle from '../../components/LanguageToggle'
@@ -73,7 +74,11 @@ export default function Page({ params }: PageProps) {
   
   // Флаг для показа success сообщения
   const [showBookingSuccess, setShowBookingSuccess] = useState(false)
-  const [successBookingData, setSuccessBookingData] = useState<{ slot: { startISO: string; endISO: string }; procedureId?: string } | null>(null)
+  const [successBookingData, setSuccessBookingData] = useState<{
+    slot: { startISO: string; endISO: string }
+    procedureId?: string
+    pricing?: BookedPricing
+  } | null>(null)
 
   // Флаги для контроля автоскрола - каждый этап скролит только один раз
   const [hasScrolledToCalendar, setHasScrolledToCalendar] = useState(false)
@@ -238,9 +243,9 @@ export default function Page({ params }: PageProps) {
   }
   
   // Обработчик успешного бронирования
-  const handleBookingSuccess = () => {
+  const handleBookingSuccess = (pricing: BookedPricing) => {
     // Сохраняем данные для success сообщения
-    setSuccessBookingData({ slot: selectedSlot!, procedureId: procId })
+    setSuccessBookingData({ slot: selectedSlot!, procedureId: procId, pricing })
     setShowBookingSuccess(true)
     // Сбрасываем календарь и процедуру
     resetToInitialState()
@@ -343,6 +348,7 @@ export default function Page({ params }: PageProps) {
                   <BookingSuccessPanel
                     slot={successBookingData.slot}
                     procedureId={successBookingData.procedureId}
+                    pricing={successBookingData.pricing}
                     onClose={() => {
                       setShowBookingSuccess(false)
                       setSuccessBookingData(null)
@@ -405,6 +411,7 @@ export default function Page({ params }: PageProps) {
                 <BookingSuccessPanel
                   slot={successBookingData.slot}
                   procedureId={successBookingData.procedureId}
+                  pricing={successBookingData.pricing}
                   onClose={() => {
                     setShowBookingSuccess(false)
                     setSuccessBookingData(null)

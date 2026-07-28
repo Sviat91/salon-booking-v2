@@ -11,11 +11,11 @@ import { formatInTimeZone } from 'date-fns-tz'
 import { botT } from '../i18n'
 import { confirmKeyboard, confirmSuccessKeyboard, slotsKeyboard } from '../keyboards'
 import { getState, setState, clearState, type WizardState } from '../wizard-state'
-import { listMasterProcedures } from '../catalog'
 import { renderDateStep } from './datetime'
 import { renderContactStep } from './contact'
 import { renderConsentStep } from './consent'
 import { createBooking } from '@/lib/booking-service'
+import { evaluateDiscount } from '@/lib/discounts/server'
 import { resolveSiteUrl } from '../site-url'
 import { rateLimit } from '@/lib/cache'
 import { SCHEDULE_TZ } from '@/lib/schedule-utils'
@@ -36,15 +36,50 @@ function describeError(err: unknown): string {
   return String(err)
 }
 
-async function resolvePrice(masterId: string, procedureId: string): Promise<number | null> {
-  const procedures = await listMasterProcedures(masterId)
-  return procedures.find((p) => p.id === procedureId)?.price ?? null
+interface BookingPricing {
+  originalPrice: number
+  finalPrice: number
+  discountPercent: number | null
+}
+
+/**
+ * The bot books through the shared `createBooking()`, so it will receive
+ * automatic discounts regardless — quoting the catalog price here would show
+ * a different price than the one actually charged.
+ */
+async function resolvePricing(params: {
+  masterId: string
+  procedureId: string
+  startISO: string
+  code?: string | null
+  phone?: string | null
+}): Promise<BookingPricing | null> {
+  const evaluation = await evaluateDiscount({
+    masterId: params.masterId,
+    serviceId: params.procedureId,
+    stage: 'final',
+    startsAt: new Date(params.startISO),
+    code: params.code ?? null,
+    clientPhone: params.phone ?? null,
+  })
+  if (!evaluation) return null
+  return {
+    originalPrice: evaluation.originalPrice,
+    finalPrice: evaluation.finalPrice,
+    discountPercent: evaluation.percent,
+  }
 }
 
 /**
  * Formats the master/procedure/date/time/price interpolation values shared by
  * `bot.confirm.summary` (`renderConfirmStep`) and `bot.confirm.success` (the
- * `confirm:yes` success branch).
+ * `confirm:yes` success branch). `bot.confirm.summary`/`bot.confirm.success`
+ * stay byte-identical across all three locales — the discount is folded into
+ * the existing `{{price}}` interpolation.
+ *
+ * When `pricing` is supplied (the `confirm:yes` success branch), it is used
+ * as-is — it is the authoritative value `createBooking` actually persisted,
+ * not re-evaluated. Otherwise (`renderConfirmStep`) pricing is evaluated live.
  */
 async function formatBookingSummary(params: {
   lang: Language
@@ -53,11 +88,14 @@ async function formatBookingSummary(params: {
   masterId: string
   procedureId: string
   startISO: string
+  code?: string | null
+  phone?: string | null
+  pricing?: BookingPricing
 }) {
-  const { lang, masterName, procedureName, masterId, procedureId, startISO } = params
+  const { lang, masterName, procedureName, masterId, procedureId, startISO, code, phone } = params
   const t = botT(lang)
   const currency = t('common.currency')
-  const price = await resolvePrice(masterId, procedureId)
+  const pricing = params.pricing ?? (await resolvePricing({ masterId, procedureId, startISO, code, phone }))
 
   const dateLabel = new Intl.DateTimeFormat(localeFor(lang), {
     dateStyle: 'long',
@@ -65,25 +103,47 @@ async function formatBookingSummary(params: {
   }).format(new Date(startISO))
   const timeLabel = formatInTimeZone(new Date(startISO), SCHEDULE_TZ, 'HH:mm')
 
+  let priceText = '—'
+  if (pricing) {
+    priceText =
+      pricing.discountPercent !== null && pricing.finalPrice < pricing.originalPrice
+        ? t('bot.confirm.priceWithDiscount', {
+            final: pricing.finalPrice,
+            original: pricing.originalPrice,
+            percent: pricing.discountPercent,
+            currency,
+          })
+        : `${pricing.finalPrice} ${currency}`
+  }
+
   return {
     master: masterName,
     procedure: procedureName,
     date: dateLabel,
     time: timeLabel,
-    price: price !== null ? `${price} ${currency}` : '—',
+    price: priceText,
   }
 }
 
-/** Renders the booking summary with confirm/back buttons. Persists `step: 'CONFIRM'`. */
+/** Renders the booking summary with confirm/back/promo buttons. Persists `step: 'CONFIRM'`. */
 export async function renderConfirmStep(ctx: Context, chatId: number, state: WizardState) {
-  const { lang, masterName, procedureName, masterId, procedureId, startISO } = state
+  const { lang, masterName, procedureName, masterId, procedureId, startISO, promoCode, phone } = state
   if (!lang || !masterName || !procedureName || !masterId || !procedureId || !startISO) return
 
   await setState(chatId, { ...state, step: 'CONFIRM' })
   const t = botT(lang)
-  const labels = await formatBookingSummary({ lang, masterName, procedureName, masterId, procedureId, startISO })
+  const labels = await formatBookingSummary({
+    lang,
+    masterName,
+    procedureName,
+    masterId,
+    procedureId,
+    startISO,
+    code: promoCode ?? null,
+    phone: phone ?? null,
+  })
 
-  await ctx.reply(t('bot.confirm.summary', labels), { reply_markup: confirmKeyboard(lang) })
+  await ctx.reply(t('bot.confirm.summary', labels), { reply_markup: confirmKeyboard(lang, { promoCode }) })
 }
 
 export function registerConfirmHandlers(bot: Bot) {
@@ -100,7 +160,10 @@ export function registerConfirmHandlers(bot: Bot) {
       return
     }
     await ctx.answerCallbackQuery()
-    await setState(chatId, { ...state, step: 'TIME' })
+    // The slot is about to change — a happy-hour/at-that-time code must not
+    // silently carry over. This is the only backward path out of CONFIRM, so
+    // it also covers back:date/back:procedure.
+    await setState(chatId, { ...state, step: 'TIME', promoCode: undefined })
     const t = botT(state.lang)
     await ctx.editMessageText(t('bot.time.prompt'), {
       reply_markup: slotsKeyboard({ slots: state.slots, page: state.slotPage ?? 0, lang: state.lang }),
@@ -157,10 +220,14 @@ export function registerConfirmHandlers(bot: Bot) {
       ip: null,
       authenticatedUserId: null,
       telegramChatId: String(chatId),
+      discountCode: state.promoCode ?? null,
     })
 
     if (result.ok) {
       await clearState(chatId)
+      // Authoritative — the values createBooking actually persisted, not a
+      // second live evaluation (keeps the quoted price and the charged price
+      // in sync, R-risk "bot summary-vs-charge divergence").
       const labels = await formatBookingSummary({
         lang: state.lang,
         masterName: state.masterName,
@@ -168,6 +235,11 @@ export function registerConfirmHandlers(bot: Bot) {
         masterId: state.masterId,
         procedureId: state.procedureId,
         startISO: state.startISO,
+        pricing: {
+          originalPrice: result.originalPrice,
+          finalPrice: result.finalPrice,
+          discountPercent: result.discountPercent,
+        },
       })
       const siteUrl = await resolveSiteUrl()
       try {
@@ -192,6 +264,12 @@ export function registerConfirmHandlers(bot: Bot) {
         return
       case 'INVALID_PHONE':
         await renderContactStep(ctx, chatId, { ...state, step: 'CONTACT' })
+        return
+      case 'DISCOUNT_INVALID':
+        // Never leave the user stuck: the booking is re-confirmable at the
+        // undiscounted price in one tap.
+        await ctx.editMessageText(t('bot.error.discountInvalid'))
+        await renderConfirmStep(ctx, chatId, { ...state, promoCode: undefined, step: 'CONFIRM' })
         return
       default:
         await ctx.editMessageText(t('bot.error.generic'))

@@ -21,6 +21,22 @@ const { mockPrisma } = vi.hoisted(() => {
     service: {
       findFirst: vi.fn(),
       create: vi.fn(),
+      findUnique: vi.fn(),
+    },
+    // Discounts (prisma/AGENTS.md: a schema change requires updating mocks).
+    masterProfile: {
+      findUnique: vi.fn(),
+    },
+    masterService: {
+      findUnique: vi.fn(),
+    },
+    discount: {
+      findMany: vi.fn(),
+    },
+    discountRedemption: {
+      findMany: vi.fn(),
+      findFirst: vi.fn(),
+      create: vi.fn(),
     },
   }
   mockPrisma.$transaction = vi.fn(async (cb: any) => cb(mockPrisma))
@@ -75,6 +91,14 @@ describe('POST /api/book consent gate', () => {
 
     mockPrisma.service.findFirst.mockResolvedValue({ id: 'svc_1' })
     mockPrisma.service.create.mockResolvedValue({ id: 'svc_fallback' })
+    mockPrisma.service.findUnique.mockResolvedValue({ id: 'svc_1', price: 100 })
+
+    mockPrisma.masterProfile.findUnique.mockResolvedValue(null)
+    mockPrisma.masterService.findUnique.mockResolvedValue(null)
+    mockPrisma.discount.findMany.mockResolvedValue([])
+    mockPrisma.discountRedemption.findMany.mockResolvedValue([])
+    mockPrisma.discountRedemption.findFirst.mockResolvedValue(null)
+    mockPrisma.discountRedemption.create.mockResolvedValue({ id: 'redemption_1' })
   })
 
   it('returns CONSENT_REQUIRED when valid consent is missing and consents are not provided', async () => {

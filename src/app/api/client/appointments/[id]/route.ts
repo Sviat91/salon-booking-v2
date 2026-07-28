@@ -4,6 +4,7 @@ import { z } from "zod"
 import prisma from "@/lib/prisma"
 import { auth } from "@/auth"
 import { notifyBookingCancellation, notifyBookingUpdate } from "@/lib/notifications"
+import { resnapshotAppointmentPrice } from "@/lib/discounts/server"
 
 export const runtime = "nodejs"
 
@@ -182,6 +183,12 @@ export async function PATCH(
       where: { id: appointment.id },
       data: updateData,
     })
+
+    // Service changed — re-snapshot the price, clearing any applied discount
+    // (AD-7).
+    if (body.newProcedureId && body.newProcedureId !== appointment.serviceId) {
+      await resnapshotAppointmentPrice(appointment.id)
+    }
 
     notifyBookingUpdate(
       appointment.id,

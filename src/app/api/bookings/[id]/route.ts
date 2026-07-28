@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { phonesMatchE164 } from "@/lib/utils/phone-normalization"
 import { notifyBookingUpdate } from "@/lib/notifications"
+import { resnapshotAppointmentPrice } from "@/lib/discounts/server"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -189,6 +190,12 @@ export async function PATCH(
         { error: "Wybrany termin jest już zajęty.", code: "CONFLICT" },
         { status: 409 }
       )
+    }
+
+    // Service changed — re-snapshot the price, clearing any applied discount
+    // (AD-7). Called after the transaction resolves (it reads current state).
+    if (newProcedureId && newProcedureId !== appointment.serviceId) {
+      await resnapshotAppointmentPrice(appointmentId)
     }
 
     notifyBookingUpdate(

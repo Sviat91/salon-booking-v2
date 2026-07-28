@@ -40,6 +40,7 @@ model User {
   passwordResetTokens  PasswordResetToken[]
   accounts             Account[]
   pages                Page[]
+  createdDiscounts     Discount[]    @relation("MasterCreatedDiscounts")
 
   @@index([phone])
   @@index([email])
@@ -80,6 +81,7 @@ model Service {
 
   appointments    Appointment[]
   masterServices  MasterService[]
+  discountServices DiscountService[]
 }
 
 // Per-master service assignment with optional price override
@@ -96,6 +98,67 @@ model MasterService {
   service         Service       @relation(fields: [serviceId], references: [id], onDelete: Cascade)
 
   @@unique([masterProfileId, serviceId])
+}
+
+// Percentage discount. masterId semantics mirror Service.masterId exactly:
+// null = created by Admin (applies to any master), filled = created by that
+// Master (applies only to their own bookings and their own offered services).
+model Discount {
+  id            String   @id @default(cuid())
+  label         String   // Admin-facing only. Never parsed or interpreted.
+  percent       Int      // 1..100, validated at the application layer
+
+  masterId      String?  // Null = created by Admin, filled = created by Master
+  master        User?    @relation("MasterCreatedDiscounts", fields: [masterId], references: [id], onDelete: Cascade)
+
+  requiresCode  Boolean  @default(false)
+  code          String?  @unique // normalized UPPERCASE; null unless requiresCode
+  oncePerClient Boolean  @default(false)
+
+  // Optional "happy hour" window. Both null/empty = not time-restricted.
+  windowDays      String? // JSON int[], Schedule.dayOfWeek semantics (0=Sunday..6=Saturday)
+  windowIntervals String? // JSON array, same shape as Schedule.intervals
+
+  startDate     DateTime?
+  endDate       DateTime?
+  active        Boolean  @default(true)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  services      DiscountService[]
+  redemptions   DiscountRedemption[]
+  appointments  Appointment[]
+
+  @@index([masterId, active])
+}
+
+// Empty set for a discount = "all services in that discount's scope".
+model DiscountService {
+  id         String @id @default(cuid())
+  discountId String
+  serviceId  String
+
+  discount   Discount @relation(fields: [discountId], references: [id], onDelete: Cascade)
+  service    Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@unique([discountId, serviceId])
+  @@index([serviceId])
+}
+
+// One row per appointment that actually used a discount. Enforces
+// oncePerClient (by normalized E.164 phone) and is the future reporting source.
+model DiscountRedemption {
+  id            String   @id @default(cuid())
+  discountId    String
+  appointmentId String   @unique
+  clientPhone   String?  // normalized E.164; null when no valid phone exists
+  redeemedAt    DateTime @default(now())
+
+  discount    Discount    @relation(fields: [discountId], references: [id], onDelete: Cascade)
+  appointment Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+
+  @@index([discountId, clientPhone])
 }
 
 model ConsentRecord {
@@ -155,12 +218,20 @@ model Appointment {
   notes       String?
   clientLanguage String @default("pl")
 
+  // Price snapshot taken at creation time (AD-2). Null only for rows created
+  // before the discounts feature; readers fall back to the live service price.
+  discountId    String?
+  originalPrice Float?   // MasterService.priceOverride ?? Service.price, at booking time
+  finalPrice    Float?   // what is actually charged; == originalPrice when undiscounted
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   client      User     @relation("ClientAppointments", fields: [clientId], references: [id], onDelete: Cascade)
   master      User     @relation("MasterAppointments", fields: [masterId], references: [id], onDelete: Cascade)
   service     Service  @relation(fields: [serviceId], references: [id])
+  discount           Discount?           @relation(fields: [discountId], references: [id], onDelete: SetNull)
+  discountRedemption DiscountRedemption?
 }
 
 // Replaces DayOff model. Represents specific date overrides (day-off or custom intervals).

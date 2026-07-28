@@ -3,6 +3,8 @@ import { auth } from "@/auth"
 import prisma from "@/lib/prisma"
 import { z } from "zod"
 import { notifyBookingConfirmation } from "@/lib/notifications"
+import { resolveBasePrice } from "@/lib/discounts/server"
+import { resolveAppointmentPrice } from "@/lib/discounts/shared"
 
 export const runtime = "nodejs"
 
@@ -56,6 +58,9 @@ export async function GET(req: NextRequest) {
         endTime: true,
         status: true,
         notes: true,
+        finalPrice: true,
+        originalPrice: true,
+        discount: { select: { label: true, percent: true } },
         service: { select: { id: true, name_pl: true, name_en: true, name_uk: true, duration: true, price: true } },
         client: { select: { id: true, name: true, phone: true, email: true } },
         master: { select: { id: true, name: true, masterProfile: { select: { color: true } } } },
@@ -63,7 +68,18 @@ export async function GET(req: NextRequest) {
       orderBy: [{ date: "asc" }, { startTime: "asc" }],
     })
 
-    return NextResponse.json({ appointments })
+    // Pre-existing inconsistency, deliberately not fixed here: this route
+    // applies no MasterService.priceOverride at all — only rewrite
+    // service.price to the finalPrice snapshot when present (AD-6 row 4).
+    const appointmentsWithEffectivePrice = appointments.map((appointment) => ({
+      ...appointment,
+      service: {
+        ...appointment.service,
+        price: resolveAppointmentPrice(appointment.finalPrice, appointment.service.price),
+      },
+    }))
+
+    return NextResponse.json({ appointments: appointmentsWithEffectivePrice })
   } catch (error) {
     console.error("Error fetching admin appointments:", error)
     return NextResponse.json({ error: "Failed to fetch appointments" }, { status: 500 })
@@ -121,6 +137,10 @@ export async function POST(req: NextRequest) {
         entryServiceId = customService.id
       }
 
+      // Manually created appointments snapshot at full price (AD-12: no
+      // manual discount attachment); discountId stays unset.
+      const originalPrice = (await resolveBasePrice(masterId, entryServiceId)) ?? 0
+
       const appt = await prisma.appointment.create({
         data: {
           clientId: finalClientId,
@@ -130,7 +150,9 @@ export async function POST(req: NextRequest) {
           startTime,
           endTime,
           notes: parsed.notes || null,
-          status: "CONFIRMED"
+          status: "CONFIRMED",
+          originalPrice,
+          finalPrice: originalPrice,
         }
       })
       createdAppointments.push(appt)

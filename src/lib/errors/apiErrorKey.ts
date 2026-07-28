@@ -39,6 +39,7 @@ export const KNOWN_ERROR_CODES = new Set([
   'NO_PASSWORD_SET',
   'INVALID_CURRENT_PASSWORD',
   'EMAIL_ALREADY_IN_USE',
+  'DISCOUNT_INVALID',
 ])
 
 export function apiErrorKey(code?: string): string {

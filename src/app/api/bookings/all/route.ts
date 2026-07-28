@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { formatInTimeZone } from "date-fns-tz"
 import prisma from "@/lib/prisma"
 import { phonesMatchE164 } from "@/lib/utils/phone-normalization"
+import { resolveAppointmentPrice } from "@/lib/discounts/shared"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -154,8 +155,10 @@ export async function GET(req: NextRequest) {
       const apptTimestamp = new Date(`${dateISO}T${appt.startTime}:00`).getTime()
       const canModify     = (apptTimestamp - now) > 24 * 60 * 60 * 1000
 
-      const profileId = profileByUserId.get(appt.masterId)
-      const price     = (profileId && overrideMap.get(`${profileId}:${service.id}`)) ?? service.price
+      const profileId    = profileByUserId.get(appt.masterId)
+      const liveOverride = (profileId ? overrideMap.get(`${profileId}:${service.id}`) : undefined) ?? service.price
+      const price         = resolveAppointmentPrice(appt.finalPrice, liveOverride)
+      const originalPrice = resolveAppointmentPrice(appt.originalPrice, liveOverride)
 
       return {
         eventId:       appt.id,
@@ -172,6 +175,7 @@ export async function GET(req: NextRequest) {
         startTime:     startISO,
         endTime:       endISO,
         price,
+        originalPrice,
         canModify,
         canCancel:     canModify,
       }

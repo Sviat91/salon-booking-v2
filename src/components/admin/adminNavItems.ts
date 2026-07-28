@@ -12,6 +12,7 @@ import {
   Bell,
   Bot,
   FileText,
+  Percent,
   type LucideIcon,
 } from "lucide-react"
 
@@ -38,6 +39,11 @@ export const adminNavItems: NavItem[] = [
     labelKey: "admin.nav.services",
     href: "/admin/services",
     icon: Scissors,
+  },
+  {
+    labelKey: "admin.nav.discounts",
+    href: "/admin/discounts",
+    icon: Percent,
   },
   {
     labelKey: "admin.nav.masters",
@@ -107,6 +113,11 @@ export const masterNavItems: NavItem[] = [
     labelKey: "admin.nav.services",
     href: "/admin/master/services",
     icon: Scissors,
+  },
+  {
+    labelKey: "admin.nav.discounts",
+    href: "/admin/master/discounts",
+    icon: Percent,
   },
   {
     labelKey: "admin.nav.schedule",

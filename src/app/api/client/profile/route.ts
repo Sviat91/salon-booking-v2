@@ -3,6 +3,7 @@ import { auth } from "@/auth"
 import prisma from "@/lib/prisma"
 import { formatInTimeZone } from "date-fns-tz"
 import { z } from "zod"
+import { resolveAppointmentPrice } from "@/lib/discounts/shared"
 
 export const runtime = "nodejs"
 const TZ = "Europe/Warsaw"
@@ -87,8 +88,10 @@ export async function GET() {
 
     for (const appt of appointments) {
       const profileId = profileByUserId.get(appt.masterId)
-      const price = (profileId && overrideMap.get(`${profileId}:${appt.service.id}`)) ?? appt.service.price
-      
+      const livePrice = (profileId ? overrideMap.get(`${profileId}:${appt.service.id}`) : undefined) ?? appt.service.price
+      const price = resolveAppointmentPrice(appt.finalPrice, livePrice)
+      const originalPrice = resolveAppointmentPrice(appt.originalPrice, livePrice)
+
       const mappedAppt = {
         id: appt.id,
         date: appt.date,
@@ -98,6 +101,7 @@ export async function GET() {
         notes: appt.notes,
         service: { ...appt.service, price },
         master: appt.master,
+        originalPrice,
       }
 
       if (appt.date >= todayDate && appt.status !== "CANCELLED") {

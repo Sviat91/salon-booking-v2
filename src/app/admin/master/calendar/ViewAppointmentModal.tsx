@@ -9,6 +9,7 @@ import { useTranslation } from "react-i18next"
 import { useCurrentLanguage } from "@/contexts/LanguageContext"
 import { resolveLocalized } from "@/lib/localized-content"
 import { dateFnsLocale } from "@/lib/utils/date-fns-locale"
+import { discountPercentFromSnapshot } from "@/lib/discounts/shared"
 import { toast } from "sonner"
 
 interface Props {
@@ -30,15 +31,21 @@ export default function ViewAppointmentModal({ appointment, onClose, onDelete, o
     if (status.startsWith("CANCELLED")) return t('profile.statusCancelled')
     return status
   }
-  const formattedServicePrice =
-    appointment.service.price > 0
-      ? new Intl.NumberFormat("pl-PL", {
-          style: "currency",
-          currency: "PLN",
-          minimumFractionDigits: Number.isInteger(appointment.service.price) ? 0 : 2,
-          maximumFractionDigits: 2,
-        }).format(appointment.service.price)
-      : ""
+  const formatPln = (n: number) =>
+    new Intl.NumberFormat("pl-PL", {
+      style: "currency",
+      currency: "PLN",
+      minimumFractionDigits: Number.isInteger(n) ? 0 : 2,
+      maximumFractionDigits: 2,
+    }).format(n)
+
+  const formattedServicePrice = appointment.service.price > 0 ? formatPln(appointment.service.price) : ""
+
+  // The percentage stays derivable from the price snapshot even after the
+  // Discount row has been deleted (Appointment.discountId is SetNull, AD-1).
+  const discountPercent =
+    appointment.discount?.percent ??
+    discountPercentFromSnapshot(appointment.originalPrice, appointment.service.price)
 
   const handleDelete = async () => {
     setIsDeleting(true)
@@ -108,6 +115,18 @@ export default function ViewAppointmentModal({ appointment, onClose, onDelete, o
               <p className="font-bold text-primary">{formattedServicePrice}</p>
             </div>
             <p className="text-sm text-muted-foreground mt-1">{appointment.service.duration} {t('admin.calendar.minutesSuffix')}</p>
+            {discountPercent !== null && discountPercent > 0 && (
+              <div className="text-xs text-muted-foreground mt-1.5">
+                <p>
+                  {appointment.discount?.label
+                    ? t('admin.calendar.discountApplied', { percent: discountPercent, label: appointment.discount.label })
+                    : t('admin.calendar.discountAppliedNoLabel', { percent: discountPercent })}
+                </p>
+                {appointment.originalPrice != null && appointment.originalPrice > appointment.service.price && (
+                  <p>{t('admin.calendar.originalPriceLine', { price: formatPln(appointment.originalPrice) })}</p>
+                )}
+              </div>
+            )}
           </div>
 
           {appointment.notes && (

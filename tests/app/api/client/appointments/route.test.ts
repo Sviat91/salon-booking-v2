@@ -15,6 +15,17 @@ const { mockAuth, mockPrisma } = vi.hoisted(() => ({
     service: {
       findUnique: vi.fn(),
     },
+    // Discounts (prisma/AGENTS.md: a schema change requires updating mocks) —
+    // resnapshotAppointmentPrice() is called whenever the service changes.
+    masterProfile: {
+      findUnique: vi.fn(),
+    },
+    masterService: {
+      findUnique: vi.fn(),
+    },
+    discountRedemption: {
+      deleteMany: vi.fn(),
+    },
   },
 }))
 
@@ -43,6 +54,9 @@ describe("Client appointments route", () => {
     mockAuth.mockResolvedValue({
       user: { id: "u_client", role: "CLIENT" },
     })
+    mockPrisma.masterProfile.findUnique.mockResolvedValue(null)
+    mockPrisma.masterService.findUnique.mockResolvedValue(null)
+    mockPrisma.discountRedemption.deleteMany.mockResolvedValue({ count: 0 })
   })
 
   it("PATCH updates procedure/time for accessible appointment", async () => {

@@ -3,6 +3,7 @@ import { evaluateConsentStatus, saveConsentRecord } from "@/lib/consent-service"
 import { notifyBookingConfirmation } from "@/lib/notifications"
 import { normalizePhoneToE164 } from "@/lib/utils/phone-normalization"
 import { isValidLanguage, DEFAULT_LANGUAGE } from "@/lib/i18n-shared"
+import { evaluateDiscount } from "@/lib/discounts/server"
 
 /**
  * Framework-free booking-creation transaction, shared by `POST /api/book`
@@ -32,6 +33,7 @@ export interface CreateBookingInput {
   ip?: string | null
   authenticatedUserId?: string | null
   telegramChatId?: string | null
+  discountCode?: string | null
 }
 
 export type CreateBookingErrorCode =
@@ -42,9 +44,10 @@ export type CreateBookingErrorCode =
   | "CONFLICT"
   | "UNAUTHORIZED"
   | "INTERNAL_ERROR"
+  | "DISCOUNT_INVALID"
 
 export type CreateBookingResult =
-  | { ok: true; appointmentId: string }
+  | { ok: true; appointmentId: string; originalPrice: number; finalPrice: number; discountPercent: number | null }
   | { ok: false; code: CreateBookingErrorCode; message: string }
 
 export async function createBooking(input: CreateBookingInput): Promise<CreateBookingResult> {
@@ -217,8 +220,31 @@ export async function createBooking(input: CreateBookingInput): Promise<CreateBo
       }
     }
 
+    // 4b. Evaluate the discount to price and charge — never accept a
+    // client-computed price; always recompute at stage 'final'.
+    const clientPhone = isAuth ? clientUser.phone : normalizedGuestPhone
+
+    const evaluation = await evaluateDiscount({
+      masterId,
+      serviceId,
+      stage: 'final',
+      startsAt: startDate,
+      code: input.discountCode,
+      clientPhone,
+    })
+
+    if (evaluation === null) {
+      // serviceId is guaranteed to exist here (just created or found) —
+      // a null evaluation means an internal error, not a client mistake.
+      return { ok: false, code: "INTERNAL_ERROR", message: "Failed to price the booking" }
+    }
+
+    if (input.discountCode && evaluation.codeStatus !== 'valid') {
+      return { ok: false, code: "DISCOUNT_INVALID", message: "Promo code is not valid for this booking" }
+    }
+
     // 5. Create the appointment — re-check conflict atomically to close the race window
-    const created = await prisma.$transaction(async (tx) => {
+    const outcome = await prisma.$transaction(async (tx) => {
       const conflict = await tx.appointment.findFirst({
         where: {
           masterId,
@@ -228,8 +254,18 @@ export async function createBooking(input: CreateBookingInput): Promise<CreateBo
           endTime: { gt: startTime },
         },
       })
-      if (conflict) return null
-      return tx.appointment.create({
+      if (conflict) return { kind: 'conflict' as const }
+
+      // Re-check oncePerClient inside the transaction — same reasoning as the
+      // conflict re-check above; there is no DB constraint that can express it.
+      if (evaluation.discountId && evaluation.oncePerClient && clientPhone) {
+        const taken = await tx.discountRedemption.findFirst({
+          where: { discountId: evaluation.discountId, clientPhone },
+        })
+        if (taken) return { kind: 'discountTaken' as const }
+      }
+
+      const appointment = await tx.appointment.create({
         data: {
           clientId: clientUser.id,
           masterId,
@@ -239,16 +275,36 @@ export async function createBooking(input: CreateBookingInput): Promise<CreateBo
           endTime,
           status: "CONFIRMED",
           clientLanguage,
+          discountId: evaluation.discountId,
+          originalPrice: evaluation.originalPrice,
+          finalPrice: evaluation.finalPrice,
         },
       })
+
+      if (evaluation.discountId) {
+        await tx.discountRedemption.create({
+          data: { discountId: evaluation.discountId, appointmentId: appointment.id, clientPhone },
+        })
+      }
+      return { kind: 'ok' as const, appointment }
     })
 
-    if (!created) {
+    if (outcome.kind === 'conflict') {
       return { ok: false, code: "CONFLICT", message: "Time slot is already booked" }
     }
+    if (outcome.kind === 'discountTaken') {
+      return { ok: false, code: "DISCOUNT_INVALID", message: "Promo code is not valid for this booking" }
+    }
 
+    const created = outcome.appointment
     notifyBookingConfirmation(created.id, 'client').catch(console.error)
-    return { ok: true, appointmentId: created.id }
+    return {
+      ok: true,
+      appointmentId: created.id,
+      originalPrice: evaluation.originalPrice,
+      finalPrice: evaluation.finalPrice,
+      discountPercent: evaluation.percent,
+    }
   } catch (error) {
     console.error("Error creating booking:", error)
     return { ok: false, code: "INTERNAL_ERROR", message: "Failed to create booking" }

@@ -89,6 +89,63 @@ describe('GET /api/master/appointments', () => {
     expect(body.appointments[0].service.price).toBe(150)
   })
 
+  it('prefers finalPrice over the MasterService.priceOverride lookup when finalPrice is non-null', async () => {
+    mockPrisma.appointment.findMany.mockResolvedValue([
+      {
+        id: 'a_3',
+        date: '2026-04-07T00:00:00.000Z',
+        startTime: '11:00',
+        endTime: '12:00',
+        status: 'CONFIRMED',
+        notes: null,
+        finalPrice: 80,
+        originalPrice: 100,
+        discount: { label: 'Happy hour', percent: 20 },
+        service: { id: 'svc_1', name_pl: 'Pedeciure', duration: 60, price: 150 },
+        client: { id: 'u_3', name: 'Sviat', phone: '+48501748708', email: null },
+        master: { masterProfile: { color: '#166534' } },
+      },
+    ])
+    mockPrisma.masterProfile.findUnique.mockResolvedValue({ id: 'mp_1' })
+    // Even though an override exists, finalPrice must win (post-migration snapshot).
+    mockPrisma.masterService.findMany.mockResolvedValue([{ serviceId: 'svc_1', priceOverride: 170 }])
+
+    const res = await GET(createRequest())
+    const body = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(body.appointments[0].service.price).toBe(80)
+    expect(body.appointments[0].originalPrice).toBe(100)
+    expect(body.appointments[0].discount).toEqual({ label: 'Happy hour', percent: 20 })
+  })
+
+  it('falls back to the override lookup when finalPrice is null (pre-migration row)', async () => {
+    mockPrisma.appointment.findMany.mockResolvedValue([
+      {
+        id: 'a_4',
+        date: '2026-04-08T00:00:00.000Z',
+        startTime: '12:00',
+        endTime: '13:00',
+        status: 'CONFIRMED',
+        notes: null,
+        finalPrice: null,
+        originalPrice: null,
+        discount: null,
+        service: { id: 'svc_1', name_pl: 'Pedeciure', duration: 60, price: 150 },
+        client: { id: 'u_4', name: 'Sviat', phone: '+48501748708', email: null },
+        master: { masterProfile: { color: '#166534' } },
+      },
+    ])
+    mockPrisma.masterProfile.findUnique.mockResolvedValue({ id: 'mp_1' })
+    mockPrisma.masterService.findMany.mockResolvedValue([{ serviceId: 'svc_1', priceOverride: 170 }])
+
+    const res = await GET(createRequest())
+    const body = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(body.appointments[0].service.price).toBe(170)
+  })
+
   it('returns 401 for unauthorized user', async () => {
     mockAuth.mockResolvedValue(null)
 

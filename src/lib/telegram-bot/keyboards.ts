@@ -153,13 +153,27 @@ export function consentKeyboard(lang: Language, links: { termsUrl?: string; priv
   return keyboard
 }
 
-/** Inline confirm/back-to-time buttons for the CONFIRM step. */
-export function confirmKeyboard(lang: Language): InlineKeyboard {
+/**
+ * Inline confirm/promo/back-to-time buttons for the CONFIRM step. The middle
+ * row toggles between "add a promo code" and "remove code <code>" depending
+ * on whether one is currently applied.
+ */
+export function confirmKeyboard(lang: Language, opts: { promoCode?: string } = {}): InlineKeyboard {
   const t = botT(lang)
-  return new InlineKeyboard()
-    .text(t('bot.confirm.book'), 'confirm:yes')
-    .row()
-    .text(t('bot.common.back'), 'back:time')
+  const keyboard = new InlineKeyboard().text(t('bot.confirm.book'), 'confirm:yes').row()
+  if (opts.promoCode) {
+    keyboard.text(t('bot.promo.removeButton', { code: opts.promoCode }), 'promo:remove').row()
+  } else {
+    keyboard.text(t('bot.promo.addButton'), 'promo:add').row()
+  }
+  keyboard.text(t('bot.common.back'), 'back:time')
+  return keyboard
+}
+
+/** Single "skip" button shown on the PROMO step's code-entry prompt. */
+export function promoKeyboard(lang: Language): InlineKeyboard {
+  const t = botT(lang)
+  return new InlineKeyboard().text(t('bot.promo.cancel'), 'promo:skip')
 }
 
 /**

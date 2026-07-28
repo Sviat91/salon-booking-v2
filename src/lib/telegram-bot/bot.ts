@@ -8,6 +8,7 @@ import { Bot } from 'grammy'
 import { registerStartHandler } from './handlers/start'
 import { registerSelectHandlers } from './handlers/select'
 import { registerDatetimeHandlers } from './handlers/datetime'
+import { registerPromoHandlers } from './handlers/promo'
 import { registerContactHandlers } from './handlers/contact'
 import { registerConsentHandlers } from './handlers/consent'
 import { registerConfirmHandlers } from './handlers/confirm'
@@ -19,6 +20,12 @@ function registerHandlers(bot: Bot) {
   registerStartHandler(bot)
   registerSelectHandlers(bot)
   registerDatetimeHandlers(bot)
+  // Must be registered BEFORE registerContactHandlers (R-11): contact.ts's
+  // message:text listener never calls next() when it doesn't own the step,
+  // which halts grammy's middleware chain for any later-registered
+  // message:text listener. promo.ts's own listener always calls next() when
+  // it doesn't own the step, so this ordering is what keeps both working.
+  registerPromoHandlers(bot)
   registerContactHandlers(bot)
   registerConsentHandlers(bot)
   registerConfirmHandlers(bot)

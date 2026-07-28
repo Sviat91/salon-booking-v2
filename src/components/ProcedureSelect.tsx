@@ -15,6 +15,8 @@ type Procedure = {
   price_pln?: number | string
   price_default_pln?: number | string | null
   price_override_pln?: number | string | null
+  discount_percent?: number | null
+  price_after_discount_pln?: number | null
 }
 
 export default function ProcedureSelect({ valueId, onChange }: { valueId?: string; onChange?: (p: Procedure | null) => void }) {
@@ -56,10 +58,24 @@ export default function ProcedureSelect({ valueId, onChange }: { valueId?: strin
     }
   }
 
-  // Helper to format procedure display
+  // Helper to format procedure display. Renders the discounted price (with
+  // the original struck through) when the catalog-stage discount fields are
+  // present; otherwise the plain string, unchanged.
   const formatProcedure = (p: Procedure) => {
     const name = resolveLocalized({ pl: p.name_pl, en: p.name_en, uk: p.name_uk }, language)
-    return `${name} - ${p.duration_min} ${t('booking.minutes')}${p.price_pln ? ` / ${p.price_pln} zł` : ''}`
+    const prefix = `${name} - ${p.duration_min} ${t('booking.minutes')}`
+
+    if (p.discount_percent != null && p.price_after_discount_pln != null) {
+      return (
+        <>
+          {prefix} /{' '}
+          <span className="line-through text-muted-foreground/70">{p.price_pln} zł</span>{' '}
+          <span className="font-medium">{p.price_after_discount_pln} zł</span>
+        </>
+      )
+    }
+
+    return `${prefix}${p.price_pln ? ` / ${p.price_pln} zł` : ''}`
   }
 
   return (

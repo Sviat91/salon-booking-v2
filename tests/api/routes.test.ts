@@ -22,6 +22,10 @@ const { mockPrisma } = vi.hoisted(() => ({
     masterService: {
       findMany: vi.fn(),
     },
+    // Discounts (prisma/AGENTS.md: a schema change requires updating mocks).
+    discount: {
+      findMany: vi.fn(),
+    },
   },
 }))
 
@@ -65,6 +69,9 @@ describe('API smoke checks', () => {
           price_pln: 150,
           price_default_pln: 150,
           price_override_pln: null,
+          discount_percent: null,
+          discount_label: null,
+          price_after_discount_pln: null,
         },
       ],
     })

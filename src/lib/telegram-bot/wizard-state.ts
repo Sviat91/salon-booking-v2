@@ -16,6 +16,7 @@ export type WizardStep =
   | 'CONTACT'
   | 'CONSENT'
   | 'CONFIRM'
+  | 'PROMO'
 
 export interface WizardSlot {
   startISO: string
@@ -40,6 +41,8 @@ export interface WizardState {
   phone?: string
   name?: string
   consentGiven?: boolean
+  /** Already normalized uppercase (see `normalizeDiscountCode`). */
+  promoCode?: string
 }
 
 const TTL_SECONDS = 1800

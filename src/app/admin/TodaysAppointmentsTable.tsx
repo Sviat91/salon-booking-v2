@@ -6,6 +6,7 @@ import AppointmentStatusBadge from "@/components/admin/AppointmentStatusBadge"
 import DataCard from "@/components/admin/DataCard"
 import { useCurrentLanguage } from "@/contexts/LanguageContext"
 import { resolveLocalized } from "@/lib/localized-content"
+import { resolveAppointmentPrice } from "@/lib/discounts/shared"
 
 type Appointment = {
   id: string
@@ -14,6 +15,7 @@ type Appointment = {
   client: { name: string | null }
   service: { name_pl: string; name_en: string | null; name_uk: string | null; price: number }
   master: { name: string | null }
+  finalPrice: number | null
 }
 
 export default function TodaysAppointmentsTable({
@@ -72,7 +74,7 @@ export default function TodaysAppointmentsTable({
                   <td className="px-4 py-3">
                     <Badge variant="accent">{app.master.name || "—"}</Badge>
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground">{app.service.price} zł</td>
+                  <td className="px-4 py-3 text-muted-foreground">{resolveAppointmentPrice(app.finalPrice, app.service.price)} zł</td>
                   <td className="px-4 py-3">
                     <AppointmentStatusBadge status={app.status} />
                   </td>
@@ -90,7 +92,7 @@ export default function TodaysAppointmentsTable({
                 fields={[
                   { label: t('admin.appointments.colService'), value: serviceName(app.service) },
                   { label: t('admin.appointments.colMaster'), value: <Badge variant="accent">{app.master.name || "—"}</Badge> },
-                  { label: t('admin.appointments.colPrice'), value: `${app.service.price} zł` },
+                  { label: t('admin.appointments.colPrice'), value: `${resolveAppointmentPrice(app.finalPrice, app.service.price)} zł` },
                   { label: t('admin.appointments.colStatus'), value: <AppointmentStatusBadge status={app.status} /> },
                 ]}
               />

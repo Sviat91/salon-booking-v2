@@ -3,6 +3,8 @@ import { auth } from "@/auth"
 import prisma from "@/lib/prisma"
 import { z } from "zod"
 import { notifyBookingConfirmation } from "@/lib/notifications"
+import { resolveBasePrice } from "@/lib/discounts/server"
+import { resolveAppointmentPrice } from "@/lib/discounts/shared"
 
 export const runtime = "nodejs"
 
@@ -57,6 +59,9 @@ export async function GET(req: NextRequest) {
           endTime: true,
           status: true,
           notes: true,
+          finalPrice: true,
+          originalPrice: true,
+          discount: { select: { label: true, percent: true } },
           service: { select: { id: true, name_pl: true, name_en: true, name_uk: true, duration: true, price: true } },
           client: { select: { id: true, name: true, phone: true, email: true } },
           master: { select: { masterProfile: { select: { color: true } } } },
@@ -69,8 +74,7 @@ export async function GET(req: NextRequest) {
       }),
     ])
 
-    let appointmentsWithEffectivePrice = appointments
-
+    const overrideByServiceId = new Map<string, number>()
     if (masterProfile) {
       const serviceIds = Array.from(new Set(appointments.map((a) => a.service.id)))
       if (serviceIds.length > 0) {
@@ -85,25 +89,24 @@ export async function GET(req: NextRequest) {
           },
         })
 
-        const overrideByServiceId = new Map<string, number>(
-          masterOverrides
-            .filter((o) => o.priceOverride !== null)
-            .map((o) => [o.serviceId, o.priceOverride as number])
-        )
-
-        appointmentsWithEffectivePrice = appointments.map((appointment) => {
-          const overridePrice = overrideByServiceId.get(appointment.service.id)
-          if (overridePrice === undefined) return appointment
-          return {
-            ...appointment,
-            service: {
-              ...appointment.service,
-              price: overridePrice,
-            },
-          }
-        })
+        for (const o of masterOverrides) {
+          if (o.priceOverride !== null) overrideByServiceId.set(o.serviceId, o.priceOverride)
+        }
       }
     }
+
+    // finalPrice short-circuits the override lookup when present (post-migration
+    // rows already have the effective price snapshotted); pre-migration rows
+    // (finalPrice === null) fall back to today's override-or-catalog derivation.
+    const appointmentsWithEffectivePrice = appointments.map((appointment) => {
+      const overridePrice = overrideByServiceId.get(appointment.service.id)
+      const livePrice = overridePrice ?? appointment.service.price
+      const price = resolveAppointmentPrice(appointment.finalPrice, livePrice)
+      return {
+        ...appointment,
+        service: { ...appointment.service, price },
+      }
+    })
 
     return NextResponse.json({ appointments: appointmentsWithEffectivePrice })
   } catch (error) {
@@ -190,6 +193,10 @@ export async function POST(req: NextRequest) {
         entryServiceId = customService.id
       }
 
+      // Manually created appointments snapshot at full price (AD-12: no
+      // manual discount attachment); discountId stays unset.
+      const originalPrice = (await resolveBasePrice(masterId, entryServiceId)) ?? 0
+
       const appt = await prisma.appointment.create({
         data: {
           clientId: finalClientId,
@@ -199,7 +206,9 @@ export async function POST(req: NextRequest) {
           startTime,
           endTime,
           notes: parsed.notes || null,
-          status: "CONFIRMED"
+          status: "CONFIRMED",
+          originalPrice,
+          finalPrice: originalPrice,
         }
       })
       createdAppointments.push(appt)

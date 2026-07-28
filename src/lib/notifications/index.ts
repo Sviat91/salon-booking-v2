@@ -7,6 +7,7 @@ import prisma from '@/lib/prisma'
 import { getTenantConfig } from '@/lib/tenant'
 import { resolveLocalized } from '@/lib/localized-content'
 import { DEFAULT_LANGUAGE, type Language } from '@/lib/i18n-shared'
+import { resolveAppointmentPrice, discountPercentFromSnapshot } from '@/lib/discounts/shared'
 import { sendClientBookingReminder } from './client-telegram'
 import {
   logNotification,
@@ -42,6 +43,7 @@ export async function notifyBookingConfirmation(appointmentId: string, actor: Bo
         client: true,
         master: true,
         service: true,
+        discount: { select: { label: true, percent: true } },
       },
     })
 
@@ -122,7 +124,15 @@ export async function notifyBookingConfirmation(appointmentId: string, actor: Bo
     if (config.notifTelegramEnabled && config.telegramBotToken) {
       const recipients = await getTelegramRecipients()
       if (recipients.length > 0) {
-        const msg = `<b>Nowa rezerwacja</b>\n👤 ${data.name}\n💆 ${data.service}\n👩‍🎨 ${data.master}\n📅 ${data.date} ${data.time}\n✍️ Utworzone przez: ${actorLabel(actor, appointment.master.name)}`
+        const finalPrice = resolveAppointmentPrice(appointment.finalPrice, appointment.service.price)
+        const discountPercent =
+          appointment.discount?.percent ??
+          discountPercentFromSnapshot(appointment.originalPrice, appointment.finalPrice)
+        const priceLine =
+          appointment.discountId && discountPercent != null && appointment.originalPrice != null
+            ? `💰 <s>${appointment.originalPrice} zł</s> ${finalPrice} zł (-${discountPercent}%${appointment.discount?.label ? ` ${appointment.discount.label}` : ''})`
+            : `💰 ${finalPrice} zł`
+        const msg = `<b>Nowa rezerwacja</b>\n👤 ${data.name}\n💆 ${data.service}\n👩‍🎨 ${data.master}\n📅 ${data.date} ${data.time}\n${priceLine}\n✍️ Utworzone przez: ${actorLabel(actor, appointment.master.name)}`
         const { anySuccess, lastError } = await broadcastTelegram(config.telegramBotToken, recipients, msg)
         await logNotification({
           type: 'BOOKING_CONFIRMATION',

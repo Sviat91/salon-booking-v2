@@ -16,6 +16,7 @@ import TodaysAppointmentsTable from "./TodaysAppointmentsTable"
 import prisma from "@/lib/prisma"
 import { getServerT, getServerLanguage } from "@/lib/i18n-server"
 import { dateFnsLocale } from "@/lib/utils/date-fns-locale"
+import { resolveAppointmentPrice } from "@/lib/discounts/shared"
 
 async function getDashboardData() {
   const today = new Date()
@@ -51,7 +52,10 @@ async function getDashboardData() {
       prisma.user.findMany({ where: { role: "MASTER" }, select: { id: true, name: true } }),
     ])
 
-  const monthRevenue = monthAppointments.reduce((sum, a) => sum + a.service.price, 0)
+  const monthRevenue = monthAppointments.reduce(
+    (sum, a) => sum + resolveAppointmentPrice(a.finalPrice, a.service.price),
+    0
+  )
   const weekDelta = thisWeekCount - lastWeekCount
   const activeMastersToday = new Set(todayAppointments.map((a) => a.masterId)).size
 

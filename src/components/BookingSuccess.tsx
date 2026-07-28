@@ -1,6 +1,7 @@
 "use client"
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
+import BookingPriceSummary from './BookingPriceSummary'
 
 // Only the fields we actually use from tenant config
 type SalonContactInfo = {
@@ -13,6 +14,9 @@ interface BookingSuccessProps {
   procedureName: string | null
   terminLabel: string
   procedurePrice?: number
+  /** Present only when a discount was applied at booking time. */
+  originalPrice?: number
+  discountPercent?: number | null
   isAuth: boolean
   onClose: () => void
 }
@@ -21,10 +25,13 @@ export default function BookingSuccess({
   procedureName,
   terminLabel,
   procedurePrice,
+  originalPrice,
+  discountPercent,
   isAuth,
   onClose,
 }: BookingSuccessProps) {
   const { t } = useTranslation()
+  const hasDiscount = discountPercent != null && originalPrice != null && procedurePrice != null && procedurePrice < originalPrice
 
   // Fetch salon contact info from tenant config
   const { data: tenantConfig } = useQuery<SalonContactInfo>({
@@ -48,7 +55,18 @@ export default function BookingSuccess({
         </div>
         {procedurePrice && (
           <div className="text-sm text-muted-foreground">
-            <strong>{t('success.priceLabel')}</strong> {procedurePrice} zł
+            <strong>{t('success.priceLabel')}</strong>{' '}
+            {hasDiscount ? (
+              <BookingPriceSummary
+                originalPrice={originalPrice!}
+                finalPrice={procedurePrice}
+                percent={discountPercent!}
+                label={null}
+                currency={t('common.currency')}
+              />
+            ) : (
+              `${procedurePrice} zł`
+            )}
           </div>
         )}
       </div>

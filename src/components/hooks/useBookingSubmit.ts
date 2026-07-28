@@ -5,6 +5,12 @@ export type Slot = { startISO: string; endISO: string }
 
 type BookingState = 'form' | 'consent' | 'success'
 
+export interface BookedPricing {
+  originalPrice: number
+  finalPrice: number
+  discountPercent: number | null
+}
+
 interface UseBookingSubmitProps {
   slot: Slot
   procedureId?: string
@@ -15,7 +21,8 @@ interface UseBookingSubmitProps {
   tsToken: string | null
   language: Language
   isAuthenticatedClient?: boolean
-  onSuccess?: () => void
+  discountCode?: string | null
+  onSuccess?: (pricing: BookedPricing) => void
 }
 
 interface ConsentData {
@@ -34,12 +41,14 @@ export function useBookingSubmit({
   tsToken,
   language,
   isAuthenticatedClient = false,
+  discountCode,
   onSuccess,
 }: UseBookingSubmitProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [bookingState, setBookingState] = useState<BookingState>('form')
   const [eventId, setEventId] = useState<string | null>(null)
+  const [bookedPricing, setBookedPricing] = useState<BookedPricing | null>(null)
   const [isCheckingConsent, setIsCheckingConsent] = useState(false)
 
   const handleBookingError = useCallback((e: any) => {
@@ -54,6 +63,8 @@ export function useBookingSubmit({
       setError('Przed rezerwacja musisz potwierdzic wymagane zgody.')
     } else if (msg.startsWith('BOOKING_RATE_LIMITED')) {
       setError('Zbyt wiele prob. Sprobuj pozniej.')
+    } else if (msg.startsWith('BOOKING_DISCOUNT_INVALID')) {
+      setError('Kod rabatowy jest nieprawidlowy dla tej rezerwacji.')
     } else {
       setError('Nie udalo sie zarezerwowac. Wybierz inny termin i sprobuj ponownie.')
     }
@@ -78,6 +89,7 @@ export function useBookingSubmit({
           email: email || undefined,
           turnstileToken: tsToken,
           language,
+          discountCode: discountCode || undefined,
           // No consents object - user already has valid consents
         }),
       })
@@ -89,15 +101,21 @@ export function useBookingSubmit({
         throw new Error(`BOOKING_${code}${details ? `: ${details}` : ''}`)
       }
 
+      const pricing: BookedPricing = {
+        originalPrice: body.originalPrice,
+        finalPrice: body.finalPrice,
+        discountPercent: body.discountPercent ?? null,
+      }
       setEventId(body.eventId || null)
+      setBookedPricing(pricing)
       setBookingState('success')
-      onSuccess?.()
+      onSuccess?.(pricing)
     } catch (e: any) {
       handleBookingError(e)
     } finally {
       setLoading(false)
     }
-  }, [slot, procedureId, masterId, name, phone, email, tsToken, language, onSuccess, handleBookingError])
+  }, [slot, procedureId, masterId, name, phone, email, tsToken, language, discountCode, onSuccess, handleBookingError])
 
   // Check if user already has valid consents and proceed accordingly
   const checkConsentAndProceed = useCallback(async () => {
@@ -154,6 +172,7 @@ export function useBookingSubmit({
           email: email || undefined,
           turnstileToken: tsToken,
           language,
+          discountCode: discountCode || undefined,
           consents: {
             dataProcessing: consents.dataProcessing,
             terms: consents.terms,
@@ -169,20 +188,27 @@ export function useBookingSubmit({
         throw new Error(`BOOKING_${code}${details ? `: ${details}` : ''}`)
       }
 
+      const pricing: BookedPricing = {
+        originalPrice: body.originalPrice,
+        finalPrice: body.finalPrice,
+        discountPercent: body.discountPercent ?? null,
+      }
       setEventId(body.eventId || null)
+      setBookedPricing(pricing)
       setBookingState('success')
-      onSuccess?.()
+      onSuccess?.(pricing)
     } catch (e: any) {
       handleBookingError(e)
     } finally {
       setLoading(false)
     }
-  }, [slot, procedureId, masterId, name, phone, email, tsToken, language, onSuccess, handleBookingError])
+  }, [slot, procedureId, masterId, name, phone, email, tsToken, language, discountCode, onSuccess, handleBookingError])
 
   const resetToForm = useCallback(() => {
     setBookingState('form')
     setError(null)
     setEventId(null)
+    setBookedPricing(null)
   }, [])
 
   return {
@@ -190,6 +216,7 @@ export function useBookingSubmit({
     error,
     bookingState,
     eventId,
+    bookedPricing,
     isCheckingConsent,
     checkConsentAndProceed,
     bookWithConsents,

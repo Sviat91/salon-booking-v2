@@ -7,6 +7,8 @@ import { useSelectedMasterId } from '@/contexts/MasterContext'
 import { useCurrentLanguage } from '@/contexts/LanguageContext'
 import { resolveLocalized } from '@/lib/localized-content'
 import { localeFor } from '@/lib/i18n-shared'
+import BookingPriceSummary from './BookingPriceSummary'
+import type { BookedPricing } from './hooks/useBookingSubmit'
 
 type Procedure = { id: string; name_pl: string; name_en?: string; name_uk?: string; price_pln?: number }
 type ProceduresResponse = { items: Procedure[] }
@@ -21,10 +23,12 @@ type SalonContactInfo = {
 interface BookingSuccessPanelProps {
   slot: { startISO: string; endISO: string }
   procedureId?: string
+  /** Preferred over the /api/procedures lookup below when present (AD-2: the actual charged price). */
+  pricing?: BookedPricing | null
   onClose: () => void
 }
 
-export default function BookingSuccessPanel({ slot, procedureId, onClose }: BookingSuccessPanelProps) {
+export default function BookingSuccessPanel({ slot, procedureId, pricing, onClose }: BookingSuccessPanelProps) {
   const { t } = useTranslation()
   const language = useCurrentLanguage()
   const masterId = useSelectedMasterId()
@@ -69,10 +73,27 @@ export default function BookingSuccessPanel({ slot, procedureId, onClose }: Book
         <div className="text-sm text-muted-foreground">
           <strong>{t('success.dateLabel')}</strong> {terminLabel}
         </div>
-        {selectedProcedure?.price_pln && (
+        {pricing ? (
           <div className="text-sm text-muted-foreground">
-            <strong>{t('success.priceLabel')}</strong> {selectedProcedure.price_pln} zł
+            <strong>{t('success.priceLabel')}</strong>{' '}
+            {pricing.discountPercent != null && pricing.finalPrice < pricing.originalPrice ? (
+              <BookingPriceSummary
+                originalPrice={pricing.originalPrice}
+                finalPrice={pricing.finalPrice}
+                percent={pricing.discountPercent}
+                label={null}
+                currency={t('common.currency')}
+              />
+            ) : (
+              `${pricing.finalPrice} zł`
+            )}
           </div>
+        ) : (
+          selectedProcedure?.price_pln && (
+            <div className="text-sm text-muted-foreground">
+              <strong>{t('success.priceLabel')}</strong> {selectedProcedure.price_pln} zł
+            </div>
+          )
         )}
       </div>
       

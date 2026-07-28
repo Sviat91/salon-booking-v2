@@ -27,6 +27,7 @@ export const bookingApiSchema = z.object({
   email: z.string().email('Invalid email format').optional().or(z.literal('')).nullish(),
   turnstileToken: z.string().nullish(),
   language: z.string().optional(),
+  discountCode: z.string().trim().max(64).optional().or(z.literal('')).nullish(),
   consents: z.object({
     dataProcessing: z.boolean(),
     terms: z.boolean(),
@@ -35,6 +36,19 @@ export const bookingApiSchema = z.object({
 })
 
 export type BookingApiInput = z.infer<typeof bookingApiSchema>
+
+/**
+ * Schema for POST /api/discounts/preview
+ * Previews the price (and any applicable discount) before booking.
+ */
+export const discountPreviewApiSchema = z.object({
+  masterId:  z.string().min(1),
+  serviceId: z.string().min(1),
+  startISO:  z.string().min(16).optional().nullable(),
+  code:      z.string().trim().max(64).optional().or(z.literal('')).nullish(),
+  phone:     z.string().min(5).max(20).optional().or(z.literal('')).nullish(),
+})
+export type DiscountPreviewApiInput = z.infer<typeof discountPreviewApiSchema>
 
 /**
  * Schema for POST /api/bookings/search

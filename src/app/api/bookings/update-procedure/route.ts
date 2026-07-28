@@ -5,6 +5,7 @@ import { t2m, m2t } from "@/lib/schedule-utils"
 import { phonesMatchE164 } from "@/lib/utils/phone-normalization"
 import { canModifyBooking } from "@/lib/booking-helpers"
 import { notifyBookingUpdate } from "@/lib/notifications"
+import { resnapshotAppointmentPrice } from "@/lib/discounts/server"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -142,6 +143,13 @@ export async function POST(req: NextRequest) {
         endTime: newEndTime,
       },
     })
+
+    // Service changed — re-snapshot the price, clearing any applied discount
+    // (AD-7): a discount evaluated for the old service must not silently
+    // carry over.
+    if (newProcedureId !== appointment.serviceId) {
+      await resnapshotAppointmentPrice(eventId)
+    }
 
     notifyBookingUpdate(
       eventId,
