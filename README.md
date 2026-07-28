@@ -1,285 +1,106 @@
-# salon-booking
+# Salon Booking V2
 
-Next.js application for face massage booking with GDPR compliance features.
+Self-hosted, white-label booking platform for beauty/wellness salons. Clients book appointments with a specific master through a public booking page; salon staff manage services, schedules, discounts, and content through an admin panel. Built to be deployed as one independent instance per salon.
 
 ## Features
 
-- 📅 **Booking System**: Google Calendar integration for appointment scheduling
-- 👥 **Multi-Master Support**: Separate calendars and schedules for multiple beauty masters
-- 🛡️ **GDPR Compliance**: Data export, erasure, and consent management.
-- 🔒 **Security**: Turnstile protection, rate limiting, data masking
-- 🌙 **Dark/Light Theme**: Automatic theme switching with localStorage persistence.
-- 📱 **Mobile Responsive**: Optimized for all device sizes
-- ✨ **Smooth Animations**: Framer Motion transitions with reduced motion support.
-- 💬 **Support System**: Secure contact form with N8N integration
+- 📅 **Booking system** — per-master availability, schedules, date overrides, conflict-free slot booking
+- 👥 **Multi-master** — any number of masters, each with their own services, schedule, and booking page (`/[masterId]`), managed dynamically from the DB (no hardcoded master list)
+- 🎟️ **Discounts** — percentage discounts (automatic or promo-code), scoped by service/day-hour window/date period, admin- and master-managed
+- 📄 **Content pages & galleries** — admin-manageable content blocks/tabs and photo widgets on the homepage and each master's page
+- 🤖 **Telegram** — interactive client booking bot, plus admin/salon notifications and client reminders (24h/2h before an appointment)
+- 🛡️ **GDPR compliance** — self-service data export, erasure, and consent withdrawal
+- 🌍 **Multi-language** — Polish (default), English, Ukrainian, configurable per tenant
+- 🔐 **Auth & roles** — `CLIENT` / `MASTER` / `ADMIN` / `SUPERADMIN`, credentials + dynamic OAuth (Google/Apple/Telegram) providers configured per tenant
+- 🎨 **Multi-tenant branding** — logo, theme colors, legal info configured per deployment via the admin panel
+- 🌙 **Dark/light theme**, 📱 **mobile-responsive admin**, ✨ Framer Motion transitions with reduced-motion support
 
-## Setup
+## Tech Stack
+
+- **Next.js 14** (App Router) + TypeScript
+- **Prisma 5** + SQLite (via libSQL adapter)
+- **NextAuth v5 beta** — JWT sessions, dynamic OAuth providers
+- **React Query**, **React Hook Form**, **Zod**
+- **Tailwind CSS** + **shadcn/ui**
+- **Upstash Redis** (optional — falls back to in-memory cache when not configured)
+- **grammy** (Telegram bot), **i18next**
+
+See `CLAUDE.md` for the full architecture reference (routing, auth flow, booking system internals, caching, key files).
+
+## Local Development
+
+```bash
+git clone https://github.com/Sviat91/salon-booking-v2.git
+cd salon-booking-v2
+npm install
+cp .env.example .env   # fill in the values below
+npx prisma migrate dev
+npx tsx scripts/create-admin.ts --email=admin@example.com --password=<your-password> --name="Super Admin"
+npm run dev
+```
+
+Open `http://localhost:3000`, log in at `/auth/login` with the SUPERADMIN account you just created, and configure the tenant (branding, masters, services) from `/admin`.
 
 ### Environment Variables
 
-Copy `.env.example` to `.env.local` and configure:
+Copy `.env.example` to `.env` and fill in:
+
+| Variable | Required | Notes |
+| --- | --- | --- |
+| `DATABASE_URL` | Yes | SQLite file path — resolves relative to `prisma/schema.prisma`'s directory, not the repo root (the default value creates `prisma/prisma/app.db`) |
+| `AUTH_SECRET` | Yes | NextAuth secret, also roots the AES-256-GCM encryption used for stored OAuth/SMTP/master-password secrets. App refuses to start if empty. Generate with `openssl rand -base64 32` |
+| `CRON_SECRET` | Yes | Authenticates `GET /api/cron/reminders` — must be called on a schedule (hourly is fine) or client 24h/2h reminders never fire. Generate the same way |
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` / `TURNSTILE_SECRET_KEY` | Yes | Cloudflare Turnstile keys for the booking form's bot protection — **domain-bound**, register per deployment at Cloudflare |
+| `UPSTASH_REDIS_REST_URL` / `TOKEN` | No | Distributed cache/rate-limiting. Falls back to an in-memory cache when unset (fine for a single-instance small deployment) |
+| `SENTRY_DSN` | No | Error monitoring |
+| `N8N_WEBHOOK_URL`, `N8N_WEBHOOK_MASTER_CALL`, `N8N_SECRET_TOKEN`, `N8N_SECRET_HEADER` | No | Support-form and master-contact-form webhook integration |
+
+Telegram bot tokens are **not** environment variables — they're configured per tenant from `/admin` → Settings, stored (encrypted) in `TenantConfig`.
+
+### Useful Commands
 
 ```bash
-# Google Services
-GOOGLE_APPLICATION_CREDENTIALS_JSON=<service_account_json_or_base64>
-
-# Master 1 (Olga) - Default
-GOOGLE_CALENDAR_ID=<olga_calendar_id>
-GOOGLE_SHEET_ID=<olga_procedures_sheet_id>
-
-# Master 2 (Yuliia)
-GOOGLE_CALENDAR_ID_YULIIA=<yuliia_calendar_id>
-GOOGLE_SHEET_ID_YULIIA=<yuliia_procedures_sheet_id>
-
-# Shared Consent Tracking
-USER_CONSENTS_GOOGLE_SHEET_ID=<consent_tracking_sheet_id>
-
-# Redis Cache (Upstash)
-UPSTASH_REDIS_REST_URL=<redis_url>
-UPSTASH_REDIS_REST_TOKEN=<redis_token>
-
-# Security
-NEXT_PUBLIC_TURNSTILE_SITE_KEY=<turnstile_site_key>
-TURNSTILE_SECRET_KEY=<turnstile_secret>
-
-# Optional
-SENTRY_DSN=<sentry_dsn>
-N8N_WEBHOOK_URL=<n8n_support_webhook_url>
-N8N_SECRET_TOKEN=<n8n_bearer_token>
+npm run dev           # Start development server
+npm run build          # Production build
+npm run lint            # ESLint, zero warnings tolerance
+npm run test             # Run the Vitest suite
+npx vitest run tests/some.test.ts   # Run a single test file
+npx prisma migrate dev --name <name>   # Create and apply a migration
+npx prisma studio        # Open Prisma's DB browser
+npm run i18n:check        # Verify pl/en/uk locale files are in sync
+npx tsx scripts/create-admin.ts --email=... --password=... --name="..."   # Bootstrap the first SUPERADMIN
 ```
 
-### Multi-Master Configuration
+## Production Deployment
 
-The application supports multiple beauty masters, each with their own:
-- Google Calendar for bookings
-- Google Sheet for procedures and schedule
-- Dedicated URL route (`/olga`, `/yuliia`)
-- Separate cache entries for data isolation
-
-#### Adding a New Master
-
-1. **Update Configuration** (`src/config/masters.ts`):
-   ```typescript
-   export const MASTERS = {
-     olga: { id: 'olga', name: 'Olga', avatar: '/photo_master_olga.png' },
-     yuliia: { id: 'yuliia', name: 'Yuliia', avatar: '/photo_master_yuliia.png' },
-     // Add new master here
-   }
-   ```
-
-2. **Add Environment Variables**:
-   ```bash
-   GOOGLE_CALENDAR_ID_NEWMASTER=<calendar_id>
-   GOOGLE_SHEET_ID_NEWMASTER=<sheet_id>
-   ```
-
-3. **Update Server Config** (`src/config/masters.server.ts`):
-   Add case for new master in `getMasterCalendarId()` and `getMasterSheetId()`
-
-4. **Add Master Photo**:
-   Place photo in `/public/photo_master_<name>.png`
-
-#### Master Selection Flow
-
-1. User visits landing page (`/`)
-2. Selects master from photo cards
-3. Selection saved to localStorage
-4. Redirects to master-specific page (`/[masterId]`)
-5. All API calls include `masterId` parameter
-
-#### Cache Strategy
-
-Each master has isolated cache entries:
-- `procedures:v2:olga` vs `procedures:v2:juli`
-- `availability:olga:...` vs `availability:juli:...`
-- Switching masters doesn't invalidate other master's cache
-- Prefetching on landing page for instant loading
-
-### Google Sheets Setup
-
-#### Procedures & Exceptions Sheets
-
-- **PROCEDURES**: include `Name`, `Duration`, optional `Category` (`All`/`Osteo`/`Cosmet`/`Massage`/blank) and `Availability` (checkbox). Only rows with `Availability` = true are exposed in `/api/procedures`.
-- **EXCEPTIONS**: `Notes` column acts as a category gate. `All` or empty allows all procedures; a specific value (`Osteo`, `Cosmet`, `Massage`) allows booking only for that category on that date.
-- Procedures with an empty `Category` are treated as `All` and are blocked on category-restricted exception days (e.g., day = `Osteo`).
-- Day and procedure caches now use the updated `v2` keys to reflect the new filtering rules.
-
-#### User Consents Sheet Structure
-
-Create a Google Sheet with the following columns:
-
-| Column | Index | Name | Type | Description |
-|--------|-------|------|------|-------------|
-| A | 0 | `phone` | String | Normalized phone number |
-| B | 1 | `email` | String | User email address |
-| C | 2 | `name` | String | Full name |
-| D | 3 | `consent_date` | DateTime | When consent was given |
-| E | 4 | `ip_hash` | String | Masked IP address |
-| F | 5 | `consent_privacy_v1.0` | Boolean | Privacy consent |
-| G | 6 | `consent_terms_v1.0` | Boolean | Terms consent |
-| H | 7 | `consent_notifications_v1.0` | Boolean | Marketing consent |
-| I | 8 | `consent_withdrawn_date` | DateTime | When withdrawn |
-| J | 9 | `withdrawal_method` | String | How withdrawn |
-| K | 10 | `request_erasure_date` | DateTime | Erasure requested |
-| L | 11 | `erasure_date` | DateTime | Data actually erased |
-| M | 12 | `erasure_method` | String | How data was erased |
-
-### N8N Support Integration
-
-Configure N8N workflow to receive support messages:
-
-1. Create HTTP webhook trigger in N8N
-2. Set webhook URL in `N8N_WEBHOOK_URL`
-3. Generate secure token for `N8N_SECRET_TOKEN`
-4. Process payload:
-   ```json
-   {
-     "name": "User Name",
-     "email": "user@email.com", 
-     "subject": "booking|technical|privacy|other",
-     "message": "Support message",
-     "metadata": {
-       "ip": "masked_ip",
-       "userAgent": "browser_info",
-       "timestamp": "iso_date",
-       "requestId": "unique_id"
-     }
-   }
-   ```
-
-## Development
+A single command installs a fully working, HTTPS-secured instance on a fresh **Ubuntu 22.04/24.04** VPS — Docker for the app, Nginx + Certbot on the host, works for multiple independent salon instances on the same server:
 
 ```bash
-# Install dependencies
-npm install
-
-# Run development server
-npm run dev
-
-# Run tests
-npm run test
-npm run test:watch
-
-# Build for production
-npm run build
-npm start
+curl -fsSL https://raw.githubusercontent.com/Sviat91/salon-booking-v2/main/deploy/install.sh | sudo bash -s -- --name=<client-slug>
 ```
 
-### Administrative Scripts
+Before running it, have ready: a domain pointed at the VPS (A record), a Cloudflare Turnstile site registered for that domain, and an admin contact email. The script ends by printing the instance URL and the generated SUPERADMIN login — see **[`deploy/README.md`](deploy/README.md)** for the full flow, what gets installed, and a manual verification checklist to run once on a disposable test VPS before trusting it against a real client. Architecture rationale lives in [`deploy/AGENTS.md`](deploy/AGENTS.md).
 
-The `/scripts` folder contains GDPR maintenance utilities:
-
-#### Consent Management CLI
-```bash
-# Show consent sheet header and first rows
-npx tsx scripts/consent-cli.ts header
-
-# Find user consent by phone and name
-npx tsx scripts/consent-cli.ts show <phone> <name> [email]
-
-# Withdraw user consent
-npx tsx scripts/consent-cli.ts withdraw <phone> <name> [email]
-
-# Append test consent (debug only)
-npx tsx scripts/consent-cli.ts append <phone> <name> [email] [ip]
-```
-
-#### Debug Scripts
-```bash
-# Inspect consent sheet with data masking
-npx tsx scripts/inspect-consent.ts
-
-# Find specific user consent
-node scripts/debug-find-consent.js
-
-# Test date parsing from Google Sheets
-node scripts/debug-dates.js
-
-# Test consent withdrawal API
-node scripts/test-withdraw.js
-```
-
-**Note**: These scripts require `.env` file with Google Sheets credentials.
-
-## GDPR Features
-
-### Data Export
-Users can export their personal data via `/support` page:
-- All consent history
-- Personal information
-- Download as CSV or JSON
-- Automatic filename generation
-
-### Data Erasure  
-Secure data deletion with audit trail:
-- Anonymizes phone numbers (SHA256 hash)
-- Clears name and email
-- Preserves consent dates for compliance
-- Records erasure method and timestamp
-
-### Consent Withdrawal
-Revoke marketing permissions:
-- Sets consent flags to FALSE  
-- Records withdrawal date and method
-- Maintains data for legal compliance
-
-## API Endpoints
-
-- `POST /api/consents/export` - Export user data
-- `POST /api/consents/erase` - Delete user data
-- `POST /api/consents/withdraw` - Withdraw consents
-- `POST /api/support/contact` - Submit support message
-
-All endpoints include:
-- Rate limiting (Redis)
-- Turnstile validation
-- Input validation (Zod)
-- Error logging (Sentry)
-
-## Security
-
-- **Rate Limiting**: Per-IP and per-endpoint limits
-- **Data Masking**: Phone numbers and emails in logs
-- **Input Validation**: Strict schemas for all inputs  
-- **CSRF Protection**: Turnstile verification
-- **Secure Headers**: Next.js security defaults
-- **Token Protection**: N8N tokens never exposed to client
+Updating an already-deployed instance to a newer version is not yet automated — first install only, for now.
 
 ## Testing
 
 ```bash
-# Unit tests
-npm run test tests/lib/
-
-# API tests  
-npm run test tests/app/api/
-
-# Integration tests
-npm run test tests/app/
-
-# Coverage report
-npm run test -- --coverage
+npm run test                          # full suite
+npx vitest run tests/lib/             # unit tests
+npx vitest run tests/app/api/         # API route tests
+npx vitest run tests/some.test.ts     # a single file
 ```
 
-## Deployment
+See `tests/AGENTS.md` for the suite's conventions (mocking `@/auth`, Prisma mock setup, etc.).
 
-1. Set up environment variables
-2. Configure Google Sheets with proper structure
-3. Set up N8N workflow for support (optional)
-4. Deploy to Vercel/Netlify
-5. Test GDPR endpoints in staging
-6. Configure monitoring alerts
+## GDPR
 
-## Monitoring
+Three public self-service endpoints under `/api/consents/`: export, erasure (SHA-256 phone hashing, anonymizes personal data), and consent withdrawal. Rate-limited via Redis token bucket. Exposed to clients through the `/support` page.
 
-Set up alerts for:
-- High error rates on GDPR endpoints
-- Rate limiting abuse
-- N8N webhook failures
-- Google Sheets API errors
+## Documentation
 
-Monitor metrics:
-- Data export requests
-- Erasure completion rates
-- Support form submissions
-- Response times
+- **`CLAUDE.md`** — the canonical architecture/contract reference for this repo (routing, auth, booking internals, caching, constraints). Read this first for anything beyond a quick start.
+- **`ROADMAP.md`** — project history and what's been shipped, by session.
+- **`deploy/README.md`** / **`deploy/AGENTS.md`** — deployment flow and infrastructure decisions.
+- Nested `AGENTS.md` files throughout `src/`, `prisma/`, `scripts/`, `tests/` — domain-specific contracts for those subtrees.
