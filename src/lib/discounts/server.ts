@@ -174,7 +174,7 @@ export async function resolveBasePrice(masterId: string, serviceId: string): Pro
  * (0=Sunday..6=Saturday) because the Warsaw calendar-date string is
  * re-parsed as a UTC midnight instant, whose `getUTCDay()` is TZ-independent.
  */
-function toWarsawSlot(startsAt: Date): { dayOfWeek: number; minutes: number } {
+export function toWarsawSlot(startsAt: Date): { dayOfWeek: number; minutes: number } {
   const wTimeFormatter = new Intl.DateTimeFormat('en-GB', {
     timeZone: 'Europe/Warsaw',
     hour12: false,

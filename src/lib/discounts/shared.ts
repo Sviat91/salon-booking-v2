@@ -26,6 +26,17 @@ export interface DiscountInterval {
   end: string
 }
 
+/** `dates.*Short` i18n keys, indexed 0=Sunday..6=Saturday, matching `windowDays`. */
+export const DISCOUNT_DAY_KEYS = [
+  'dates.sundayShort',
+  'dates.mondayShort',
+  'dates.tuesdayShort',
+  'dates.wednesdayShort',
+  'dates.thursdayShort',
+  'dates.fridayShort',
+  'dates.saturdayShort',
+] as const
+
 export interface DiscountCandidate {
   id: string
   label: string

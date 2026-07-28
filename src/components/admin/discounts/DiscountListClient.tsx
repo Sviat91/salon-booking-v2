@@ -17,7 +17,7 @@ import DataCard from "@/components/admin/DataCard"
 import DiscountForm from "./DiscountForm"
 import type { ServiceOption } from "./DiscountScopeFields"
 import { deleteDiscount, toggleDiscountActive } from "@/app/admin/discounts/actions"
-import { parseWindowDays, parseWindowIntervals, type DiscountOwner } from "@/lib/discounts/shared"
+import { parseWindowDays, parseWindowIntervals, DISCOUNT_DAY_KEYS, type DiscountOwner } from "@/lib/discounts/shared"
 import type { Language } from "@/lib/i18n-shared"
 import { useConfirm } from "@/components/ConfirmDialogProvider"
 
@@ -37,16 +37,6 @@ export type DiscountRow = {
   createdAt: Date
   services: { serviceId: string }[]
 }
-
-const DATES_SHORT_KEYS = [
-  'dates.sundayShort',
-  'dates.mondayShort',
-  'dates.tuesdayShort',
-  'dates.wednesdayShort',
-  'dates.thursdayShort',
-  'dates.fridayShort',
-  'dates.saturdayShort',
-] as const
 
 interface DiscountListClientProps {
   discounts: DiscountRow[]
@@ -107,7 +97,7 @@ export default function DiscountListClient({ discounts, owner, scope, services }
     const days = parseWindowDays(d.windowDays)
     const intervals = parseWindowIntervals(d.windowIntervals)
     if (days.length === 0 || intervals.length === 0) return t('admin.discounts.none')
-    const dayLabels = days.map((day) => t(DATES_SHORT_KEYS[day])).join(', ')
+    const dayLabels = days.map((day) => t(DISCOUNT_DAY_KEYS[day])).join(', ')
     return `${dayLabels} · ${intervals[0].start}–${intervals[0].end}`
   }
 

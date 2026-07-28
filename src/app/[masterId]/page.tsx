@@ -22,6 +22,7 @@ import BackButton from '../../components/BackButton'
 import LogoDisplay from '../../components/LogoDisplay'
 import GuestConversionBanner from '../../components/GuestConversionBanner'
 import TopNavLine from '@/components/content/TopNavLine'
+import TodayPromoCard from '@/components/TodayPromoCard'
 import MasterFooterBlock from '@/components/content/MasterFooterBlock'
 
 interface PageProps {
@@ -263,7 +264,7 @@ export default function Page({ params }: PageProps) {
       <div className="absolute top-2 left-0 right-0 z-20 pl-28 sm:pl-32">
         <TopNavLine
           masterId={masterId}
-          leadingSpaceClassName="pl-96"
+          leadingSpaceClassName="pl-48"
           actions={
             <>
               <LanguageToggle />
@@ -331,6 +332,7 @@ export default function Page({ params }: PageProps) {
                   onSlotSelected={(slot) => setSelectedSlot(slot)}
                 />
               </div>
+              <TodayPromoCard masterId={masterId} serviceId={procId} />
               {/* BookingForm только на десктопе */}
               {calendarMode === 'booking' && selectedSlot && !showBookingSuccess && (
                 <Card title={t('booking.reservation')} className="hidden lg:block !px-2 !py-3 sm:!px-4 sm:!py-4" ref={bookingRef}>

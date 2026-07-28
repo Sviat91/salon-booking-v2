@@ -28,6 +28,12 @@ interface TopNavLineProps {
    * reserved above the fade. Applied identically on the homepage and every
    * master booking page (2026-07-25: user wants consistent tab position
    * across both, even though the master page has no logo yet).
+   *
+   * The mask breakpoint below (`black_12rem`) is hand-matched to this being
+   * `pl-48` (12rem) at every call site (2026-07-28: moved left from the
+   * original `pl-96`/`24rem`) — if a caller ever passes a different value,
+   * update the mask stop to match, or the hairline's solid point will no
+   * longer land exactly under the tabs.
    */
   leadingSpaceClassName?: string
 }
@@ -67,7 +73,7 @@ export default function TopNavLine({ masterId, className, actions, leadingSpaceC
     <div className={cn("relative", className)}>
       <div className="flex items-center justify-between gap-3 pr-2 pb-0">
         <nav className={cn("min-w-0 flex-1 overflow-x-auto custom-scrollbar", leadingSpaceClassName)}>
-          <div className="flex w-max items-center gap-1.5 px-1">
+          <div className="flex w-max items-center gap-5 px-1">
             {tabs.map((tab) => {
               const active = pathname === tab.href
               return (
@@ -75,10 +81,10 @@ export default function TopNavLine({ masterId, className, actions, leadingSpaceC
                   key={tab.id}
                   href={tab.href}
                   className={cn(
-                    "shrink-0 whitespace-nowrap rounded-full border px-3 py-0.5 text-sm font-medium tracking-tight transition-colors duration-200",
+                    "shrink-0 whitespace-nowrap border-b-2 px-0.5 pb-0 text-sm font-medium tracking-tight transition-colors duration-200",
                     active
-                      ? "border-primary/40 bg-primary/15 text-primary"
-                      : "border-border/70 bg-card/50 text-foreground/75 hover:border-primary/30 hover:bg-card hover:text-foreground"
+                      ? "border-primary text-foreground"
+                      : "border-transparent text-foreground/60 hover:text-foreground"
                   )}
                 >
                   {tab.title}
@@ -95,7 +101,7 @@ export default function TopNavLine({ masterId, className, actions, leadingSpaceC
         className={cn(
           "pointer-events-none absolute inset-x-0 bottom-0 h-px bg-border",
           leadingSpaceClassName
-            ? "[mask-image:linear-gradient(to_right,transparent,black_24rem,black_100%)]"
+            ? "[mask-image:linear-gradient(to_right,transparent,black_12rem,black_100%)]"
             : "[mask-image:linear-gradient(to_right,transparent,black_1rem,black_100%)]"
         )}
       />

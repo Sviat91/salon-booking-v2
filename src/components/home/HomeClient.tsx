@@ -73,7 +73,7 @@ export default function HomeClient({ config, isPreview }: HomeClientProps) {
           route and don't jump when navigating between them. */}
       <div className="hidden lg:block absolute top-2 left-0 right-0 z-20 pl-28 sm:pl-32">
         <TopNavLine
-          leadingSpaceClassName="pl-96"
+          leadingSpaceClassName="pl-48"
           actions={
             <>
               <UserDropdown />

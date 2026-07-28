@@ -891,7 +891,12 @@
     "promoBetterExists": "A better discount already applies",
     "priceOriginal": "Regular price",
     "priceFinal": "Your price",
-    "priceProvisional": "Final price is confirmed when you book"
+    "priceProvisional": "Final price is confirmed when you book",
+    "discountAllServices": "on all services",
+    "discountSelectedService": "on your selected service",
+    "discountPeriodRange": "{{start}}–{{end}}",
+    "discountPeriodFrom": "from {{start}}",
+    "discountPeriodUntil": "until {{end}}"
   },
   "form": {
     "name": "Full name",

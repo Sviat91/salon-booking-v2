@@ -891,7 +891,12 @@
     "promoBetterExists": "Obowiązuje już korzystniejszy rabat",
     "priceOriginal": "Cena regularna",
     "priceFinal": "Twoja cena",
-    "priceProvisional": "Ostateczna cena zostanie potwierdzona po dokonaniu rezerwacji"
+    "priceProvisional": "Ostateczna cena zostanie potwierdzona po dokonaniu rezerwacji",
+    "discountAllServices": "na wszystkie usługi",
+    "discountSelectedService": "na wybraną usługę",
+    "discountPeriodRange": "{{start}}–{{end}}",
+    "discountPeriodFrom": "od {{start}}",
+    "discountPeriodUntil": "do {{end}}"
   },
   "form": {
     "name": "Imię i nazwisko",

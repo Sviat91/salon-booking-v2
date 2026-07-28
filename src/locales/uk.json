@@ -891,7 +891,12 @@
     "promoBetterExists": "Вже застосовано вигіднішу знижку",
     "priceOriginal": "Звичайна ціна",
     "priceFinal": "Ваша ціна",
-    "priceProvisional": "Остаточна ціна підтверджується після бронювання"
+    "priceProvisional": "Остаточна ціна підтверджується після бронювання",
+    "discountAllServices": "на всі послуги",
+    "discountSelectedService": "на обрану послугу",
+    "discountPeriodRange": "{{start}}–{{end}}",
+    "discountPeriodFrom": "з {{start}}",
+    "discountPeriodUntil": "до {{end}}"
   },
   "form": {
     "name": "Ім'я та прізвище",
