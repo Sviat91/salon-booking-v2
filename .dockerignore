@@ -1,0 +1,35 @@
+node_modules
+.next
+.git
+.turbo
+.swc
+dist
+build
+out
+.vercel
+coverage
+
+# Never let real secrets end up baked into an image layer — the runtime .env
+# is provided via docker-compose's env_file at container start, not the build.
+.env
+.env.*
+!.env.example
+
+*.tsbuildinfo
+.DS_Store
+
+# SQLite databases and uploads — mounted as volumes at runtime, never baked in.
+*.db
+*.db-journal
+public/uploads/
+
+# deploy/install.sh clones the repo directly into the instance directory and
+# then creates these as siblings inside it — and that same instance directory
+# is the Docker build context (docker-compose.yml.template's `build: .`). If
+# these aren't excluded here, a future `docker compose up -d --build` would
+# bake the live SQLite DB, uploaded photos, and the plaintext SUPERADMIN
+# password into a cached image layer on the host disk.
+/data
+/uploads
+/CREDENTIALS.txt
+/docker-compose.yml

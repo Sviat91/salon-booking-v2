@@ -1,0 +1,20 @@
+# Rendered by install.sh (envsubst) into the instance directory as docker-compose.yml.
+# ${PROJECT_NAME} / ${APP_PORT} are substituted at install time — see deploy/install.sh.
+services:
+  app:
+    build: .
+    container_name: salon-${PROJECT_NAME}
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      # 127.0.0.1-only: host Nginx is the sole public-facing edge (AD-1).
+      - "127.0.0.1:${APP_PORT}:3000"
+    volumes:
+      # The real sqlite file lives at prisma/prisma/app.db, not prisma/app.db
+      # (DATABASE_URL resolves relative to schema.prisma's own directory) — mount
+      # that exact path, or migrations silently run against a path that isn't
+      # actually persisted (R-5 / AD-5).
+      - ./data:/app/prisma/prisma
+      # Persisted photo/logo uploads (R-4 / AD-5) — without this, every
+      # rebuild/redeploy silently deletes every master's uploaded files.
+      - ./uploads:/app/public/uploads

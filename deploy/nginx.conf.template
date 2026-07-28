@@ -1,0 +1,26 @@
+# Rendered by install.sh (envsubst) into /etc/nginx/sites-available/<name>.conf.
+# ${DOMAIN} / ${APP_PORT} are substituted at install time.
+#
+# Plain HTTP only — `certbot --nginx` adds the TLS server block and the 80->443
+# redirect on top of this file; do not add HTTPS directives here, they would
+# conflict with what certbot generates.
+server {
+    listen 80;
+    listen [::]:80;
+    server_name ${DOMAIN};
+
+    # App's own upload endpoint accepts up to 4 MB — give nginx enough headroom
+    # so the app's own validation is the real gate, not a premature 413 here.
+    client_max_body_size 5M;
+
+    location / {
+        proxy_pass http://127.0.0.1:${APP_PORT};
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}

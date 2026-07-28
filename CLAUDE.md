@@ -204,3 +204,4 @@ When the user requests a durable behavior change, record it here or in the relev
 - [tests/AGENTS.md](tests/AGENTS.md) — Vitest test suite
 - [docs/AGENTS.md](docs/AGENTS.md) — legacy docs, superseded by this file
 - [handoff/AGENTS.md](handoff/AGENTS.md) — session summary log (`/sesend` / `/sesstart`)
+- [deploy/AGENTS.md](deploy/AGENTS.md) — one-command VPS installer (Docker + host Nginx/Certbot)
