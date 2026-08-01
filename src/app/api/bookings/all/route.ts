@@ -3,6 +3,8 @@ import { formatInTimeZone } from "date-fns-tz"
 import prisma from "@/lib/prisma"
 import { phonesMatchE164 } from "@/lib/utils/phone-normalization"
 import { resolveAppointmentPrice } from "@/lib/discounts/shared"
+import { rateLimit } from "@/lib/cache"
+import { getRequestIp } from "@/lib/consent-service"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -29,6 +31,15 @@ export async function GET(req: NextRequest) {
   const rawName         = searchParams.get("name")            ?? ""
   // Optional: used only for sort priority (current master's bookings shown first)
   const currentMasterId = searchParams.get("currentMasterId") ?? null
+
+  const ip = getRequestIp(req)
+  const { allowed } = await rateLimit(`rate:bookings-all:${ip}`, 20, 15 * 60)
+  if (!allowed) {
+    return NextResponse.json(
+      { error: "Too many requests. Please try again later.", code: "RATE_LIMITED" },
+      { status: 429 }
+    )
+  }
 
   // ── Validate required params ──────────────────────────────────────────────
   if (!rawPhone || !rawName) {

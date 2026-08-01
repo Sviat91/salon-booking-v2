@@ -11,6 +11,8 @@ import {
   minusBusy,
   SCHEDULE_TZ,
 } from "@/lib/schedule-utils"
+import { rateLimit } from "@/lib/cache"
+import { getRequestIp } from "@/lib/consent-service"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -50,6 +52,15 @@ export async function POST(
     return NextResponse.json(
       { error: "Invalid JSON body", code: "BAD_REQUEST" },
       { status: 400 }
+    )
+  }
+
+  const ip = getRequestIp(req)
+  const { allowed } = await rateLimit(`rate:bookings-check-extension:${ip}`, 20, 15 * 60)
+  if (!allowed) {
+    return NextResponse.json(
+      { error: "Too many requests. Please try again later.", code: "RATE_LIMITED" },
+      { status: 429 }
     )
   }
 

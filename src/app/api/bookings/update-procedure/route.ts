@@ -6,6 +6,8 @@ import { phonesMatchE164 } from "@/lib/utils/phone-normalization"
 import { canModifyBooking } from "@/lib/booking-helpers"
 import { notifyBookingUpdate } from "@/lib/notifications"
 import { resnapshotAppointmentPrice } from "@/lib/discounts/server"
+import { rateLimit } from "@/lib/cache"
+import { getRequestIp } from "@/lib/consent-service"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -43,6 +45,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       { error: "Invalid JSON body", code: "BAD_REQUEST" },
       { status: 400 }
+    )
+  }
+
+  const ip = getRequestIp(req)
+  const { allowed } = await rateLimit(`rate:bookings-update-procedure:${ip}`, 15, 15 * 60)
+  if (!allowed) {
+    return NextResponse.json(
+      { error: "Too many requests. Please try again later.", code: "RATE_LIMITED" },
+      { status: 429 }
     )
   }
 

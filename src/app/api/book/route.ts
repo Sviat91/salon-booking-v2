@@ -4,6 +4,8 @@ import { getRequestIp } from "@/lib/consent-service"
 import { z } from "zod"
 import { auth } from "@/auth"
 import { createBooking, type CreateBookingErrorCode } from "@/lib/booking-service"
+import { rateLimit } from "@/lib/cache"
+import { validateTurnstileForAPI } from "@/lib/turnstile"
 
 export const runtime = "nodejs"
 
@@ -46,8 +48,25 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid payload" }, { status: 400 })
   }
 
+  const ip = getRequestIp(req)
+
+  const { allowed } = await rateLimit(`rate:book:${ip}`, 8, 15 * 60)
+  if (!allowed) {
+    return NextResponse.json(
+      { error: "Too many requests. Please try again later.", code: "RATE_LIMITED" },
+      { status: 429 }
+    )
+  }
+
   const session = await auth();
   const isAuth = session?.user?.role === "CLIENT";
+
+  if (!isAuth) {
+    const turnstileResult = await validateTurnstileForAPI(body.turnstileToken, ip, { requireToken: false })
+    if (!turnstileResult.success) {
+      return NextResponse.json(turnstileResult.errorResponse, { status: turnstileResult.status })
+    }
+  }
 
   const result = await createBooking({
     startISO: body.startISO,
@@ -59,7 +78,7 @@ export async function POST(req: NextRequest) {
     email: body.email,
     language: body.language,
     consents: body.consents,
-    ip: getRequestIp(req),
+    ip,
     authenticatedUserId: isAuth ? session!.user!.id : null,
     discountCode: body.discountCode,
   })
