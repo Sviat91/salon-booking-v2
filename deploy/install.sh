@@ -167,6 +167,20 @@ if [ -z "$TURNSTILE_SITE_KEY" ] || [ -z "$TURNSTILE_SECRET_KEY" ]; then
 fi
 
 # ---------------------------------------------------------------------------
+# Step 5b: Upstash Redis keys (required — src/lib/cache.ts's rateLimit() has
+# no fallback; without these, every rate limit in the app, including the ones
+# this installer's Turnstile keys protect, is silently disabled). Same
+# reasoning as Turnstile: external signup, cannot be automated.
+# ---------------------------------------------------------------------------
+require_tty "Upstash Redis keys"
+read -r -p "Upstash Redis REST URL: " UPSTASH_REDIS_REST_URL < /dev/tty
+read -r -p "Upstash Redis REST token: " UPSTASH_REDIS_REST_TOKEN < /dev/tty
+if [ -z "$UPSTASH_REDIS_REST_URL" ] || [ -z "$UPSTASH_REDIS_REST_TOKEN" ]; then
+  echo "ERROR: both Upstash keys are required — rate limiting has no fallback without them." >&2
+  exit 1
+fi
+
+# ---------------------------------------------------------------------------
 # Step 6: AD-4 port allocation, idempotent across re-runs
 # ---------------------------------------------------------------------------
 mkdir -p "$INSTALL_ROOT"
@@ -206,6 +220,8 @@ AUTH_SECRET="${AUTH_SECRET}"
 CRON_SECRET="${CRON_SECRET}"
 NEXT_PUBLIC_TURNSTILE_SITE_KEY="${TURNSTILE_SITE_KEY}"
 TURNSTILE_SECRET_KEY="${TURNSTILE_SECRET_KEY}"
+UPSTASH_REDIS_REST_URL="${UPSTASH_REDIS_REST_URL}"
+UPSTASH_REDIS_REST_TOKEN="${UPSTASH_REDIS_REST_TOKEN}"
 NEXT_PUBLIC_SITE_URL="https://${DOMAIN}"
 ENVEOF
 chmod 600 "$INSTANCE_DIR/.env"

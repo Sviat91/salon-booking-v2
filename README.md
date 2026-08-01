@@ -22,7 +22,7 @@ Self-hosted, white-label booking platform for beauty/wellness salons. Clients bo
 - **NextAuth v5 beta** — JWT sessions, dynamic OAuth providers
 - **React Query**, **React Hook Form**, **Zod**
 - **Tailwind CSS** + **shadcn/ui**
-- **Upstash Redis** (optional — falls back to in-memory cache when not configured)
+- **Upstash Redis** — caching falls back to in-memory when unconfigured, but rate limiting has no fallback and requires it (see Environment Variables below)
 - **grammy** (Telegram bot), **i18next**
 
 See `CLAUDE.md` for the full architecture reference (routing, auth flow, booking system internals, caching, key files).
@@ -51,7 +51,7 @@ Copy `.env.example` to `.env` and fill in:
 | `AUTH_SECRET` | Yes | NextAuth secret, also roots the AES-256-GCM encryption used for stored OAuth/SMTP/master-password secrets. App refuses to start if empty. Generate with `openssl rand -base64 32` |
 | `CRON_SECRET` | Yes | Authenticates `GET /api/cron/reminders` — must be called on a schedule (hourly is fine) or client 24h/2h reminders never fire. Generate the same way |
 | `NEXT_PUBLIC_TURNSTILE_SITE_KEY` / `TURNSTILE_SECRET_KEY` | Yes | Cloudflare Turnstile keys for the booking form's bot protection — **domain-bound**, register per deployment at Cloudflare |
-| `UPSTASH_REDIS_REST_URL` / `TOKEN` | No | Distributed cache/rate-limiting. Falls back to an in-memory cache when unset (fine for a single-instance small deployment) |
+| `UPSTASH_REDIS_REST_URL` / `TOKEN` | No (local dev) | `cacheGet`/`cacheSet` fall back to an in-memory cache when unset, but `rateLimit()` has no fallback — every rate limit in the app is silently disabled without these. The production installer (`deploy/install.sh`) requires them |
 | `SENTRY_DSN` | No | Error monitoring |
 | `N8N_WEBHOOK_URL`, `N8N_WEBHOOK_MASTER_CALL`, `N8N_SECRET_TOKEN`, `N8N_SECRET_HEADER` | No | Support-form and master-contact-form webhook integration |
 
@@ -79,7 +79,7 @@ A single command installs a fully working, HTTPS-secured instance on a fresh **U
 curl -fsSL https://raw.githubusercontent.com/Sviat91/salon-booking-v2/main/deploy/install.sh | sudo bash -s -- --name=<client-slug>
 ```
 
-Before running it, have ready: a domain pointed at the VPS (A record), a Cloudflare Turnstile site registered for that domain, and an admin contact email. The script ends by printing the instance URL and the generated SUPERADMIN login — see **[`deploy/README.md`](deploy/README.md)** for the full flow, what gets installed, and a manual verification checklist to run once on a disposable test VPS before trusting it against a real client. Architecture rationale lives in [`deploy/AGENTS.md`](deploy/AGENTS.md).
+Before running it, have ready: a domain pointed at the VPS (A record), an Upstash Redis database, a Cloudflare Turnstile site registered for that domain, and an admin contact email. The script ends by printing the instance URL and the generated SUPERADMIN login — see **[`deploy/README.md`](deploy/README.md)** for the full flow, what gets installed, and a manual verification checklist to run once on a disposable test VPS before trusting it against a real client. Architecture rationale lives in [`deploy/AGENTS.md`](deploy/AGENTS.md).
 
 Updating an already-deployed instance to a newer version is not yet automated — first install only, for now.
 
@@ -92,7 +92,7 @@ npx vitest run tests/app/api/         # API route tests
 npx vitest run tests/some.test.ts     # a single file
 ```
 
-See `tests/AGENTS.md` for the suite's conventions (mocking `@/auth`, Prisma mock setup, etc.).
+See `tests/AGENTS.md` for the suite's conventions (mocking `@/auth`, Prisma mock setup, etc.). For the full pre-launch plan — manual bootstrap, booking/Telegram/admin walkthroughs, Turnstile/rate-limit verification, load testing — see **[`TESTING_PLAN.md`](TESTING_PLAN.md)**.
 
 ## GDPR
 
@@ -103,4 +103,5 @@ Three public self-service endpoints under `/api/consents/`: export, erasure (SHA
 - **`CLAUDE.md`** — the canonical architecture/contract reference for this repo (routing, auth, booking internals, caching, constraints). Read this first for anything beyond a quick start.
 - **`ROADMAP.md`** — project history and what's been shipped, by session.
 - **`deploy/README.md`** / **`deploy/AGENTS.md`** — deployment flow and infrastructure decisions.
+- **`TESTING_PLAN.md`** — end-to-end pre-launch testing plan (automated + manual + security + load).
 - Nested `AGENTS.md` files throughout `src/`, `prisma/`, `scripts/`, `tests/` — domain-specific contracts for those subtrees.

@@ -57,6 +57,11 @@ for the full design record.
     overwrite, re-clone, or credential regeneration. Re-runs for an existing
     `--name` are a deliberate hard failure, not "smart" merge behavior.
   - AD-9: Ubuntu-only (see above).
+  - Upstash Redis REST URL/token are prompted for interactively, same as
+    Turnstile keys (external signup, cannot be automated) — required, not
+    optional. `rateLimit()` (`src/lib/cache.ts`) has no in-memory fallback
+    unlike the app's cache layer; without these, every rate limit in the app
+    is silently disabled in production.
 - The install script's build context (`docker-compose.yml.template`'s
   `build: .`) is the same instance directory where `install.sh` creates
   `data/`, `uploads/`, and `CREDENTIALS.txt` as siblings — the repo root

@@ -10,11 +10,16 @@ Before running it, have ready:
 1. **A domain already pointed at the VPS's IP** — an A record for the
    domain, created before you run the installer (Let's Encrypt's HTTP
    challenge needs this to already resolve).
-2. **A Cloudflare Turnstile site registered for that domain** — get the site
+2. **An Upstash Redis database (free tier is enough)** — sign up at
+   upstash.com, create a database, the installer will prompt for the REST
+   URL and token. Without this, rate limiting is silently disabled
+   (`rateLimit()` has no fallback, unlike the app's cache which degrades to
+   in-memory automatically).
+3. **A Cloudflare Turnstile site registered for that domain** — get the site
    key and secret key from the Cloudflare dashboard; the installer will
    prompt for them (this is a standard 2-minute manual step and can't be
    automated).
-3. **An admin email** — used both for the SUPERADMIN login and for Let's
+4. **An admin email** — used both for the SUPERADMIN login and for Let's
    Encrypt renewal notices.
 
 ## Install
@@ -24,8 +29,8 @@ curl -fsSL https://raw.githubusercontent.com/Sviat91/salon-booking-v2/master/dep
 ```
 
 `--name`/`--domain`/`--email` may be omitted and will be prompted for
-interactively instead. Turnstile keys are always prompted for interactively —
-there is no flag for them.
+interactively instead. Turnstile keys and Upstash Redis keys are always
+prompted for interactively — there is no flag for either.
 
 This only works because you trust your own repo/script — the same pattern as
 Docker's or nvm's own install scripts, not a security gap.
@@ -47,9 +52,10 @@ different `--name` to install a separate, independent instance.
 - Installs Docker, the Docker Compose plugin, Nginx, and Certbot (Ubuntu/apt
   only).
 - Clones the repo into `/opt/salon-booking/<name>/`, generates `.env`
-  (`AUTH_SECRET`/`CRON_SECRET` via `openssl rand`, plus your Turnstile keys),
-  and builds/starts the app container (`docker compose -p salon-<name>`),
-  publishing it to `127.0.0.1:<port>` only — Nginx is the sole public edge.
+  (`AUTH_SECRET`/`CRON_SECRET` via `openssl rand`, plus your Turnstile keys
+  and Upstash Redis keys), and builds/starts the app container (`docker
+  compose -p salon-<name>`), publishing it to `127.0.0.1:<port>` only —
+  Nginx is the sole public edge.
 - Bootstraps the first SUPERADMIN account (`scripts/create-admin.ts`).
 - Writes an Nginx site file and runs `certbot --nginx` to obtain a real
   certificate and enable the 80→443 redirect.
