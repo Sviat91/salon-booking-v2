@@ -19,6 +19,17 @@ RUN apk add --no-cache openssl
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
+# Next.js's build-time "Collecting page data" step imports every API route
+# module for static analysis, including ones that transitively load
+# src/lib/encryption.ts — which throws at import time if AUTH_SECRET is empty.
+# The real .env is deliberately excluded from the build context (see
+# .dockerignore, "never let real secrets end up baked into an image layer"),
+# so this stage never has a real one. This placeholder only satisfies that
+# import-time guard; it is never used for any real encryption and does not
+# carry over into the runner stage below (Docker multi-stage builds don't
+# inherit ENV across stages). The real AUTH_SECRET is supplied at container
+# start via docker-compose's `env_file: .env`.
+ENV AUTH_SECRET=build-time-placeholder-not-used-at-runtime
 RUN npx prisma generate
 RUN npm run build
 
