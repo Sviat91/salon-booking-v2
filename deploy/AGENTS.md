@@ -62,6 +62,23 @@ for the full design record.
     optional. `rateLimit()` (`src/lib/cache.ts`) has no in-memory fallback
     unlike the app's cache layer; without these, every rate limit in the app
     is silently disabled in production.
+  - AD-10: the `Dockerfile` builder stage sets a placeholder `AUTH_SECRET`
+    (never used at runtime, does not carry into the `runner` stage) before
+    `RUN npm run build`. Next.js's build-time "Collecting page data" step
+    imports every API route module, including ones that load
+    `src/lib/encryption.ts` — which throws at import time if `AUTH_SECRET` is
+    empty — and `.dockerignore` deliberately excludes the real `.env` from
+    the build context (AD-7). Without the placeholder, every build fails.
+  - AD-11: **any command in `install.sh` that doesn't need interactive
+    stdin must redirect it from `/dev/null`.** The documented usage is
+    `curl ... | sudo bash -s --`, so bash's own stdin *is* the pipe it is
+    still reading the rest of the script from. A subprocess that attaches to
+    inherited stdin (e.g. `docker compose exec` — `-T` only disables the
+    pseudo-TTY, it does not detach stdin) can silently consume bytes off
+    that same pipe, causing bash to hit EOF on its own script early with
+    *no visible error* — this bit the real first test-VPS run (2026-08-03):
+    everything after the SUPERADMIN bootstrap step — Nginx, certbot, the
+    final summary with the password — silently never ran.
 - The install script's build context (`docker-compose.yml.template`'s
   `build: .`) is the same instance directory where `install.sh` creates
   `data/`, `uploads/`, and `CREDENTIALS.txt` as siblings — the repo root

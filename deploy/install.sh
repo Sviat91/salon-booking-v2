@@ -261,9 +261,16 @@ until curl -fsS "http://127.0.0.1:${APP_PORT}/api/health" >/dev/null 2>&1; do
 done
 
 echo "Creating the SUPERADMIN account..."
+# `< /dev/null` matters: this whole script is normally run as `curl ... | sudo
+# bash`, so bash's own stdin (fd 0) is the pipe it's still reading the rest of
+# THIS script from. `docker compose exec -T` disables the pseudo-TTY but still
+# attaches to inherited stdin by default — without this redirect it grabs
+# bytes off that same pipe, bash hits EOF on its own script early, and
+# everything after this line (Nginx, certbot, the final summary with the
+# password) silently never runs, with no visible error.
 (cd "$INSTANCE_DIR" && docker compose -p "$COMPOSE_PROJECT" exec -T app \
   node_modules/.bin/tsx scripts/create-admin.ts \
-  "--email=${EMAIL}" "--password=${ADMIN_PASSWORD}" "--name=Super Admin")
+  "--email=${EMAIL}" "--password=${ADMIN_PASSWORD}" "--name=Super Admin" < /dev/null)
 
 # ---------------------------------------------------------------------------
 # Step 12: Nginx site
