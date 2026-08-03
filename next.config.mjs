@@ -27,11 +27,11 @@ const nextConfig = {
     const isDev = process.env.NODE_ENV === 'development'
     const csp = [
       "default-src 'self'",
-      `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''} https://stats.theboatscanner.com`,
+      `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''}`,
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https://drive.google.com https://lh3.googleusercontent.com https://googleusercontent.com",
       "font-src 'self' data:",
-      `connect-src 'self'${isDev ? ' ws:' : ''} https://stats.theboatscanner.com`,
+      `connect-src 'self'${isDev ? ' ws:' : ''}`,
       "frame-src 'self'",
       "frame-ancestors 'self'",
       "base-uri 'self'",

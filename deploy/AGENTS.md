@@ -79,6 +79,27 @@ for the full design record.
     *no visible error* — this bit the real first test-VPS run (2026-08-03):
     everything after the SUPERADMIN bootstrap step — Nginx, certbot, the
     final summary with the password — silently never ran.
+  - AD-12: `.env` always sets `AUTH_TRUST_HOST="true"` (not user-configurable,
+    not prompted for). This install always sits behind Nginx (AD-1) with
+    `NODE_ENV=production`; without it Auth.js/NextAuth refuses to trust the
+    Host/`X-Forwarded-*` headers Nginx forwards and every `/api/auth/*` call —
+    including the login-page redirect check in `src/middleware.ts` — fails
+    with a generic 500 "problem with the server configuration". This bit the
+    first real test-VPS run (2026-08-03): the login button appeared to do
+    nothing because the redirect check itself was erroring.
+  - AD-13: `NEXT_PUBLIC_TURNSTILE_SITE_KEY` / `NEXT_PUBLIC_SITE_URL` are
+    passed as Docker **build args** (`docker-compose.yml.template`'s
+    `build.args`, sourced automatically from the instance's own `.env` —
+    a separate mechanism from `env_file`, which only affects the running
+    container, not the build), not just runtime env. Next.js inlines
+    `NEXT_PUBLIC_*` vars into the client bundle during `next build` itself;
+    since the build stage has no access to the real `.env` (AD-7/AD-10),
+    every Turnstile widget across the whole app silently rendered with an
+    undefined site key until this was added — discovered on the first real
+    test-VPS deploy (2026-08-03). Neither value is secret (the Turnstile
+    *site* key and the public domain are meant to be visible in page HTML/JS
+    — unlike `TURNSTILE_SECRET_KEY`, which stays server-only and must never
+    be passed as a build arg).
 - The install script's build context (`docker-compose.yml.template`'s
   `build: .`) is the same instance directory where `install.sh` creates
   `data/`, `uploads/`, and `CREDENTIALS.txt` as siblings — the repo root

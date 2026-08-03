@@ -2,7 +2,14 @@
 # ${PROJECT_NAME} / ${APP_PORT} are substituted at install time — see deploy/install.sh.
 services:
   app:
-    build: .
+    build:
+      context: .
+      args:
+        # NEXT_PUBLIC_* vars must be baked in at build time (see Dockerfile) —
+        # docker compose automatically loads the instance's own .env (sitting
+        # next to this file) to resolve these ${...} references before build.
+        NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL}
     container_name: salon-${PROJECT_NAME}
     restart: unless-stopped
     env_file: .env

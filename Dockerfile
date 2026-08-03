@@ -19,6 +19,23 @@ RUN apk add --no-cache openssl
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
+# NEXT_PUBLIC_* vars are inlined into the client JS bundle by Next.js's build
+# step itself (webpack static replacement) — setting them only in the runtime
+# .env (via docker-compose's `env_file`) does nothing for client-side code,
+# unlike server-only vars such as AUTH_SECRET below. These two are not
+# secrets (the Turnstile *site* key and the public domain are meant to be
+# visible in every page's HTML/JS — the sensitive TURNSTILE_SECRET_KEY stays
+# server-only and is never passed as a build arg), so passing the real values
+# through as build args here is correct, not a leak. docker-compose.yml's
+# `build.args` sources these from the same instance .env install.sh already
+# writes. Without this, every Turnstile widget across the app (booking form,
+# booking management, GDPR self-service modals) silently never renders —
+# discovered on the first real test-VPS deploy (2026-08-03): the CAPTCHA was
+# expected but the client always saw an undefined site key.
+ARG NEXT_PUBLIC_TURNSTILE_SITE_KEY=""
+ARG NEXT_PUBLIC_SITE_URL=""
+ENV NEXT_PUBLIC_TURNSTILE_SITE_KEY=$NEXT_PUBLIC_TURNSTILE_SITE_KEY
+ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
 # Next.js's build-time "Collecting page data" step imports every API route
 # module for static analysis, including ones that transitively load
 # src/lib/encryption.ts — which throws at import time if AUTH_SECRET is empty.

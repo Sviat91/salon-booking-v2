@@ -217,6 +217,13 @@ mkdir -p "$INSTANCE_DIR/data" "$INSTANCE_DIR/uploads"
 cat > "$INSTANCE_DIR/.env" <<ENVEOF
 DATABASE_URL="file:./prisma/app.db"
 AUTH_SECRET="${AUTH_SECRET}"
+# Required behind a reverse proxy (AD-1 — Nginx is always the public edge here).
+# Without it, Auth.js/NextAuth refuses to trust the Host/X-Forwarded-* headers
+# Nginx forwards and throws "UntrustedHost" internally in production, which
+# surfaces to users as a generic 500 "problem with the server configuration"
+# on every /api/auth/* call — including the middleware check that decides
+# whether /auth/login should redirect. Not user-configurable; always true here.
+AUTH_TRUST_HOST="true"
 CRON_SECRET="${CRON_SECRET}"
 NEXT_PUBLIC_TURNSTILE_SITE_KEY="${TURNSTILE_SITE_KEY}"
 TURNSTILE_SECRET_KEY="${TURNSTILE_SECRET_KEY}"
