@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import PhoneInput from "@/components/ui/PhoneInput"
+import { clientLog } from "@/lib/client-logger"
 
 type RegisterFormProps = React.HTMLAttributes<HTMLDivElement>
 
@@ -27,6 +28,81 @@ export default function RegisterForm({ className, ...props }: RegisterFormProps)
   const [consentNotifications, setConsentNotifications] = React.useState(false)
 
   const { t } = useTranslation()
+
+  // Turnstile
+  const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY as string | undefined
+  const turnstileRef = React.useRef<HTMLDivElement | null>(null)
+  const widgetIdRef = React.useRef<string | null>(null)
+  const [turnstileToken, setTurnstileToken] = React.useState<string | null>(null)
+  const turnstileTokenRef = React.useRef<string | null>(null)
+
+  // Load Turnstile
+  React.useEffect(() => {
+    if (!siteKey) return
+    const scriptId = 'cf-turnstile'
+    if (!document.getElementById(scriptId)) {
+      const script = document.createElement('script')
+      script.id = scriptId
+      script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js'
+      script.async = true
+      script.defer = true
+      document.head.appendChild(script)
+    }
+
+    const interval = setInterval(() => {
+      const turnstile = (window as any)?.turnstile
+      if (turnstile && turnstileRef.current && !widgetIdRef.current) {
+        try {
+          widgetIdRef.current = turnstile.render(turnstileRef.current, {
+            sitekey: siteKey,
+            language: 'pl',
+            callback: (token: string) => {
+              setTurnstileToken(token)
+              turnstileTokenRef.current = token
+            },
+          })
+          clearInterval(interval)
+        } catch (error) {
+          clientLog.warn('Turnstile render failed:', error)
+        }
+      }
+    }, 200)
+
+    return () => {
+      clearInterval(interval)
+      if (turnstileRef.current && widgetIdRef.current) {
+        const turnstile = (window as any)?.turnstile
+        if (turnstile) {
+          try {
+            turnstile.remove(widgetIdRef.current)
+          } catch (error) {
+            clientLog.warn('Turnstile cleanup failed:', error)
+          }
+        }
+      }
+      widgetIdRef.current = null
+    }
+  }, [siteKey])
+
+  const resetTurnstile = React.useCallback(() => {
+    setTurnstileToken(null)
+    turnstileTokenRef.current = null
+    const turnstile = (window as any)?.turnstile
+    if (turnstile && widgetIdRef.current) {
+      try { turnstile.reset(widgetIdRef.current) } catch (error) { clientLog.warn('Turnstile reset failed:', error) }
+    }
+  }, [])
+
+  async function waitForFreshTurnstileToken(previous: string | null, timeoutMs = 4000): Promise<string | null> {
+    if (!siteKey) return null
+    const start = Date.now()
+    while (Date.now() - start < timeoutMs) {
+      const current = turnstileTokenRef.current
+      if (current && current !== previous) return current
+      await new Promise((resolve) => setTimeout(resolve, 100))
+    }
+    return null
+  }
 
   async function onSubmit(event: React.SyntheticEvent) {
     event.preventDefault()
@@ -67,6 +143,7 @@ export default function RegisterForm({ className, ...props }: RegisterFormProps)
             terms: consentTerms,
             notifications: consentNotifications,
           },
+          turnstileToken,
         }),
       })
 
@@ -75,10 +152,19 @@ export default function RegisterForm({ className, ...props }: RegisterFormProps)
         throw new Error(body.error || t('auth.registrationFailed', 'Registration failed'))
       }
 
+      // Turnstile tokens are single-use — /api/auth/register just consumed ours,
+      // and the login guard in src/auth.ts now requires a valid one. Reset the
+      // widget and wait briefly for a fresh token; on timeout we fall through to
+      // the existing "sign in manually" fallback below.
+      const consumed = turnstileTokenRef.current
+      resetTurnstile()
+      const freshToken = await waitForFreshTurnstileToken(consumed)
+
       const res = await signIn("credentials", {
         redirect: false,
         email,
         password,
+        ...(freshToken ? { turnstileToken: freshToken } : {}),
         callbackUrl: "/profile",
       })
 
@@ -232,6 +318,13 @@ export default function RegisterForm({ className, ...props }: RegisterFormProps)
           </div>
 
           {error && <div className="text-sm font-medium text-destructive">{error}</div>}
+
+          {/* Turnstile */}
+          {siteKey && (
+            <div className="flex justify-center">
+              <div ref={turnstileRef} className="rounded-xl"></div>
+            </div>
+          )}
 
           <Button disabled={isLoading} type="submit" className="mt-2">
             {isLoading && (

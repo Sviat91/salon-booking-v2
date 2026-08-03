@@ -224,6 +224,12 @@ AUTH_SECRET="${AUTH_SECRET}"
 # on every /api/auth/* call — including the middleware check that decides
 # whether /auth/login should redirect. Not user-configurable; always true here.
 AUTH_TRUST_HOST="true"
+# Explicit canonical URL, on top of AUTH_TRUST_HOST above — without this,
+# some Auth.js redirect responses (observed: the sign-out callback URL) can
+# still resolve against the container's own internal hostname:port instead
+# of the public domain, sending the browser to an unreachable address like
+# http://<container-id>:3000. AUTH_URL removes the ambiguity entirely.
+AUTH_URL="https://${DOMAIN}"
 CRON_SECRET="${CRON_SECRET}"
 NEXT_PUBLIC_TURNSTILE_SITE_KEY="${TURNSTILE_SITE_KEY}"
 TURNSTILE_SECRET_KEY="${TURNSTILE_SECRET_KEY}"

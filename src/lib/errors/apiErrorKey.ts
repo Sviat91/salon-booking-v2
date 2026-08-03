@@ -40,6 +40,8 @@ export const KNOWN_ERROR_CODES = new Set([
   'INVALID_CURRENT_PASSWORD',
   'EMAIL_ALREADY_IN_USE',
   'DISCOUNT_INVALID',
+  'TURNSTILE_TOKEN_REQUIRED',
+  'TURNSTILE_FAILED',
 ])
 
 export function apiErrorKey(code?: string): string {

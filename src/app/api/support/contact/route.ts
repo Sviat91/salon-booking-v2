@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { getLogger } from '../../../../lib/logger'
 import { rateLimit } from '../../../../lib/cache'
 import { notifyContactForm } from '../../../../lib/notifications'
+import { validateTurnstileForAPI } from '../../../../lib/turnstile'
 
 export const runtime = 'nodejs'
 
@@ -14,6 +15,7 @@ const BodySchema = z.object({
   subject: z.string().trim().min(1, 'Wybierz temat wiadomości').max(200),
   message: z.string().trim().min(10, 'Wiadomość musi mieć co najmniej 10 znaków').max(5000),
   requestId: z.string().trim().max(64).optional(),
+  turnstileToken: z.string().nullish(),
 })
 
 function maskEmailForLog(email: string): string {
@@ -53,6 +55,12 @@ export async function POST(req: NextRequest) {
       error: 'Zbyt wiele wiadomości. Spróbuj ponownie za 15 minut.',
       code: 'RATE_LIMITED',
     }, { status: 429 })
+  }
+
+  const turnstileResult = await validateTurnstileForAPI(body.turnstileToken, ip, { requireToken: false })
+  if (!turnstileResult.success) {
+    log.warn({ ip, email: maskEmailForLog(email) }, 'Contact form Turnstile rejected')
+    return NextResponse.json(turnstileResult.errorResponse, { status: turnstileResult.status })
   }
 
   log.info({

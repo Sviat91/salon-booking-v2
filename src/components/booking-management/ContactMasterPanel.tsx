@@ -7,6 +7,7 @@ import { clientLog } from '@/lib/client-logger'
 import { useSelectedMaster } from '@/contexts/MasterContext'
 import { ApiError } from './api/bookingManagementApi'
 import { apiErrorKey } from '@/lib/errors/apiErrorKey'
+import { useTurnstileSession } from './hooks/useTurnstileSession'
 
 interface ContactMasterPanelProps {
   onBack: () => void
@@ -22,7 +23,10 @@ export default function ContactMasterPanel({ onBack, onSuccess }: ContactMasterP
   const [message, setMessage] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  
+
+  const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY as string | undefined
+  const turnstile = useTurnstileSession(siteKey)
+
   // PhoneInput возвращает телефон с кодом (например "+48123456789")
   // Проверяем что есть минимум 9 цифр (без учета кода страны и символов)
   const phoneDigits = phone.replace(/\D/g, '')
@@ -32,7 +36,12 @@ export default function ContactMasterPanel({ onBack, onSuccess }: ContactMasterP
   
   const handleSubmit = async () => {
     if (!canSubmit || isSubmitting) return
-    
+
+    if (turnstile.turnstileRequired) {
+      setError(t('management.turnstileRequired'))
+      return
+    }
+
     setIsSubmitting(true)
     setError(null)
     
@@ -55,6 +64,7 @@ export default function ContactMasterPanel({ onBack, onSuccess }: ContactMasterP
           email: email.trim() || undefined,
           message: message.trim(),
           masterId: selectedMaster?.id ?? '',
+          turnstileToken: turnstile.turnstileToken,
         }),
       })
       
@@ -72,6 +82,7 @@ export default function ContactMasterPanel({ onBack, onSuccess }: ContactMasterP
       onSuccess()
     } catch (err: unknown) {
       clientLog.error('Failed to send message to master:', err)
+      turnstile.resetWidget()
       setError(t(apiErrorKey(err instanceof ApiError ? err.code : undefined)))
     } finally {
       setIsSubmitting(false)
@@ -157,7 +168,13 @@ export default function ContactMasterPanel({ onBack, onSuccess }: ContactMasterP
           </div>
         </div>
       </div>
-      
+
+      {siteKey ? (
+        <div className="flex justify-center">
+          <div ref={turnstile.turnstileRef} className="rounded-xl" />
+        </div>
+      ) : null}
+
       {/* Action buttons */}
       <div className="flex gap-2 pt-2">
         <button

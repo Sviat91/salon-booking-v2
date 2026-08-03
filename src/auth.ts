@@ -5,6 +5,8 @@ import prisma from "@/lib/prisma"
 import type { Adapter } from "next-auth/adapters"
 import Credentials from "next-auth/providers/credentials"
 import bcrypt from "bcryptjs"
+import { getRequestIp } from "@/lib/consent-service"
+import { checkLoginGuards } from "@/lib/auth-guards"
 
 import type { NextAuthConfig } from "next-auth"
 
@@ -18,9 +20,17 @@ export const coreAuthOptions: NextAuthConfig = {
       credentials: {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
+        turnstileToken: { label: "Turnstile", type: "hidden" },
       },
-      async authorize(credentials) {
+      async authorize(credentials, request) {
         if (!credentials?.email || !credentials?.password) {
+          return null
+        }
+
+        const ip = getRequestIp(request)
+        const guard = await checkLoginGuards({ ip, turnstileToken: credentials.turnstileToken })
+        if (!guard.ok) {
+          console.warn("[auth] login blocked:", guard.reason, ip)
           return null
         }
 

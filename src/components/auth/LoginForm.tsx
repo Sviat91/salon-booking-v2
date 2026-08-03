@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { clientLog } from "@/lib/client-logger"
 
 type UserAuthFormProps = React.HTMLAttributes<HTMLDivElement>
 
@@ -27,10 +28,75 @@ export default function LoginForm({ className, ...props }: UserAuthFormProps) {
     }
   }, [errorParam])
 
+  // Turnstile
+  const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY as string | undefined
+  const turnstileRef = React.useRef<HTMLDivElement | null>(null)
+  const widgetIdRef = React.useRef<string | null>(null)
+  const [turnstileToken, setTurnstileToken] = React.useState<string | null>(null)
+
+  // Load Turnstile
+  React.useEffect(() => {
+    if (!siteKey) return
+    const scriptId = 'cf-turnstile'
+    if (!document.getElementById(scriptId)) {
+      const script = document.createElement('script')
+      script.id = scriptId
+      script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js'
+      script.async = true
+      script.defer = true
+      document.head.appendChild(script)
+    }
+
+    const interval = setInterval(() => {
+      const turnstile = (window as any)?.turnstile
+      if (turnstile && turnstileRef.current && !widgetIdRef.current) {
+        try {
+          widgetIdRef.current = turnstile.render(turnstileRef.current, {
+            sitekey: siteKey,
+            language: 'pl',
+            callback: (token: string) => setTurnstileToken(token),
+          })
+          clearInterval(interval)
+        } catch (error) {
+          clientLog.warn('Turnstile render failed:', error)
+        }
+      }
+    }, 200)
+
+    return () => {
+      clearInterval(interval)
+      if (turnstileRef.current && widgetIdRef.current) {
+        const turnstile = (window as any)?.turnstile
+        if (turnstile) {
+          try {
+            turnstile.remove(widgetIdRef.current)
+          } catch (error) {
+            clientLog.warn('Turnstile cleanup failed:', error)
+          }
+        }
+      }
+      widgetIdRef.current = null
+    }
+  }, [siteKey])
+
+  const resetTurnstile = React.useCallback(() => {
+    setTurnstileToken(null)
+    const turnstile = (window as any)?.turnstile
+    if (turnstile && widgetIdRef.current) {
+      try { turnstile.reset(widgetIdRef.current) } catch (error) { clientLog.warn('Turnstile reset failed:', error) }
+    }
+  }, [])
+
   async function onSubmit(event: React.SyntheticEvent) {
     event.preventDefault()
     setIsLoading(true)
     setError(null)
+
+    if (siteKey && !turnstileToken) {
+      setError(t('auth.captchaRequired'))
+      setIsLoading(false)
+      return
+    }
 
     const form = event.target as HTMLFormElement
     const email = (form.elements.namedItem('email') as HTMLInputElement).value
@@ -41,10 +107,12 @@ export default function LoginForm({ className, ...props }: UserAuthFormProps) {
         redirect: false,
         email,
         password,
+        ...(turnstileToken ? { turnstileToken } : {}),
         ...(callbackUrl ? { callbackUrl } : {}),
       })
 
       if (res?.error) {
+        resetTurnstile()
         setError(t('auth.invalidCredentials', 'Invalid email or password'))
       } else {
         if (callbackUrl) {
@@ -110,9 +178,14 @@ export default function LoginForm({ className, ...props }: UserAuthFormProps) {
               {error}
             </div>
           )}
+          {siteKey && (
+            <div className="flex justify-center">
+              <div ref={turnstileRef} className="rounded-xl" />
+            </div>
+          )}
           <div className="flex justify-end mt-1">
-            <a 
-              href="/auth/forgot-password" 
+            <a
+              href="/auth/forgot-password"
               className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
             >
               {t('auth.forgotPassword', 'Forgot password?')}
@@ -148,4 +221,3 @@ export default function LoginForm({ className, ...props }: UserAuthFormProps) {
     </div>
   )
 }
-

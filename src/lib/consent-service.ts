@@ -1,4 +1,3 @@
-import type { NextRequest } from "next/server"
 import { createHash } from "node:crypto"
 import prisma from "@/lib/prisma"
 import { normalizePhoneDigitsOnly, normalizePhoneToE164 } from "@/lib/utils/phone-normalization"
@@ -280,8 +279,8 @@ export async function evaluateConsentStatus(
   }
 }
 
-export function getRequestIp(req: NextRequest): string {
-  const reqWithIp = req as NextRequest & { ip?: string }
+export function getRequestIp(req: Request): string {
+  const reqWithIp = req as Request & { ip?: string }
   return req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || reqWithIp.ip || "0.0.0.0"
 }
 

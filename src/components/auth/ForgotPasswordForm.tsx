@@ -5,6 +5,8 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { clientLog } from "@/lib/client-logger"
+import { apiErrorKey } from "@/lib/errors/apiErrorKey"
 
 type ForgotPasswordFormProps = React.HTMLAttributes<HTMLDivElement>
 
@@ -14,6 +16,65 @@ export default function ForgotPasswordForm({ className, ...props }: ForgotPasswo
   const [error, setError] = React.useState<string | null>(null)
   const { t } = useTranslation()
 
+  // Turnstile
+  const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY as string | undefined
+  const turnstileRef = React.useRef<HTMLDivElement | null>(null)
+  const widgetIdRef = React.useRef<string | null>(null)
+  const [turnstileToken, setTurnstileToken] = React.useState<string | null>(null)
+
+  // Load Turnstile
+  React.useEffect(() => {
+    if (!siteKey) return
+    const scriptId = 'cf-turnstile'
+    if (!document.getElementById(scriptId)) {
+      const script = document.createElement('script')
+      script.id = scriptId
+      script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js'
+      script.async = true
+      script.defer = true
+      document.head.appendChild(script)
+    }
+
+    const interval = setInterval(() => {
+      const turnstile = (window as any)?.turnstile
+      if (turnstile && turnstileRef.current && !widgetIdRef.current) {
+        try {
+          widgetIdRef.current = turnstile.render(turnstileRef.current, {
+            sitekey: siteKey,
+            language: 'pl',
+            callback: (token: string) => setTurnstileToken(token),
+          })
+          clearInterval(interval)
+        } catch (error) {
+          clientLog.warn('Turnstile render failed:', error)
+        }
+      }
+    }, 200)
+
+    return () => {
+      clearInterval(interval)
+      if (turnstileRef.current && widgetIdRef.current) {
+        const turnstile = (window as any)?.turnstile
+        if (turnstile) {
+          try {
+            turnstile.remove(widgetIdRef.current)
+          } catch (error) {
+            clientLog.warn('Turnstile cleanup failed:', error)
+          }
+        }
+      }
+      widgetIdRef.current = null
+    }
+  }, [siteKey])
+
+  const resetTurnstile = React.useCallback(() => {
+    setTurnstileToken(null)
+    const turnstile = (window as any)?.turnstile
+    if (turnstile && widgetIdRef.current) {
+      try { turnstile.reset(widgetIdRef.current) } catch (error) { clientLog.warn('Turnstile reset failed:', error) }
+    }
+  }, [])
+
   async function onSubmit(event: React.SyntheticEvent) {
     event.preventDefault()
     setIsLoading(true)
@@ -22,17 +83,24 @@ export default function ForgotPasswordForm({ className, ...props }: ForgotPasswo
     const form = event.target as HTMLFormElement
     const email = (form.elements.namedItem('email') as HTMLInputElement).value
 
+    if (siteKey && !turnstileToken) {
+      setError(t('auth.captchaRequired'))
+      setIsLoading(false)
+      return
+    }
+
     try {
       const res = await fetch('/api/auth/forgot-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, turnstileToken }),
       })
 
       const data = await res.json()
 
       if (!res.ok) {
-        setError(data.error || t('errors.generic'))
+        resetTurnstile()
+        setError(data.code ? t(apiErrorKey(data.code)) : (data.error || t('errors.generic')))
       } else {
         setIsSent(true)
       }
@@ -83,6 +151,11 @@ export default function ForgotPasswordForm({ className, ...props }: ForgotPasswo
             {error && (
               <div className="text-sm font-medium text-destructive">
                 {error}
+              </div>
+            )}
+            {siteKey && (
+              <div className="flex justify-center">
+                <div ref={turnstileRef} className="rounded-xl" />
               </div>
             )}
             <Button disabled={isLoading} type="submit" className="mt-2">

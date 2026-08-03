@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs"
 import prisma from "@/lib/prisma"
 import { getRequestIp, saveConsentRecord } from "@/lib/consent-service"
 import { rateLimit } from "@/lib/cache"
+import { validateTurnstileForAPI } from "@/lib/turnstile"
 import { z } from "zod"
 
 const registerSchema = z.object({
@@ -34,6 +35,12 @@ export async function POST(req: NextRequest) {
     }
 
     const raw = await req.json()
+
+    const turnstileResult = await validateTurnstileForAPI(raw?.turnstileToken, ip, { requireToken: false })
+    if (!turnstileResult.success) {
+      return NextResponse.json(turnstileResult.errorResponse, { status: turnstileResult.status })
+    }
+
     const parsed = registerSchema.safeParse(raw)
 
     if (!parsed.success) {

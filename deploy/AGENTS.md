@@ -86,7 +86,11 @@ for the full design record.
     including the login-page redirect check in `src/middleware.ts` — fails
     with a generic 500 "problem with the server configuration". This bit the
     first real test-VPS run (2026-08-03): the login button appeared to do
-    nothing because the redirect check itself was erroring.
+    nothing because the redirect check itself was erroring. `.env` also
+    always sets `AUTH_URL="https://${DOMAIN}"` alongside it — `trustHost`
+    alone was not enough to stop the sign-out redirect from resolving to the
+    container's own internal hostname:port (e.g. `http://3d5b8024ced0:3000`)
+    instead of the public domain, also caught on the same test run.
   - AD-13: `NEXT_PUBLIC_TURNSTILE_SITE_KEY` / `NEXT_PUBLIC_SITE_URL` are
     passed as Docker **build args** (`docker-compose.yml.template`'s
     `build.args`, sourced automatically from the instance's own `.env` —

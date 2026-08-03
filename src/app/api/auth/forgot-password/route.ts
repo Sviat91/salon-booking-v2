@@ -4,10 +4,12 @@ import bcrypt from 'bcryptjs'
 import prisma from '@/lib/prisma'
 import { rateLimit } from '@/lib/cache'
 import { sendPasswordResetEmail } from '@/lib/email'
+import { validateTurnstileForAPI } from '@/lib/turnstile'
 
 // Inline schema — simple enough to avoid cross-import overhead
 const schema = z.object({
   email: z.string().email('Invalid email format'),
+  turnstileToken: z.string().nullish(),
 })
 
 // Helper: extract client IP from Next.js request headers
@@ -39,6 +41,11 @@ export async function POST(req: NextRequest) {
         { error: parsed.error.errors[0]?.message ?? 'Invalid data' },
         { status: 400 }
       )
+    }
+
+    const turnstileResult = await validateTurnstileForAPI(parsed.data.turnstileToken, ip, { requireToken: false })
+    if (!turnstileResult.success) {
+      return NextResponse.json(turnstileResult.errorResponse, { status: turnstileResult.status })
     }
 
     const email = parsed.data.email.trim().toLowerCase()
