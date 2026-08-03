@@ -16,9 +16,10 @@ interface LocaleFieldControlProps {
   placeholder?: string
   required: boolean
   rows: number
+  resizable: boolean
 }
 
-function LocaleFieldControl({ fieldId, variant, defaultValue, placeholder, required, rows }: LocaleFieldControlProps) {
+function LocaleFieldControl({ fieldId, variant, defaultValue, placeholder, required, rows, resizable }: LocaleFieldControlProps) {
   if (variant === "textarea") {
     return (
       <Textarea
@@ -28,7 +29,7 @@ function LocaleFieldControl({ fieldId, variant, defaultValue, placeholder, requi
         placeholder={placeholder}
         required={required}
         rows={rows}
-        className="resize-none"
+        className={resizable ? "resize-y" : "resize-none"}
       />
     )
   }
@@ -55,6 +56,8 @@ interface LocalizedFieldInputProps {
   placeholder?: string
   rows?: number
   errors?: Partial<Record<Language, string>>
+  /** Allows vertical resizing of the textarea variant. Defaults to `false` (non-resizable, today's behaviour). */
+  resizable?: boolean
 }
 
 /**
@@ -73,6 +76,7 @@ export default function LocalizedFieldInput({
   placeholder,
   rows = 3,
   errors,
+  resizable = false,
 }: LocalizedFieldInputProps) {
   const locales = enabledLocales.includes(DEFAULT_LANGUAGE)
     ? enabledLocales
@@ -95,6 +99,7 @@ export default function LocalizedFieldInput({
           placeholder={placeholder}
           required={required && lang === DEFAULT_LANGUAGE}
           rows={rows}
+          resizable={resizable}
         />
         {errors?.[lang] && <p className="text-xs text-destructive">{errors[lang]}</p>}
       </div>
@@ -132,6 +137,7 @@ export default function LocalizedFieldInput({
               placeholder={placeholder}
               required={required && lang === DEFAULT_LANGUAGE}
               rows={rows}
+              resizable={resizable}
             />
             {errors?.[lang] && <p className="text-xs text-destructive mt-1">{errors[lang]}</p>}
           </div>

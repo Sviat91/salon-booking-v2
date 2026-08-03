@@ -13,6 +13,7 @@ import {
   Bot,
   FileText,
   Percent,
+  ScrollText,
   type LucideIcon,
 } from "lucide-react"
 
@@ -80,6 +81,11 @@ export const adminNavItems: NavItem[] = [
     labelKey: "admin.nav.clientBot",
     href: "/admin/settings/client-bot",
     icon: Bot,
+  },
+  {
+    labelKey: "admin.nav.legal",
+    href: "/admin/settings/legal",
+    icon: ScrollText,
   },
   {
     labelKey: "admin.nav.database",

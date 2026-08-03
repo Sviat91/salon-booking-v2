@@ -28,6 +28,16 @@ interface AdminSidebarProps {
   logoUrl: string | null
 }
 
+// Routes whose page wires into the settings-dirty bridge below (dispatches
+// 'settings-dirty' + renders <form id="settings-form">). Sub-pages with
+// their own self-contained save button (email, social, legal, ...) must
+// NOT be added here — the button would render permanently disabled.
+const SETTINGS_SAVE_BRIDGE_ROUTES = [
+  '/admin/settings',
+  '/admin/settings/client-bot',
+  '/admin/settings/notifications',
+]
+
 function NavLink({ item, open }: { item: NavItem; open: boolean }) {
   const pathname = usePathname()
   const { t } = useTranslation()
@@ -100,7 +110,7 @@ function SidebarNav({ expanded, isDirty }: { expanded: boolean; isDirty: boolean
       </nav>
 
       {/* Save button — only on settings page */}
-      {pathname.startsWith('/admin/settings') && (
+      {SETTINGS_SAVE_BRIDGE_ROUTES.includes(pathname) && (
         <div className="px-3 pb-2">
           <button
             type="submit"

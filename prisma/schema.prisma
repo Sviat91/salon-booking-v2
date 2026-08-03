@@ -310,6 +310,16 @@ model TenantConfig {
   salonNip          String?           // Tax ID (NIP)
   salonLegalAddress String?           // Registered legal address if different from salon
 
+  // Admin-authored legal documents (Markdown subset, see src/lib/markdown-lite.ts).
+  // All nullable — new installs ship with no legal text; the public pages render
+  // an empty-state notice until an admin fills at least one locale.
+  termsContent_pl   String?
+  termsContent_en   String?
+  termsContent_uk   String?
+  privacyContent_pl String?
+  privacyContent_en String?
+  privacyContent_uk String?
+
   // Email / SMTP settings — configured once in Admin Panel per deployment
   // Works with any SMTP provider: Gmail, Outlook, Hostinger, OVH, etc.
   smtpHost        String?           // e.g. "smtp.gmail.com"

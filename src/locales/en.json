@@ -118,6 +118,7 @@
       "socialAuth": "Social Auth",
       "notifications": "Notifications",
       "clientBot": "Booking bot",
+      "legal": "Legal Documents",
       "database": "Database",
       "admins": "Admins",
       "dbBrowser": "DB Browser",
@@ -851,6 +852,19 @@
         "loadFailed": "Failed to load booking bot settings",
         "saveFailed": "Save failed",
         "saveSuccess": "Booking bot settings saved"
+      },
+      "legal": {
+        "pageDesc": "Edit the Terms of Use and Privacy Policy text shown publicly on the /terms and /privacy pages.",
+        "termsSectionTitle": "Terms of Use",
+        "termsSectionDesc": "Content of the Terms of Use shown on the /terms page.",
+        "privacySectionTitle": "Privacy Policy",
+        "privacySectionDesc": "Content of the Privacy Policy shown on the /privacy page.",
+        "contentLabel": "Document content",
+        "placeholder": "Enter the document text. Supported formatting: ## Heading, ### Subheading, - list, **bold**.",
+        "formattingHint": "Supported formatting: \"## Heading\", \"### Subheading\", \"- list item\", and \"**bold**\". Everything else renders as plain text.",
+        "saveError": "Failed to save the legal documents.",
+        "tooLong": "Content is too long (max 50,000 characters).",
+        "unauthorized": "You don't have permission to edit legal documents."
       }
     }
   },
@@ -1349,11 +1363,14 @@
   },
   "privacy": {
     "title": "Privacy Policy",
-    "legalNotice": "The full legal text is available in Polish."
+    "legalNotice": "This document isn't available in your language yet. Showing the version provided by the salon below."
   },
   "terms": {
     "title": "Terms of Service",
-    "legalNotice": "The full legal text is available in Polish."
+    "legalNotice": "This document isn't available in your language yet. Showing the version provided by the salon below."
+  },
+  "legal": {
+    "notConfigured": "This document hasn't been published by the salon yet. Please get in touch if you have questions."
   },
   "slots": {
     "searching": "Searching for available times…",

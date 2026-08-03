@@ -118,6 +118,7 @@
       "socialAuth": "Logowanie społecznościowe",
       "notifications": "Powiadomienia",
       "clientBot": "Bot rezerwacyjny",
+      "legal": "Dokumenty prawne",
       "database": "Baza danych",
       "admins": "Administratorzy",
       "dbBrowser": "Przeglądarka bazy danych",
@@ -851,6 +852,19 @@
         "loadFailed": "Nie udało się załadować ustawień bota rezerwacyjnego",
         "saveFailed": "Zapis nie powiódł się",
         "saveSuccess": "Ustawienia bota rezerwacyjnego zostały zapisane"
+      },
+      "legal": {
+        "pageDesc": "Edytuj treść Regulaminu i Polityki Prywatności wyświetlanych publicznie na stronach /terms i /privacy.",
+        "termsSectionTitle": "Regulamin",
+        "termsSectionDesc": "Treść Warunków Korzystania z Usług wyświetlana na stronie /terms.",
+        "privacySectionTitle": "Polityka prywatności",
+        "privacySectionDesc": "Treść Polityki Prywatności wyświetlana na stronie /privacy.",
+        "contentLabel": "Treść dokumentu",
+        "placeholder": "Wpisz treść dokumentu. Obsługiwane formatowanie: ## Nagłówek, ### Podnagłówek, - lista, **pogrubienie**.",
+        "formattingHint": "Obsługiwane formatowanie: „## Nagłówek”, „### Podnagłówek”, „- pozycja listy” oraz „**pogrubienie**”. Pozostały tekst wyświetla się bez zmian.",
+        "saveError": "Nie udało się zapisać dokumentów prawnych.",
+        "tooLong": "Treść jest zbyt długa (maks. 50 000 znaków).",
+        "unauthorized": "Brak uprawnień do edycji dokumentów prawnych."
       }
     }
   },
@@ -1349,11 +1363,14 @@
   },
   "privacy": {
     "title": "Polityka Prywatności",
-    "legalNotice": ""
+    "legalNotice": "Ten dokument nie jest dostępny w Twoim języku. Poniżej wyświetlamy wersję w języku udostępnionym przez salon."
   },
   "terms": {
     "title": "Warunki Korzystania z Usług",
-    "legalNotice": ""
+    "legalNotice": "Ten dokument nie jest dostępny w Twoim języku. Poniżej wyświetlamy wersję w języku udostępnionym przez salon."
+  },
+  "legal": {
+    "notConfigured": "Ten dokument nie został jeszcze opublikowany przez salon. W razie pytań prosimy o kontakt."
   },
   "slots": {
     "searching": "Wyszukujemy wolne godziny…",
