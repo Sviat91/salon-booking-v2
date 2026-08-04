@@ -291,8 +291,8 @@ echo "Creating the SUPERADMIN account..."
 # shellcheck disable=SC2016 # intentional: envsubst's variable allowlist, see
 # the identical justification above at the docker-compose.yml render step —
 # must not be shell-expanded here, it's an argument to envsubst itself.
-DOMAIN="$DOMAIN" APP_PORT="$APP_PORT" \
-  envsubst '${DOMAIN} ${APP_PORT}' \
+DOMAIN="$DOMAIN" APP_PORT="$APP_PORT" INSTANCE_DIR="$INSTANCE_DIR" \
+  envsubst '${DOMAIN} ${APP_PORT} ${INSTANCE_DIR}' \
   < "$INSTANCE_DIR/deploy/nginx.conf.template" \
   > "/etc/nginx/sites-available/${PROJECT_NAME}.conf"
 ln -sf "/etc/nginx/sites-available/${PROJECT_NAME}.conf" "/etc/nginx/sites-enabled/${PROJECT_NAME}.conf"

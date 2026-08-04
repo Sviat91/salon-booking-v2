@@ -7,6 +7,14 @@ const nextConfig = {
     staleTimes: { dynamic: 0, static: 0 },
   },
   images: {
+    // Next's built-in optimizer (`/_next/image`, requires `sharp` in standalone
+    // mode) only recognizes files present under `public/` at process boot —
+    // anything written there afterwards (every real upload, since `uploads/`
+    // is a runtime-mounted volume, not a build-time asset) 400s until the next
+    // restart. Disabling optimization makes every `<Image>` render a plain
+    // `<img src>` instead, sidestepping that limitation entirely — see AD-14
+    // in deploy/AGENTS.md for the full story.
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'https',

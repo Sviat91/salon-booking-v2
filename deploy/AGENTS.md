@@ -46,7 +46,8 @@ for the full design record.
   - AD-5: volumes are real host directories created before first `up`, not
     anonymous volumes — `./data:/app/prisma/prisma` (the sqlite file is at
     `prisma/prisma/app.db`, not `prisma/app.db` — see `prisma/AGENTS.md`) and
-    `./uploads:/app/public/uploads`.
+    `./uploads:/app/public/uploads`. The volume alone does not make uploaded
+    files servable at runtime — see AD-14.
   - AD-6: hourly cron (`/etc/cron.d/salon-<name>-reminders`, chmod 600 — it
     embeds `CRON_SECRET`) hits `GET /api/cron/reminders`.
   - AD-7: secrets (`AUTH_SECRET`, `CRON_SECRET`, SUPERADMIN password) are
@@ -104,6 +105,40 @@ for the full design record.
     *site* key and the public domain are meant to be visible in page HTML/JS
     — unlike `TURNSTILE_SECRET_KEY`, which stays server-only and must never
     be passed as a build arg).
+  - AD-14: `nginx.conf.template` serves `/uploads/` directly from disk
+    (`alias ${INSTANCE_DIR}/uploads/`), bypassing the Node app entirely — do
+    **not** remove this and fall back to proxying `/uploads/*` through
+    Next.js. Next.js's standalone server (`output: 'standalone'`) only
+    detects files under `public/` that exist at process boot; the AD-5
+    volume mount means uploaded files land on disk correctly, but any file
+    written to `public/uploads/` *while the container is already running*
+    (i.e. every real upload, ever) is invisible to Next's own static-file
+    resolution until the next container restart — it renders the app's
+    404 page (`Content-Type: text/html`, RSC `Vary` headers) instead of the
+    image, with no error anywhere in the app's own logs. Confirmed on the
+    first real test-VPS run (2026-08-04): `docker compose exec app cat
+    /app/public/uploads/<file>` read the exact right bytes at the exact
+    right path, yet `curl http://127.0.0.1:<port>/uploads/<file>` — even
+    hitting the container directly, bypassing Nginx — still 404'd, while a
+    build-baked asset (`/dark.png`) served fine on the same request. `envsubst`
+    must include `${INSTANCE_DIR}` (added alongside `${DOMAIN}`/`${APP_PORT}`)
+    for this to render correctly — see the nginx-render step in `install.sh`.
+    This location block only covers direct `GET /uploads/*` requests — it
+    does **not** cover `next/image`'s own `/_next/image` optimizer route,
+    which still runs inside the Node process and hits the identical
+    boot-time-snapshot limitation from the other direction (and separately
+    requires `sharp` to be a real `dependencies` entry, not just present on a
+    dev machine — standalone mode refuses to optimize without it, another
+    thing that bit this same 2026-08-04 run). Rather than converting every
+    `<Image>` consumer of `/uploads/*` content to a plain `<img>` one at a
+    time (already done piecemeal for a few — favicon/logo previews, master
+    photo previews — before the scope of the problem was clear), `next.config.mjs`
+    sets `images.unoptimized: true` project-wide: every `<Image>` renders a
+    plain `<img src>` and never calls `/_next/image` at all, which fixes
+    every current and future consumer in one place instead of requiring a
+    per-component fix each time a new one is added. `sharp` stays installed
+    (harmless, and `output: 'standalone'` still checks for it at boot even
+    with the optimizer disabled) but is no longer load-bearing for this.
 - The install script's build context (`docker-compose.yml.template`'s
   `build: .`) is the same instance directory where `install.sh` creates
   `data/`, `uploads/`, and `CREDENTIALS.txt` as siblings — the repo root
