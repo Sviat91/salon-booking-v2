@@ -53,7 +53,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   const config = await getTenantConfig()
 
   return (
-    <html lang="pl" className={cn(roboto.variable, "font-sans")}>
+    <html lang="pl" className={cn(roboto.variable, "font-sans")} suppressHydrationWarning>
       <head>
         <script
           dangerouslySetInnerHTML={{

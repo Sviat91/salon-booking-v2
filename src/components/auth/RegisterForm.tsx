@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import PhoneInput from "@/components/ui/PhoneInput"
 import { clientLog } from "@/lib/client-logger"
+import { getTurnstileTheme } from "@/lib/turnstile-theme"
 
 type RegisterFormProps = React.HTMLAttributes<HTMLDivElement>
 
@@ -56,6 +57,7 @@ export default function RegisterForm({ className, ...props }: RegisterFormProps)
           widgetIdRef.current = turnstile.render(turnstileRef.current, {
             sitekey: siteKey,
             language: 'pl',
+            theme: getTurnstileTheme(),
             callback: (token: string) => {
               setTurnstileToken(token)
               turnstileTokenRef.current = token

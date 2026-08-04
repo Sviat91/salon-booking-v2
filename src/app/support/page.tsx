@@ -11,6 +11,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { clientLog } from '@/lib/client-logger'
+import { getTurnstileTheme } from '@/lib/turnstile-theme'
 
 type SalonConfig = {
   salonAddress?: string | null
@@ -75,6 +76,7 @@ export default function SupportPage() {
           widgetIdRef.current = turnstile.render(turnstileRef.current, {
             sitekey: siteKey,
             language: 'pl',
+            theme: getTurnstileTheme(),
             callback: (token: string) => setTurnstileToken(token),
           })
           clearInterval(interval)

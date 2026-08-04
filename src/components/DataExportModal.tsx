@@ -6,6 +6,7 @@ import { useCurrentLanguage } from "@/contexts/LanguageContext";
 import PhoneInput from "./ui/PhoneInput";
 import { clientLog } from "@/lib/client-logger";
 import { useSession } from "next-auth/react";
+import { getTurnstileTheme } from "@/lib/turnstile-theme";
 import type { ModalState, ApiError, UserDataExport } from "./data-export/types";
 import { generateRequestId, generateCSV, generateJSON, downloadFile } from "./data-export/exportFormat";
 import ExportResultView from "./data-export/ExportResultView";
@@ -129,6 +130,7 @@ export default function DataExportModal({
           widgetIdRef.current = turnstile.render(turnstileRef.current, {
             sitekey: siteKey,
             language: language === 'uk' ? 'uk-ua' : language,
+            theme: getTurnstileTheme(),
             callback: (value: string) => setToken(value),
             "error-callback": () => resetTurnstile(),
             "expired-callback": () => resetTurnstile(),

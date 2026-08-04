@@ -18,6 +18,7 @@ import { useSelectedMasterId } from '@/contexts/MasterContext'
 import { useCurrentLanguage } from '@/contexts/LanguageContext'
 import { resolveLocalized } from '@/lib/localized-content'
 import { localeFor } from '@/lib/i18n-shared'
+import { getTurnstileTheme } from '@/lib/turnstile-theme'
 
 type Procedure = { id: string; name_pl: string; name_en?: string; name_uk?: string; price_pln?: number }
 type ProceduresResponse = { items: Procedure[] }
@@ -141,6 +142,7 @@ export default function BookingForm({
           turnstile.render(tsRef.current, {
             sitekey: siteKey,
             language: turnstileLang,
+            theme: getTurnstileTheme(),
             callback: (token: string) => setTsToken(token),
           })
           clearInterval(iv)

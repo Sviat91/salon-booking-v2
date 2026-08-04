@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { clientLog } from "@/lib/client-logger"
 import { apiErrorKey } from "@/lib/errors/apiErrorKey"
+import { getTurnstileTheme } from "@/lib/turnstile-theme"
 
 type ForgotPasswordFormProps = React.HTMLAttributes<HTMLDivElement>
 
@@ -42,6 +43,7 @@ export default function ForgotPasswordForm({ className, ...props }: ForgotPasswo
           widgetIdRef.current = turnstile.render(turnstileRef.current, {
             sitekey: siteKey,
             language: 'pl',
+            theme: getTurnstileTheme(),
             callback: (token: string) => setTurnstileToken(token),
           })
           clearInterval(interval)

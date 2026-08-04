@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { storeTurnstileSession } from '../../../lib/turnstile-client'
+import { getTurnstileTheme } from '../../../lib/turnstile-theme'
 
 export interface UseTurnstileSessionReturn {
   turnstileToken: string | null
@@ -27,6 +28,7 @@ export function useTurnstileSession(siteKey?: string): UseTurnstileSessionReturn
       const id = turnstile.render(turnstileRef.current, {
         sitekey: siteKey,
         language: 'pl',
+        theme: getTurnstileTheme(),
         callback: (token: string) => {
           setTurnstileToken(token)
           storeTurnstileSession(token)

@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { clientLog } from "@/lib/client-logger"
+import { getTurnstileTheme } from "@/lib/turnstile-theme"
 
 type UserAuthFormProps = React.HTMLAttributes<HTMLDivElement>
 
@@ -54,6 +55,7 @@ export default function LoginForm({ className, ...props }: UserAuthFormProps) {
           widgetIdRef.current = turnstile.render(turnstileRef.current, {
             sitekey: siteKey,
             language: 'pl',
+            theme: getTurnstileTheme(),
             callback: (token: string) => setTurnstileToken(token),
           })
           clearInterval(interval)

@@ -6,6 +6,7 @@ import { useCurrentLanguage } from "@/contexts/LanguageContext";
 import PhoneInput from "./ui/PhoneInput";
 import { clientLog } from "@/lib/client-logger";
 import { useSession } from "next-auth/react";
+import { getTurnstileTheme } from "@/lib/turnstile-theme";
 
 type ModalState =
   | "idle"
@@ -160,6 +161,7 @@ export default function DataErasureModal({
           widgetIdRef.current = turnstile.render(turnstileRef.current, {
             sitekey: siteKey,
             language: language === 'uk' ? 'uk-ua' : language,
+            theme: getTurnstileTheme(),
             callback: (value: string) => setToken(value),
             "error-callback": () => resetTurnstile(),
             "expired-callback": () => resetTurnstile(),
