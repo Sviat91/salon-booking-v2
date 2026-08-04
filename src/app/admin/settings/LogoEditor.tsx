@@ -8,6 +8,7 @@ import HomepagePreview from "./HomepagePreview"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { apiErrorKey } from "@/lib/errors/apiErrorKey"
+import { resizeImageIfNeeded } from "@/lib/image-resize"
 
 type LogoConfig = {
   logoUrl: string | null
@@ -270,10 +271,11 @@ export default function LogoEditor({
                     type="file"
                     accept="image/png,image/jpeg,image/webp,image/svg+xml"
                     className="hidden"
-                    onChange={(e) => {
+                    onChange={async (e) => {
                       const file = e.target.files?.[0]
                       if (file) {
-                        uploadImage(file, onLogoUpload, () => {}, onLogoUploadStart, (code) => code ? t(apiErrorKey(code)) : t('admin.masters.uploadFailed'))
+                        const resized = await resizeImageIfNeeded(file)
+                        uploadImage(resized, onLogoUpload, () => {}, onLogoUploadStart, (code) => code ? t(apiErrorKey(code)) : t('admin.masters.uploadFailed'))
                       }
                     }}
                     disabled={logoUploading}
@@ -316,10 +318,11 @@ export default function LogoEditor({
                     type="file"
                     accept="image/png,image/jpeg,image/webp,image/svg+xml"
                     className="hidden"
-                    onChange={(e) => {
+                    onChange={async (e) => {
                       const file = e.target.files?.[0]
                       if (file) {
-                        uploadImage(file, onDarkLogoUpload, () => {}, onDarkLogoUploadStart, (code) => code ? t(apiErrorKey(code)) : t('admin.masters.uploadFailed'))
+                        const resized = await resizeImageIfNeeded(file)
+                        uploadImage(resized, onDarkLogoUpload, () => {}, onDarkLogoUploadStart, (code) => code ? t(apiErrorKey(code)) : t('admin.masters.uploadFailed'))
                       }
                     }}
                     disabled={darkLogoUploading}
