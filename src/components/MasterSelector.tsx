@@ -199,7 +199,7 @@ export default function MasterSelector({ onNavigateAway }: MasterSelectorProps) 
               <h2 className="text-xl sm:text-2xl font-bold text-white/90 mb-0.5 leading-tight line-clamp-2 transform group-hover:translate-y-[-2px] transition-transform duration-300">
                 {master.name}
               </h2>
-              <div className="flex items-center justify-center gap-1.5 text-white/90 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <div className="hidden items-center justify-center gap-1.5 text-white/90 group-hover:flex">
                 <span className="text-xs sm:text-sm font-medium">{t('master.bookVisit', 'Zarezerwuj wizytę')}</span>
                 <svg
                   className="w-4 h-4 sm:w-5 sm:h-5 transform group-hover:translate-x-1 transition-transform duration-300"

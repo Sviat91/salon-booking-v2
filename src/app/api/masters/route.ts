@@ -6,6 +6,12 @@ import prisma from "@/lib/prisma"
  * Returns masters with showOnHomepage = true from DB.
  * Used by MasterSelector on the homepage.
  */
+// No request-object usage means Next.js would otherwise treat this as
+// statically cacheable and freeze the first response forever in production
+// (`next start`) — a newly added/removed master, or a showOnHomepage toggle,
+// would never appear until a rebuild. Dev mode never hits this path.
+export const dynamic = 'force-dynamic'
+
 export async function GET() {
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
