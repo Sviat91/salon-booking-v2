@@ -94,6 +94,12 @@ export default function LogoEditor({
   const [isDragging, setIsDragging] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
   const previewRef = useRef<HTMLDivElement>(null)
+  // Pixel offset between the mousedown point and the logo's current
+  // top-left corner, captured once on drag start. Without this, the logo's
+  // top-left snaps directly under the cursor the instant dragging begins —
+  // visually a "jump" unless the user happened to grab exactly the top-left
+  // pixel of the logo.
+  const dragOffsetRef = useRef({ x: 0, y: 0 })
 
   const pages: string[] = (() => {
     try {
@@ -110,10 +116,30 @@ export default function LogoEditor({
     onPagesChange(JSON.stringify(newPages))
   }
 
-  const handleDragStart = useCallback((e: React.MouseEvent | React.TouchEvent) => {
-    e.preventDefault()
-    setIsDragging(true)
-  }, [])
+  const handleDragStart = useCallback(
+    (e: React.MouseEvent | React.TouchEvent) => {
+      e.preventDefault()
+      if (!previewRef.current) return
+
+      const rect = previewRef.current.getBoundingClientRect()
+      const clientX = "touches" in e ? e.touches[0].clientX : e.clientX
+      const clientY = "touches" in e ? e.touches[0].clientY : e.clientY
+
+      // Where the logo's top-left corner currently sits, in pixels within
+      // the preview area — capture the gap between that and the click point
+      // so dragging moves the logo by the cursor's delta, not to its
+      // absolute position.
+      const logoLeftPx = (config.logoPositionX / 100) * rect.width
+      const logoTopPx = (config.logoPositionY / 100) * rect.height
+      dragOffsetRef.current = {
+        x: clientX - rect.left - logoLeftPx,
+        y: clientY - rect.top - logoTopPx,
+      }
+
+      setIsDragging(true)
+    },
+    [config.logoPositionX, config.logoPositionY]
+  )
 
   const handleDragMove = useCallback(
     (e: MouseEvent | TouchEvent) => {
@@ -123,11 +149,15 @@ export default function LogoEditor({
       const clientX = "touches" in e ? e.touches[0].clientX : e.clientX
       const clientY = "touches" in e ? e.touches[0].clientY : e.clientY
 
-      // Calculate percentage position within the preview area
-      const x = Math.max(0, Math.min(90, ((clientX - rect.left) / rect.width) * 100))
-      const y = Math.max(0, Math.min(90, ((clientY - rect.top) / rect.height) * 100))
+      // Percentage position within the preview area, offset-corrected so
+      // the logo tracks the cursor's movement rather than teleporting its
+      // top-left corner under it. Rounded to one decimal place (not a whole
+      // number) — logoPositionX/Y are stored as Float, and integer-percent
+      // rounding was visibly "stepping" on wide preview areas.
+      const x = Math.max(0, Math.min(90, ((clientX - rect.left - dragOffsetRef.current.x) / rect.width) * 100))
+      const y = Math.max(0, Math.min(90, ((clientY - rect.top - dragOffsetRef.current.y) / rect.height) * 100))
 
-      onPositionChange(Math.round(x), Math.round(y))
+      onPositionChange(Math.round(x * 10) / 10, Math.round(y * 10) / 10)
     },
     [isDragging, onPositionChange]
   )
