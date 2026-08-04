@@ -7,6 +7,7 @@ import Providers from './providers'
 import Footer from '../components/Footer'
 import { getTenantConfig } from '@/lib/tenant'
 import { cn } from "@/lib/utils"
+import { DEFAULT_BRAND_NAME } from '@/lib/constants/brand'
 
 export const dynamic = 'force-dynamic'
 
@@ -17,7 +18,7 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://somique.beauty'
 // Dynamic metadata — reads brand name and favicon from TenantConfig
 export async function generateMetadata(): Promise<Metadata> {
   const config = await getTenantConfig()
-  const title = config.brandName || 'Somique Beauty'
+  const title = config.brandName || DEFAULT_BRAND_NAME
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const faviconUrl = (config as any).faviconUrl || '/logo.png'
 

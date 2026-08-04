@@ -2,9 +2,9 @@
  * Main notification dispatcher.
  * All public functions never throw — errors are caught and written to NotificationLog.
  */
-
 import prisma from '@/lib/prisma'
 import { getTenantConfig } from '@/lib/tenant'
+import { DEFAULT_BRAND_NAME } from '@/lib/constants/brand'
 import { resolveLocalized } from '@/lib/localized-content'
 import { DEFAULT_LANGUAGE, type Language } from '@/lib/i18n-shared'
 import { resolveAppointmentPrice, discountPercentFromSnapshot } from '@/lib/discounts/shared'
@@ -33,7 +33,7 @@ import {
 export async function notifyBookingConfirmation(appointmentId: string, actor: BookingActor): Promise<void> {
   try {
     const config = await getTenantConfig()
-    const brandName = config.brandName || 'Salon Booking'
+    const brandName = config.brandName || DEFAULT_BRAND_NAME
 
     if (!config.notifEmailEnabled && !config.notifTelegramEnabled) return
 
@@ -168,7 +168,7 @@ export async function notifyBookingReminders(): Promise<{ sent: number; skipped:
     }
 
     const now = new Date()
-    const brandName = config.brandName || 'Salon Booking'
+    const brandName = config.brandName || DEFAULT_BRAND_NAME
 
     interface ReminderWindowConfig {
       type: 'BOOKING_REMINDER_24H' | 'BOOKING_REMINDER_2H'
@@ -463,7 +463,7 @@ export async function notifyBookingUpdate(
 export async function notifyContactForm(data: ContactFormData): Promise<void> {
   try {
     const config = await getTenantConfig()
-    const brandName = config.brandName || 'Salon Booking'
+    const brandName = config.brandName || DEFAULT_BRAND_NAME
 
     if (!config.notifEmailEnabled && !config.notifTelegramEnabled) return
 

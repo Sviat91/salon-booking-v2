@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
+import { Eye, EyeOff } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -13,26 +14,38 @@ function CredentialForm({
   title,
   fields,
   onSubmit,
+  onValidate,
 }: {
   title: string
   fields: { id: string; label: string; type: string; name: string; placeholder?: string }[]
   onSubmit: (data: Record<string, string>) => Promise<void>
+  onValidate?: (data: Record<string, string>) => string | null
 }) {
   const { t } = useTranslation()
   const [status, setStatus] = useState<Status>(null)
   const [loading, setLoading] = useState(false)
+  const [visible, setVisible] = useState<Record<string, boolean>>({})
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
+    const form = e.currentTarget // captured synchronously, safe to use after await
     setStatus(null)
     setLoading(true)
-    const form = new FormData(e.currentTarget)
+    const formData = new FormData(form)
     const data: Record<string, string> = {}
-    for (const field of fields) data[field.name] = form.get(field.name) as string
+    for (const field of fields) data[field.name] = formData.get(field.name) as string
+
+    const validationError = onValidate?.(data)
+    if (validationError) {
+      setStatus({ ok: false, message: validationError })
+      setLoading(false)
+      return
+    }
+
     try {
       await onSubmit(data)
       setStatus({ ok: true, message: t('admin.settings.general.savedSuccessfully') })
-      e.currentTarget.reset()
+      form.reset()
     } catch (err) {
       setStatus({ ok: false, message: err instanceof Error ? err.message : t('common.error') })
     } finally {
@@ -47,7 +60,28 @@ function CredentialForm({
         {fields.map((f) => (
           <div key={f.id} className="grid gap-1.5">
             <Label htmlFor={f.id}>{f.label}</Label>
-            <Input id={f.id} name={f.name} type={f.type} placeholder={f.placeholder} required />
+            {f.type === "password" ? (
+              <div className="relative">
+                <Input
+                  id={f.id}
+                  name={f.name}
+                  type={visible[f.id] ? "text" : "password"}
+                  placeholder={f.placeholder}
+                  required
+                  className="pr-9"
+                />
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  onClick={() => setVisible((prev) => ({ ...prev, [f.id]: !prev[f.id] }))}
+                  className="absolute inset-y-0 right-0 flex items-center px-2.5 text-muted-foreground hover:text-foreground"
+                >
+                  {visible[f.id] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+            ) : (
+              <Input id={f.id} name={f.name} type={f.type} placeholder={f.placeholder} required />
+            )}
           </div>
         ))}
         {status && (
@@ -90,7 +124,11 @@ export default function SuperAdminCredentials() {
           fields={[
             { id: "cur-pass", name: "currentPassword", label: t('admin.masters.currentPasswordLabel'), type: "password" },
             { id: "new-pass", name: "newPassword", label: t('admin.settings.general.newPasswordField'), type: "password", placeholder: t('admin.settings.general.newPasswordPlaceholder') },
+            { id: "confirm-pass", name: "confirmPassword", label: t('admin.settings.general.confirmPasswordField'), type: "password", placeholder: t('admin.settings.general.newPasswordPlaceholder') },
           ]}
+          onValidate={(data) =>
+            data.newPassword !== data.confirmPassword ? t('admin.settings.general.passwordMismatch') : null
+          }
           onSubmit={(data) =>
             patchCredentials({ action: "password", currentPassword: data.currentPassword, newPassword: data.newPassword }, t)
           }

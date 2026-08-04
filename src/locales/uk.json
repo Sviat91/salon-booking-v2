@@ -707,6 +707,8 @@
         "changeEmailTitle": "Змінити email для входу",
         "newPasswordField": "Новий пароль",
         "newPasswordPlaceholder": "Мінімум 6 символів",
+        "confirmPasswordField": "Підтвердіть новий пароль",
+        "passwordMismatch": "Паролі не збігаються.",
         "newEmailField": "Новий email",
         "newEmailPlaceholder": "new@example.com",
         "savedSuccessfully": "Успішно збережено.",

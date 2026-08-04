@@ -15,6 +15,7 @@
 import nodemailer from 'nodemailer'
 import prisma from '@/lib/prisma'
 import { decrypt } from '@/lib/encryption'
+import { DEFAULT_BRAND_NAME } from '@/lib/constants/brand'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -54,7 +55,7 @@ export async function getSmtpConfig(): Promise<SmtpConfig | null> {
       from = `"${from}" <${config.smtpUser}>`
     }
     
-    const brandName = config.brandName || 'Salon Booking'
+    const brandName = config.brandName || DEFAULT_BRAND_NAME
     
     const decryptedPass = decrypt(config.smtpPass)
 
@@ -112,7 +113,7 @@ export async function sendPasswordResetEmail(
   resetUrl: string
 ): Promise<void> {
   const smtp = await getSmtpConfig()
-  const brandName = smtp?.brandName ?? 'Salon Booking'
+  const brandName = smtp?.brandName ?? DEFAULT_BRAND_NAME
 
   const html = buildPasswordResetHtml(resetUrl, brandName)
 

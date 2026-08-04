@@ -707,6 +707,8 @@
         "changeEmailTitle": "Zmień e-mail logowania",
         "newPasswordField": "Nowe hasło",
         "newPasswordPlaceholder": "Min. 6 znaków",
+        "confirmPasswordField": "Potwierdź nowe hasło",
+        "passwordMismatch": "Hasła nie są zgodne.",
         "newEmailField": "Nowy e-mail",
         "newEmailPlaceholder": "nowy@przyklad.pl",
         "savedSuccessfully": "Zapisano pomyślnie.",

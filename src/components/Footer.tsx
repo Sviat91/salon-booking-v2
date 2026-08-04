@@ -2,6 +2,7 @@
 import Link from 'next/link'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
+import { DEFAULT_BRAND_NAME } from '@/lib/constants/brand'
 
 type BrandConfig = {
   brandName: string
@@ -41,7 +42,7 @@ export default function Footer() {
               {t('support.title')}
             </Link>
             <span className="mx-4">|</span>
-            <span>{t('footer.copyright', { year: new Date().getFullYear(), brandName: config?.brandName || 'Salon Booking' })}</span>
+            <span>{t('footer.copyright', { year: new Date().getFullYear(), brandName: config?.brandName || DEFAULT_BRAND_NAME })}</span>
           </div>
         </div>
       </div>

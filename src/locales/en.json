@@ -707,6 +707,8 @@
         "changeEmailTitle": "Change Login Email",
         "newPasswordField": "New password",
         "newPasswordPlaceholder": "Min. 6 characters",
+        "confirmPasswordField": "Confirm new password",
+        "passwordMismatch": "Passwords do not match.",
         "newEmailField": "New email",
         "newEmailPlaceholder": "new@example.com",
         "savedSuccessfully": "Saved successfully.",

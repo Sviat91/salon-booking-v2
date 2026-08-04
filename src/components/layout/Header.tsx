@@ -7,13 +7,14 @@ import { LogOut, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import ThemeToggle from "@/components/ThemeToggle"
 import UserDropdown from "@/components/auth/UserDropdown"
+import { DEFAULT_BRAND_NAME } from "@/lib/constants/brand"
 
 interface HeaderProps {
   brandName?: string;
   logoUrl?: string | null;
 }
 
-export default function Header({ brandName = "Somique Beauty", logoUrl }: HeaderProps) {
+export default function Header({ brandName = DEFAULT_BRAND_NAME, logoUrl }: HeaderProps) {
   const { t } = useTranslation()
   const { data: session } = useSession()
 

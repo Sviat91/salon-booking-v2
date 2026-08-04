@@ -1,8 +1,9 @@
 import { unstable_noStore as noStore } from "next/cache"
 import prisma from "@/lib/prisma"
+import { DEFAULT_BRAND_NAME } from "@/lib/constants/brand"
 
 const DEFAULT_CONFIG = {
-  brandName: "Somique Beauty",
+  brandName: DEFAULT_BRAND_NAME,
   primaryColor: '#FFF0F1',
   secondaryColor: '#FFF8F6',
   accentColor: '#8B4A58',

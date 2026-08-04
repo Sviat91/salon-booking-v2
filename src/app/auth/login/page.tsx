@@ -6,11 +6,12 @@ import { AuthFooterLinks } from "@/components/auth/AuthFooterLinks"
 import { BrandNameDisplay } from "@/components/auth/BrandNameDisplay"
 import Link from "next/link"
 import prisma from "@/lib/prisma"
+import { DEFAULT_BRAND_NAME } from "@/lib/constants/brand"
 
 export async function generateMetadata(): Promise<Metadata> {
   const config = await prisma.tenantConfig.findFirst()
   return {
-    title: `Login | ${config?.brandName || 'Salon Booking'}`,
+    title: `Login | ${config?.brandName || DEFAULT_BRAND_NAME}`,
     description: "Login to your account",
   }
 }
@@ -33,7 +34,7 @@ export default async function LoginPage() {
         <div className="flex flex-col items-center text-center">
           <Link href="/" className="inline-block mb-6">
             <span className="font-bold text-2xl tracking-tight text-primary">
-              <BrandNameDisplay brandName={config?.brandName || 'Salon Booking'} />
+              <BrandNameDisplay brandName={config?.brandName || DEFAULT_BRAND_NAME} />
             </span>
           </Link>
         </div>
