@@ -46,18 +46,18 @@ export default function LogoDisplay({ page }: { page: "home" | "booking" | "mast
   const showLogo = shouldShowLogo(config.logoPages, page)
   if (!showLogo) return null
 
-  const logoSrc = config.logoUrl || "/head_logo.png"
-  const darkLogoSrc = config.darkLogoUrl || config.logoUrl || "/head_logo_night.png"
+  const logoSrc = config.logoUrl
+  const darkLogoSrc = config.darkLogoUrl || config.logoUrl
 
   if (config.logoUrl || config.darkLogoUrl) {
     if (config.logoLayer === 'below' && config.logoFullscreen) {
       return (
         <div className="fixed inset-0 w-full h-full pointer-events-none" style={{ zIndex: 0 }}>
           <div className="relative w-full h-full dark:hidden">
-            <Image src={logoSrc} alt={config.brandName} fill className="object-contain" />
+            {logoSrc && <Image src={logoSrc} alt={config.brandName} fill className="object-contain" />}
           </div>
           <div className="relative w-full h-full hidden dark:block">
-            <Image src={darkLogoSrc} alt={config.brandName} fill className="object-contain" />
+            {darkLogoSrc && <Image src={darkLogoSrc} alt={config.brandName} fill className="object-contain" />}
           </div>
         </div>
       )
@@ -73,20 +73,24 @@ export default function LogoDisplay({ page }: { page: "home" | "booking" | "mast
           top: `${config.logoPositionY}%`,
         }}
       >
-        <Image
-          src={logoSrc}
-          alt={config.brandName}
-          width={config.logoWidth}
-          height={config.logoHeight}
-          className="h-auto dark:hidden"
-        />
-        <Image
-          src={darkLogoSrc}
-          alt={config.brandName}
-          width={config.logoWidth}
-          height={config.logoHeight}
-          className="h-auto hidden dark:block"
-        />
+        {logoSrc && (
+          <Image
+            src={logoSrc}
+            alt={config.brandName}
+            width={config.logoWidth}
+            height={config.logoHeight}
+            className="h-auto dark:hidden"
+          />
+        )}
+        {darkLogoSrc && (
+          <Image
+            src={darkLogoSrc}
+            alt={config.brandName}
+            width={config.logoWidth}
+            height={config.logoHeight}
+            className="h-auto hidden dark:block"
+          />
+        )}
       </div>
     )
   }

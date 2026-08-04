@@ -16,6 +16,8 @@ export default async function SettingsPage() {
     darkPrimaryColor: c.darkPrimaryColor as string || config.primaryColor,
     darkAccentColor: c.darkAccentColor as string || config.accentColor,
     darkLogoUrl: c.darkLogoUrl as string | null || null,
+    themeToggleIconUrl: c.themeToggleIconUrl as string | null ?? null,
+    darkThemeToggleIconUrl: c.darkThemeToggleIconUrl as string | null ?? null,
     logoPositionX: c.logoPositionX as number ?? 0,
     logoPositionY: c.logoPositionY as number ?? 0,
     logoWidth: c.logoWidth as number ?? 200,

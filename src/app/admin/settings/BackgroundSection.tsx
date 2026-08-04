@@ -1,12 +1,12 @@
 "use client"
 
 import { useState } from "react"
-import Image from "next/image"
 import { useTranslation } from "react-i18next"
 import { Upload, X, ImageIcon } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { apiErrorKey } from "@/lib/errors/apiErrorKey"
+import { resizeImageIfNeeded } from "@/lib/image-resize"
 
 type BgConfig = {
   bgType: string
@@ -51,7 +51,7 @@ export default function BackgroundSection({ config, onBgImageUpload, prefix = ''
     setUploadError(null)
     setUploading(true)
     const fd = new FormData()
-    fd.append('file', file)
+    fd.append('file', await resizeImageIfNeeded(file))
     try {
       const res = await fetch('/api/upload', { method: 'POST', body: fd })
       const json = await res.json()
@@ -163,7 +163,7 @@ export default function BackgroundSection({ config, onBgImageUpload, prefix = ''
           <div className="flex items-start gap-4">
             {bgImagePreview ? (
               <div className="relative h-16 w-28 rounded-lg border border-border overflow-hidden">
-                <Image src={bgImagePreview} alt="Background" fill className="object-cover" />
+                <img src={bgImagePreview} alt="Background" className="absolute inset-0 h-full w-full object-cover" />
                 <button type="button" onClick={() => { setBgImagePreview(null); setBgImageUrl('') }}
                   className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-destructive-foreground shadow">
                   <X className="h-3 w-3" />

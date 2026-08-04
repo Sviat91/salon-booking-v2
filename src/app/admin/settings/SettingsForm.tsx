@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label"
 import { cn } from "@/lib/utils"
 import { saveSettings, type SettingsFormState } from "./actions"
 import LogoEditor from "./LogoEditor"
+import ThemeToggleIconsSection from "./ThemeToggleIconsSection"
 import BackgroundSection from "./BackgroundSection"
 import { ColorRow, ImageUploadField, SubmitButton, SettingsSection } from "./FormFields"
 import { apiErrorKey } from "@/lib/errors/apiErrorKey"
@@ -42,6 +43,8 @@ type TenantConfig = {
   logoUrl:         string | null
   faviconUrl:      string | null
   darkLogoUrl:     string | null
+  themeToggleIconUrl:     string | null
+  darkThemeToggleIconUrl: string | null
   logoPositionX:   number
   logoPositionY:   number
   logoWidth:       number
@@ -259,6 +262,12 @@ export default function SettingsForm({ config }: { config: TenantConfig }) {
           onRemove={() => { setFaviconPreview(null); setFaviconUrl(""); setIsDirty(true) }}
           uploading={faviconUploading}
           uploadError={faviconError}
+        />
+
+        <ThemeToggleIconsSection
+          themeToggleIconUrl={config.themeToggleIconUrl}
+          darkThemeToggleIconUrl={config.darkThemeToggleIconUrl}
+          onChange={() => setIsDirty(true)}
         />
       </SettingsSection>
 

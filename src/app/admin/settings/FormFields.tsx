@@ -54,6 +54,7 @@ export function ImageUploadField({
   onRemove,
   uploading,
   uploadError,
+  previewTone = "light",
 }: {
   label: string
   hint: string
@@ -64,6 +65,7 @@ export function ImageUploadField({
   onRemove: () => void
   uploading: boolean
   uploadError: string | null
+  previewTone?: "light" | "dark"
 }) {
   const { t } = useTranslation()
   return (
@@ -73,7 +75,7 @@ export function ImageUploadField({
       <input type="hidden" name={fieldName} value={fieldValue} />
       <div className="flex items-start gap-4">
         {preview ? (
-          <div className="relative flex h-16 w-32 items-center justify-center rounded-lg border border-border bg-muted/30 p-2">
+          <div className={`relative flex h-16 w-32 items-center justify-center rounded-lg border border-border p-2 ${previewTone === "dark" ? "bg-zinc-800" : "bg-muted/30"}`}>
             <img src={preview} alt={label} className="absolute inset-0 h-full w-full object-contain p-1" />
             <button
               type="button"
@@ -84,7 +86,7 @@ export function ImageUploadField({
             </button>
           </div>
         ) : (
-          <div className="flex h-16 w-32 items-center justify-center rounded-lg border border-dashed border-border bg-muted/20 gap-1.5 text-xs text-muted-foreground">
+          <div className={`flex h-16 w-32 items-center justify-center rounded-lg border border-dashed gap-1.5 text-xs ${previewTone === "dark" ? "border-zinc-600 bg-zinc-900 text-zinc-400" : "border-border bg-muted/20 text-muted-foreground"}`}>
             <ImageIcon className="h-4 w-4" />
             {t('admin.settings.general.noneLabel')}
           </div>

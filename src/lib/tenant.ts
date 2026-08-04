@@ -23,6 +23,8 @@ const DEFAULT_CONFIG = {
   logoUrl: null,
   faviconUrl: null,
   darkLogoUrl: null,
+  themeToggleIconUrl: null,
+  darkThemeToggleIconUrl: null,
   logoPositionX: 0,
   logoPositionY: 0,
   logoWidth: 200,

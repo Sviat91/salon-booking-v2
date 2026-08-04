@@ -11,6 +11,7 @@ import TopNavLine from '@/components/content/TopNavLine'
 import BlockRenderer from '@/components/content/BlockRenderer'
 import { parseBlockSlot } from '@/lib/content/blocks'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
+import { DEFAULT_BRAND_NAME } from '@/lib/constants/brand'
 
 import UserDropdown from '@/components/auth/UserDropdown'
 
@@ -49,9 +50,9 @@ export default function HomeClient({ config, isPreview }: HomeClientProps) {
   const homepageWidgetSlot = parseBlockSlot(config.homepageWidgetBlock ?? null)
 
   const showLogo = shouldShowLogo(config.logoPages, "home") && !isPreview
-  const logoSrc = config.logoUrl || "/head_logo.png"
-  const darkLogoSrc = config.darkLogoUrl || config.logoUrl || "/head_logo_night.png"
-  const brandName = config.brandName || "Logo"
+  const logoSrc = config.logoUrl
+  const darkLogoSrc = config.darkLogoUrl || config.logoUrl
+  const brandName = config.brandName || DEFAULT_BRAND_NAME
 
   const posX = config.logoPositionX ?? 0
   const posY = config.logoPositionY ?? 0
@@ -102,44 +103,52 @@ export default function HomeClient({ config, isPreview }: HomeClientProps) {
 
       {showLogo && (config.logoUrl || config.darkLogoUrl) && (
         <div className="hidden lg:block z-10" style={logoStyle}>
-          <Image
-            src={logoSrc}
-            alt={brandName}
-            width={width}
-            height={height}
-            className="h-auto dark:hidden"
-            priority
-          />
-          <Image
-            src={darkLogoSrc}
-            alt={brandName}
-            width={width}
-            height={height}
-            className="h-auto hidden dark:block"
-            priority
-          />
+          {logoSrc && (
+            <Image
+              src={logoSrc}
+              alt={brandName}
+              width={width}
+              height={height}
+              className="h-auto dark:hidden"
+              priority
+            />
+          )}
+          {darkLogoSrc && (
+            <Image
+              src={darkLogoSrc}
+              alt={brandName}
+              width={width}
+              height={height}
+              className="h-auto hidden dark:block"
+              priority
+            />
+          )}
         </div>
       )}
 
       <div className="block lg:hidden pt-6 pb-2 px-4 text-center">
-        {config.logoUrl && (
+        {(config.logoUrl || config.darkLogoUrl) && (
           <>
-            <Image
-              src={logoSrc}
-              alt={brandName}
-              width={160}
-              height={64}
-              className="h-auto max-w-[160px] sm:max-w-[180px] mx-auto dark:hidden"
-              priority
-            />
-            <Image
-              src={darkLogoSrc}
-              alt={brandName}
-              width={160}
-              height={64}
-              className="h-auto max-w-[160px] sm:max-w-[180px] mx-auto hidden dark:block"
-              priority
-            />
+            {logoSrc && (
+              <Image
+                src={logoSrc}
+                alt={brandName}
+                width={160}
+                height={64}
+                className="h-auto max-w-[160px] sm:max-w-[180px] mx-auto dark:hidden"
+                priority
+              />
+            )}
+            {darkLogoSrc && (
+              <Image
+                src={darkLogoSrc}
+                alt={brandName}
+                width={160}
+                height={64}
+                className="h-auto max-w-[160px] sm:max-w-[180px] mx-auto hidden dark:block"
+                priority
+              />
+            )}
           </>
         )}
       </div>

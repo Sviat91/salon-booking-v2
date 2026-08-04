@@ -2,10 +2,21 @@
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { useTranslation } from 'react-i18next'
+import { useQuery } from '@tanstack/react-query'
+
+type ThemeToggleConfig = {
+  themeToggleIconUrl: string | null
+  darkThemeToggleIconUrl: string | null
+}
 
 export default function ThemeToggle() {
   const { t } = useTranslation()
   const [isDark, setIsDark] = useState(false)
+  const { data: config } = useQuery<ThemeToggleConfig>({
+    queryKey: ['tenant-config'],
+    queryFn: () => fetch('/api/tenant-config').then(r => r.json() as Promise<ThemeToggleConfig>),
+    staleTime: 60 * 60 * 1000,
+  })
 
   // Синхронизируем состояние с уже установленной темой
   useEffect(() => {
@@ -28,19 +39,32 @@ export default function ThemeToggle() {
     }
   }
 
+  const label = isDark ? t('theme.switchToLight') : t('theme.switchToDark')
+  const customIcon = isDark ? config?.darkThemeToggleIconUrl : config?.themeToggleIconUrl
+
   return (
     <button
       onClick={toggleTheme}
       className="p-2 hover:opacity-80 transition-opacity duration-300"
-      aria-label={isDark ? t('theme.switchToLight') : t('theme.switchToDark')}
+      aria-label={label}
     >
-      <Image
-        src={isDark ? '/dark.png' : '/light.png'}
-        alt={isDark ? t('theme.switchToLight') : t('theme.switchToDark')}
-        width={48}
-        height={48}
-        className="h-12 w-12"
-      />
+      {customIcon ? (
+        <img
+          src={customIcon}
+          alt={label}
+          width={48}
+          height={48}
+          className="h-12 w-12 object-contain"
+        />
+      ) : (
+        <Image
+          src={isDark ? '/dark.png' : '/light.png'}
+          alt={label}
+          width={48}
+          height={48}
+          className="h-12 w-12"
+        />
+      )}
     </button>
   )
 }

@@ -281,6 +281,8 @@ model TenantConfig {
   faviconUrl      String?
   
   darkLogoUrl     String?
+  themeToggleIconUrl     String? // overrides public/light.png on the client-facing theme toggle
+  darkThemeToggleIconUrl String? // overrides public/dark.png on the client-facing theme toggle
   logoPositionX   Float    @default(0)
   logoPositionY   Float    @default(0)
   logoWidth       Int      @default(200)

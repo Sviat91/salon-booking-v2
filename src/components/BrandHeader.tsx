@@ -49,16 +49,22 @@ export default function BrandHeader({ onLogoClick }: BrandHeaderProps) {
           duration: 1.2
         }}
       >
-        <Image 
-          src={selectedMaster?.avatar || '/head_logo.png'} 
-          alt={`${selectedMaster?.name || 'Master'} - Beauty Master`} 
-          width={80} 
-          height={80} 
-          className="h-20 w-20 object-cover" 
-        />
+        {selectedMaster?.avatar ? (
+          <Image
+            src={selectedMaster.avatar}
+            alt={`${selectedMaster?.name || 'Master'} - Beauty Master`}
+            width={80}
+            height={80}
+            className="h-20 w-20 object-cover"
+          />
+        ) : (
+          <div className="flex h-20 w-20 items-center justify-center bg-muted text-foreground text-2xl font-bold">
+            {selectedMaster?.name?.[0]?.toUpperCase() || '?'}
+          </div>
+        )}
       </motion.div>
       
-      {/* head_logo показывается только на мобильных устройствах */}
+      {/* Логотип показывается только на мобильных устройствах */}
       {(logoSrc || darkLogoSrc) && (
         <div
           className={`block lg:hidden mt-3 mb-2 px-4${logoClickable ? ' cursor-pointer' : ''}`}

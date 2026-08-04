@@ -99,13 +99,13 @@ Telegram-бота (осознанно, нет grammy test harness); вся ад�
 
 Заходи под только что созданным SUPERADMIN (`https://<DOMAIN>/auth/login`).
 
-- [ ] **Брендинг** (`/admin/settings`) — логотип, цвета темы, юридическая
+- [x] **Брендинг** (`/admin/settings`) — логотип, цвета темы, юридическая
       информация. Проверить, что сайт визуально подхватил цвета.
-- [ ] **Telegram-боты** (`/admin/settings/client-bot` + основной
+- [x] **Telegram-боты** (`/admin/settings/client-bot` + основной
       уведомительный) — вписать оба токена (у бота для клиентов и бота
       уведомлений салона — они должны быть разными, см. `CLAUDE.md`).
       Проверить, что боты стартовали (написать им `/start` в Telegram).
-- [ ] **Получатели уведомлений** (`/admin/settings/notifications`) —
+- [x] **Получатели уведомлений** (`/admin/settings/notifications`) —
       добавить хотя бы один Telegram chat ID, куда будут приходить
       уведомления о новых записях.
 - [ ] **Минимум 2 мастера** (`/admin/masters`) — чтобы проверить изоляцию
@@ -242,25 +242,25 @@ curl -s -o /dev/null -w "%{http_code}\n" -X POST "https://$DOMAIN/api/book" \
 чуть больше лимита и убедиться, что на последнем запросе прилетает `429`
 с `{"code":"RATE_LIMITED"}`.
 
-| Эндпоинт | Лимит | Окно |
-|---|---|---|
-| `POST /api/book` | 8 | 15 мин |
-| `POST /api/bookings/cancel` | 15 | 15 мин |
-| `POST /api/bookings/update-time` | 15 | 15 мин |
-| `POST /api/bookings/update-procedure` | 15 | 15 мин |
-| `PATCH /api/bookings/[id]` | 15 | 15 мин |
-| `POST /api/bookings/[id]/check-extension` | 20 | 15 мин |
-| `GET /api/bookings/all` | 20 | 15 мин |
-| `POST /api/auth/register` | 5 | 15 мин |
-| `POST /api/auth/forgot-password` | 3 | 15 мин |
-| `POST /api/auth/reset-password` | 10 | 15 мин |
-| `POST /api/consents/erase` | 3 | 15 мин |
-| `POST /api/consents/export` | 5 | 15 мин |
-| `POST /api/consents/withdraw` | 5 | 15 мин |
-| `POST /api/support/contact` | 3 | 15 мин |
-| `POST /api/master/contact` | 3 | 15 мин |
-| `GET /api/discounts/preview` | 30 | 1 мин |
-| `GET /api/discounts/today` | 60 | 1 мин |
+| Эндпоинт                                  | Лимит | Окно   |
+| ----------------------------------------- | ----- | ------ |
+| `POST /api/book`                          | 8     | 15 мин |
+| `POST /api/bookings/cancel`               | 15    | 15 мин |
+| `POST /api/bookings/update-time`          | 15    | 15 мин |
+| `POST /api/bookings/update-procedure`     | 15    | 15 мин |
+| `PATCH /api/bookings/[id]`                | 15    | 15 мин |
+| `POST /api/bookings/[id]/check-extension` | 20    | 15 мин |
+| `GET /api/bookings/all`                   | 20    | 15 мин |
+| `POST /api/auth/register`                 | 5     | 15 мин |
+| `POST /api/auth/forgot-password`          | 3     | 15 мин |
+| `POST /api/auth/reset-password`           | 10    | 15 мин |
+| `POST /api/consents/erase`                | 3     | 15 мин |
+| `POST /api/consents/export`               | 5     | 15 мин |
+| `POST /api/consents/withdraw`             | 5     | 15 мин |
+| `POST /api/support/contact`               | 3     | 15 мин |
+| `POST /api/master/contact`                | 3     | 15 мин |
+| `GET /api/discounts/preview`              | 30    | 1 мин  |
+| `GET /api/discounts/today`                | 60    | 1 мин  |
 
 Пример проверки для `GET /api/bookings/all` (лимит 20/15мин — самый быстрый
 для ручной проверки):

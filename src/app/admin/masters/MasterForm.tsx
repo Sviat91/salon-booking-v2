@@ -3,7 +3,6 @@
 import { useState } from "react"
 import { useFormState, useFormStatus } from "react-dom"
 import { useTranslation } from "react-i18next"
-import Image from "next/image"
 import Link from "next/link"
 import { Copy, Check, Upload, X, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -11,6 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { createMaster, updateMaster, resetMasterPassword, getMasterPassword, type MasterFormState } from "./actions"
 import { apiErrorKey } from "@/lib/errors/apiErrorKey"
+import { resizeImageIfNeeded } from "@/lib/image-resize"
 import LocalizedFieldInput from "@/components/admin/LocalizedFieldInput"
 import MasterFooterBlockField from "./MasterFooterBlockField"
 import type { Language } from "@/lib/i18n-shared"
@@ -110,7 +110,7 @@ export default function MasterForm({ master, enabledLocales, onSuccess }: Master
     setUploadError(null)
     setUploading(true)
     const fd = new FormData()
-    fd.append("file", file)
+    fd.append("file", await resizeImageIfNeeded(file))
     try {
       const res = await fetch("/api/upload", { method: "POST", body: fd })
       const json = await res.json()
@@ -170,7 +170,7 @@ export default function MasterForm({ master, enabledLocales, onSuccess }: Master
           <div className="relative h-20 w-20 rounded-full overflow-hidden border-2 border-border bg-muted flex items-center justify-center shrink-0">
             {avatarPreview ? (
               <>
-                <Image src={avatarPreview} alt="Avatar" fill className="object-cover" />
+                <img src={avatarPreview} alt="Avatar" className="absolute inset-0 h-full w-full object-cover" />
                 <button
                   type="button"
                   onClick={() => { setAvatarPreview(null); setAvatarUrl("") }}
