@@ -4,7 +4,7 @@ import path from "path"
 import { auth } from "@/auth"
 
 // Allowed MIME types for uploads
-const ALLOWED_TYPES = ["image/png", "image/jpeg", "image/webp", "image/gif"]
+const ALLOWED_TYPES = ["image/png", "image/jpeg", "image/webp", "image/gif", "image/svg+xml"]
 const MAX_SIZE_BYTES = 4 * 1024 * 1024 // 4 MB
 
 export async function POST(req: NextRequest) {
@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
 
   if (!ALLOWED_TYPES.includes(file.type)) {
     return NextResponse.json(
-      { error: "Only PNG, JPEG, WebP and GIF images are allowed", code: "INVALID_FILE_TYPE" },
+      { error: "Only PNG, JPEG, WebP, GIF and SVG images are allowed", code: "INVALID_FILE_TYPE" },
       { status: 400 }
     )
   }

@@ -13,6 +13,7 @@ import LogoEditor from "./LogoEditor"
 import BackgroundSection from "./BackgroundSection"
 import { ColorRow, ImageUploadField, SubmitButton, SettingsSection } from "./FormFields"
 import { apiErrorKey } from "@/lib/errors/apiErrorKey"
+import { resizeImageIfNeeded } from "@/lib/image-resize"
 import LanguagesSection from "./LanguagesSection"
 import HomepageWidgetSection from "./HomepageWidgetSection"
 import { parseEnabledLocales } from "@/lib/localized-content"
@@ -167,8 +168,9 @@ export default function SettingsForm({ config }: { config: TenantConfig }) {
     if (!file) return
     setError(null)
     setUploading(true)
+    const processedFile = file.type !== "image/svg+xml" ? await resizeImageIfNeeded(file, 512) : file
     const fd = new FormData()
-    fd.append("file", file)
+    fd.append("file", processedFile)
     try {
       const res = await fetch("/api/upload", { method: "POST", body: fd })
       const json = await res.json()

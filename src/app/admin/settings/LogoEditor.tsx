@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useRef, useCallback, useEffect } from "react"
-import Image from "next/image"
 import { useTranslation } from "react-i18next"
 import { Upload, X, ImageIcon, Maximize2, Minimize2 } from "lucide-react"
 import HomepagePreview from "./HomepagePreview"
@@ -281,7 +280,7 @@ export default function LogoEditor({
               <div className="flex items-start gap-4">
                 {config.logoUrl ? (
                   <div className="relative flex h-16 w-32 items-center justify-center rounded-lg border border-border bg-muted/30 p-2">
-                    <Image src={config.logoUrl} alt="Logo" fill className="object-contain p-1" />
+                    <img src={config.logoUrl} alt="Logo" className="absolute inset-0 h-full w-full object-contain p-1" />
                     <button
                       type="button"
                       onClick={onRemoveLogo}
@@ -328,7 +327,7 @@ export default function LogoEditor({
               <div className="flex items-start gap-4">
                 {config.darkLogoUrl ? (
                   <div className="relative flex h-16 w-32 items-center justify-center rounded-lg border border-border bg-zinc-800 p-2">
-                    <Image src={config.darkLogoUrl} alt="Dark Logo" fill className="object-contain p-1" />
+                    <img src={config.darkLogoUrl} alt="Dark Logo" className="absolute inset-0 h-full w-full object-contain p-1" />
                     <button
                       type="button"
                       onClick={onRemoveDarkLogo}

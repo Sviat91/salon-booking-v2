@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import Image from "next/image"
 import { useTranslation } from "react-i18next"
 import { Upload, X, ImageIcon } from "lucide-react"
 import { useFormStatus } from "react-dom"
@@ -75,7 +74,7 @@ export function ImageUploadField({
       <div className="flex items-start gap-4">
         {preview ? (
           <div className="relative flex h-16 w-32 items-center justify-center rounded-lg border border-border bg-muted/30 p-2">
-            <Image src={preview} alt={label} fill className="object-contain p-1" />
+            <img src={preview} alt={label} className="absolute inset-0 h-full w-full object-contain p-1" />
             <button
               type="button"
               onClick={onRemove}
@@ -93,7 +92,7 @@ export function ImageUploadField({
         <label className="cursor-pointer">
           <input
             type="file"
-            accept="image/png,image/jpeg,image/webp,image/svg+xml,image/x-icon"
+            accept="image/png,image/jpeg,image/webp,image/svg+xml"
             className="hidden"
             onChange={onUpload}
             disabled={uploading}
