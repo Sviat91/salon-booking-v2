@@ -17,9 +17,10 @@ interface LocaleFieldControlProps {
   required: boolean
   rows: number
   resizable: boolean
+  maxLength?: number
 }
 
-function LocaleFieldControl({ fieldId, variant, defaultValue, placeholder, required, rows, resizable }: LocaleFieldControlProps) {
+function LocaleFieldControl({ fieldId, variant, defaultValue, placeholder, required, rows, resizable, maxLength }: LocaleFieldControlProps) {
   if (variant === "textarea") {
     return (
       <Textarea
@@ -30,6 +31,7 @@ function LocaleFieldControl({ fieldId, variant, defaultValue, placeholder, requi
         required={required}
         rows={rows}
         className={resizable ? "resize-y" : "resize-none"}
+        maxLength={maxLength}
       />
     )
   }
@@ -40,6 +42,7 @@ function LocaleFieldControl({ fieldId, variant, defaultValue, placeholder, requi
       defaultValue={defaultValue}
       placeholder={placeholder}
       required={required}
+      maxLength={maxLength}
     />
   )
 }
@@ -58,6 +61,8 @@ interface LocalizedFieldInputProps {
   errors?: Partial<Record<Language, string>>
   /** Allows vertical resizing of the textarea variant. Defaults to `false` (non-resizable, today's behaviour). */
   resizable?: boolean
+  /** Max character length for the input/textarea. Defaults to `undefined` (no limit, today's behaviour). */
+  maxLength?: number
 }
 
 /**
@@ -77,6 +82,7 @@ export default function LocalizedFieldInput({
   rows = 3,
   errors,
   resizable = false,
+  maxLength,
 }: LocalizedFieldInputProps) {
   const locales = enabledLocales.includes(DEFAULT_LANGUAGE)
     ? enabledLocales
@@ -100,6 +106,7 @@ export default function LocalizedFieldInput({
           required={required && lang === DEFAULT_LANGUAGE}
           rows={rows}
           resizable={resizable}
+          maxLength={maxLength}
         />
         {errors?.[lang] && <p className="text-xs text-destructive">{errors[lang]}</p>}
       </div>
@@ -138,6 +145,7 @@ export default function LocalizedFieldInput({
               required={required && lang === DEFAULT_LANGUAGE}
               rows={rows}
               resizable={resizable}
+              maxLength={maxLength}
             />
             {errors?.[lang] && <p className="text-xs text-destructive mt-1">{errors[lang]}</p>}
           </div>

@@ -239,15 +239,15 @@ export default function MasterForm({ master, enabledLocales, onSuccess }: Master
       {/* Bio */}
       <LocalizedFieldInput
         baseName="bio"
-        label={t('admin.masters.bio')}
+        label={t('admin.masters.title')}
         values={{
           pl: master?.masterProfile?.bio_pl,
           en: master?.masterProfile?.bio_en,
           uk: master?.masterProfile?.bio_uk,
         }}
         enabledLocales={enabledLocales}
-        variant="textarea"
-        placeholder={t('admin.masters.bioPlaceholder')}
+        maxLength={80}
+        placeholder={t('admin.masters.titlePlaceholder')}
       />
 
       {/* Color */}

@@ -15,9 +15,9 @@ function buildCreateMasterSchema(t: (key: string) => string) {
   return z.object({
     name:          z.string().min(1, t('admin.masters.nameRequired')).max(100),
     email:         z.string().email(t('admin.masters.invalidEmail')),
-    bio_pl:        z.string().max(500).optional(),
-    bio_en:        z.string().max(500).optional(),
-    bio_uk:        z.string().max(500).optional(),
+    bio_pl:        z.string().max(80).optional(),
+    bio_en:        z.string().max(80).optional(),
+    bio_uk:        z.string().max(80).optional(),
     avatarUrl:     pathOrEmpty,
     showOnHomepage:z.coerce.boolean().default(true),
     color:         z.string().regex(/^#[0-9A-Fa-f]{6}$/, t('admin.masters.invalidHex')).default("#166534"),
@@ -28,9 +28,9 @@ function buildCreateMasterSchema(t: (key: string) => string) {
 function buildUpdateMasterSchema(t: (key: string) => string) {
   return z.object({
     name:          z.string().min(1, t('admin.masters.nameRequired')).max(100),
-    bio_pl:        z.string().max(500).optional(),
-    bio_en:        z.string().max(500).optional(),
-    bio_uk:        z.string().max(500).optional(),
+    bio_pl:        z.string().max(80).optional(),
+    bio_en:        z.string().max(80).optional(),
+    bio_uk:        z.string().max(80).optional(),
     avatarUrl:     pathOrEmpty,
     showOnHomepage:z.coerce.boolean().default(true),
     color:         z.string().regex(/^#[0-9A-Fa-f]{6}$/, t('admin.masters.invalidHex')).default("#166534"),
