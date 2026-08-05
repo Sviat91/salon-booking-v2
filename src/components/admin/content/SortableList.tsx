@@ -13,6 +13,7 @@ import {
 import {
   SortableContext,
   arrayMove,
+  rectSortingStrategy,
   sortableKeyboardCoordinates,
   useSortable,
   verticalListSortingStrategy,
@@ -41,9 +42,19 @@ function SortableItem({ id, children }: SortableItemProps) {
   return <>{children(id, { setNodeRef, style, attributes, listeners, isDragging })}</>
 }
 
+/** Layout of the caller's own container: `"list"` = single-column reflow, `"grid"` = wrapping multi-column grid. */
+export type SortableStrategy = "list" | "grid"
+
+const STRATEGIES = {
+  list: verticalListSortingStrategy,
+  grid: rectSortingStrategy,
+} as const
+
 interface SortableListProps {
   ids: string[]
   onReorder: (orderedIds: string[]) => void
+  /** Defaults to `"list"` — unchanged behaviour for existing callers. */
+  strategy?: SortableStrategy
   children: (id: string, handle: DragHandleProps) => ReactNode
 }
 
@@ -56,8 +67,12 @@ interface SortableListProps {
  *
  * No `DragOverlay` — a table row rendered into an overlay loses its `<td>`
  * widths, so this uses in-place transform only.
+ *
+ * Renders no DOM of its own, so the caller owns the container element
+ * (`<tbody>`, flex column, or CSS grid) and `strategy` must match that
+ * container's layout.
  */
-export default function SortableList({ ids, onReorder, children }: SortableListProps) {
+export default function SortableList({ ids, onReorder, strategy = "list", children }: SortableListProps) {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
@@ -74,7 +89,7 @@ export default function SortableList({ ids, onReorder, children }: SortableListP
 
   return (
     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-      <SortableContext items={ids} strategy={verticalListSortingStrategy}>
+      <SortableContext items={ids} strategy={STRATEGIES[strategy]}>
         {ids.map((id) => (
           <SortableItem key={id} id={id}>
             {children}
