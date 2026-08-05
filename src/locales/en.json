@@ -238,6 +238,7 @@
         "configureTitle": "Configure",
         "applyToMastersLabel": "Apply To Masters",
         "applyToAllMastersLabel": "Apply to All Masters",
+        "maxMastersHint": "Maximum {{max}} specialists at a time",
         "scheduleConfigLabel": "Schedule Configuration",
         "markDayOffLabel": "Mark as Day Off",
         "workingIntervalsLabel": "Working Intervals",

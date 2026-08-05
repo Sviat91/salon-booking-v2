@@ -238,6 +238,7 @@
         "configureTitle": "Налаштувати",
         "applyToMastersLabel": "Застосувати до спеціалістів",
         "applyToAllMastersLabel": "Застосувати до всіх спеціалістів",
+        "maxMastersHint": "Максимум {{max}} спеціалістів одночасно",
         "scheduleConfigLabel": "Налаштування графіка",
         "markDayOffLabel": "Позначити як вихідний",
         "workingIntervalsLabel": "Робочі інтервали",

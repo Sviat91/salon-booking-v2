@@ -33,6 +33,7 @@ export type Appointment = {
 }
 export type Template = { dayOfWeek: number; isDayOff: boolean; intervals: Interval[] }
 export type Override = { date: string; isDayOff: boolean; intervals: Interval[] }
+export type AdminMasterListItem = { id: string; name: string; masterProfile?: { color?: string | null } | null }
 
 export default function ModernCalendar({ 
   masterId: _masterId, 
@@ -54,7 +55,7 @@ export default function ModernCalendar({
   apiPrefix?: string; 
   isAdminView?: boolean; 
   selectedMasterId?: string;
-  adminMastersList?: {id:string, name:string}[];
+  adminMastersList?: AdminMasterListItem[];
   onMasterChange?: (id:string) => void;
 }) {
   const { t } = useTranslation()

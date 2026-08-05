@@ -238,6 +238,7 @@
         "configureTitle": "Konfiguruj",
         "applyToMastersLabel": "Zastosuj do specjalistów",
         "applyToAllMastersLabel": "Zastosuj do wszystkich specjalistów",
+        "maxMastersHint": "Maksymalnie {{max}} specjalistów jednocześnie",
         "scheduleConfigLabel": "Konfiguracja grafiku",
         "markDayOffLabel": "Oznacz jako dzień wolny",
         "workingIntervalsLabel": "Godziny pracy",

@@ -1,10 +1,10 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import ModernCalendar from "@/app/admin/master/calendar/ModernCalendar"
+import ModernCalendar, { type AdminMasterListItem } from "@/app/admin/master/calendar/ModernCalendar"
 
 export default function AdminCalendarPage() {
-  const [masters, setMasters] = useState<{id: string, name: string}[]>([])
+  const [masters, setMasters] = useState<AdminMasterListItem[]>([])
   const [selectedMasterId, setSelectedMasterId] = useState<string>("all")
   const [loading, setLoading] = useState(true)
 

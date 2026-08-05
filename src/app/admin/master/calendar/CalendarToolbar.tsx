@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem, SelectItemText } from "@/components/ui/select"
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { useState } from "react"
-import type { ViewType } from "./ModernCalendar"
+import type { ViewType, AdminMasterListItem } from "./ModernCalendar"
 import MasterSelectDropdown from "./MasterSelectDropdown"
 
 interface CalendarToolbarProps {
@@ -24,7 +24,7 @@ interface CalendarToolbarProps {
   isMobile: boolean
   isAdminView?: boolean
   selectedMasterId?: string
-  adminMastersList?: { id: string, name: string }[]
+  adminMastersList?: AdminMasterListItem[]
   onMasterChange?: (id: string) => void
 }
 
@@ -153,13 +153,33 @@ export default function CalendarToolbar({
           <div className={`h-4 w-4 rounded-full border-2 border-primary border-t-transparent animate-spin ml-2 transition-opacity ${loading ? 'opacity-100' : 'opacity-0'}`}></div>
         </div>
 
-        {isAdminView && adminMastersList && onMasterChange && (
-          <MasterSelectDropdown
-            selectedMasterId={selectedMasterId}
-            adminMastersList={adminMastersList}
-            onMasterChange={onMasterChange}
-          />
-        )}
+        <div className="flex items-center gap-4 shrink-0">
+          <div className="flex rounded-full border border-border bg-transparent p-0.5 gap-0.5">
+            {(["Month", "Week", "Day"] as ViewType[]).map((v) => (
+              <button
+                key={v}
+                onClick={() => setView(v)}
+                className={`px-3 py-1.5 text-sm font-medium transition-colors rounded-full ${
+                  view === v
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                }`}
+              >
+                <span className="inline-block min-w-[8ch] text-center">
+                  {v === "Month" ? t('admin.calendar.monthView') : v === "Week" ? t('admin.calendar.weekView') : t('admin.calendar.dayView')}
+                </span>
+              </button>
+            ))}
+          </div>
+
+          {isAdminView && adminMastersList && onMasterChange && (
+            <MasterSelectDropdown
+              selectedMasterId={selectedMasterId}
+              adminMastersList={adminMastersList}
+              onMasterChange={onMasterChange}
+            />
+          )}
+        </div>
       </div>
 
       <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 mt-3">
@@ -192,26 +212,6 @@ export default function CalendarToolbar({
           <Calendar className="w-4 h-4" />
           <span className="hidden sm:inline-block min-w-[29ch] text-center">{t('admin.calendar.bulkSettings')}</span>
         </Button>
-
-        <div className="h-6 w-px bg-border" />
-
-        <div className="flex rounded-full border border-border bg-transparent p-0.5 gap-0.5">
-          {(["Month", "Week", "Day"] as ViewType[]).map((v) => (
-            <button
-              key={v}
-              onClick={() => setView(v)}
-              className={`px-3 py-1.5 text-sm font-medium transition-colors rounded-full ${
-                view === v
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
-              }`}
-            >
-              <span className="inline-block min-w-[8ch] text-center">
-                {v === "Month" ? t('admin.calendar.monthView') : v === "Week" ? t('admin.calendar.weekView') : t('admin.calendar.dayView')}
-              </span>
-            </button>
-          ))}
-        </div>
       </div>
     </div>
   )

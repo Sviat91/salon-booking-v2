@@ -2,6 +2,9 @@ import type { Appointment } from "./ModernCalendar"
 
 /** Shared helpers used by MonthView/WeekView/DayView — hoisted to remove duplication. */
 
+/** Hard UI cap on how many masters one bulk schedule edit may target — keeps BulkSettingsModal's stacked day marks legible (5 lines ≈ 18px in a 40px cell, 5 dots ≈ 38px in a ~45px row). */
+export const MAX_TARGET_MASTERS = 5
+
 export function groupOverlappingAppointments(appointments: Appointment[]): Appointment[][] {
   if (appointments.length === 0) return []
 
@@ -43,4 +46,19 @@ export function pluralize(count: number, one: string, few: string, many: string)
 export function parseTime(timeStr: string): number {
   const [h, m] = timeStr.split(":").map(Number)
   return h * 60 + m
+}
+
+export type DayScheduleState = "working" | "dayoff" | null
+
+export function resolveDayScheduleState(
+  dateStr: string,                                        // "yyyy-MM-dd"
+  dayOfWeek: number,                                      // date-fns getDay(): 0=Sun
+  overrides: { date: string; isDayOff: boolean }[],
+  templates: { dayOfWeek: number; isDayOff: boolean }[]
+): DayScheduleState {
+  const override = overrides.find(o => o.date === dateStr)
+  if (override) return override.isDayOff ? "dayoff" : "working"
+  const template = templates.find(t => t.dayOfWeek === dayOfWeek)
+  if (template) return template.isDayOff ? "dayoff" : "working"
+  return null
 }

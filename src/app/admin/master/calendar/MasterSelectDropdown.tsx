@@ -4,10 +4,11 @@ import { useState, useRef, useLayoutEffect, useEffect } from "react"
 import { createPortal } from "react-dom"
 import { useTranslation } from "react-i18next"
 import { ChevronRight, Globe, User } from "lucide-react"
+import type { AdminMasterListItem } from "./ModernCalendar"
 
 interface MasterSelectDropdownProps {
   selectedMasterId: string
-  adminMastersList: { id: string, name: string }[]
+  adminMastersList: AdminMasterListItem[]
   onMasterChange: (id: string) => void
 }
 

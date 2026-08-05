@@ -9,6 +9,10 @@ import { TimePickerDropdown } from "@/components/TimePickerDropdown"
 import { useCurrentLanguage } from "@/contexts/LanguageContext"
 import { dateFnsLocale } from "@/lib/utils/date-fns-locale"
 import { toast } from "sonner"
+import type { AdminMasterListItem } from "./ModernCalendar"
+import { resolveDayScheduleState, pluralize, MAX_TARGET_MASTERS } from "./calendar-utils"
+import { useMasterSchedules } from "./useMasterSchedules"
+import BulkDayCell, { type DayMark } from "./BulkDayCell"
 
 type Interval = { start: string; end: string }
 type Override = { date: string; isDayOff: boolean; intervals: Interval[] }
@@ -21,19 +25,26 @@ interface BulkSettingsModalProps {
   apiPrefix?: string
   isAdminView?: boolean
   selectedMasterId?: string
-  adminMastersList?: {id: string, name: string}[]
+  adminMastersList?: AdminMasterListItem[]
 }
 
 /**
- * BulkSettingsModal fetches its OWN overrides for the displayed month,
- * so it always shows correct day-off / scheduled indicators regardless
- * of what the parent calendar is currently viewing.
+ * BulkSettingsModal shows day indicators via two different paths depending
+ * on `isAdminView`:
+ *  - Master's own view (`isAdminView === false`): self-fetches its own overrides
+ *    for the displayed month via `fetchMonthOverrides` (session-scoped route)
+ *    combined with the `templates` prop, and keeps the original single
+ *    green working-day dot / red day-off cell wash rendering.
+ *  - Admin view (`isAdminView === true`): fetches overrides + template for every
+ *    master checked in "Apply to masters" (`targetMasterIds`) via `useMasterSchedules`,
+ *    independent of the outer `selectedMasterId`. For any selection size (including
+ *    exactly one), each checked master renders in their own `masterProfile.color`:
+ *    working days get a bottom-row dot (up to `MAX_TARGET_MASTERS`, no overflow glyph —
+ *    the selection cap makes one impossible), day-off days get one 2px full-width line
+ *    per off master, stacked at the cell's vertical centre over the date digit — never
+ *    the generic red-cell wash. Selection is hard-capped at `MAX_TARGET_MASTERS` (from
+ *    `calendar-utils.ts`), which is what bounds both marks.
  */
-function pluralize(count: number, one: string, few: string, many: string): string {
-  if (count === 1) return one
-  if (count >= 2 && count <= 4) return few
-  return many
-}
 
 export default function BulkSettingsModal({ onClose, onSave, templates = [], apiPrefix = "/api/master", isAdminView = false, selectedMasterId, adminMastersList = [] }: BulkSettingsModalProps) {
   const { t } = useTranslation()
@@ -49,20 +60,27 @@ export default function BulkSettingsModal({ onClose, onSave, templates = [], api
   const initialMasters = (isAdminView && selectedMasterId !== "all") ? [selectedMasterId as string] : []
   const [targetMasterIds, setTargetMasterIds] = useState<Set<string>>(new Set(initialMasters))
 
+  const { schedules, refetch: refetchSchedules } = useMasterSchedules({
+    masterIds: Array.from(targetMasterIds),
+    month: currentMonth,
+    apiPrefix,
+    enabled: isAdminView
+  })
+
+  const targetMasters = adminMastersList.filter(m => targetMasterIds.has(m.id))
+
   // Self-fetched overrides for the currently displayed month
   const [monthOverrides, setMonthOverrides] = useState<Override[]>([])
 
   const fetchMonthOverrides = useCallback(async (month: Date) => {
-    // Cannot accurately show calendar overlaps for "ALL" masters here, so if "all", we skip rendering working/off dots
-    if (isAdminView && selectedMasterId === "all") {
-       setMonthOverrides([])
-       return
+    if (isAdminView) {
+      setMonthOverrides([])
+      return
     }
     const from = format(startOfWeek(startOfMonth(month), { weekStartsOn: 1 }), "yyyy-MM-dd")
     const to = format(endOfWeek(endOfMonth(month), { weekStartsOn: 1 }), "yyyy-MM-dd")
     try {
-      const q = isAdminView && selectedMasterId ? `&masterId=${selectedMasterId}` : ''
-      const res = await fetch(`${apiPrefix}/schedule/overrides?from=${from}&to=${to}${q}`)
+      const res = await fetch(`${apiPrefix}/schedule/overrides?from=${from}&to=${to}`)
       const data = await res.json()
       setMonthOverrides(
         (data.overrides || []).map((o: any) => ({
@@ -74,7 +92,7 @@ export default function BulkSettingsModal({ onClose, onSave, templates = [], api
     } catch {
       setMonthOverrides([])
     }
-  }, [apiPrefix, isAdminView, selectedMasterId])
+  }, [apiPrefix, isAdminView])
 
   useEffect(() => {
     fetchMonthOverrides(currentMonth)
@@ -83,13 +101,19 @@ export default function BulkSettingsModal({ onClose, onSave, templates = [], api
   const toggleMaster = (id: string) => {
     const newSet = new Set(targetMasterIds)
     if (newSet.has(id)) newSet.delete(id)
+    else if (newSet.size >= MAX_TARGET_MASTERS) return
     else newSet.add(id)
     setTargetMasterIds(newSet)
   }
 
   const allSelected = adminMastersList.length > 0 && targetMasterIds.size === adminMastersList.length
+  const targetLimitReached = targetMasterIds.size >= MAX_TARGET_MASTERS
+  const canApplyToAll = adminMastersList.length > 0 && adminMastersList.length <= MAX_TARGET_MASTERS
+  const isRowLocked = (id: string) => targetLimitReached && !targetMasterIds.has(id)
+  const limitHint = t('admin.calendar.bulk.maxMastersHint', { max: MAX_TARGET_MASTERS })
 
   const toggleAllMasters = () => {
+    if (!canApplyToAll) return
     if (allSelected) {
       setTargetMasterIds(new Set())
     } else {
@@ -108,28 +132,22 @@ export default function BulkSettingsModal({ onClose, onSave, templates = [], api
     setSelectedDates(newSet)
   }
 
-  // Determine if a day is marked as day-off in the calendar (override > template)
-  const isCalendarDayOff = (d: Date): boolean => {
+  const dayMarks = (d: Date): DayMark[] => {
     const dateStr = format(d, "yyyy-MM-dd")
-    const dayOfWeek = getDay(d)
-    const override = monthOverrides.find(o => o.date === dateStr)
-    if (override) return override.isDayOff
-    const tmpl = templates.find(t => t.dayOfWeek === dayOfWeek)
-    if (tmpl) return tmpl.isDayOff
-    return false
-  }
+    const dow = getDay(d)
 
-  // Determine if a day has a schedule override set (working or day-off)
-  const hasScheduleSet = (d: Date): boolean => {
-    const dateStr = format(d, "yyyy-MM-dd")
-    return monthOverrides.some(o => o.date === dateStr)
-  }
+    if (isAdminView) {
+      return targetMasters
+        .map(m => {
+          const state = resolveDayScheduleState(dateStr, dow, schedules[m.id]?.overrides ?? [], schedules[m.id]?.templates ?? [])
+          if (!state) return null
+          return { id: m.id, name: m.name, color: m.masterProfile?.color || "#166534", state }
+        })
+        .filter((m): m is DayMark => m !== null)
+    }
 
-  // Determine if a day has a working template (not day-off)
-  const hasWorkingTemplate = (d: Date): boolean => {
-    const dayOfWeek = getDay(d)
-    const tmpl = templates.find(t => t.dayOfWeek === dayOfWeek)
-    return tmpl ? !tmpl.isDayOff : false
+    const state = resolveDayScheduleState(dateStr, dow, monthOverrides, templates)
+    return state ? [{ id: "self", name: "", color: null, state }] : []
   }
 
   const renderCalendar = () => {
@@ -163,33 +181,25 @@ export default function BulkSettingsModal({ onClose, onSave, templates = [], api
           const isCurrentMonth = isSameMonth(d, monthStart)
           const isTdy = isToday(d)
           const isPast = d < new Date(new Date().setHours(0, 0, 0, 0))
-          const isDayOffDay = isCalendarDayOff(d)
-          const hasOverride = hasScheduleSet(d)
-          const hasTemplate = hasWorkingTemplate(d)
-          const hasSchedule = hasOverride || hasTemplate
-
           const isDisabled = isPast || !isCurrentMonth
+          const marks = dayMarks(d)
+          const selfMark = isAdminView ? undefined : marks[0]            // self path: 0 or 1 mark, never more
+          const workingMarks = isAdminView ? marks.filter(m => m.state === 'working') : []
+          const offMarks = isAdminView ? marks.filter(m => m.state === 'dayoff') : []
 
           return (
-            <button
+            <BulkDayCell
               key={idx}
-              type="button"
-              disabled={isDisabled}
-              onClick={() => toggleDate(d)}
-              className={`relative h-10 w-full rounded-md flex items-center justify-center text-sm transition-colors border border-transparent
-                ${isDisabled ? "text-muted-foreground opacity-30 cursor-not-allowed" : ""}
-                ${!isDisabled && isDayOffDay && !isSelected ? "text-[var(--md-on-error-container)] bg-[var(--md-error-container)] hover:brightness-95" : ""}
-                ${!isDisabled && isTdy && !isSelected ? "ring-2 ring-primary bg-primary/10 font-bold" : ""}
-                ${isSelected ? "bg-primary text-primary-foreground hover:bg-primary/90 font-medium shadow-md" : !isDisabled ? "hover:bg-muted" : ""}
-              `}
-            >
-              <span className={isTdy ? 'font-bold' : ''}>{format(d, "d")}</span>
-
-              {/* Green dot = schedule exists for this day (override or template) */}
-              {!isDisabled && hasSchedule && !isDayOffDay && (
-                <div className={`absolute bottom-0.5 w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-primary-foreground' : 'bg-[var(--md-success)]'}`} />
-              )}
-            </button>
+              date={d}
+              isSelected={isSelected}
+              isDisabled={isDisabled}
+              isToday={isTdy}
+              selfMark={selfMark}
+              workingMarks={workingMarks}
+              offMarks={offMarks}
+              title={isAdminView && !isDisabled && marks.length > 0 ? marks.map(m => `${m.name}: ${m.state === 'dayoff' ? t('admin.calendar.dayOffBtn') : t('admin.calendar.workingBtn')}`).join(', ') : undefined}
+              onToggle={() => toggleDate(d)}
+            />
           )
         })}
       </div>
@@ -210,6 +220,7 @@ export default function BulkSettingsModal({ onClose, onSave, templates = [], api
       await onSave(Array.from(selectedDates), isDayOff, isDayOff ? [] : intervals, isAdminView ? Array.from(targetMasterIds) : undefined)
       setSelectedDates(new Set())
       await fetchMonthOverrides(currentMonth)
+      refetchSchedules()
     } catch (e: any) {
       toast.error(t('admin.calendar.bulk.saveErrorPrefix', { message: e.message }))
     } finally {
@@ -305,11 +316,12 @@ export default function BulkSettingsModal({ onClose, onSave, templates = [], api
                   <Users className="w-4 h-4" /> {t('admin.calendar.bulk.applyToMastersLabel')}
                 </span>
                 <div className="bg-muted/40 border border-border/50 rounded-xl p-4 shadow-sm">
-                  <label className="flex items-center gap-3 cursor-pointer p-3 hover:bg-muted rounded-lg transition-colors border border-transparent shadow-sm hover:border-border/50">
+                  <label title={!canApplyToAll ? limitHint : undefined} className={`flex items-center gap-3 p-3 rounded-lg transition-colors border border-transparent shadow-sm ${canApplyToAll ? "cursor-pointer hover:bg-muted hover:border-border/50" : "cursor-not-allowed opacity-50"}`}>
                     <input
                       type="checkbox"
                       className="h-4 w-4 accent-primary rounded cursor-pointer"
                       checked={allSelected}
+                      disabled={!canApplyToAll}
                       onChange={toggleAllMasters}
                     />
                     <span className="font-semibold text-foreground">{t('admin.calendar.bulk.applyToAllMastersLabel')}</span>
@@ -317,17 +329,24 @@ export default function BulkSettingsModal({ onClose, onSave, templates = [], api
 
                   <div className="mt-3 bg-card rounded-lg border border-border/50 shadow-inner p-2 max-h-[160px] overflow-y-auto space-y-1 custom-scrollbar">
                     {adminMastersList.map(m => (
-                      <label key={m.id} className="flex items-center gap-3 text-sm cursor-pointer hover:bg-muted/60 p-2.5 rounded transition-colors">
+                      <label key={m.id} title={isRowLocked(m.id) ? limitHint : undefined} className={`flex items-center gap-3 text-sm p-2.5 rounded transition-colors ${isRowLocked(m.id) ? "cursor-not-allowed opacity-50" : "cursor-pointer hover:bg-muted/60"}`}>
                         <input
                           type="checkbox"
                           className="h-4 w-4 accent-primary rounded cursor-pointer"
                           checked={targetMasterIds.has(m.id)}
+                          disabled={isRowLocked(m.id)}
                           onChange={() => toggleMaster(m.id)}
                         />
-                        <span className="flex items-center gap-1.5"><User className="w-3.5 h-3.5" />{m.name}</span>
+                        <span className="flex items-center gap-1.5">
+                          <span className="h-2.5 w-2.5 shrink-0 rounded-full ring-1 ring-border" style={{ backgroundColor: m.masterProfile?.color || "#166534" }} />
+                          <User className="w-3.5 h-3.5" />{m.name}
+                        </span>
                       </label>
                     ))}
                   </div>
+                  {(adminMastersList.length > MAX_TARGET_MASTERS || targetLimitReached) && (
+                    <p className="text-xs text-muted-foreground mt-2 pl-1">{limitHint}</p>
+                  )}
                 </div>
               </div>
             )}
