@@ -151,6 +151,12 @@ export default function RegisterForm({ className, ...props }: RegisterFormProps)
 
       if (!response.ok) {
         const body = await response.json()
+        // The server already verified (and consumed) our single-use Turnstile
+        // token before this error could be returned — e.g. duplicate-email
+        // rejection happens after Turnstile validation in the route. Reset the
+        // widget so a retry gets a fresh token instead of resubmitting a
+        // consumed one, which Cloudflare would reject.
+        resetTurnstile()
         throw new Error(body.error || t('auth.registrationFailed', 'Registration failed'))
       }
 
