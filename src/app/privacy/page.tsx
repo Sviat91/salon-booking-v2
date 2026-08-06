@@ -1,6 +1,6 @@
 import { getTenantConfig } from '@/lib/tenant'
 import LegalDocumentView from '@/components/legal/LegalDocumentView'
-import PageToolbar from '@/components/PageToolbar'
+import LegalPageHeader from '@/components/legal/LegalPageHeader'
 
 export default async function PrivacyPage() {
   const config = await getTenantConfig()
@@ -9,9 +9,9 @@ export default async function PrivacyPage() {
   const legalAddress = config.salonLegalAddress || [config.salonAddress, config.salonCity].filter(Boolean).join(', ')
 
   return (
-    <main className="flex-1 relative">
-      <div className="container mx-auto max-w-4xl px-6 pt-4 pb-8 space-y-4">
-        <PageToolbar />
+    <main className="px-3 py-4 sm:p-6 relative flex-1 flex flex-col w-full max-w-full box-border overflow-x-hidden">
+      <LegalPageHeader />
+      <div className="container mx-auto max-w-4xl px-0 pt-12 pb-8 space-y-4">
         <LegalDocumentView
           titleKey="privacy.title"
           noticeKey="privacy.legalNotice"

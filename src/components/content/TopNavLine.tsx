@@ -90,7 +90,19 @@ export default function TopNavLine({ masterId, className, actions, backHref, lea
     <div className={cn("relative", className)}>
       <div className="flex items-center justify-between gap-3 pr-2 pb-0">
         <div className="flex min-w-0 flex-1 items-center gap-2">
-          {backHref && <PageBackLink href={backHref} />}
+          {/* iconOnly: a text pill's width made overlap with the corner logo
+              possible regardless of position; a small fixed-size circle
+              (matching the burger button below) doesn't have that problem.
+              The negative margin cancels out most of the caller's
+              `lg:pl-28 xl:pl-32` logo-clearance padding (see [masterId]/page.tsx,
+              PageRenderer.tsx, LegalPageHeader.tsx), leaving a small 0.75rem
+              gap from the true edge — matching the actions cluster's own
+              `pr-2` gap on the opposite corner — instead of sitting flush
+              against it (2026-08-06 user request, three rounds: corner
+              position, then icon-only, then edge gap). */}
+          {backHref && (
+            <PageBackLink href={backHref} iconOnly className="lg:-ml-[6.25rem] xl:-ml-[7.25rem]" />
+          )}
           {/* Narrow screens only: unbounded tab count doesn't fit a horizontal
               strip next to Back/actions, so it collapses into a burger. */}
           {tabs.length > 0 && (

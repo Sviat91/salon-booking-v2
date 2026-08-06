@@ -21,6 +21,7 @@ import {
 import { SettingsSection } from '@/app/admin/settings/FormFields'
 import { apiErrorKey } from '@/lib/errors/apiErrorKey'
 import TelegramRecipientsField from './TelegramRecipientsField'
+import { recipientSchema, type RecipientRow } from './recipient-schema'
 
 const formSchema = z.object({
   notifEmailEnabled: z.boolean(),
@@ -28,9 +29,20 @@ const formSchema = z.object({
   telegramBotToken: z.string().trim().max(256).optional(),
   notifReminder24hEnabled: z.boolean(),
   notifReminder2hEnabled: z.boolean(),
+  recipients: z.array(recipientSchema),
 })
 
-type FormValues = z.infer<typeof formSchema>
+export type FormValues = z.infer<typeof formSchema>
+
+async function fetchRecipients(): Promise<RecipientRow[]> {
+  const res = await fetch('/api/admin/notification-settings/recipients')
+  const data = await res.json()
+  return (data.recipients ?? []).map((r: { id: string; chatId: string; label: string | null }) => ({
+    dbId: r.id,
+    chatId: r.chatId,
+    label: r.label ?? '',
+  }))
+}
 
 function ToggleRow({
   label,
@@ -78,6 +90,7 @@ export default function NotificationSettingsForm() {
       telegramBotToken: '',
       notifReminder24hEnabled: false,
       notifReminder2hEnabled: false,
+      recipients: [],
     },
   })
 
@@ -95,9 +108,10 @@ export default function NotificationSettingsForm() {
   React.useEffect(() => {
     async function load() {
       try {
-        const [notifRes, emailRes] = await Promise.all([
+        const [notifRes, emailRes, recipients] = await Promise.all([
           fetch('/api/admin/notification-settings'),
           fetch('/api/admin/email-settings'),
+          fetchRecipients(),
         ])
         const notifData = await notifRes.json()
         const emailData = await emailRes.json()
@@ -108,6 +122,7 @@ export default function NotificationSettingsForm() {
           telegramBotToken: notifData.telegramBotToken ?? '',
           notifReminder24hEnabled: notifData.notifReminder24hEnabled ?? false,
           notifReminder2hEnabled: notifData.notifReminder2hEnabled ?? false,
+          recipients,
         })
       } catch {
         toast.error(t('admin.settings.notifications.loadFailed'))
@@ -121,16 +136,44 @@ export default function NotificationSettingsForm() {
   async function onSubmit(values: FormValues) {
     setIsSaving(true)
     try {
+      const { recipients, ...settings } = values
       const res = await fetch('/api/admin/notification-settings', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(values),
+        body: JSON.stringify(settings),
       })
       if (!res.ok) {
         const err = await res.json().catch(() => ({}))
         throw new Error(err.code ? t(apiErrorKey(err.code)) : t('admin.settings.notifications.saveFailed'))
       }
-      form.reset(values)
+
+      // Diff recipients against the last-loaded/last-saved baseline: new rows
+      // (dbId === null) get created, rows dropped from the current list get
+      // deleted. Editing an existing recipient in place isn't supported (same
+      // as before), so no update case.
+      const baseline = form.formState.defaultValues?.recipients ?? []
+      const currentIds = new Set(recipients.map((r) => r.dbId).filter(Boolean))
+      const toCreate = recipients.filter((r) => r.dbId === null)
+      const toDelete = baseline.filter((r) => r?.dbId && !currentIds.has(r.dbId))
+
+      const results = await Promise.allSettled([
+        ...toCreate.map((r) =>
+          fetch('/api/admin/notification-settings/recipients', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chatId: r.chatId, label: r.label || undefined }),
+          })
+        ),
+        ...toDelete.map((r) =>
+          fetch(`/api/admin/notification-settings/recipients/${r!.dbId}`, { method: 'DELETE' })
+        ),
+      ])
+      if (results.some((r) => r.status === 'rejected' || (r.status === 'fulfilled' && !r.value.ok))) {
+        throw new Error(t('admin.settings.notifications.saveFailed'))
+      }
+
+      const freshRecipients = await fetchRecipients()
+      form.reset({ ...settings, recipients: freshRecipients })
       toast.success(t('admin.settings.notifications.saveSuccess'))
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t('admin.settings.notifications.saveFailed'))
@@ -222,7 +265,7 @@ export default function NotificationSettingsForm() {
             )}
           />
 
-          <TelegramRecipientsField />
+          <TelegramRecipientsField control={form.control} />
         </SettingsSection>
 
         {/* Reminders */}
