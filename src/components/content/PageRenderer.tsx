@@ -1,6 +1,6 @@
 "use client"
 
-import { motion } from "framer-motion"
+import { motion, type Variants } from "framer-motion"
 import BlockRenderer from "./BlockRenderer"
 import TopNavLine from "./TopNavLine"
 import LanguageToggle from "@/components/LanguageToggle"
@@ -30,13 +30,16 @@ interface PageRendererProps {
 export default function PageRenderer({ blocks, masterId, backHref }: PageRendererProps) {
   const prefersReducedMotion = useReducedMotion()
 
-  const containerVariants = {
+  // Explicit `Variants` annotation (not inferred) — without it, `ease: "easeOut"`
+  // widens to plain `string` and fails framer-motion's stricter `Easing` type
+  // only under `tsc`'s full check (production `next build`), not the dev server.
+  const containerVariants: Variants = {
     hidden: {},
     visible: {
       transition: prefersReducedMotion ? { duration: 0 } : { staggerChildren: 0.08, delayChildren: 0.15 },
     },
   }
-  const itemVariants = {
+  const itemVariants: Variants = {
     hidden: prefersReducedMotion ? {} : { opacity: 0, y: 20 },
     visible: {
       opacity: 1, y: 0,

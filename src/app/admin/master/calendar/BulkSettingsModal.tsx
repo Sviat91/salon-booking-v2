@@ -137,13 +137,13 @@ export default function BulkSettingsModal({ onClose, onSave, templates = [], api
     const dow = getDay(d)
 
     if (isAdminView) {
-      return targetMasters
-        .map(m => {
-          const state = resolveDayScheduleState(dateStr, dow, schedules[m.id]?.overrides ?? [], schedules[m.id]?.templates ?? [])
-          if (!state) return null
-          return { id: m.id, name: m.name, color: m.masterProfile?.color || "#166534", state }
-        })
-        .filter((m): m is DayMark => m !== null)
+      const marks: DayMark[] = []
+      for (const m of targetMasters) {
+        const state = resolveDayScheduleState(dateStr, dow, schedules[m.id]?.overrides ?? [], schedules[m.id]?.templates ?? [])
+        if (!state) continue
+        marks.push({ id: m.id, name: m.name, color: m.masterProfile?.color || "#166534", state })
+      }
+      return marks
     }
 
     const state = resolveDayScheduleState(dateStr, dow, monthOverrides, templates)
