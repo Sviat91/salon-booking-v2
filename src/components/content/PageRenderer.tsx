@@ -16,6 +16,7 @@ type PageRendererBlock = {
 interface PageRendererProps {
   blocks: PageRendererBlock[]
   masterId?: string
+  backHref?: string
 }
 
 /**
@@ -26,7 +27,7 @@ interface PageRendererProps {
  * icon cluster. Expects to be mounted directly inside a `relative`-positioned
  * parent (the page route's `<main>`), same as `[masterId]/page.tsx`.
  */
-export default function PageRenderer({ blocks, masterId }: PageRendererProps) {
+export default function PageRenderer({ blocks, masterId, backHref }: PageRendererProps) {
   const prefersReducedMotion = useReducedMotion()
 
   const containerVariants = {
@@ -49,10 +50,11 @@ export default function PageRenderer({ blocks, masterId }: PageRendererProps) {
         initial={prefersReducedMotion ? {} : { opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.5, ease: "easeOut" }}
-        className="absolute top-2 left-0 right-0 z-20 pl-28 sm:pl-32"
+        className="absolute top-2 left-0 right-0 z-20 pl-3 lg:pl-28 xl:pl-32"
       >
         <TopNavLine
           masterId={masterId}
+          backHref={backHref}
           leadingSpaceClassName="pl-48"
           actions={
             <>

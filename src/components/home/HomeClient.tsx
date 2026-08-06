@@ -68,11 +68,14 @@ export default function HomeClient({ config, isPreview }: HomeClientProps) {
 
   return (
     <main className="flex-1 flex flex-col relative pb-4">
-      {/* Desktop: nav line owns the whole bar, tabs + icon cluster together.
-          Outer offset (pl-28 sm:pl-32) matches the master booking page and
-          content pages exactly, so tabs land at the same x position on every
-          route and don't jump when navigating between them. */}
-      <div className="hidden lg:block absolute top-2 left-0 right-0 z-20 pl-28 sm:pl-32">
+      {/* Nav line owns the whole bar, tabs + icon cluster together, at every
+          breakpoint. The left offset only matters once the absolutely-positioned
+          desktop logo below can actually render (hidden below `lg`) — so it's
+          zero below `lg` (Back/burger sit in the true corner on mobile, per
+          user request 2026-08-06) and matches the master booking page/content
+          pages exactly from `lg:` up, so tabs land at the same x position on
+          every route and don't jump when navigating between them. */}
+      <div className="absolute top-2 left-0 right-0 z-20 pl-3 lg:pl-28 xl:pl-32">
         <TopNavLine
           leadingSpaceClassName="pl-48"
           actions={
@@ -83,22 +86,6 @@ export default function HomeClient({ config, isPreview }: HomeClientProps) {
             </>
           }
         />
-      </div>
-
-      {/* Mobile: nav line on its own row — icon clusters below stay independent */}
-      <div className="absolute top-4 left-0 right-0 z-10 pl-20 pr-20 lg:hidden">
-        <TopNavLine />
-      </div>
-
-      {/* Mobile: split so nothing crowds the centered logo below — theme toggle stays top-right */}
-      <div className="flex lg:hidden absolute top-4 right-4 z-20 items-center">
-        <ThemeToggle />
-      </div>
-
-      {/* Mobile: account + language move to top-left */}
-      <div className="flex lg:hidden absolute top-4 left-4 z-20 items-center gap-2">
-        <UserDropdown />
-        <LanguageToggle />
       </div>
 
       {showLogo && (config.logoUrl || config.darkLogoUrl) && (
@@ -126,7 +113,14 @@ export default function HomeClient({ config, isPreview }: HomeClientProps) {
         </div>
       )}
 
-      <div className="block lg:hidden pt-6 pb-2 px-4 text-center">
+      {/* pt-24: clears the absolutely-positioned nav bar above. The row's own
+          height is set by its tallest child, ThemeToggle (`h-12`+`p-2` = 64px),
+          starting at the row's `top-2` (8px) offset — bottom edge ≈72px from
+          the container top. pt-12 (48px, tried first) undershot this by ~24px
+          and the logo visibly overlapped the row; pt-24 (96px) clears it with
+          margin instead of matching a value proven on a different page (whose
+          actual child stack was never re-measured against this one). */}
+      <div className="block lg:hidden pt-24 pb-2 px-4 text-center">
         {(config.logoUrl || config.darkLogoUrl) && (
           <>
             {logoSrc && (

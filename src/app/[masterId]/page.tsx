@@ -18,7 +18,6 @@ import type { BookedPricing } from '../../components/hooks/useBookingSubmit'
 import BookingManagement, { BookingManagementRef } from '../../components/booking-management'
 import ThemeToggle from '../../components/ThemeToggle'
 import LanguageToggle from '../../components/LanguageToggle'
-import BackButton from '../../components/BackButton'
 import LogoDisplay from '../../components/LogoDisplay'
 import GuestConversionBanner from '../../components/GuestConversionBanner'
 import TopNavLine from '@/components/content/TopNavLine'
@@ -259,11 +258,13 @@ export default function Page({ params }: PageProps) {
 
   return (
     <main className="px-3 py-4 sm:p-6 relative flex-1 flex flex-col w-full max-w-full box-border overflow-x-hidden">
-      <BackButton />
-      {/* Nav line owns the whole bar, tabs + icon cluster together. */}
-      <div className="absolute top-2 left-0 right-0 z-20 pl-28 sm:pl-32">
+      {/* Nav line owns the whole bar, tabs + icon cluster together. Left offset
+          is zero below `lg` (Back/burger in the true corner on mobile, per user
+          request 2026-08-06) — it only matters once a desktop logo can render. */}
+      <div className="absolute top-2 left-0 right-0 z-20 pl-3 lg:pl-28 xl:pl-32">
         <TopNavLine
           masterId={masterId}
+          backHref="/"
           leadingSpaceClassName="pl-48"
           actions={
             <>

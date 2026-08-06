@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation"
 import { getPageWithBlocks } from "@/lib/content/pages-server"
 import PageRenderer from "@/components/content/PageRenderer"
-import BackButton from "@/components/BackButton"
 
 export const dynamic = "force-dynamic"
 
@@ -19,8 +18,7 @@ export default async function MasterPublicContentPage({ params }: MasterPublicCo
 
   return (
     <main className="relative flex-1 px-3 py-4 sm:p-6">
-      <BackButton href={`/${params.masterId}`} />
-      <PageRenderer blocks={result.blocks} masterId={params.masterId} />
+      <PageRenderer blocks={result.blocks} masterId={params.masterId} backHref={`/${params.masterId}`} />
     </main>
   )
 }

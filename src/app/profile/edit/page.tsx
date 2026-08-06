@@ -8,9 +8,7 @@ import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
-import ThemeToggle from "@/components/ThemeToggle"
-import LanguageToggle from "@/components/LanguageToggle"
-import BackButton from "@/components/BackButton"
+import PageToolbar from "@/components/PageToolbar"
 import PhoneInput from "@/components/ui/PhoneInput"
 
 export default function EditProfilePage() {
@@ -126,13 +124,9 @@ export default function EditProfilePage() {
 
   return (
     <main className="px-3 py-4 sm:p-6 relative flex-1 flex flex-col w-full max-w-full box-border overflow-x-hidden">
-      <BackButton />
-      <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
-        <LanguageToggle />
-        <ThemeToggle />
-      </div>
+      <PageToolbar />
 
-      <div className="mx-auto w-full max-w-lg mt-8 space-y-6">
+      <div className="mx-auto w-full max-w-lg mt-4 space-y-6">
         <h1 className="text-2xl font-semibold text-foreground text-center">
           {t("profile.editTitle", "Edit Profile")}
         </h1>

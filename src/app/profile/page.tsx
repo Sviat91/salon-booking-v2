@@ -5,9 +5,7 @@ import { useTranslation } from "react-i18next"
 import { useRouter } from "next/navigation"
 import { useQuery } from "@tanstack/react-query"
 import { Card } from "@/components/ui/card"
-import ThemeToggle from "@/components/ThemeToggle"
-import LanguageToggle from "@/components/LanguageToggle"
-import BackButton from "@/components/BackButton"
+import PageToolbar from "@/components/PageToolbar"
 import { signOut } from "next-auth/react"
 import Link from "next/link"
 import LinkBookingsCard from "@/components/profile/LinkBookingsCard"
@@ -172,13 +170,9 @@ export default function ProfilePage() {
 
   return (
     <main className="px-3 py-4 sm:p-6 relative flex-1 flex flex-col w-full max-w-full box-border overflow-x-hidden">
-      <BackButton />
-      <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
-        <LanguageToggle />
-        <ThemeToggle />
-      </div>
+      <PageToolbar />
 
-      <div className="mx-auto w-full max-w-lg mt-8 space-y-6">
+      <div className="mx-auto w-full max-w-lg mt-4 space-y-6">
         <h1 className="text-2xl font-semibold text-foreground text-center">
           {t("profile.title", "My Appointments")}
         </h1>

@@ -1,7 +1,5 @@
 "use client"
-import BackButton from '../../components/BackButton'
-import ThemeToggle from '../../components/ThemeToggle'
-import LanguageToggle from '../../components/LanguageToggle'
+import PageToolbar from '@/components/PageToolbar'
 import ConsentWithdrawalModal from '../../components/ConsentWithdrawalModal'
 import DataErasureModal from '../../components/DataErasureModal'
 import DataExportModal from '../../components/DataExportModal'
@@ -167,13 +165,10 @@ export default function SupportPage() {
 
   return (
     <main className="flex-1 relative">
-      <BackButton />
-      {/* Theme and Language toggles - same position as main page */}
-      <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
-        <LanguageToggle />
-        <ThemeToggle />
-      </div>
-      <div className="container mx-auto max-w-6xl px-6 py-6">
+      <div className="container mx-auto max-w-6xl px-6 pt-4 pb-6">
+        <div className="mb-4">
+          <PageToolbar />
+        </div>
         {/* Header */}
         <div className="mb-6 text-center">
           <h1 className="text-2xl font-bold text-foreground mb-3">

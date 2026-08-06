@@ -5,12 +5,21 @@ import Link from "next/link"
 import { motion } from "framer-motion"
 import { usePathname } from "next/navigation"
 import { useQuery } from "@tanstack/react-query"
-import { useReducedMotion } from "@/hooks/useReducedMotion"
+import { useTranslation } from "react-i18next"
+import { Menu, Check } from "lucide-react"
 import { useCurrentLanguage } from "@/contexts/LanguageContext"
+import { useReducedMotion } from "@/hooks/useReducedMotion"
 import { resolveLocalized } from "@/lib/localized-content"
 import { cn } from "@/lib/utils"
 import type { NavPage } from "@/lib/content/pages-shared"
 import type { BlockSlot } from "@/lib/content/blocks"
+import PageBackLink from "@/components/PageBackLink"
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu"
 
 export interface ContentResponse {
   pages: NavPage[]
@@ -22,20 +31,24 @@ interface TopNavLineProps {
   className?: string
   /** Icon cluster (theme/language/user toggles) rendered at the right end of this same bar. */
   actions?: ReactNode
+  /** If omitted, no Back control is rendered — the true homepage has nothing to go back to. */
+  backHref?: string
   /**
-   * Real reserved empty space (Tailwind `pl-*`) before the tabs start, for a
-   * corner logo. This is separate from the hairline's own fade-mask — the
-   * hairline still spans and fades across the full bar width regardless, but
-   * without this the tab *content* starts right at the edge with nothing
-   * reserved above the fade. Applied identically on the homepage and every
-   * master booking page (2026-07-25: user wants consistent tab position
-   * across both, even though the master page has no logo yet).
+   * Real reserved empty space (Tailwind `pl-*`) before the DESKTOP tab strip
+   * starts, for a corner logo — `lg:` and up only (2026-08-06 correction).
+   * Below `lg`, tabs collapse into a burger menu instead (see render below),
+   * and this class is NOT applied to that burger/Back container: Back+burger
+   * must always stay visible/clickable, unlike the desktop tab strip which
+   * can scroll (`overflow-x-auto`) past the padding safely. Applying this
+   * same padding to the mobile burger container once (fixed same day)
+   * collapsed the whole row into a ~90px-or-less sliver on mobile (outer
+   * `pl-28 sm:pl-32` from the caller, plus this `pl-48`, could exceed the
+   * viewport width) — don't reintroduce that.
    *
    * The mask breakpoint below (`black_12rem`) is hand-matched to this being
-   * `pl-48` (12rem) at every call site (2026-07-28: moved left from the
-   * original `pl-96`/`24rem`) — if a caller ever passes a different value,
-   * update the mask stop to match, or the hairline's solid point will no
-   * longer land exactly under the tabs.
+   * `pl-48` (12rem) at every call site — if a caller ever passes a different
+   * value, update the mask stop to match, or the hairline's solid point will
+   * no longer land exactly under the tabs.
    */
   leadingSpaceClassName?: string
 }
@@ -54,9 +67,10 @@ interface TopNavLineProps {
  * reserved for a corner logo, staying solid underneath the tabs and icons
  * rather than cutting off abruptly right before them.
  */
-export default function TopNavLine({ masterId, className, actions, leadingSpaceClassName }: TopNavLineProps) {
+export default function TopNavLine({ masterId, className, actions, backHref, leadingSpaceClassName }: TopNavLineProps) {
   const pathname = usePathname()
   const lang = useCurrentLanguage()
+  const { t } = useTranslation()
   const prefersReducedMotion = useReducedMotion()
   const { data } = useQuery<ContentResponse>({
     queryKey: ["content-nav", masterId ?? "home"],
@@ -75,32 +89,62 @@ export default function TopNavLine({ masterId, className, actions, leadingSpaceC
   return (
     <div className={cn("relative", className)}>
       <div className="flex items-center justify-between gap-3 pr-2 pb-0">
-        <nav className={cn("min-w-0 flex-1 overflow-x-auto custom-scrollbar", leadingSpaceClassName)}>
-          <motion.div layout={!prefersReducedMotion} className="flex w-max items-center gap-5 px-1">
-            {tabs.map((tab) => {
-              const active = pathname === tab.href
-              return (
-                // Its own layout animation — a tab's width changes with the
-                // active language's translation length, and this smooths that
-                // resize (and the resulting shift of tabs after it) instead of
-                // an instant jump.
-                <motion.div key={tab.id} layout={!prefersReducedMotion} transition={{ duration: 0.25, ease: "easeOut" }}>
-                  <Link
-                    href={tab.href}
-                    className={cn(
-                      "block shrink-0 whitespace-nowrap border-b-2 px-0.5 pb-0 text-sm font-medium tracking-tight transition-colors duration-200",
-                      active
-                        ? "border-primary text-foreground"
-                        : "border-transparent text-foreground/60 hover:text-foreground"
-                    )}
-                  >
-                    {tab.title}
-                  </Link>
-                </motion.div>
-              )
-            })}
-          </motion.div>
-        </nav>
+        <div className="flex min-w-0 flex-1 items-center gap-2">
+          {backHref && <PageBackLink href={backHref} />}
+          {/* Narrow screens only: unbounded tab count doesn't fit a horizontal
+              strip next to Back/actions, so it collapses into a burger. */}
+          {tabs.length > 0 && (
+            <div className="lg:hidden">
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  className="inline-flex items-center justify-center rounded-full border border-border bg-card p-2 text-card-foreground shadow-lg hover:brightness-105 transition-all duration-200 shrink-0"
+                  aria-label={t('common.pagesMenu')}
+                >
+                  <Menu className="h-4 w-4" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start">
+                  {tabs.map((tab) => {
+                    const active = pathname === tab.href
+                    return (
+                      <DropdownMenuItem key={tab.id} render={<Link href={tab.href} />}>
+                        {tab.title}
+                        {active && <Check className="h-3.5 w-3.5 ml-auto text-primary" />}
+                      </DropdownMenuItem>
+                    )
+                  })}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          )}
+          {/* `lg:` and up: the original horizontal scrolling tab strip — plenty
+              of width there for it, so no need to hide it behind a burger. */}
+          <nav className={cn("hidden min-w-0 flex-1 overflow-x-auto custom-scrollbar lg:block", leadingSpaceClassName)}>
+            <motion.div layout={!prefersReducedMotion} className="flex w-max items-center gap-5 px-1">
+              {tabs.map((tab) => {
+                const active = pathname === tab.href
+                return (
+                  // Its own layout animation — a tab's width changes with the
+                  // active language's translation length, and this smooths that
+                  // resize (and the resulting shift of tabs after it) instead of
+                  // an instant jump.
+                  <motion.div key={tab.id} layout={!prefersReducedMotion} transition={{ duration: 0.25, ease: "easeOut" }}>
+                    <Link
+                      href={tab.href}
+                      className={cn(
+                        "block shrink-0 whitespace-nowrap border-b-2 px-0.5 pb-0 text-sm font-medium tracking-tight transition-colors duration-200",
+                        active
+                          ? "border-primary text-foreground"
+                          : "border-transparent text-foreground/60 hover:text-foreground"
+                      )}
+                    >
+                      {tab.title}
+                    </Link>
+                  </motion.div>
+                )
+              })}
+            </motion.div>
+          </nav>
+        </div>
         {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
       </div>
       {/* Fade stop is a fixed length, not a %, so it lines up with the pl-96

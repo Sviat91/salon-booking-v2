@@ -1,8 +1,6 @@
 import { getTenantConfig } from '@/lib/tenant'
 import LegalDocumentView from '@/components/legal/LegalDocumentView'
-import BackButton from '../../components/BackButton'
-import ThemeToggle from '../../components/ThemeToggle'
-import LanguageToggle from '../../components/LanguageToggle'
+import PageToolbar from '@/components/PageToolbar'
 
 export default async function TermsPage() {
   const config = await getTenantConfig()
@@ -12,13 +10,8 @@ export default async function TermsPage() {
 
   return (
     <main className="flex-1 relative">
-      <BackButton />
-      {/* Theme and Language toggles - same position as main page */}
-      <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
-        <LanguageToggle />
-        <ThemeToggle />
-      </div>
-      <div className="container mx-auto max-w-4xl px-6 py-8">
+      <div className="container mx-auto max-w-4xl px-6 pt-4 pb-8 space-y-4">
+        <PageToolbar />
         <LegalDocumentView
           titleKey="terms.title"
           noticeKey="terms.legalNotice"
