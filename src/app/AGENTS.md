@@ -15,6 +15,7 @@ Routing, page composition, and server/client component boundaries for everything
 - Admin/master dashboard pages follow the contract in [admin/AGENTS.md](admin/AGENTS.md).
 - Files must stay under 500 lines (root constraint) — split page components into `src/components/` pieces rather than growing a single `page.tsx`.
 - `providers.tsx` is the single app-wide client provider stack (`ErrorBoundary` → `SessionProvider` → `QueryClientProvider` → `LanguageProvider` → `ConfirmDialogProvider` → `MasterProvider` → `LayoutGroup`, plus `AppToaster`); anything needing `useTranslation()` must be mounted inside `LanguageProvider`.
+- `opengraph-image.tsx` is the root-segment metadata file convention producing the single site-wide 1200×630 OG/Twitter card from `TenantConfig` (`runtime = 'nodejs'` + `dynamic = 'force-dynamic'`, same reason as `/api/tenant-config`); `twitter:image` is auto-filled from `openGraph.images` by Next, so there is deliberately **no** `twitter-image.tsx`; `layout.tsx` must never declare `openGraph.images`/`twitter.images` (that suppresses the file-convention merge) and no child segment may declare an `openGraph`/`twitter` key without also carrying `images`, or that page loses the card; the module's static import graph is evaluated while resolving metadata for **every** page, so it must stay import-light and must never throw at module scope.
 
 ## Work Guidance
 
