@@ -1,9 +1,11 @@
 "use client"
 
+import { motion } from "framer-motion"
 import BlockRenderer from "./BlockRenderer"
 import TopNavLine from "./TopNavLine"
 import LanguageToggle from "@/components/LanguageToggle"
 import ThemeToggle from "@/components/ThemeToggle"
+import { useReducedMotion } from "@/hooks/useReducedMotion"
 
 type PageRendererBlock = {
   id: string
@@ -25,9 +27,30 @@ interface PageRendererProps {
  * parent (the page route's `<main>`), same as `[masterId]/page.tsx`.
  */
 export default function PageRenderer({ blocks, masterId }: PageRendererProps) {
+  const prefersReducedMotion = useReducedMotion()
+
+  const containerVariants = {
+    hidden: {},
+    visible: {
+      transition: prefersReducedMotion ? { duration: 0 } : { staggerChildren: 0.08, delayChildren: 0.15 },
+    },
+  }
+  const itemVariants = {
+    hidden: prefersReducedMotion ? {} : { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1, y: 0,
+      transition: prefersReducedMotion ? { duration: 0 } : { duration: 0.4, ease: "easeOut" },
+    },
+  }
+
   return (
     <>
-      <div className="absolute top-2 left-0 right-0 z-20 pl-28 sm:pl-32">
+      <motion.div
+        initial={prefersReducedMotion ? {} : { opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.5, ease: "easeOut" }}
+        className="absolute top-2 left-0 right-0 z-20 pl-28 sm:pl-32"
+      >
         <TopNavLine
           masterId={masterId}
           leadingSpaceClassName="pl-48"
@@ -38,13 +61,20 @@ export default function PageRenderer({ blocks, masterId }: PageRendererProps) {
             </>
           }
         />
-      </div>
+      </motion.div>
       <div className="mx-auto w-full max-w-5xl px-4 pt-12">
-        <div className="flex flex-col gap-8 pt-8 pb-12">
+        <motion.div
+          className="flex flex-col gap-8 pt-8 pb-12"
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+        >
           {blocks.map((block) => (
-            <BlockRenderer key={block.id} type={block.type} config={block.config} />
+            <motion.div key={block.id} variants={itemVariants}>
+              <BlockRenderer type={block.type} config={block.config} />
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
     </>
   )
