@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useTranslation } from "react-i18next"
-import { GripVertical, Plus, Save, Trash2 } from "lucide-react"
+import { Check, GripVertical, Loader2, Plus, Save, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import BlockTypePicker from "./BlockTypePicker"
 import BlockConfigEditor from "./BlockConfigEditor"
@@ -34,6 +34,7 @@ export default function PageBlocksEditor({ pageId, blocks, enabledLocales }: Pag
   const [savingId, setSavingId] = useState<string | null>(null)
   const [savingAll, setSavingAll] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [justSavedIds, setJustSavedIds] = useState<Set<string>>(new Set())
 
   useEffect(() => { setLocalBlocks(blocks) }, [blocks])
 
@@ -43,6 +44,12 @@ export default function PageBlocksEditor({ pageId, blocks, enabledLocales }: Pag
 
   function handleConfigChange(blockId: string, config: BlockConfig) {
     setDrafts((prev) => ({ ...prev, [blockId]: config }))
+    setJustSavedIds((prev) => {
+      if (!prev.has(blockId)) return prev
+      const next = new Set(prev)
+      next.delete(blockId)
+      return next
+    })
   }
 
   async function handleSave(block: BlockRow) {
@@ -55,11 +62,14 @@ export default function PageBlocksEditor({ pageId, blocks, enabledLocales }: Pag
       setErrors((prev) => ({ ...prev, [block.id]: result.error! }))
       return
     }
+    const savedConfig = JSON.stringify(config)
+    setLocalBlocks((prev) => prev.map((b) => (b.id === block.id ? { ...b, config: savedConfig } : b)))
     setDrafts((prev) => {
       const next = { ...prev }
       delete next[block.id]
       return next
     })
+    setJustSavedIds((prev) => new Set(prev).add(block.id))
     router.refresh()
   }
 
@@ -95,7 +105,7 @@ export default function PageBlocksEditor({ pageId, blocks, enabledLocales }: Pag
     if (entries.length === 0) return
     setSavingAll(true)
     const nextErrors: Record<string, string> = {}
-    const savedIds: string[] = []
+    const savedConfigs: Record<string, string> = {}
     for (const [blockId, config] of entries) {
       const block = localBlocks.find((b) => b.id === blockId)
       if (block && isTextInvalid(block, config)) {
@@ -107,13 +117,19 @@ export default function PageBlocksEditor({ pageId, blocks, enabledLocales }: Pag
         nextErrors[blockId] = result.error
       } else {
         nextErrors[blockId] = ""
-        savedIds.push(blockId)
+        savedConfigs[blockId] = JSON.stringify(config)
       }
     }
     setErrors((prev) => ({ ...prev, ...nextErrors }))
+    setLocalBlocks((prev) => prev.map((b) => (b.id in savedConfigs ? { ...b, config: savedConfigs[b.id] } : b)))
     setDrafts((prev) => {
       const next = { ...prev }
-      savedIds.forEach((id) => delete next[id])
+      Object.keys(savedConfigs).forEach((id) => delete next[id])
+      return next
+    })
+    setJustSavedIds((prev) => {
+      const next = new Set(prev)
+      Object.keys(savedConfigs).forEach((id) => next.add(id))
       return next
     })
     setSavingAll(false)
@@ -175,11 +191,18 @@ export default function PageBlocksEditor({ pageId, blocks, enabledLocales }: Pag
 
                 <Button
                   size="sm"
-                  className="self-start"
-                  disabled={savingId === block.id || invalid}
+                  className="self-start gap-1.5"
+                  disabled={savingId === block.id || invalid || !(block.id in drafts)}
                   onClick={() => handleSave(block)}
                 >
-                  {savingId === block.id ? t('common.saving') : t('admin.pages.saveBlockBtn')}
+                  <span className="flex h-3.5 w-3.5 items-center justify-center shrink-0">
+                    {savingId === block.id ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : justSavedIds.has(block.id) ? (
+                      <Check className="h-3.5 w-3.5 text-[var(--md-success)]" />
+                    ) : null}
+                  </span>
+                  {t('admin.pages.saveBlockBtn')}
                 </Button>
               </div>
             )
