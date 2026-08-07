@@ -1463,5 +1463,25 @@
       "heading2h": "⏰ Przypomnienie: Twoja wizyta jest za 2 godziny",
       "details": "👤 Specjalista: {{master}}\n💇 Usługa: {{service}}\n📅 Data: {{date}}\n🕐 Godzina: {{time}}"
     }
+  },
+  "emailNotif": {
+    "confirmation": {
+      "subject": "{{brandName}} — Potwierdzenie rezerwacji",
+      "heading": "Potwierdzenie rezerwacji",
+      "greeting": "Cześć {{name}}, Twoja wizyta została potwierdzona!",
+      "serviceLabel": "Usługa",
+      "masterLabel": "Mistrz",
+      "dateLabel": "Data",
+      "timeLabel": "Godzina",
+      "footer": "© {{year}} {{brandName}}. Wszelkie prawa zastrzeżone."
+    },
+    "reminder": {
+      "subject": "{{brandName}} — Przypomnienie: wizyta {{when}}",
+      "heading": "Przypomnienie o wizycie",
+      "greeting": "Cześć {{name}}, przypominamy o Twojej wizycie {{when}}!",
+      "whenTomorrow": "jutro",
+      "whenSoon": "za 2 godziny",
+      "footer": "© {{year}} {{brandName}}"
+    }
   }
 }

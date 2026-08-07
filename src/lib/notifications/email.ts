@@ -2,9 +2,21 @@
  * Email notification templates for the booking system.
  * All functions call sendEmail() from src/lib/email.ts.
  * Never throw — errors propagate as thrown exceptions caught by the caller.
+ *
+ * Client-facing templates (confirmation/reminder to the client) take a
+ * `lang: Language` param and render via `emailT()` (`emailNotif.*` keys) —
+ * 2026-08-07 fix: they used to hardcode Polish chrome (headings/labels/
+ * subject) even though the caller already resolved `data.service` into the
+ * client's actual booking-time language, so e.g. an English-language booking
+ * got an English service name inside an otherwise all-Polish email. Admin/
+ * salon-facing templates (`sendBookingConfirmationToAdmin`,
+ * `sendContactFormToAdmin`) intentionally stay hardcoded Polish — that's the
+ * salon operator's own language, not the client's, and is unaffected by this.
  */
 
 import { sendEmail } from '@/lib/email'
+import { emailT } from './email-i18n'
+import type { Language } from '@/lib/i18n-shared'
 
 export interface BookingData {
   name: string
@@ -28,10 +40,14 @@ export interface ContactFormData {
 export async function sendBookingConfirmationToClient(
   to: string,
   data: BookingData,
-  brandName: string
+  brandName: string,
+  lang: Language
 ): Promise<void> {
+  const t = emailT(lang)
+  const year = new Date().getFullYear()
+  const subject = t('emailNotif.confirmation.subject', { brandName })
   const html = `
-<!DOCTYPE html><html lang="pl"><head><meta charset="UTF-8"/></head>
+<!DOCTYPE html><html lang="${lang}"><head><meta charset="UTF-8"/></head>
 <body style="margin:0;padding:0;background:#f5f5f5;font-family:Arial,Helvetica,sans-serif;">
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:32px 0;">
 <tr><td align="center">
@@ -41,35 +57,35 @@ export async function sendBookingConfirmationToClient(
   <span style="font-size:22px;font-weight:700;color:#1a1a1a;">${brandName}</span>
 </td></tr>
 <tr><td style="padding-top:28px;">
-  <p style="margin:0 0 8px;font-size:18px;font-weight:600;color:#1a1a1a;">Potwierdzenie rezerwacji</p>
+  <p style="margin:0 0 8px;font-size:18px;font-weight:600;color:#1a1a1a;">${t('emailNotif.confirmation.heading')}</p>
   <p style="margin:0 0 24px;font-size:14px;color:#555;line-height:1.6;">
-    Cześć ${data.name}, Twoja wizyta została potwierdzona!
+    ${t('emailNotif.confirmation.greeting', { name: data.name })}
   </p>
   <table width="100%" cellpadding="0" cellspacing="0"
          style="background:#f9f9f9;border-radius:8px;padding:16px;margin-bottom:24px;">
     <tr><td style="padding:4px 0;font-size:14px;color:#555;">
-      <strong>Usługa:</strong> ${data.service}
+      <strong>${t('emailNotif.confirmation.serviceLabel')}:</strong> ${data.service}
     </td></tr>
     <tr><td style="padding:4px 0;font-size:14px;color:#555;">
-      <strong>Mistrz:</strong> ${data.master}
+      <strong>${t('emailNotif.confirmation.masterLabel')}:</strong> ${data.master}
     </td></tr>
     <tr><td style="padding:4px 0;font-size:14px;color:#555;">
-      <strong>Data:</strong> ${data.date}
+      <strong>${t('emailNotif.confirmation.dateLabel')}:</strong> ${data.date}
     </td></tr>
     <tr><td style="padding:4px 0;font-size:14px;color:#555;">
-      <strong>Godzina:</strong> ${data.time}
+      <strong>${t('emailNotif.confirmation.timeLabel')}:</strong> ${data.time}
     </td></tr>
   </table>
 </td></tr>
 <tr><td style="padding-top:28px;border-top:1px solid #eee;text-align:center;">
-  <p style="margin:0;font-size:12px;color:#bbb;">© ${new Date().getFullYear()} ${brandName}. Wszelkie prawa zastrzeżone.</p>
+  <p style="margin:0;font-size:12px;color:#bbb;">${t('emailNotif.confirmation.footer', { year, brandName })}</p>
 </td></tr>
 </table>
 </td></tr>
 </table>
 </body></html>`.trim()
 
-  await sendEmail({ to, subject: `${brandName} — Potwierdzenie rezerwacji`, html })
+  await sendEmail({ to, subject, html })
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -121,11 +137,15 @@ export async function sendBookingReminderToClient(
   to: string,
   data: BookingData,
   hoursAhead: 24 | 2,
-  brandName: string
+  brandName: string,
+  lang: Language
 ): Promise<void> {
-  const label = hoursAhead === 24 ? 'jutro' : 'za 2 godziny'
+  const t = emailT(lang)
+  const year = new Date().getFullYear()
+  const when = hoursAhead === 24 ? t('emailNotif.reminder.whenTomorrow') : t('emailNotif.reminder.whenSoon')
+  const subject = t('emailNotif.reminder.subject', { brandName, when })
   const html = `
-<!DOCTYPE html><html lang="pl"><head><meta charset="UTF-8"/></head>
+<!DOCTYPE html><html lang="${lang}"><head><meta charset="UTF-8"/></head>
 <body style="margin:0;padding:0;background:#f5f5f5;font-family:Arial,Helvetica,sans-serif;">
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:32px 0;">
 <tr><td align="center">
@@ -135,31 +155,27 @@ export async function sendBookingReminderToClient(
   <span style="font-size:22px;font-weight:700;color:#1a1a1a;">${brandName}</span>
 </td></tr>
 <tr><td style="padding-top:28px;">
-  <p style="margin:0 0 8px;font-size:18px;font-weight:600;color:#1a1a1a;">Przypomnienie o wizycie</p>
+  <p style="margin:0 0 8px;font-size:18px;font-weight:600;color:#1a1a1a;">${t('emailNotif.reminder.heading')}</p>
   <p style="margin:0 0 24px;font-size:14px;color:#555;line-height:1.6;">
-    Cześć ${data.name}, przypominamy o Twojej wizycie <strong>${label}</strong>!
+    ${t('emailNotif.reminder.greeting', { name: data.name, when: `<strong>${when}</strong>` })}
   </p>
   <table width="100%" cellpadding="0" cellspacing="0"
          style="background:#f9f9f9;border-radius:8px;padding:16px;margin-bottom:24px;">
-    <tr><td style="padding:4px 0;font-size:14px;color:#555;"><strong>Usługa:</strong> ${data.service}</td></tr>
-    <tr><td style="padding:4px 0;font-size:14px;color:#555;"><strong>Mistrz:</strong> ${data.master}</td></tr>
-    <tr><td style="padding:4px 0;font-size:14px;color:#555;"><strong>Data:</strong> ${data.date}</td></tr>
-    <tr><td style="padding:4px 0;font-size:14px;color:#555;"><strong>Godzina:</strong> ${data.time}</td></tr>
+    <tr><td style="padding:4px 0;font-size:14px;color:#555;"><strong>${t('emailNotif.confirmation.serviceLabel')}:</strong> ${data.service}</td></tr>
+    <tr><td style="padding:4px 0;font-size:14px;color:#555;"><strong>${t('emailNotif.confirmation.masterLabel')}:</strong> ${data.master}</td></tr>
+    <tr><td style="padding:4px 0;font-size:14px;color:#555;"><strong>${t('emailNotif.confirmation.dateLabel')}:</strong> ${data.date}</td></tr>
+    <tr><td style="padding:4px 0;font-size:14px;color:#555;"><strong>${t('emailNotif.confirmation.timeLabel')}:</strong> ${data.time}</td></tr>
   </table>
 </td></tr>
 <tr><td style="padding-top:28px;border-top:1px solid #eee;text-align:center;">
-  <p style="margin:0;font-size:12px;color:#bbb;">© ${new Date().getFullYear()} ${brandName}</p>
+  <p style="margin:0;font-size:12px;color:#bbb;">${t('emailNotif.reminder.footer', { year, brandName })}</p>
 </td></tr>
 </table>
 </td></tr>
 </table>
 </body></html>`.trim()
 
-  await sendEmail({
-    to,
-    subject: `${brandName} — Przypomnienie: wizyta ${label}`,
-    html,
-  })
+  await sendEmail({ to, subject, html })
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

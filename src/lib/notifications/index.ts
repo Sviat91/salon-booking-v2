@@ -77,7 +77,12 @@ export async function notifyBookingConfirmation(appointmentId: string, actor: Bo
       // Client copy
       if (appointment.client.email) {
         try {
-          await sendBookingConfirmationToClient(appointment.client.email, clientData, brandName)
+          await sendBookingConfirmationToClient(
+            appointment.client.email,
+            clientData,
+            brandName,
+            (appointment.clientLanguage as Language) || DEFAULT_LANGUAGE
+          )
           await logNotification({
             type: 'BOOKING_CONFIRMATION',
             channel: 'email',
@@ -290,7 +295,13 @@ export async function notifyBookingReminders(): Promise<{ sent: number; skipped:
 
         if (config.notifEmailEnabled && appt.client.email && !alreadyEmail) {
           try {
-            await sendBookingReminderToClient(appt.client.email, clientData, window.hours, brandName)
+            await sendBookingReminderToClient(
+              appt.client.email,
+              clientData,
+              window.hours,
+              brandName,
+              (appt.clientLanguage as Language) || DEFAULT_LANGUAGE
+            )
             await logNotification({
               type: window.type,
               channel: 'email',

@@ -1463,5 +1463,25 @@
       "heading2h": "⏰ Reminder: your appointment is in 2 hours",
       "details": "👤 Specialist: {{master}}\n💇 Service: {{service}}\n📅 Date: {{date}}\n🕐 Time: {{time}}"
     }
+  },
+  "emailNotif": {
+    "confirmation": {
+      "subject": "{{brandName}} — Booking Confirmation",
+      "heading": "Booking Confirmation",
+      "greeting": "Hi {{name}}, your appointment has been confirmed!",
+      "serviceLabel": "Service",
+      "masterLabel": "Specialist",
+      "dateLabel": "Date",
+      "timeLabel": "Time",
+      "footer": "© {{year}} {{brandName}}. All rights reserved."
+    },
+    "reminder": {
+      "subject": "{{brandName}} — Reminder: appointment {{when}}",
+      "heading": "Appointment Reminder",
+      "greeting": "Hi {{name}}, this is a reminder about your appointment {{when}}!",
+      "whenTomorrow": "tomorrow",
+      "whenSoon": "in 2 hours",
+      "footer": "© {{year}} {{brandName}}"
+    }
   }
 }

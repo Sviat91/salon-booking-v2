@@ -1463,5 +1463,25 @@
       "heading2h": "⏰ Нагадування: ваш візит за 2 години",
       "details": "👤 Спеціаліст: {{master}}\n💇 Послуга: {{service}}\n📅 Дата: {{date}}\n🕐 Час: {{time}}"
     }
+  },
+  "emailNotif": {
+    "confirmation": {
+      "subject": "{{brandName}} — Підтвердження запису",
+      "heading": "Підтвердження запису",
+      "greeting": "Привіт, {{name}}, ваш запис підтверджено!",
+      "serviceLabel": "Послуга",
+      "masterLabel": "Майстер",
+      "dateLabel": "Дата",
+      "timeLabel": "Час",
+      "footer": "© {{year}} {{brandName}}. Усі права захищені."
+    },
+    "reminder": {
+      "subject": "{{brandName}} — Нагадування: запис {{when}}",
+      "heading": "Нагадування про запис",
+      "greeting": "Привіт, {{name}}, нагадуємо про ваш запис {{when}}!",
+      "whenTomorrow": "завтра",
+      "whenSoon": "через 2 години",
+      "footer": "© {{year}} {{brandName}}"
+    }
   }
 }
