@@ -7,10 +7,8 @@ interface BookingConsentModalProps {
   terminLabel: string
   dataProcessingConsent: boolean
   termsConsent: boolean
-  notificationsConsent: boolean
   onDataProcessingChange: (checked: boolean) => void
   onTermsChange: (checked: boolean) => void
-  onNotificationsChange: (checked: boolean) => void
   loading: boolean
   error: string | null
   onBack: () => void
@@ -22,10 +20,8 @@ export default function BookingConsentModal({
   terminLabel,
   dataProcessingConsent,
   termsConsent,
-  notificationsConsent,
   onDataProcessingChange,
   onTermsChange,
-  onNotificationsChange,
   loading,
   error,
   onBack,
@@ -80,19 +76,6 @@ export default function BookingConsentModal({
               {t('consent.privacyLink')}
             </Link>{' '}
             <span className="text-red-500">*</span>
-          </span>
-        </label>
-
-        {/* Notifications consent (optional) */}
-        <label className="flex items-start space-x-3 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={notificationsConsent}
-            onChange={(e) => onNotificationsChange(e.target.checked)}
-            className="mt-1 h-4 w-4 rounded border-border text-primary focus:ring-2 focus:ring-primary"
-          />
-          <span className="text-sm text-muted-foreground flex-1">
-            {t('consent.notificationsCheckbox')}
           </span>
         </label>
       </div>

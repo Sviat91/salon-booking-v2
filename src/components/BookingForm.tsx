@@ -58,7 +58,6 @@ export default function BookingForm({
 
   const [dataProcessingConsent, setDataProcessingConsent] = useState(false)
   const [termsConsent, setTermsConsent] = useState(false)
-  const [notificationsConsent, setNotificationsConsent] = useState(false)
 
   const [tsToken, setTsToken] = useState<string | null>(null)
   const tsRef = useRef<HTMLDivElement | null>(null)
@@ -203,7 +202,13 @@ export default function BookingForm({
     bookWithConsents({
       dataProcessing: dataProcessingConsent,
       terms: termsConsent,
-      notifications: notificationsConsent,
+      // No separate opt-in checkbox for this (2026-08-07 removal): booking
+      // confirmation/reminder emails are transactional (contract-necessary
+      // under GDPR Art. 6(1)(b), no promotional content), not marketing, so
+      // they don't require separate consent — matches how e.g. Booksy just
+      // sends them. `ConsentRecord.consentNotificationsV10` stays a required
+      // DB column (untouched, no migration), always recorded `true`.
+      notifications: true,
     })
   }
 
@@ -225,7 +230,6 @@ export default function BookingForm({
 
     setDataProcessingConsent(false)
     setTermsConsent(false)
-    setNotificationsConsent(false)
   }
 
   if (bookingState === 'success') {
@@ -249,10 +253,8 @@ export default function BookingForm({
         terminLabel={terminLabel}
         dataProcessingConsent={dataProcessingConsent}
         termsConsent={termsConsent}
-        notificationsConsent={notificationsConsent}
         onDataProcessingChange={setDataProcessingConsent}
         onTermsChange={setTermsConsent}
-        onNotificationsChange={setNotificationsConsent}
         loading={loading}
         error={error}
         onBack={handleConsentBack}

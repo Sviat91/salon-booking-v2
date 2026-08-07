@@ -26,7 +26,6 @@ export default function RegisterForm({ className, ...props }: RegisterFormProps)
 
   const [consentDataProcessing, setConsentDataProcessing] = React.useState(false)
   const [consentTerms, setConsentTerms] = React.useState(false)
-  const [consentNotifications, setConsentNotifications] = React.useState(false)
 
   const { t } = useTranslation()
 
@@ -143,7 +142,9 @@ export default function RegisterForm({ className, ...props }: RegisterFormProps)
           consents: {
             dataProcessing: consentDataProcessing,
             terms: consentTerms,
-            notifications: consentNotifications,
+            // No separate opt-in checkbox for this (2026-08-07 removal) — see
+            // the matching comment in BookingForm.tsx's handleConsentConfirm.
+            notifications: true,
           },
           turnstileToken,
         }),
@@ -311,17 +312,6 @@ export default function RegisterForm({ className, ...props }: RegisterFormProps)
                 {t('consent.privacyCheckbox', 'I consent to the processing of my personal data in accordance with the')} {" "}
                 <a href="/privacy" target="_blank" className="underline">{t('consent.privacyLink', 'Privacy Policy')}</a> <span className="text-red-500">*</span>
               </span>
-            </label>
-
-            <label className="flex items-start gap-2">
-              <input
-                type="checkbox"
-                checked={consentNotifications}
-                onChange={(e) => setConsentNotifications(e.target.checked)}
-                disabled={isLoading}
-                className="mt-0.5"
-              />
-              <span>{t('consent.notificationsCheckbox', 'I agree to receive booking notifications via phone/email (optional)')}</span>
             </label>
           </div>
 
