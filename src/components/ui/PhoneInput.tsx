@@ -54,18 +54,26 @@ export default function PhoneInput({
   const inputRef = useRef<HTMLInputElement>(null)
   const codeInputRef = useRef<HTMLInputElement>(null)
   const lastValueRef = useRef<string>('')
+  // Set right before this effect updates internal state from an *external*
+  // `value` change, so the "notify parent" effect below knows the next
+  // internal-state change it sees is just a mirror of that same value, not
+  // a real edit — and must not call `onChange` for it (2026-08-07 fix, see
+  // that effect for the full race this prevents).
+  const skipNotifyRef = useRef(false)
 
   const isCustomMode = selectedCountry === null
 
   // Effect to parse the initial value from the parent
   useEffect(() => {
     lastValueRef.current = value // Update ref when value changes from outside
-    
+
     // Don't redistribute data if user is actively typing in a field
     if (activeField) {
       return
     }
-    
+
+    skipNotifyRef.current = true
+
     if (value) {
       const matchingCountry = COUNTRIES.find(c => value.startsWith(c.phoneCode))
       if (matchingCountry) {
@@ -98,14 +106,34 @@ export default function PhoneInput({
 
   // Effect to notify parent of changes
   useEffect(() => {
+    // This state change just mirrored an external `value` update (the effect
+    // above), not a user edit — skip once rather than notifying the parent.
+    // Without this, on a fresh mount with a non-empty `value` (e.g. the
+    // booking form's phone field surviving a remount across a "consent" step
+    // and back), this effect ran in the same commit as the parse effect
+    // above but read the *pre-update* `phoneNumber`/`selectedCountry` state
+    // (React batches same-commit effects; the state set moments earlier by
+    // the other effect isn't visible here until the next render). It then
+    // computed a truncated `fullPhone` (just the country code, no digits)
+    // and — because the other effect had already overwritten
+    // `lastValueRef.current` to the *full* value — the stale/full mismatch
+    // looked like a real edit, so it called `onChange` with the truncated
+    // value. That corrupted value flowed back down as the new `value` prop,
+    // which the parse effect then re-parsed to an empty phone number,
+    // triggering this effect again — a rapid empty/filled oscillation.
+    if (skipNotifyRef.current) {
+      skipNotifyRef.current = false
+      return
+    }
+
     const countryCode = isCustomMode ? customCountryCode : selectedCountry?.phoneCode || ''
     const fullPhone = countryCode + phoneNumber
-    
+
     // In custom mode, only notify parent if user has entered at least a "+"
     if (isCustomMode && !customCountryCode.startsWith('+')) {
       return // Don't notify parent yet in custom mode without "+"
     }
-    
+
     if (fullPhone !== lastValueRef.current) {
       lastValueRef.current = fullPhone
       onChange(fullPhone)

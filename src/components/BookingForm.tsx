@@ -154,14 +154,6 @@ export default function BookingForm({
   }, [siteKey, language])
 
   useEffect(() => {
-    if (bookingState === 'consent' && tsRef.current) {
-      tsRef.current.style.display = 'none'
-    } else if (tsRef.current) {
-      tsRef.current.style.display = 'block'
-    }
-  }, [bookingState])
-
-  useEffect(() => {
     return () => {
       if (phoneValidationTimeoutRef.current) {
         clearTimeout(phoneValidationTimeoutRef.current)
@@ -214,9 +206,6 @@ export default function BookingForm({
 
   const handleConsentBack = () => {
     resetToForm()
-    if (tsRef.current) {
-      tsRef.current.style.display = 'block'
-    }
   }
 
   const handleSuccessClose = () => {
@@ -232,169 +221,189 @@ export default function BookingForm({
     setTermsConsent(false)
   }
 
-  if (bookingState === 'success') {
-    return (
-      <BookingSuccess
-        procedureName={selectedProcedureName}
-        terminLabel={terminLabel}
-        procedurePrice={bookedPricing?.finalPrice ?? selectedProcedure?.price_pln}
-        originalPrice={bookedPricing?.originalPrice}
-        discountPercent={bookedPricing?.discountPercent ?? null}
-        isAuth={isAuth}
-        onClose={handleSuccessClose}
-      />
-    )
-  }
-
-  if (bookingState === 'consent') {
-    return (
-      <BookingConsentModal
-        procedureName={selectedProcedureName}
-        terminLabel={terminLabel}
-        dataProcessingConsent={dataProcessingConsent}
-        termsConsent={termsConsent}
-        onDataProcessingChange={setDataProcessingConsent}
-        onTermsChange={setTermsConsent}
-        loading={loading}
-        error={error}
-        onBack={handleConsentBack}
-        onConfirm={handleConsentConfirm}
-      />
-    )
-  }
-
+  // The Turnstile container below is NEVER conditionally unmounted based on
+  // `bookingState` (2026-08-07 fix) — it renders unconditionally and is only
+  // hidden/shown via the `style.display` effect above. It used to live only
+  // inside this function's "form" branch, behind two early `return`s for
+  // 'success'/'consent' — so going to the consent step and back (or to
+  // success and back) tore the div out of the DOM and recreated a fresh one,
+  // but the Cloudflare widget was only ever rendered once (the render-effect
+  // above has no cleanup and doesn't depend on `bookingState`). The orphaned
+  // widget instance kept running detached from the document, which is what
+  // caused the reported jitter/frozen interface after clicking "Back" from
+  // the consent modal. `booking-management`'s `useTurnstileSession` hook
+  // already gets this right (tracks the widget id, cleans it up, and calls
+  // `ensureWidget()` on remount) — this file intentionally stays a self-
+  // contained inline copy rather than importing that hook (matches the
+  // existing auth-forms convention, see src/components/AGENTS.md), so it
+  // needed the equivalent fix applied locally: never unmount the container.
   return (
     <div className="space-y-3">
-      <div className="text-muted-foreground">
-        <div className="font-medium text-foreground mb-0.5">{selectedProcedureName}</div>
-        <div className="text-sm">{terminLabel}</div>
-      </div>
-
-      {discountPreview && (
-        <BookingPriceSummary
-          originalPrice={discountPreview.originalPrice}
-          finalPrice={discountPreview.finalPrice}
-          percent={discountPreview.percent}
-          label={discountPreview.label}
-          currency={t('common.currency')}
-          provisional
+      {bookingState === 'success' && (
+        <BookingSuccess
+          procedureName={selectedProcedureName}
+          terminLabel={terminLabel}
+          procedurePrice={bookedPricing?.finalPrice ?? selectedProcedure?.price_pln}
+          originalPrice={bookedPricing?.originalPrice}
+          discountPercent={bookedPricing?.discountPercent ?? null}
+          isAuth={isAuth}
+          onClose={handleSuccessClose}
         />
       )}
 
-      {isAuth ? (
+      {bookingState === 'consent' && (
+        <BookingConsentModal
+          procedureName={selectedProcedureName}
+          terminLabel={terminLabel}
+          dataProcessingConsent={dataProcessingConsent}
+          termsConsent={termsConsent}
+          onDataProcessingChange={setDataProcessingConsent}
+          onTermsChange={setTermsConsent}
+          loading={loading}
+          error={error}
+          onBack={handleConsentBack}
+          onConfirm={handleConsentConfirm}
+        />
+      )}
+
+      {bookingState === 'form' && (
         <>
-          <BookingAuthDetailsCard
-            name={name}
-            phone={phone}
-            email={email}
-            authUser={authUser}
-            onCommit={({ name: n, phone: p, email: e }) => {
-              setName(n)
-              setPhone(p)
-              setEmail(e)
-            }}
-          />
-          <BookingPromoCodeField
-            appliedCode={appliedCode}
-            codeStatus={discountPreview?.codeStatus ?? null}
-            loading={discountLoading}
-            onApply={applyDiscountCode}
-            onRemove={clearDiscountCode}
-          />
+          <div className="text-muted-foreground">
+            <div className="font-medium text-foreground mb-0.5">{selectedProcedureName}</div>
+            <div className="text-sm">{terminLabel}</div>
+          </div>
+
+          {discountPreview && (
+            <BookingPriceSummary
+              originalPrice={discountPreview.originalPrice}
+              finalPrice={discountPreview.finalPrice}
+              percent={discountPreview.percent}
+              label={discountPreview.label}
+              currency={t('common.currency')}
+              provisional
+            />
+          )}
+
+          {isAuth ? (
+            <>
+              <BookingAuthDetailsCard
+                name={name}
+                phone={phone}
+                email={email}
+                authUser={authUser}
+                onCommit={({ name: n, phone: p, email: e }) => {
+                  setName(n)
+                  setPhone(p)
+                  setEmail(e)
+                }}
+              />
+              <BookingPromoCodeField
+                appliedCode={appliedCode}
+                codeStatus={discountPreview?.codeStatus ?? null}
+                loading={discountLoading}
+                onApply={applyDiscountCode}
+                onRemove={clearDiscountCode}
+              />
+            </>
+          ) : (
+            <div className="space-y-2">
+              <div>
+                <input
+                  className={`w-full rounded-xl border ${nameError ? 'border-red-500' : 'border-border'} bg-transparent px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary`}
+                  placeholder={t('form.name')}
+                  value={name}
+                  onChange={(e) => {
+                    setName(e.target.value)
+                    if (nameError) setNameError(null)
+                  }}
+                  onBlur={handleNameBlur}
+                />
+                {nameError && <div className="mt-1 text-xs text-red-600 dark:text-red-400">{nameError}</div>}
+              </div>
+
+              <div>
+                <PhoneInput
+                  value={phone}
+                  onChange={(val) => {
+                    setPhone(val)
+                    if (phoneValidationTimeoutRef.current) {
+                      clearTimeout(phoneValidationTimeoutRef.current)
+                    }
+                    phoneValidationTimeoutRef.current = setTimeout(() => {
+                      if (!val.trim()) {
+                        setPhoneError(null)
+                        return
+                      }
+                      const result = validatePhone(val)
+                      setPhoneError(result.valid ? null : result.error ? t(result.error, result.errorParams) : null)
+                    }, 500)
+                  }}
+                  placeholder={t('form.phone')}
+                />
+                {phoneError && <div className="mt-1 text-xs text-red-600 dark:text-red-400">{phoneError}</div>}
+              </div>
+
+              <BookingPromoCodeField
+                appliedCode={appliedCode}
+                codeStatus={discountPreview?.codeStatus ?? null}
+                loading={discountLoading}
+                onApply={applyDiscountCode}
+                onRemove={clearDiscountCode}
+              />
+
+              <div>
+                <input
+                  className={`w-full rounded-xl border ${emailError ? 'border-red-500' : 'border-border'} bg-transparent px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary`}
+                  placeholder={t('form.emailOptional')}
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value)
+                    if (emailError) setEmailError(null)
+                  }}
+                  onBlur={handleEmailBlur}
+                />
+                {emailError && <div className="mt-1 text-xs text-red-600 dark:text-red-400">{emailError}</div>}
+              </div>
+            </div>
+          )}
         </>
-      ) : (
-        <div className="space-y-2">
-          <div>
-            <input
-              className={`w-full rounded-xl border ${nameError ? 'border-red-500' : 'border-border'} bg-transparent px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary`}
-              placeholder={t('form.name')}
-              value={name}
-              onChange={(e) => {
-                setName(e.target.value)
-                if (nameError) setNameError(null)
-              }}
-              onBlur={handleNameBlur}
-            />
-            {nameError && <div className="mt-1 text-xs text-red-600 dark:text-red-400">{nameError}</div>}
-          </div>
-
-          <div>
-            <PhoneInput
-              value={phone}
-              onChange={(val) => {
-                setPhone(val)
-                if (phoneValidationTimeoutRef.current) {
-                  clearTimeout(phoneValidationTimeoutRef.current)
-                }
-                phoneValidationTimeoutRef.current = setTimeout(() => {
-                  if (!val.trim()) {
-                    setPhoneError(null)
-                    return
-                  }
-                  const result = validatePhone(val)
-                  setPhoneError(result.valid ? null : result.error ? t(result.error, result.errorParams) : null)
-                }, 500)
-              }}
-              placeholder={t('form.phone')}
-            />
-            {phoneError && <div className="mt-1 text-xs text-red-600 dark:text-red-400">{phoneError}</div>}
-          </div>
-
-          <BookingPromoCodeField
-            appliedCode={appliedCode}
-            codeStatus={discountPreview?.codeStatus ?? null}
-            loading={discountLoading}
-            onApply={applyDiscountCode}
-            onRemove={clearDiscountCode}
-          />
-
-          <div>
-            <input
-              className={`w-full rounded-xl border ${emailError ? 'border-red-500' : 'border-border'} bg-transparent px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary`}
-              placeholder={t('form.emailOptional')}
-              value={email}
-              onChange={(e) => {
-                setEmail(e.target.value)
-                if (emailError) setEmailError(null)
-              }}
-              onBlur={handleEmailBlur}
-            />
-            {emailError && <div className="mt-1 text-xs text-red-600 dark:text-red-400">{emailError}</div>}
-          </div>
-        </div>
       )}
 
       {siteKey && (
-        <div className="mt-3">
+        <div className={bookingState === 'form' ? 'mt-3' : 'hidden'}>
           <div ref={tsRef} className="rounded-xl" />
         </div>
       )}
 
-      {error && <div className="mt-3 text-sm text-red-600 dark:text-red-400">{error}</div>}
+      {bookingState === 'form' && (
+        <>
+          {error && <div className="mt-3 text-sm text-red-600 dark:text-red-400">{error}</div>}
 
-      <button
-        disabled={!canSubmit || isCheckingConsent}
-        onClick={checkConsentAndProceed}
-        className={`btn btn-primary mt-4 w-full transition-all duration-200 ${
-          !canSubmit || isCheckingConsent ? 'opacity-60 pointer-events-none' : 'hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]'
-        }`}
-      >
-        {isCheckingConsent ? (
-          <span className="flex items-center justify-center gap-2">
-            <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-              ></path>
-            </svg>
-            <span>{t('booking.preparing')}</span>
-          </span>
-        ) : (
-          t('booking.book')
-        )}
-      </button>
+          <button
+            disabled={!canSubmit || isCheckingConsent}
+            onClick={checkConsentAndProceed}
+            className={`btn btn-primary mt-4 w-full transition-all duration-200 ${
+              !canSubmit || isCheckingConsent ? 'opacity-60 pointer-events-none' : 'hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]'
+            }`}
+          >
+            {isCheckingConsent ? (
+              <span className="flex items-center justify-center gap-2">
+                <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+                <span>{t('booking.preparing')}</span>
+              </span>
+            ) : (
+              t('booking.book')
+            )}
+          </button>
+        </>
+      )}
     </div>
   )
 }
