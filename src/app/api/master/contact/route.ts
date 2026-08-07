@@ -4,6 +4,7 @@ import { getLogger } from '../../../../lib/logger'
 import { rateLimit } from '../../../../lib/cache'
 import { notifyContactForm } from '../../../../lib/notifications'
 import { validateTurnstileForAPI } from '../../../../lib/turnstile'
+import prisma from '../../../../lib/prisma'
 
 export const runtime = 'nodejs'
 
@@ -69,10 +70,25 @@ export async function POST(req: NextRequest) {
     masterId,
   }, 'Master contact form received')
 
+  // Look up a human-readable label for the subject line — previously this
+  // interpolated the raw masterId (a Prisma cuid) directly, which was
+  // unreadable to the salon admin/master reading the notification
+  // (2026-08-07 fix).
+  let masterLabel: string | null = null
+  if (masterId) {
+    const master = await prisma.user.findUnique({
+      where: { id: masterId },
+      select: { name: true, email: true },
+    })
+    if (master) {
+      masterLabel = master.email ? `${master.name ?? 'Master'} (${master.email})` : master.name
+    }
+  }
+
   notifyContactForm({
     senderName: body.fullName,
     senderEmail: body.email || undefined,
-    subject: masterId ? `Master contact (master: ${masterId})` : 'Master contact form',
+    subject: masterLabel ? `Master contact (master: ${masterLabel})` : 'Master contact form',
     message: body.message,
   }).catch(console.error)
 
