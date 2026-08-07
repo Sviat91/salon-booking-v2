@@ -1,3 +1,5 @@
+import { redirect } from "next/navigation"
+import { auth } from "@/auth"
 import prisma from "@/lib/prisma"
 import ServicesClient from "./ServicesClient"
 import { getServerT } from "@/lib/i18n-server"
@@ -5,6 +7,11 @@ import { getTenantConfig } from "@/lib/tenant"
 import { parseEnabledLocales } from "@/lib/localized-content"
 
 export default async function ServicesPage() {
+  const session = await auth()
+  if (!session?.user || !["ADMIN", "SUPERADMIN"].includes(session.user.role ?? "")) {
+    redirect("/auth/login")
+  }
+
   const t = getServerT()
   const config = await getTenantConfig()
   const enabledLocales = parseEnabledLocales((config as { enabledLocales?: string }).enabledLocales)

@@ -1,3 +1,5 @@
+import { redirect } from "next/navigation"
+import { auth } from "@/auth"
 import prisma from "@/lib/prisma"
 import MastersClient from "./MastersClient"
 import { getTenantConfig } from "@/lib/tenant"
@@ -20,6 +22,11 @@ type MasterWithProfile = {
 }
 
 export default async function MastersPage() {
+  const session = await auth()
+  if (!session?.user || !["ADMIN", "SUPERADMIN"].includes(session.user.role ?? "")) {
+    redirect("/auth/login")
+  }
+
   const config = await getTenantConfig()
   const enabledLocales = parseEnabledLocales((config as { enabledLocales?: string }).enabledLocales)
 

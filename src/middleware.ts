@@ -24,8 +24,15 @@ export default auth((req) => {
       }
     }
 
-    // Master wants to access superadmin area (/admin but not /admin/master)
-    if (role === "MASTER" && pathname === "/admin") {
+    // Master wants to access the admin/superadmin area — anything under
+    // /admin that isn't their own /admin/master/* space. Previously this
+    // only checked `pathname === "/admin"` (the exact dashboard root), so
+    // navigating straight to an admin-only subroute like /admin/masters or
+    // /admin/services fell through with no redirect at all: the page
+    // rendered (no auth check in those Server Components — mutations are
+    // separately guarded server-side, but the page itself was fully
+    // readable) even though a master should never see it (2026-08-07 fix).
+    if (role === "MASTER" && !pathname.startsWith("/admin/master")) {
       return Response.redirect(new URL("/admin/master", nextUrl))
     }
 

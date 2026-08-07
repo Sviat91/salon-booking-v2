@@ -3,6 +3,11 @@
 - Email: s.upirov91@gmail.com\
 - Password: Start123\
 
+## Admin
+
+- morandkonrad@gmail.com
+- Start123!!!
+
 ## User
 
 svyatoslav.upirov@gmail.com

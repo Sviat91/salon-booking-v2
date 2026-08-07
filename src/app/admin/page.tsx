@@ -1,4 +1,6 @@
 import Link from "next/link"
+import { redirect } from "next/navigation"
+import { auth } from "@/auth"
 import {
   startOfDay,
   endOfDay,
@@ -63,6 +65,11 @@ async function getDashboardData() {
 }
 
 export default async function AdminDashboardPage() {
+  const session = await auth()
+  if (!session?.user || !["ADMIN", "SUPERADMIN"].includes(session.user.role ?? "")) {
+    redirect("/auth/login")
+  }
+
   const { today, todayAppointments, thisWeekCount, weekDelta, monthRevenue, masters, activeMastersToday } =
     await getDashboardData()
   const t = getServerT()

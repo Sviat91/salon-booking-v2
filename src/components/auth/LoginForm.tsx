@@ -94,12 +94,17 @@ export default function LoginForm({ className, ...props }: UserAuthFormProps) {
     setIsLoading(true)
     setError(null)
 
-    if (siteKey && !turnstileToken) {
-      setError(t('auth.captchaRequired'))
-      setIsLoading(false)
-      return
-    }
-
+    // No client-side hard block on a missing token (2026-08-07 fix):
+    // `checkLoginGuards()` on the server already calls
+    // `validateTurnstileForAPI(token, ip, { requireToken: false })`
+    // specifically so a Cloudflare/Turnstile outage or a script that fails
+    // to load can never lock the salon out of its own admin login — but
+    // this form previously hard-blocked submission client-side whenever the
+    // widget hadn't produced a token yet, for any reason, which defeated
+    // that server-side design entirely (the request never even reached the
+    // server). Let `signIn()` proceed with whatever token (or none) is
+    // available and let the server make the final call, same as it already
+    // does for a present-but-invalid token.
     const form = event.target as HTMLFormElement
     const email = (form.elements.namedItem('email') as HTMLInputElement).value
     const password = (form.elements.namedItem('password') as HTMLInputElement).value
