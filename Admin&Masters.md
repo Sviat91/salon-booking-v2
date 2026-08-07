@@ -1,11 +1,11 @@
 ## SuperAdmin
 
-- Email: admin@salon.local\
+- Email: s.upirov91@gmail.com\
 - Password: Start123\
 
 ## User
 
-s.upirov91@gmail.com
+svyatoslav.upirov@gmail.com
 Start123
 
 cd /opt/salon-booking/salontest
