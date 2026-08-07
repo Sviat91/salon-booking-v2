@@ -21,6 +21,7 @@ Test files only. Fixtures/mocks are inline per-file (`vi.mock(...)`), no shared 
 - (2026-08-05) New `tests/app/admin/master/calendar/calendar-utils.test.ts` — the first `tests/app/admin/**` mirror test (mirroring `src/app/admin/**` rather than `src/app/api/**`). Covers `resolveDayScheduleState()` (override-beats-template resolution used by `BulkSettingsModal`'s calendar dots) and needs **no mocks by design** (the module under test is Prisma-free/pure; its only cross-file import is `import type`, erased at transform time).
 - (2026-08-05) New `tests/lib/content/photo-ids.test.ts` — covers `derivePhotoIds()`/`reorderPhotosByIds()` (`src/lib/content/photo-ids.ts`), no mocks by design (the module under test is pure/React-free/Prisma-free).
 - (2026-08-06) New `tests/lib/og-image.test.ts`, no mocks by design; it is also the only place `sharp`'s native binding is exercised by the suite (a real temp PNG round-trip).
+- (2026-08-07) New `tests/app/admin/settings/notifications/recipient-diff.test.ts` — covers `diffRecipients()` (`src/app/admin/settings/notifications/recipient-diff.ts`), no mocks by design (the module under test is React-free/Prisma-free/pure).
 
 ## Work Guidance
 

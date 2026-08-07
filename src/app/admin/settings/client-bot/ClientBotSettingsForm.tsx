@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/form'
 import { SettingsSection } from '@/app/admin/settings/FormFields'
 import { apiErrorKey } from '@/lib/errors/apiErrorKey'
+import FormSkeleton from '@/components/admin/skeletons/FormSkeleton'
 
 const formSchema = z.object({
   clientBotEnabled: z.boolean(),
@@ -128,7 +129,15 @@ export default function ClientBotSettingsForm() {
   }
 
   if (isLoading) {
-    return <div className="text-sm text-muted-foreground">{t('common.loading')}</div>
+    // No translated text here — see the matching fix + rationale in
+    // NotificationSettingsForm.tsx (2026-08-07): `t('common.loading')`
+    // mismatched between server (always default locale) and the browser's
+    // first paint (real saved locale), crashing hydration for this subtree.
+    return (
+      <div className="flex flex-col gap-6">
+        <FormSkeleton />
+      </div>
+    )
   }
 
   return (

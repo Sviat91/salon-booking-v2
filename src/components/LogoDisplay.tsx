@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
 import Image from "next/image"
+import { useQuery } from "@tanstack/react-query"
 
 type LogoConfig = {
   logoUrl: string | null
@@ -26,14 +26,14 @@ function shouldShowLogo(logoPages: string, page: string): boolean {
 }
 
 export default function LogoDisplay({ page }: { page: "home" | "booking" | "master" }) {
-  const [config, setConfig] = useState<LogoConfig | null>(null)
-
-  useEffect(() => {
-    fetch("/api/tenant-config")
-      .then((res) => res.json())
-      .then(setConfig)
-      .catch(() => {})
-  }, [])
+  // Same 'tenant-config' query key as Footer.tsx — shares react-query's cache
+  // across page mounts, so client-side navigation between pages doesn't
+  // re-fetch and flash an empty placeholder before the logo pops in.
+  const { data: config } = useQuery<LogoConfig>({
+    queryKey: ['tenant-config'],
+    queryFn: () => fetch("/api/tenant-config").then((res) => res.json()),
+    staleTime: 60 * 60 * 1000,
+  })
 
   if (!config) {
     return (

@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import { useForm } from 'react-hook-form'
+import type { FieldErrors } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
@@ -20,8 +21,10 @@ import {
 } from '@/components/ui/form'
 import { SettingsSection } from '@/app/admin/settings/FormFields'
 import { apiErrorKey } from '@/lib/errors/apiErrorKey'
+import FormSkeleton from '@/components/admin/skeletons/FormSkeleton'
 import TelegramRecipientsField from './TelegramRecipientsField'
 import { recipientSchema, type RecipientRow } from './recipient-schema'
+import { diffRecipients } from './recipient-diff'
 
 const formSchema = z.object({
   notifEmailEnabled: z.boolean(),
@@ -34,14 +37,19 @@ const formSchema = z.object({
 
 export type FormValues = z.infer<typeof formSchema>
 
+// Always includes at least one blank row so the form always has an editable
+// slot on screen (see TelegramRecipientsField.tsx) — called both on initial
+// load and after save, so this blank row becomes part of `defaultValues`
+// too and never falsely marks the form dirty on its own.
 async function fetchRecipients(): Promise<RecipientRow[]> {
   const res = await fetch('/api/admin/notification-settings/recipients')
   const data = await res.json()
-  return (data.recipients ?? []).map((r: { id: string; chatId: string; label: string | null }) => ({
+  const recipients = (data.recipients ?? []).map((r: { id: string; chatId: string; label: string | null }) => ({
     dbId: r.id,
     chatId: r.chatId,
     label: r.label ?? '',
   }))
+  return recipients.length > 0 ? recipients : [{ dbId: null, chatId: '', label: '' }]
 }
 
 function ToggleRow({
@@ -147,14 +155,10 @@ export default function NotificationSettingsForm() {
         throw new Error(err.code ? t(apiErrorKey(err.code)) : t('admin.settings.notifications.saveFailed'))
       }
 
-      // Diff recipients against the last-loaded/last-saved baseline: new rows
-      // (dbId === null) get created, rows dropped from the current list get
-      // deleted. Editing an existing recipient in place isn't supported (same
-      // as before), so no update case.
-      const baseline = form.formState.defaultValues?.recipients ?? []
-      const currentIds = new Set(recipients.map((r) => r.dbId).filter(Boolean))
-      const toCreate = recipients.filter((r) => r.dbId === null)
-      const toDelete = baseline.filter((r) => r?.dbId && !currentIds.has(r.dbId))
+      const { toCreate, toUpdate, toDeleteIds } = diffRecipients(
+        form.formState.defaultValues?.recipients ?? [],
+        recipients
+      )
 
       const results = await Promise.allSettled([
         ...toCreate.map((r) =>
@@ -164,8 +168,15 @@ export default function NotificationSettingsForm() {
             body: JSON.stringify({ chatId: r.chatId, label: r.label || undefined }),
           })
         ),
-        ...toDelete.map((r) =>
-          fetch(`/api/admin/notification-settings/recipients/${r!.dbId}`, { method: 'DELETE' })
+        ...toUpdate.map((r) =>
+          fetch(`/api/admin/notification-settings/recipients/${r.dbId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chatId: r.chatId, label: r.label || undefined }),
+          })
+        ),
+        ...toDeleteIds.map((id) =>
+          fetch(`/api/admin/notification-settings/recipients/${id}`, { method: 'DELETE' })
         ),
       ])
       if (results.some((r) => r.status === 'rejected' || (r.status === 'fulfilled' && !r.value.ok))) {
@@ -182,13 +193,31 @@ export default function NotificationSettingsForm() {
     }
   }
 
+  function onInvalid(errors: FieldErrors<FormValues>) {
+    console.error('[NotificationSettingsForm] submit blocked by validation', errors)
+    toast.error(t('admin.settings.notifications.saveFailed'))
+  }
+
   if (isLoading) {
-    return <div className="text-sm text-muted-foreground">{t('common.loading')}</div>
+    // No translated text here (2026-08-07 fix): `useTranslation()` in a
+    // client component always SSRs in the default locale (`src/lib/i18n.ts`,
+    // deliberately, to avoid a *different* hydration mismatch), while the
+    // browser's very first paint can already reflect the visitor's real
+    // saved language — so a `t('common.loading')` string here mismatched
+    // between server and client HTML, and React discarded/remounted this
+    // whole subtree on every load, which is what made Save silently stop
+    // responding. A skeleton has no text, so there's nothing to mismatch.
+    return (
+      <div className="flex flex-col gap-6">
+        <FormSkeleton />
+        <FormSkeleton />
+      </div>
+    )
   }
 
   return (
     <Form {...form}>
-      <form id="settings-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form id="settings-form" onSubmit={form.handleSubmit(onSubmit, onInvalid)} className="space-y-6">
 
         {/* Email channel */}
         <SettingsSection
