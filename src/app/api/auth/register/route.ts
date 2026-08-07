@@ -62,12 +62,15 @@ export async function POST(req: NextRequest) {
     const normalizedEmail = email.trim().toLowerCase()
     const normalizedPhone = phone?.trim() || null
 
-    const existingRegistered = await prisma.user.findFirst({
-      where: {
-        email: normalizedEmail,
-        password: { not: null },
-      },
-    })
+    // Case-insensitive via SQL LOWER() (2026-08-07 fix, same root cause as
+    // src/auth.ts's authorize()) — an existing master/admin account created
+    // outside this form isn't normalized to lowercase on creation, so a
+    // plain equality check here could miss it and let a duplicate slip
+    // through purely by casing.
+    const existingIdMatches = await prisma.$queryRaw<{ id: string }[]>`
+      SELECT id FROM User WHERE LOWER(email) = ${normalizedEmail} AND password IS NOT NULL LIMIT 1
+    `
+    const existingRegistered = existingIdMatches[0] ?? null
 
     if (existingRegistered) {
       return NextResponse.json(

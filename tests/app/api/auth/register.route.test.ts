@@ -4,6 +4,7 @@ const { mockPrisma, mockHash, mockGetRequestIp, mockSaveConsentRecord, mockRateL
   mockPrisma: {
     user: {
       findFirst: vi.fn(),
+      findUnique: vi.fn(),
       create: vi.fn(),
       findMany: vi.fn(),
       deleteMany: vi.fn(),
@@ -15,6 +16,7 @@ const { mockPrisma, mockHash, mockGetRequestIp, mockSaveConsentRecord, mockRateL
       updateMany: vi.fn(),
     },
     $transaction: vi.fn(),
+    $queryRaw: vi.fn(),
   },
   mockHash: vi.fn(),
   mockGetRequestIp: vi.fn(),
@@ -57,6 +59,7 @@ describe("POST /api/auth/register", () => {
     mockPrisma.$transaction.mockImplementation(async (fn: any) => fn(mockPrisma))
     mockPrisma.user.findFirst.mockResolvedValue(null)
     mockPrisma.user.findMany.mockResolvedValue([])
+    mockPrisma.$queryRaw.mockResolvedValue([])
     mockPrisma.user.create.mockResolvedValue({
       id: "u_1",
       name: "Sviatoslav",
@@ -110,10 +113,7 @@ describe("POST /api/auth/register", () => {
   })
 
   it("returns 400 for duplicate registered email", async () => {
-    mockPrisma.user.findFirst.mockResolvedValueOnce({
-      id: "existing_1",
-      email: "user@example.com",
-    })
+    mockPrisma.$queryRaw.mockResolvedValueOnce([{ id: "existing_1" }])
 
     const response = await POST(
       createRequest({

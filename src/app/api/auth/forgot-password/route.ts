@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import bcrypt from 'bcryptjs'
 import prisma from '@/lib/prisma'
 import { rateLimit } from '@/lib/cache'
 import { sendPasswordResetEmail } from '@/lib/email'
@@ -59,14 +58,18 @@ export async function POST(req: NextRequest) {
     )
 
     // ── Look up registered (non-guest) user with a password ───────────────
-    const user = await prisma.user.findFirst({
-      where: {
-        email,
-        isGuest: false,
-        password: { not: null },
-      },
-      select: { id: true, email: true },
-    })
+    // Case-insensitive via SQL LOWER() (2026-08-07 fix, same root cause as
+    // src/auth.ts's authorize()): master/admin accounts created outside the
+    // registration form aren't normalized to lowercase on creation, so
+    // comparing only the lowercased input against the raw stored `email`
+    // could miss a match. Look up the id case-insensitively, then re-fetch
+    // typed via Prisma for the rest of this function.
+    const idMatches = await prisma.$queryRaw<{ id: string }[]>`
+      SELECT id FROM User WHERE LOWER(email) = ${email} AND isGuest = 0 AND password IS NOT NULL LIMIT 1
+    `
+    const user = idMatches[0]
+      ? await prisma.user.findUnique({ where: { id: idMatches[0].id }, select: { id: true, email: true } })
+      : null
 
     if (!user || !user.email) {
       // Email not found — return success anyway (anti-enumeration)

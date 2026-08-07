@@ -13,6 +13,12 @@
 svyatoslav.upirov@gmail.com
 Start123
 
+/
+
+sviat.boatdev@gmail.com
+Start123
++48785258741
+
 cd /opt/salon-booking/salontest
 git pull origin master
 docker compose -p salon-salontest up -d --build

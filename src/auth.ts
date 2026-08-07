@@ -35,9 +35,31 @@ export const coreAuthOptions: NextAuthConfig = {
         }
 
         try {
-          const user = await prisma.user.findFirst({
-            where: { email: credentials.email as string },
-          })
+          // Case-insensitive lookup via SQL LOWER(), not just a lowercased
+          // input (2026-08-07 fix): registration (`/api/auth/register`)
+          // stores `email.trim().toLowerCase()`, but this lookup previously
+          // matched the raw credential exactly — any casing difference
+          // between how the address was typed at registration vs. login
+          // (browser autocapitalize, autofill, copy-paste) made the account
+          // permanently unfindable here, which read as "wrong password" and
+          // was not fixed by a password reset (the email lookup, not the
+          // password, was the actual mismatch). Comparing case-insensitively
+          // at the DB level (rather than just lowercasing the login input)
+          // also matters because master/admin accounts created via
+          // `admin/masters/actions.ts`'s `createMaster` or
+          // `scripts/create-admin.ts` are NOT normalized to lowercase on
+          // creation — a plain `.toLowerCase()` on only the login side would
+          // silently break login for any such account whose stored email
+          // happens to have uppercase characters, even though it worked
+          // before this fix. Prisma's `mode: 'insensitive'` isn't available
+          // on the SQLite/libSQL connector, hence the raw `LOWER()` query.
+          const normalizedEmail = (credentials.email as string).trim().toLowerCase()
+          const matches = await prisma.$queryRaw<{ id: string }[]>`
+            SELECT id FROM User WHERE LOWER(email) = ${normalizedEmail} LIMIT 1
+          `
+          const user = matches[0]
+            ? await prisma.user.findUnique({ where: { id: matches[0].id } })
+            : null
 
           if (!user || !user.password) {
             return null
