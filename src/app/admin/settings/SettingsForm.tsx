@@ -12,7 +12,7 @@ import { saveSettings, type SettingsFormState } from "./actions"
 import LogoEditor from "./LogoEditor"
 import ThemeToggleIconsSection from "./ThemeToggleIconsSection"
 import BackgroundSection from "./BackgroundSection"
-import { ColorRow, ImageUploadField, SubmitButton, SettingsSection } from "./FormFields"
+import { ColorRow, ImageUploadField, SettingsSection } from "./FormFields"
 import { apiErrorKey } from "@/lib/errors/apiErrorKey"
 import { resizeImageIfNeeded } from "@/lib/image-resize"
 import LanguagesSection from "./LanguagesSection"
@@ -147,13 +147,20 @@ export default function SettingsForm({ config }: { config: TenantConfig }) {
   const [faviconUploading, setFaviconUploading] = useState(false)
   const [faviconError, setFaviconError] = useState<string | null>(null)
 
-  // Reset dirty on successful save
+  // Reset dirty on successful save. Depends on `state` itself, not
+  // `state.success` (2026-08-07 fix): `saveSettings` returns a fresh
+  // `{ success: true }` object literal on every call, but the *value* of
+  // `.success` stays `true` across repeat saves — so a dependency on just
+  // that boolean never changed on save #2+, and this effect silently
+  // stopped re-running (button never re-disabled, no `router.refresh()`,
+  // even though the server responded 200 each time). The object reference
+  // itself changes every dispatch, so depending on `state` fires every time.
   useEffect(() => {
     if (state.success) {
       setIsDirty(false)
       router.refresh()
     }
-  }, [state.success, router])
+  }, [state, router])
 
   // Dispatch custom event so sidebar can read isDirty
   useEffect(() => {
