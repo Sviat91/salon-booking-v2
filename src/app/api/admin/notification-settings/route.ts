@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { auth } from '@/auth'
 import prisma from '@/lib/prisma'
 import { z } from 'zod'
+import { invalidateTenantConfigCache } from '@/lib/tenant'
 
 const PatchSchema = z.object({
   notifEmailEnabled: z.boolean().optional(),
@@ -52,6 +53,7 @@ export async function PATCH(req: Request) {
     } else {
       await prisma.tenantConfig.update({ where: { id: existing.id }, data: updateData })
     }
+    await invalidateTenantConfigCache()
 
     return NextResponse.json({ success: true })
   } catch (error) {

@@ -1,6 +1,10 @@
 import { unstable_noStore as noStore } from "next/cache"
 import prisma from "@/lib/prisma"
 import { DEFAULT_BRAND_NAME } from "@/lib/constants/brand"
+import { cacheGet, cacheSet, cacheDel } from "@/lib/cache"
+
+const TENANT_CONFIG_CACHE_KEY = 'tenant:config'
+const TENANT_CONFIG_CACHE_TTL_SEC = 30
 
 const DEFAULT_CONFIG = {
   brandName: DEFAULT_BRAND_NAME,
@@ -70,9 +74,12 @@ const DEFAULT_CONFIG = {
 
 export async function getTenantConfig() {
   noStore() // Disable caching to always get fresh config
+  const cached = await cacheGet<typeof DEFAULT_CONFIG>(TENANT_CONFIG_CACHE_KEY)
+  if (cached) return cached
   try {
     const config = await prisma.tenantConfig.findFirst()
     if (config) {
+      await cacheSet(TENANT_CONFIG_CACHE_KEY, config, TENANT_CONFIG_CACHE_TTL_SEC)
       return config
     }
 
@@ -80,11 +87,16 @@ export async function getTenantConfig() {
     const newConfig = await prisma.tenantConfig.create({
       data: DEFAULT_CONFIG,
     })
-    
+
+    await cacheSet(TENANT_CONFIG_CACHE_KEY, newConfig, TENANT_CONFIG_CACHE_TTL_SEC)
     return newConfig
 
   } catch {
     // Fallback if DB is unavailable during certain build steps
     return DEFAULT_CONFIG
   }
+}
+
+export async function invalidateTenantConfigCache() {
+  await cacheDel(TENANT_CONFIG_CACHE_KEY)
 }

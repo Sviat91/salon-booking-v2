@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { auth } from "@/auth"
 import prisma from "@/lib/prisma"
 import { encrypt } from "@/lib/encryption"
+import { invalidateTenantConfigCache } from "@/lib/tenant"
 
 export async function GET() {
   const session = await auth()
@@ -64,6 +65,7 @@ export async function PATCH(req: Request) {
         data: updateData
       })
     }
+    await invalidateTenantConfigCache()
 
     return NextResponse.json({ success: true })
   } catch (error: any) {

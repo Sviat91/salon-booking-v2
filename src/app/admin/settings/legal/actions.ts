@@ -5,6 +5,7 @@ import { z } from "zod"
 import prisma from "@/lib/prisma"
 import { auth } from "@/auth"
 import { getServerT } from "@/lib/i18n-server"
+import { invalidateTenantConfigCache } from "@/lib/tenant"
 
 function buildLegalSchema(t: (key: string) => string) {
   const field = () => z.string().max(50000, t('admin.settings.legal.tooLong')).optional()
@@ -75,6 +76,7 @@ export async function saveLegalContent(
     } else {
       await prisma.tenantConfig.create({ data })
     }
+    await invalidateTenantConfigCache()
 
     revalidatePath('/terms')
     revalidatePath('/privacy')

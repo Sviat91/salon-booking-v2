@@ -5,6 +5,7 @@ import { z } from "zod"
 import prisma from "@/lib/prisma"
 import { getServerT } from "@/lib/i18n-server"
 import { parseEnabledLocales } from "@/lib/localized-content"
+import { invalidateTenantConfigCache } from "@/lib/tenant"
 
 function buildSettingsSchema(t: (key: string) => string) {
   const hexColor = z.string().regex(/^#[0-9A-Fa-f]{6}$/, t('admin.settings.general.invalidHexColor'))
@@ -166,6 +167,7 @@ export async function saveSettings(
     } else {
       await prisma.tenantConfig.create({ data })
     }
+    await invalidateTenantConfigCache()
     // Revalidate all paths that use tenant config
     revalidatePath("/", "layout")
     revalidatePath("/admin", "layout")

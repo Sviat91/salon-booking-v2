@@ -3,6 +3,7 @@ import { auth } from '@/auth'
 import prisma from '@/lib/prisma'
 import { z } from 'zod'
 import { restartClientBot } from '@/lib/telegram-bot/lifecycle'
+import { invalidateTenantConfigCache } from '@/lib/tenant'
 
 const PatchSchema = z.object({
   clientBotEnabled: z.boolean().optional(),
@@ -50,6 +51,7 @@ export async function PATCH(req: Request) {
     } else {
       await prisma.tenantConfig.update({ where: { id: existing.id }, data: updateData })
     }
+    await invalidateTenantConfigCache()
 
     const lifecycleResult = await restartClientBot()
     if (!lifecycleResult.ok) {
