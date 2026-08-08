@@ -129,7 +129,11 @@ export default function LoginForm({ className, ...props }: UserAuthFormProps) {
 
       if (res?.error) {
         resetTurnstile()
-        setError(t('auth.invalidCredentials', 'Invalid email or password'))
+        if (res.code === 'rate_limited') {
+          setError(t('auth.tooManyAttempts', 'Too many login attempts. Please try again in a few minutes.'))
+        } else {
+          setError(t('auth.invalidCredentials', 'Invalid email or password'))
+        }
       } else {
         if (callbackUrl) {
           window.location.href = callbackUrl

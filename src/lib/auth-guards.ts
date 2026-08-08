@@ -7,8 +7,14 @@
 import { rateLimit } from '@/lib/cache'
 import { validateTurnstileForAPI } from '@/lib/turnstile'
 
-export const LOGIN_ATTEMPT_LIMIT = 10
+// Per-IP cap: catches wide credential-stuffing sweeps across many accounts
+// from one IP, not normal multi-account testing from one office/home IP.
+export const LOGIN_ATTEMPT_LIMIT = 30
 export const LOGIN_ATTEMPT_WINDOW_SEC = 15 * 60
+
+// Per-account cap: the actual brute-force target, stays tight.
+export const ACCOUNT_ATTEMPT_LIMIT = 10
+export const ACCOUNT_ATTEMPT_WINDOW_SEC = 15 * 60
 
 export type LoginGuardResult =
   | { ok: true }
@@ -16,12 +22,19 @@ export type LoginGuardResult =
 
 export async function checkLoginGuards(params: {
   ip: string
+  email: string
   turnstileToken?: unknown
 }): Promise<LoginGuardResult> {
-  const { ip, turnstileToken } = params
+  const { ip, email, turnstileToken } = params
 
-  const { allowed } = await rateLimit(`rate:login:${ip}`, LOGIN_ATTEMPT_LIMIT, LOGIN_ATTEMPT_WINDOW_SEC)
-  if (!allowed) {
+  const { allowed: ipAllowed } = await rateLimit(`rate:login:${ip}`, LOGIN_ATTEMPT_LIMIT, LOGIN_ATTEMPT_WINDOW_SEC)
+  const normalizedEmail = email.trim().toLowerCase()
+  const { allowed: acctAllowed } = await rateLimit(
+    `rate:login:acct:${normalizedEmail}`,
+    ACCOUNT_ATTEMPT_LIMIT,
+    ACCOUNT_ATTEMPT_WINDOW_SEC
+  )
+  if (!ipAllowed || !acctAllowed) {
     return { ok: false, reason: 'RATE_LIMITED' }
   }
 

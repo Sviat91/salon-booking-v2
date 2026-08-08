@@ -18,29 +18,30 @@ describe('checkLoginGuards', () => {
     vi.clearAllMocks()
   })
 
-  it('returns RATE_LIMITED and does not call validateTurnstileForAPI when rate limit is exceeded', async () => {
-    rateLimit.mockResolvedValue({ allowed: false, count: 11 })
+  it('returns RATE_LIMITED and does not call validateTurnstileForAPI when IP rate limit is exceeded', async () => {
+    rateLimit.mockResolvedValue({ allowed: false, count: 31 })
 
-    const result = await checkLoginGuards({ ip: '1.2.3.4', turnstileToken: 'token' })
+    const result = await checkLoginGuards({ ip: '1.2.3.4', email: 'user@example.com', turnstileToken: 'token' })
 
     expect(result).toEqual({ ok: false, reason: 'RATE_LIMITED' })
     expect(validateTurnstileForAPI).not.toHaveBeenCalled()
   })
 
-  it('calls rateLimit with the exact login key/limit/window', async () => {
+  it('calls rateLimit with the exact per-IP and per-account keys/limits/windows', async () => {
     rateLimit.mockResolvedValue({ allowed: true, count: 1 })
     validateTurnstileForAPI.mockResolvedValue({ success: true })
 
-    await checkLoginGuards({ ip: '1.2.3.4', turnstileToken: 'token' })
+    await checkLoginGuards({ ip: '1.2.3.4', email: 'user@example.com', turnstileToken: 'token' })
 
-    expect(rateLimit).toHaveBeenCalledWith('rate:login:1.2.3.4', 10, 900)
+    expect(rateLimit).toHaveBeenCalledWith('rate:login:1.2.3.4', 30, 900)
+    expect(rateLimit).toHaveBeenCalledWith('rate:login:acct:user@example.com', 10, 900)
   })
 
   it('returns ok:true when allowed and Turnstile succeeds', async () => {
     rateLimit.mockResolvedValue({ allowed: true, count: 1 })
     validateTurnstileForAPI.mockResolvedValue({ success: true })
 
-    const result = await checkLoginGuards({ ip: '1.2.3.4', turnstileToken: 'token' })
+    const result = await checkLoginGuards({ ip: '1.2.3.4', email: 'user@example.com', turnstileToken: 'token' })
 
     expect(result).toEqual({ ok: true })
   })
@@ -53,7 +54,7 @@ describe('checkLoginGuards', () => {
       status: 400,
     })
 
-    const result = await checkLoginGuards({ ip: '1.2.3.4', turnstileToken: undefined })
+    const result = await checkLoginGuards({ ip: '1.2.3.4', email: 'user@example.com', turnstileToken: undefined })
 
     expect(result).toEqual({ ok: false, reason: 'TURNSTILE_FAILED' })
   })
@@ -66,7 +67,7 @@ describe('checkLoginGuards', () => {
       status: 400,
     })
 
-    const result = await checkLoginGuards({ ip: '1.2.3.4', turnstileToken: 'token' })
+    const result = await checkLoginGuards({ ip: '1.2.3.4', email: 'user@example.com', turnstileToken: 'token' })
 
     expect(result).toEqual({ ok: true })
   })
@@ -77,8 +78,38 @@ describe('checkLoginGuards', () => {
 
     for (const value of [undefined, null, 123]) {
       validateTurnstileForAPI.mockClear()
-      await checkLoginGuards({ ip: '1.2.3.4', turnstileToken: value })
+      await checkLoginGuards({ ip: '1.2.3.4', email: 'user@example.com', turnstileToken: value })
       expect(validateTurnstileForAPI).toHaveBeenCalledWith(undefined, '1.2.3.4', { requireToken: false })
     }
+  })
+
+  it('returns RATE_LIMITED and does not call validateTurnstileForAPI when only the per-account limit is exceeded', async () => {
+    rateLimit.mockImplementation(async (key: string) => {
+      if (key.startsWith('rate:login:acct:')) {
+        return { allowed: false, count: 11 }
+      }
+      return { allowed: true, count: 1 }
+    })
+
+    const result = await checkLoginGuards({ ip: '1.2.3.4', email: 'user@example.com', turnstileToken: 'token' })
+
+    expect(result).toEqual({ ok: false, reason: 'RATE_LIMITED' })
+    expect(validateTurnstileForAPI).not.toHaveBeenCalled()
+  })
+
+  it('enforces the per-account limit independently of the per-IP limit having headroom', async () => {
+    rateLimit.mockImplementation(async (key: string) => {
+      if (key === 'rate:login:acct:user@example.com') {
+        return { allowed: false, count: 11 }
+      }
+      // IP limit still has headroom.
+      return { allowed: true, count: 2 }
+    })
+
+    const result = await checkLoginGuards({ ip: '1.2.3.4', email: 'user@example.com', turnstileToken: 'token' })
+
+    expect(result).toEqual({ ok: false, reason: 'RATE_LIMITED' })
+    expect(rateLimit).toHaveBeenCalledWith('rate:login:1.2.3.4', 30, 900)
+    expect(rateLimit).toHaveBeenCalledWith('rate:login:acct:user@example.com', 10, 900)
   })
 })

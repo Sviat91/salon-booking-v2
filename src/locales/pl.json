@@ -25,6 +25,7 @@
     "invalidCredentials": "Nieprawidłowy e-mail lub hasło",
     "login": "Zaloguj się",
     "loginError": "Wystąpił błąd. Spróbuj ponownie.",
+    "tooManyAttempts": "Zbyt wiele prób logowania. Spróbuj ponownie za kilka minut.",
     "passwordsDoNotMatch": "Hasła nie są zgodne",
     "registrationError": "Wystąpił błąd podczas rejestracji. Spróbuj ponownie.",
     "registrationFailed": "Rejestracja nie powiodła się",

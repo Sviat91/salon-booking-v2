@@ -12,6 +12,7 @@
 
 svyatoslav.upirov@gmail.com
 Start123
++48572338195
 
 /
 
@@ -39,3 +40,9 @@ password - KeqgkD6jTd
 
 E-mail - anna@loomandblade.pl
 Password - nWWxd5YuXp
+
+# Test User
+
+- test@mail.com
+- Test123
+- +48456321789

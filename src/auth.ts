@@ -1,4 +1,4 @@
-import NextAuth from "next-auth"
+import NextAuth, { CredentialsSignin } from "next-auth"
 import authConfig from "./auth.config"
 import { PrismaAdapter } from "@auth/prisma-adapter"
 import prisma from "@/lib/prisma"
@@ -9,6 +9,10 @@ import { getRequestIp } from "@/lib/consent-service"
 import { checkLoginGuards } from "@/lib/auth-guards"
 
 import type { NextAuthConfig } from "next-auth"
+
+class RateLimitedError extends CredentialsSignin {
+  code = "rate_limited"
+}
 
 export const coreAuthOptions: NextAuthConfig = {
   adapter: PrismaAdapter(prisma) as Adapter,
@@ -28,9 +32,13 @@ export const coreAuthOptions: NextAuthConfig = {
         }
 
         const ip = getRequestIp(request)
-        const guard = await checkLoginGuards({ ip, turnstileToken: credentials.turnstileToken })
+        const normalizedEmail = (credentials.email as string).trim().toLowerCase()
+        const guard = await checkLoginGuards({ ip, email: normalizedEmail, turnstileToken: credentials.turnstileToken })
         if (!guard.ok) {
           console.warn("[auth] login blocked:", guard.reason, ip)
+          if (guard.reason === 'RATE_LIMITED') {
+            throw new RateLimitedError()
+          }
           return null
         }
 
@@ -53,7 +61,6 @@ export const coreAuthOptions: NextAuthConfig = {
           // happens to have uppercase characters, even though it worked
           // before this fix. Prisma's `mode: 'insensitive'` isn't available
           // on the SQLite/libSQL connector, hence the raw `LOWER()` query.
-          const normalizedEmail = (credentials.email as string).trim().toLowerCase()
           const matches = await prisma.$queryRaw<{ id: string }[]>`
             SELECT id FROM User WHERE LOWER(email) = ${normalizedEmail} LIMIT 1
           `

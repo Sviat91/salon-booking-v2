@@ -25,6 +25,7 @@
     "invalidCredentials": "Invalid email or password",
     "login": "Sign In",
     "loginError": "An error occurred. Please try again.",
+    "tooManyAttempts": "Too many login attempts. Please try again in a few minutes.",
     "passwordsDoNotMatch": "Passwords do not match",
     "registrationError": "An error occurred during registration. Please try again.",
     "registrationFailed": "Registration failed",
