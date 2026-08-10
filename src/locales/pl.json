@@ -594,6 +594,8 @@
         "faviconHint": "Mała ikona wyświetlana w karcie przeglądarki. Zalecane: PNG 32×32 lub SVG. Maks. 4 MB.",
         "themeToggleIconsTitle": "Ikona przełącznika motywu",
         "themeToggleIconsDesc": "Własne ikony przełącznika jasny/ciemny na stronach dla klientów. Opcjonalne — puste pole oznacza ikony wbudowane.",
+        "themeToggleIconSizeLabel": "Rozmiar ikony",
+        "themeToggleIconSizeHint": "Dopasuj rozmiar ikony w stałym przycisku 64×64 px",
         "themeToggleIconLabel": "Ikona przełącznika (motyw jasny)",
         "themeToggleIconHint": "Wyświetlana, gdy aktywny jest motyw jasny. PNG, WebP lub SVG, maks. 4 MB. Pozostaw puste, aby użyć ikony wbudowanej.",
         "darkThemeToggleIconLabel": "Ikona przełącznika (motyw ciemny)",

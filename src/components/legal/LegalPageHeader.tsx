@@ -28,7 +28,7 @@ import ThemeToggle from "@/components/ThemeToggle"
  */
 export default function LegalPageHeader() {
   return (
-    <div className="pl-3 lg:pl-28 xl:pl-32">
+    <div className="pt-2 pl-3 lg:pl-28 xl:pl-32">
       <TopNavLine
         backHref="/"
         leadingSpaceClassName="pl-48"

@@ -594,6 +594,8 @@
         "faviconHint": "Small icon shown in the browser tab. Recommended: PNG 32×32 or SVG. Max 4 MB.",
         "themeToggleIconsTitle": "Theme Toggle Icon",
         "themeToggleIconsDesc": "Custom icons for the light/dark switch on client-facing pages. Optional — the built-in icons are used when empty.",
+        "themeToggleIconSizeLabel": "Icon Size",
+        "themeToggleIconSizeHint": "Adjust the icon size within the fixed 64×64px button",
         "themeToggleIconLabel": "Toggle Icon (Light Theme)",
         "themeToggleIconHint": "Shown while the light theme is active. PNG, WebP or SVG, max 4 MB. Leave empty for the built-in icon.",
         "darkThemeToggleIconLabel": "Toggle Icon (Dark Theme)",

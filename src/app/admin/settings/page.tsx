@@ -18,6 +18,7 @@ export default async function SettingsPage() {
     darkLogoUrl: c.darkLogoUrl as string | null || null,
     themeToggleIconUrl: c.themeToggleIconUrl as string | null ?? null,
     darkThemeToggleIconUrl: c.darkThemeToggleIconUrl as string | null ?? null,
+    themeToggleIconSize: c.themeToggleIconSize as number ?? 48,
     logoPositionX: c.logoPositionX as number ?? 0,
     logoPositionY: c.logoPositionY as number ?? 0,
     logoWidth: c.logoWidth as number ?? 200,

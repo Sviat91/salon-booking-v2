@@ -123,10 +123,10 @@ export default function EditProfilePage() {
   }
 
   return (
-    <main className="px-3 py-4 sm:p-6 relative flex-1 flex flex-col w-full max-w-full box-border overflow-x-hidden">
+    <main className="relative flex-1 flex flex-col w-full max-w-full box-border overflow-x-hidden">
       <PageToolbar />
 
-      <div className="mx-auto w-full max-w-lg mt-4 space-y-6">
+      <div className="mx-auto w-full max-w-lg mt-4 px-3 sm:px-6 space-y-6">
         <h1 className="text-2xl font-semibold text-foreground text-center">
           {t("profile.editTitle", "Edit Profile")}
         </h1>

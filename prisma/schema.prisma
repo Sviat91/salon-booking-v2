@@ -283,6 +283,7 @@ model TenantConfig {
   darkLogoUrl     String?
   themeToggleIconUrl     String? // overrides public/light.png on the client-facing theme toggle
   darkThemeToggleIconUrl String? // overrides public/dark.png on the client-facing theme toggle
+  themeToggleIconSize    Int? // px size of the icon inside its fixed 64px button (default 48)
   logoPositionX   Float    @default(0)
   logoPositionY   Float    @default(0)
   logoWidth       Int      @default(200)

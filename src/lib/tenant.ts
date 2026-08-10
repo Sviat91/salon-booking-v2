@@ -29,6 +29,7 @@ const DEFAULT_CONFIG = {
   darkLogoUrl: null,
   themeToggleIconUrl: null,
   darkThemeToggleIconUrl: null,
+  themeToggleIconSize: null,
   logoPositionX: 0,
   logoPositionY: 0,
   logoWidth: 200,

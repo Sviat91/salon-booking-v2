@@ -45,6 +45,7 @@ type TenantConfig = {
   darkLogoUrl:     string | null
   themeToggleIconUrl:     string | null
   darkThemeToggleIconUrl: string | null
+  themeToggleIconSize:    number
   logoPositionX:   number
   logoPositionY:   number
   logoWidth:       number
@@ -274,6 +275,7 @@ export default function SettingsForm({ config }: { config: TenantConfig }) {
         <ThemeToggleIconsSection
           themeToggleIconUrl={config.themeToggleIconUrl}
           darkThemeToggleIconUrl={config.darkThemeToggleIconUrl}
+          themeToggleIconSize={config.themeToggleIconSize}
           onChange={() => setIsDirty(true)}
         />
       </SettingsSection>

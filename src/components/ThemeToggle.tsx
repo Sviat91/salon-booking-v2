@@ -7,6 +7,7 @@ import { useQuery } from '@tanstack/react-query'
 type ThemeToggleConfig = {
   themeToggleIconUrl: string | null
   darkThemeToggleIconUrl: string | null
+  themeToggleIconSize: number | null
 }
 
 export default function ThemeToggle() {
@@ -41,28 +42,33 @@ export default function ThemeToggle() {
 
   const label = isDark ? t('theme.switchToLight') : t('theme.switchToDark')
   const customIcon = isDark ? config?.darkThemeToggleIconUrl : config?.themeToggleIconUrl
+  const size = config?.themeToggleIconSize ?? 48
+  const clampedSize = Math.min(64, Math.max(32, size))
+  const pad = (64 - clampedSize) / 2
 
   return (
     <button
       onClick={toggleTheme}
-      className="p-2 hover:opacity-80 transition-opacity duration-300"
+      className="hover:opacity-80 transition-opacity duration-300"
+      style={{ padding: pad }}
       aria-label={label}
     >
       {customIcon ? (
         <img
           src={customIcon}
           alt={label}
-          width={48}
-          height={48}
-          className="h-12 w-12 object-contain"
+          width={clampedSize}
+          height={clampedSize}
+          style={{ width: clampedSize, height: clampedSize }}
+          className="object-contain"
         />
       ) : (
         <Image
           src={isDark ? '/dark.png' : '/light.png'}
           alt={label}
-          width={48}
-          height={48}
-          className="h-12 w-12"
+          width={clampedSize}
+          height={clampedSize}
+          style={{ width: clampedSize, height: clampedSize }}
         />
       )}
     </button>

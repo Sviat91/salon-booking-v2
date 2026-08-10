@@ -9,7 +9,7 @@ interface PageToolbarProps {
 
 export default function PageToolbar({ backHref = '/' }: PageToolbarProps) {
   return (
-    <div className="flex items-center justify-between gap-2">
+    <div className="pt-2 flex items-center justify-between gap-2">
       <PageBackLink href={backHref} iconOnly />
       <div className="flex items-center gap-2 shrink-0">
         <LanguageToggle />

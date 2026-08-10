@@ -114,8 +114,9 @@ export default function HomeClient({ config, isPreview }: HomeClientProps) {
       )}
 
       {/* pt-24: clears the absolutely-positioned nav bar above. The row's own
-          height is set by its tallest child, ThemeToggle (`h-12`+`p-2` = 64px),
-          starting at the row's `top-2` (8px) offset — bottom edge ≈72px from
+          height is set by its tallest child, ThemeToggle (fixed 64×64px
+          footprint — configurable icon size, see ThemeToggle.tsx), starting
+          at the row's `top-2` (8px) offset — bottom edge ≈72px from
           the container top. pt-12 (48px, tried first) undershot this by ~24px
           and the logo visibly overlapped the row; pt-24 (96px) clears it with
           margin instead of matching a value proven on a different page (whose
