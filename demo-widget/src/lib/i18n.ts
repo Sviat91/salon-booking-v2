@@ -1,0 +1,47 @@
+// Static English copy pulled verbatim from the real app's src/locales/en.json —
+// this demo is single-language, so no react-i18next runtime is needed.
+const STRINGS: Record<string, string> = {
+  'booking.bookVisit': 'Book a visit',
+  'booking.service': 'Service',
+  'booking.manageBooking': 'Manage booking',
+  'booking.clickToManage': 'Click to manage your booking',
+  'booking.closePanel': 'Close panel',
+  'booking.reservation': 'Booking',
+  'booking.selectService': 'Select a service',
+  'booking.selectDate': 'Select a date',
+  'booking.minutes': 'min',
+  'booking.book': 'Book now',
+  'booking.preparing': 'Preparing...',
+  'form.name': 'Full name',
+  'form.phone': 'Phone',
+  'form.emailOptional': 'E-mail (optional)',
+  'success.title': 'Booking confirmed',
+  'success.serviceLabel': 'Service:',
+  'success.dateLabel': 'Date:',
+  'success.priceLabel': 'Price:',
+  'success.thankYou': 'Thank you, see you soon!',
+  'success.close': 'Close',
+  'management.enterDataToFind': 'Enter your details to find your booking:',
+  'management.searchBookings': 'Search bookings',
+  'management.searching': 'Searching…',
+  'management.noBookingsFound': 'No bookings found',
+  'management.checkDataAndRetry': 'Please check your details and try again.',
+  'management.useSameDataAsBooking': 'Make sure you use the same details as when booking.',
+  'management.checkAgain': 'Check again',
+  'management.contactMasterBtn': 'Contact specialist',
+  'master.selectTitle': 'Choose your specialist',
+  'master.selectSubtitle': 'Book a visit with your chosen specialist',
+  'master.bookVisit': 'Book a visit',
+  'common.back': 'Back',
+  'common.currency': 'zł',
+  'calendar.prevMonth': 'Previous month',
+  'calendar.nextMonth': 'Next month',
+  'slots.searching': 'Searching for available times…',
+  'slots.noAvailable': 'No available time slots',
+  'theme.switchToLight': 'Switch to light theme',
+  'theme.switchToDark': 'Switch to dark theme',
+}
+
+export function t(key: string): string {
+  return STRINGS[key] ?? key
+}
