@@ -122,10 +122,35 @@ itself ported from the real `StripWidget.tsx`, full-bleed trick and
 repeat-count math included) — same Page/Block-per-master architecture the
 real app uses, not a one-off invention.
 
-Still deferred: the "Customize" admin/settings window, real photos (still
-gradient+initials placeholders), legal pages (footer links inert).
+**2026-08-14, third pass — approved by the user** ("наконец-то, это именно
+то, что я хотел"). Follow-ups done in the same pass:
+- Theme-toggle icon shrunk 48px → 36px (still within the real component's own
+  32–64px clamp).
+- Bookings now persist to `localStorage` (`lib/localBookings.ts`) instead of
+  living only in component state — same local-persistence pattern as the
+  theme toggle. `BookingForm` writes a real record on submit.
+- `BookingManagement`'s search is now real, not a stub: it searches those
+  localStorage records (name substring + last-6-digits phone match). Added
+  a ported `ResultsPanel.tsx` (static booking cards — no change/cancel
+  actions, same reasoning as the no-backend note above) for when a search
+  actually finds the booking you just made.
+- Built the three real footer-linked pages, ported from the real
+  `LegalPageHeader`/`LegalDocumentView`/`MarkdownLite`/`lib/markdown-lite.ts`
+  (framework-free, copied verbatim) plus a simplified `support/page.tsx`:
+  **Privacy Policy**, **Terms of Service** (mock Loom & Blade legal copy —
+  content itself is inherently tenant-authored, so this is drafted, not
+  ported, unlike every structural/styling piece), **Help Center** (contact
+  form, local mock-submit success state, no Turnstile; GDPR "Quick Actions"
+  buttons are visually present but inert — their real modals need a real
+  account). Footer links now actually navigate instead of being inert.
+- **Not built**: "About Us" — in the real app this isn't a fixed route, it's
+  an admin-configured `/pages/[slug]` content page + `TopNavLine` tab (only
+  exists if a tenant creates one). Skipped rather than guessed at; flag if
+  it should be added as a demo content page too.
 
-Next: user runs `cd demo-widget && npm run dev`, checks it against the real
-app side by side (both masters, light/dark, full booking flow, the "Manage
-booking" widget, browser width matching what the real app actually renders
-at), reports back what's still off.
+Still deferred: the "Customize" admin/settings window, real photos (still
+gradient+initials placeholders — user will supply these next).
+
+Next: user runs `cd demo-widget && npm run dev` and checks the new pages +
+persistent booking flow, then moves to sending real photos, then the
+"Customize" admin window.

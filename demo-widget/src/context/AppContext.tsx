@@ -2,12 +2,20 @@ import { createContext, useCallback, useContext, useMemo, useState, type ReactNo
 import { masters } from '../data'
 import type { Master } from '../types'
 
-type View = { name: 'home' } | { name: 'booking'; masterId: string }
+type View =
+  | { name: 'home' }
+  | { name: 'booking'; masterId: string }
+  | { name: 'privacy' }
+  | { name: 'terms' }
+  | { name: 'support' }
 
 interface AppContextValue {
   view: View
   navigateHome: () => void
   navigateToMaster: (masterId: string) => void
+  navigateToPrivacy: () => void
+  navigateToTerms: () => void
+  navigateToSupport: () => void
   selectedMasterId: string | null
   selectedMaster: Master | null
 }
@@ -19,11 +27,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const navigateHome = useCallback(() => setView({ name: 'home' }), [])
   const navigateToMaster = useCallback((masterId: string) => setView({ name: 'booking', masterId }), [])
+  const navigateToPrivacy = useCallback(() => setView({ name: 'privacy' }), [])
+  const navigateToTerms = useCallback(() => setView({ name: 'terms' }), [])
+  const navigateToSupport = useCallback(() => setView({ name: 'support' }), [])
 
   const selectedMasterId = view.name === 'booking' ? view.masterId : null
   const selectedMaster = useMemo(() => masters.find((m) => m.id === selectedMasterId) ?? null, [selectedMasterId])
 
-  const value: AppContextValue = { view, navigateHome, navigateToMaster, selectedMasterId, selectedMaster }
+  const value: AppContextValue = {
+    view,
+    navigateHome,
+    navigateToMaster,
+    navigateToPrivacy,
+    navigateToTerms,
+    navigateToSupport,
+    selectedMasterId,
+    selectedMaster,
+  }
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>
 }
@@ -43,6 +63,6 @@ export function useSelectedMaster() {
 }
 
 export function useAppNavigation() {
-  const { view, navigateHome, navigateToMaster } = useAppContext()
-  return { view, navigateHome, navigateToMaster }
+  const { view, navigateHome, navigateToMaster, navigateToPrivacy, navigateToTerms, navigateToSupport } = useAppContext()
+  return { view, navigateHome, navigateToMaster, navigateToPrivacy, navigateToTerms, navigateToSupport }
 }

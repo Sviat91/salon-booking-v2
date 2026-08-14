@@ -20,7 +20,7 @@ export default function ThemeToggle() {
   }
 
   const label = isDark ? t('theme.switchToLight') : t('theme.switchToDark')
-  const size = 48
+  const size = 36
   const clampedSize = Math.min(64, Math.max(32, size))
   const pad = (64 - clampedSize) / 2
 

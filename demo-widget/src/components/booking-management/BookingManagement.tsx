@@ -2,26 +2,34 @@ import { useState } from 'react'
 import { Card } from '../ui/card'
 import SearchPanel, { type SearchFormData } from './SearchPanel'
 import NoResultsPanel from './NoResultsPanel'
+import ResultsPanel from './ResultsPanel'
+import { findBookings, type StoredBooking } from '../../lib/localBookings'
 import { t } from '../../lib/i18n'
 
-type PanelState = 'search' | 'searching' | 'no-results'
+type PanelState = 'search' | 'searching' | 'no-results' | 'results'
 
 // Ported from the real BookingManagement.tsx: the "Manage booking" card,
 // its closed/open toggle, and the panel transition classes are identical.
 // The real widget backs a full lookup/cancel/reschedule state machine
-// (~20 panel components) against real booking records — this demo has none,
-// so every search legitimately resolves to the real NoResultsPanel rather
-// than a fabricated result.
+// (~20 panel components) against real booking records. This demo searches
+// real localStorage bookings created via BookingForm (see that file) — a
+// genuine search over genuine local data — but doesn't carry the
+// change/cancel actions further, since those need a mutable backend.
 export default function BookingManagement() {
   const [isOpen, setIsOpen] = useState(false)
   const [panel, setPanel] = useState<PanelState>('search')
   const [form, setForm] = useState<SearchFormData>({ fullName: '', phone: '' })
+  const [results, setResults] = useState<StoredBooking[]>([])
 
   const canSearch = form.fullName.trim().length >= 2 && form.phone.replace(/\D/g, '').length >= 9
 
   function handleSearch() {
     setPanel('searching')
-    setTimeout(() => setPanel('no-results'), 500)
+    setTimeout(() => {
+      const found = findBookings(form.fullName, form.phone)
+      setResults(found)
+      setPanel(found.length > 0 ? 'results' : 'no-results')
+    }, 500)
   }
 
   return (
@@ -49,7 +57,20 @@ export default function BookingManagement() {
           <div
             className={`rounded-xl border border-border bg-card text-card-foreground p-4 w-full max-w-full box-border overflow-x-hidden ${isOpen ? 'max-h-[35rem] overflow-y-auto' : ''}`}
           >
-            {panel !== 'no-results' ? (
+            {panel === 'results' ? (
+              <ResultsPanel
+                results={results}
+                fullName={form.fullName}
+                phone={form.phone}
+                onBackToSearch={() => setPanel('search')}
+                onNewSearch={() => {
+                  setForm({ fullName: '', phone: '' })
+                  setPanel('search')
+                }}
+              />
+            ) : panel === 'no-results' ? (
+              <NoResultsPanel onRetry={() => setPanel('search')} />
+            ) : (
               <SearchPanel
                 form={form}
                 onFormChange={(next) => setForm((f) => ({ ...f, ...next }))}
@@ -57,8 +78,6 @@ export default function BookingManagement() {
                 isLoading={panel === 'searching'}
                 onSearch={handleSearch}
               />
-            ) : (
-              <NoResultsPanel onRetry={() => setPanel('search')} />
             )}
           </div>
         </div>
