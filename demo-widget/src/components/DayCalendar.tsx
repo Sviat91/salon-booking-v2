@@ -132,16 +132,18 @@ export default function DayCalendar({ procedureId, onChange }: { procedureId?: s
           disabled={isDisabled}
           modifiers={{ available: Array.from(available.values()).map((s) => new Date(s + 'T00:00:00')) }}
           modifiersClassNames={{
-            available:
-              'bg-accent/40 rounded-full transition duration-200 hover:scale-103 hover:bg-accent/60 hover:shadow-lg focus-visible:ring-2 focus-visible:ring-accent/60',
-            disabled: 'opacity-30 pointer-events-none',
+            // v9's DayFlag/SelectionState classes land on the grid cell
+            // (.rdp-day), not the clickable circle (.rdp-day_button) — the
+            // actual color/hover treatment for these is in index.css,
+            // targeting `.rdp-<state> .rdp-day_button`.
+            available: 'rdp-available',
           }}
           classNames={{
-            day: 'h-10 w-10 rounded-full transition duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60',
             month: 'space-y-2',
-            table: 'w-full table-fixed border-collapse',
-            head_cell: 'w-10 text-center font-normal text-xs text-muted-foreground overflow-hidden',
-            cell: 'w-10 text-center p-0',
+            month_grid: 'w-full table-fixed border-collapse',
+            weekday: 'w-10 text-center font-normal text-xs text-muted-foreground overflow-hidden',
+            day: 'w-10 text-center p-0',
+            day_button: 'rdp-day_button',
           }}
           formatters={{
             formatWeekdayName: (date) => capitalizeFirst(format(date, 'EEEEEE', { locale: enUS })),

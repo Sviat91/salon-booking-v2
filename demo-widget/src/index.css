@@ -89,92 +89,54 @@ body {
   animation: fade-in-up 0.5s ease-in-out;
 }
 
-/* react-day-picker overrides — ported verbatim from the real globals.css */
-.rdp {
-  --rdp-cell-size: 40px;
-  --rdp-accent-color: var(--primary);
-  --rdp-background-color: white;
+/* react-day-picker v9 overrides. v9 renamed most classes from the v8 names
+   this file originally had (.rdp-day was the clickable circle in v8; in v9
+   it's just the grid cell, and the circle is the separate .rdp-day_button)
+   — the old selectors here were silently matching nothing, leaving the
+   calendar to render at react-day-picker's own default size/colors (44px
+   cells, default blue accent) instead of the app's design. */
+.rdp-root {
   margin: 0 !important;
 }
 
-@media (max-width: 640px) {
-  .rdp {
-    --rdp-cell-size: 36px;
-  }
-}
-@media (max-width: 400px) {
-  .rdp {
-    --rdp-cell-size: 32px;
-  }
+.rdp-month_caption,
+.rdp-nav {
+  display: none !important;
 }
 
-.rdp-months {
-  display: grid !important;
-}
-.rdp-month {
-  margin: 0 !important;
-}
-.rdp-table {
-  width: calc(var(--rdp-cell-size) * 7) !important;
-  max-width: 100% !important;
-  border-collapse: collapse !important;
-  margin: 0 auto !important;
-  table-layout: fixed !important;
-}
-
-@media (max-width: 640px) {
-  .rdp-month {
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-  }
-}
-
-.rdp-head_cell,
-.rdp-cell {
-  width: var(--rdp-cell-size) !important;
-  height: var(--rdp-cell-size) !important;
-  text-align: center !important;
-  font-size: 14px !important;
-  padding: 0 !important;
-  vertical-align: middle !important;
-}
-.rdp-head_cell {
+.rdp-weekday {
   font-weight: 500 !important;
+  font-size: 12px !important;
   color: var(--muted-foreground) !important;
 }
 
-.rdp-day {
-  width: calc(var(--rdp-cell-size) - 4px) !important;
-  height: calc(var(--rdp-cell-size) - 4px) !important;
-  border-radius: 50% !important;
-  font-size: 14px !important;
-  transition: all 0.2s ease !important;
-  background: none !important;
+.rdp-day_button {
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 9999px !important;
   border: none !important;
-  margin: 0 auto !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
+  background: none !important;
+  font-size: 14px !important;
+  transition: background-color 0.2s ease !important;
 }
-.rdp-day:hover {
-  background-color: var(--accent) !important;
+
+/* Modifier classes (available/selected/disabled/outside) land on the .rdp-day
+   cell, not the nested button — same pattern the library's own stylesheet
+   uses for `.rdp-selected .rdp-day_button`. */
+.rdp-available .rdp-day_button {
+  background-color: color-mix(in oklab, var(--accent) 40%, transparent) !important;
 }
-.rdp-day_selected {
-  background-color: var(--rdp-accent-color) !important;
+.rdp-available .rdp-day_button:hover {
+  background-color: color-mix(in oklab, var(--accent) 60%, transparent) !important;
+}
+.rdp-selected .rdp-day_button {
+  background-color: var(--primary) !important;
   color: var(--foreground) !important;
 }
-.rdp-day_disabled {
+.rdp-disabled .rdp-day_button {
   opacity: 0.3 !important;
   pointer-events: none !important;
 }
-.rdp-day_outside {
+.rdp-outside .rdp-day_button {
   opacity: 0.5 !important;
-}
-
-.rdp-caption_label,
-.rdp-nav,
-.rdp-caption,
-.rdp-month_caption {
-  display: none !important;
 }

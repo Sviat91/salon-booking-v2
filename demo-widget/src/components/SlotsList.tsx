@@ -58,8 +58,14 @@ export default function SlotsList({
   }, [dateKey, durationMin])
 
   const ready = !!date
+  // `overflow-hidden` only, not `overflow-y-auto` — this wrapper's own
+  // `max-h-[24rem]` is animating during the transition, and content never
+  // actually needs to scroll here (the slots grid below has its own
+  // `overflow-y-auto` at a fixed height for that). Auto-scroll on an
+  // animating max-height flashed a scrollbar mid-transition even though the
+  // settled state never needs one.
   const panelState = ready
-    ? 'mt-3 max-h-[24rem] opacity-100 overflow-hidden overflow-y-auto'
+    ? 'mt-3 max-h-[24rem] opacity-100 overflow-hidden'
     : 'max-h-0 opacity-0 overflow-hidden pointer-events-none'
 
   const rendered = useMemo(() => slots, [slots])

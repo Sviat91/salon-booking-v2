@@ -148,9 +148,99 @@ real app uses, not a one-off invention.
   exists if a tenant creates one). Skipped rather than guessed at; flag if
   it should be added as a demo content page too.
 
-Still deferred: the "Customize" admin/settings window, real photos (still
-gradient+initials placeholders — user will supply these next).
+**2026-08-14, fourth pass — dark-by-default + real assets baked in.**
+- `index.html` now sets the `dark` class before React mounts unless the
+  visitor explicitly saved `'light'` (ported the real layout.tsx's blocking
+  inline-script pattern, but the no-preference fallback is dark, not system
+  preference — deliberate for a dark-branded demo, not a real tenant).
+- Real assets dropped into `demo-widget/public/`: `logo.png` (Loom & Blade
+  wordmark), `marek.png`/`anna.png` (master headshots), `favicon.png` (LB
+  monogram, wired as the page favicon).
+- `MasterSelector` and `BrandHeader` now render the real headshots instead of
+  the initial-on-gradient placeholder (falls back to the initial if
+  `master.avatar` is null — kept for future masters without a photo yet).
+- New `LogoDisplay.tsx`, ported from the real component but simplified: the
+  real one reads admin-configurable position/size/layer from `TenantConfig`
+  (draggable in the "Customize" window, not built yet) with separate
+  light/dark assets. This demo has one asset and uses the real component's
+  own defaults (0%/0% corner position, 200×80, desktop-only) — into the
+  corner space `TopNavLine` already reserves. Home page also gets the real
+  mobile centered-logo block; the booking page (matching the real
+  `[masterId]/page.tsx`) only gets the desktop corner one.
+- Marquee photos (Home's `PhotoStrip`, Anna's `ReviewStrip`) are still
+  placeholders — no salon-interior/work photos or review-avatar images sent
+  yet.
 
-Next: user runs `cd demo-widget && npm run dev` and checks the new pages +
-persistent booking flow, then moves to sending real photos, then the
-"Customize" admin window.
+**2026-08-14, fifth pass — theme-toggle icons.** User sent `Light.png`/
+`Dark.png` (barber-pole artwork, unlit/lit) → `public/light.png`,
+`public/dark.png`. `ThemeToggle.tsx` swapped from the placeholder sun/moon
+SVGs to these, wired exactly where the real component's own fallback path
+already points (`/light.png/dark.png` when no custom icon uploaded) — no new
+logic needed, just supplying the assets the real code already expected.
+
+**2026-08-14, sixth pass — theme icon 2x + real content wired in.**
+- Theme icon adjusted twice more: first 3x (108px, user request) shifted the
+  nav hairline down; user flagged it as overkill, reverted to 2x (72px) with
+  no extra button padding, keeping the original `pt-*` clearance values
+  untouched on Home/Booking — no layout side effects this time.
+- Home's `PhotoStrip` marquee wired with 6 real salon-floor photos
+  (`public/strip/home-1..6.png`); tile wrapper dropped its CSS border since
+  each photo already has one baked in.
+- Anna's `ReviewStrip` swapped from hand-built QuoteCard/GoogleReviewCard/
+  MapCard components to 6 real review-card screenshots (Google, TripAdvisor,
+  Instagram DM, SMS, etc. — `public/strip/anna-1..6.png`), same treatment.
+- Marquee position fix: removed `mt-auto` (a literal port from the real
+  `HomeClient.tsx`) since on a short master grid it pushed the strip to the
+  very bottom of the viewport with a big empty gap — demo-specific deviation.
+- Master-card captions on Home reverted to the short role/title (`master.title`)
+  — an earlier pass had switched this to the full bio paragraph reasoning it
+  matched real `getMasterBio` behavior; user confirmed that was wrong for
+  this spot, full bio stays on the booking page only.
+- **Real bug found and fixed: the booking page needed to scroll, calendar
+  looked oversized.** Root cause: `react-day-picker` v9 (what's actually
+  installed, matching the real app's own `^9.5.0`) renamed its CSS classes
+  from what `globals.css`'s ported `.rdp-*` overrides assumed — in v9
+  `.rdp-day` is just the grid cell, the clickable circle is a separate
+  `.rdp-day_button` element, and old `classNames` prop keys (`table`,
+  `head_cell`, `cell`) aren't real v9 keys (TypeScript still accepted them
+  silently via a `DeprecatedUI` type-compat shim, but nothing at runtime
+  reads them). Net effect: the calendar was rendering at react-day-picker's
+  own *default* size/colors (44px cells, default blue accent) instead of the
+  app's design, plus the reserved caption height wasn't fully collapsing —
+  both inflating page height enough to force a scrollbar. Rewrote
+  `DayCalendar.tsx`'s `classNames`/`modifiersClassNames` and `index.css`'s
+  `.rdp-*` block against the actual v9 class names (verified directly against
+  the installed package's type defs, not assumed from the ported file).
+
+**2026-08-14, seventh pass — "About Us" page.**
+- Added the real per-page nav-tab mechanism to `TopNavLine.tsx` (`tabs` prop,
+  active-underline styling ported verbatim) — real component collapses tabs
+  into a Radix dropdown below `lg` for an arbitrary page count; this demo
+  only ever has one page ("About Us"), so that dropdown wasn't ported —
+  showing the single tab inline at every breakpoint instead. Wired the tab
+  into Home, Booking, and the legal pages (`LegalPageHeader`), matching real
+  `TopNavLine` usage everywhere.
+- New `AboutPage.tsx`, ported from the real `src/app/pages/[slug]/page.tsx`
+  + `PageRenderer.tsx` (nav bar placement, staggered fade-in). Real content
+  pages route through a generic `BlockRenderer`/Page-Block DB system; this
+  demo has exactly one fixed page, so the intro paragraph + gallery render
+  directly rather than through that indirection — nothing dynamic to route
+  between. `PhotoGalleryRenderer.tsx` + `Lightbox.tsx` ported verbatim
+  (grid + click-to-enlarge, swipeable). 6 real interior photos in
+  `public/about/interior-1..6.png`. Copy text is the real intro paragraph
+  from the reference (`demo.ordiset.com/pages/o-salonie`).
+- **Found and fixed a real bug in the process**: running a build to verify
+  this surfaced that the *main Salon Booking app's* `tsconfig.json` had no
+  exclude entry for `demo-widget/` — Next.js's typecheck was pulling in this
+  folder's `.tsx` files against demo-widget's own separate `node_modules`
+  (different `csstype`, etc.), which broke the **main app's production
+  build** (`npm run build` from repo root failed with a type conflict).
+  Added `"demo-widget"` to the root `tsconfig.json`'s `exclude` array — one
+  line, confirmed the main app builds clean again afterward. Unrelated to
+  the Ordiset work itself, but real and worth knowing: verify next session
+  whether this was already breaking CI/deploys before now.
+
+Still deferred: the "Customize" admin/settings window.
+
+Next: user checks the About Us page, the calendar height fix, and the
+marquee content, then moves to the "Customize" admin window.

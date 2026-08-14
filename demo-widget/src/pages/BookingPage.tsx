@@ -12,7 +12,8 @@ import BookingSuccessPanel from '../components/BookingSuccessPanel'
 import BookingManagement from '../components/booking-management/BookingManagement'
 import TodayPromoCard from '../components/TodayPromoCard'
 import MasterFooterBlock from '../components/MasterFooterBlock'
-import { useAppNavigation, useSelectedMaster } from '../context/AppContext'
+import LogoDisplay from '../components/LogoDisplay'
+import { useAppNavigation, useSelectedMaster, useAboutTab } from '../context/AppContext'
 import { useReducedMotion } from '../hooks/useReducedMotion'
 import { t } from '../lib/i18n'
 import type { Procedure } from '../types'
@@ -28,11 +29,13 @@ export default function BookingPage() {
   const { navigateHome } = useAppNavigation()
   const master = useSelectedMaster()
   const prefersReducedMotion = useReducedMotion()
+  const tabs = useAboutTab()
 
   const [procedure, setProcedure] = useState<Procedure | null>(null)
   const [date, setDate] = useState<Date | undefined>(undefined)
   const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null)
   const [showSuccess, setShowSuccess] = useState(false)
+  const [pricing, setPricing] = useState<{ percent: number; price: number } | null>(null)
 
   if (!master) return null
 
@@ -42,7 +45,8 @@ export default function BookingPage() {
     setSelectedSlot(null)
   }
 
-  function handleBookingSuccess() {
+  function handleBookingSuccess(finalPricing: { percent: number; price: number }) {
+    setPricing(finalPricing)
     setShowSuccess(true)
   }
 
@@ -59,8 +63,10 @@ export default function BookingPage() {
         <BookingSuccessPanel
           slot={selectedSlot}
           procedure={procedure}
+          pricing={pricing}
           onClose={() => {
             setShowSuccess(false)
+            setPricing(null)
             resetToInitialState()
           }}
         />
@@ -70,8 +76,10 @@ export default function BookingPage() {
   return (
     <main className="px-3 py-4 sm:p-6 relative flex-1 flex flex-col w-full max-w-full box-border overflow-x-hidden">
       <div className="absolute top-2 left-0 right-0 z-20 pl-3 lg:pl-28 xl:pl-32">
-        <TopNavLine onBack={navigateHome} leadingSpaceClassName="pl-48" actions={<ThemeToggle />} />
+        <TopNavLine onBack={navigateHome} leadingSpaceClassName="pl-48" actions={<ThemeToggle />} tabs={tabs} />
       </div>
+
+      <LogoDisplay />
 
       <div className="mx-auto w-full max-w-5xl px-0 pt-12">
         <BrandHeader onLogoClick={navigateHome} />

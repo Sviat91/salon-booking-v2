@@ -29,7 +29,13 @@ export default function ProcedureSelect({ valueId, onChange }: { valueId?: strin
     }
   }
 
-  const formatProcedure = (p: Procedure) => `${p.name} - ${p.durationMin} ${t('booking.minutes')} / ${p.price} zł`
+  const formatProcedure = (p: Procedure) => (
+    <>
+      {p.name} - {p.durationMin} {t('booking.minutes')} /{' '}
+      <span className="line-through text-muted-foreground/70">{p.priceOld} zł</span>{' '}
+      <span className="font-medium">{p.price} zł</span>
+    </>
+  )
 
   return (
     <div className="relative lg:-m-4 lg:p-4" onClick={handleCardClick}>

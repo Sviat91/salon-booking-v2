@@ -19,9 +19,13 @@ export default function BrandHeader({ onLogoClick }: { onLogoClick?: () => void 
         onClick={onLogoClick}
         transition={prefersReducedMotion ? { duration: 0 } : { type: 'spring', stiffness: 200, damping: 25, duration: 1.2 }}
       >
-        <div className="flex h-20 w-20 items-center justify-center bg-muted text-foreground text-2xl font-bold">
-          {selectedMaster?.name?.[0]?.toUpperCase() || '?'}
-        </div>
+        {selectedMaster?.avatar ? (
+          <img src={selectedMaster.avatar} alt={`${selectedMaster.name} - Beauty Master`} className="h-20 w-20 object-cover" />
+        ) : (
+          <div className="flex h-20 w-20 items-center justify-center bg-muted text-foreground text-2xl font-bold">
+            {selectedMaster?.name?.[0]?.toUpperCase() || '?'}
+          </div>
+        )}
       </motion.div>
 
       <h1

@@ -2,6 +2,9 @@ export type Procedure = {
   id: string
   name: string
   durationMin: number
+  /** Pre-discount price, struck through next to `price` — matches the
+   * "-10% on all services" promo already advertised in `TodayPromoCard`. */
+  priceOld: number
   price: number
 }
 
@@ -10,6 +13,7 @@ export type Master = {
   name: string
   title: string
   avatarInitial: string
+  avatar: string | null
   bio: string
   achievements: string[]
   services: Procedure[]

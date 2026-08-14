@@ -6,10 +6,12 @@ import type { Slot } from './SlotsList'
 export default function BookingSuccessPanel({
   slot,
   procedure,
+  pricing,
   onClose,
 }: {
   slot: Slot
   procedure: Procedure | null
+  pricing: { percent: number; price: number } | null
   onClose: () => void
 }) {
   const startDate = useMemo(() => new Date(slot.startISO), [slot.startISO])
@@ -29,9 +31,12 @@ export default function BookingSuccessPanel({
         <div className="text-sm text-muted-foreground">
           <strong>{t('success.dateLabel')}</strong> {terminLabel}
         </div>
-        {procedure?.price && (
+        {pricing && (
           <div className="text-sm text-muted-foreground">
-            <strong>{t('success.priceLabel')}</strong> {procedure.price} zł
+            <strong>{t('success.priceLabel')}</strong>{' '}
+            {procedure?.priceOld && <span className="line-through text-muted-foreground/70">{procedure.priceOld} zł</span>}{' '}
+            <span className="font-medium text-foreground">{pricing.price} zł</span>{' '}
+            <span className="text-emerald-600 dark:text-emerald-400">(-{pricing.percent}%)</span>
           </div>
         )}
       </div>

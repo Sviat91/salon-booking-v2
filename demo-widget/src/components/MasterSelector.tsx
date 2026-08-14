@@ -79,9 +79,17 @@ export default function MasterSelector() {
                   className="relative w-full h-full bg-muted"
                   transition={prefersReducedMotion ? { duration: 0 } : { type: 'spring', stiffness: 200, damping: 25, duration: 1.2 }}
                 >
-                  <div className="flex h-full w-full items-center justify-center bg-muted text-foreground text-6xl font-bold">
-                    {master.avatarInitial}
-                  </div>
+                  {master.avatar ? (
+                    <img
+                      src={master.avatar}
+                      alt={`${master.name} - Beauty Master`}
+                      className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center bg-muted text-foreground text-6xl font-bold">
+                      {master.avatarInitial}
+                    </div>
+                  )}
                 </motion.div>
 
                 <motion.div
@@ -111,7 +119,10 @@ export default function MasterSelector() {
                   transition={{ duration: 0.5, ease: 'easeOut' }}
                 />
               </motion.button>
-              <p className="mt-2 w-full text-center text-xs sm:text-sm text-muted-foreground line-clamp-2 px-1">{master.bio}</p>
+              {/* Real component shows the master's full bio here; user
+                  wants the short role/title on the home grid instead, with
+                  the fuller bio reserved for the booking page below. */}
+              <p className="mt-2 w-full text-center text-xs sm:text-sm text-muted-foreground line-clamp-2 px-1">{master.title}</p>
             </div>
           ))}
         </div>

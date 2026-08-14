@@ -2,6 +2,7 @@ import { AppProvider, useAppNavigation } from './context/AppContext'
 import Footer from './components/Footer'
 import HomePage from './pages/HomePage'
 import BookingPage from './pages/BookingPage'
+import AboutPage from './pages/AboutPage'
 import PrivacyPage from './pages/PrivacyPage'
 import TermsPage from './pages/TermsPage'
 import SupportPage from './pages/SupportPage'
@@ -18,6 +19,9 @@ function Shell() {
       break
     case 'booking':
       page = <BookingPage />
+      break
+    case 'about':
+      page = <AboutPage />
       break
     case 'privacy':
       page = <PrivacyPage />

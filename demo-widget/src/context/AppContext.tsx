@@ -1,10 +1,12 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react'
 import { masters } from '../data'
 import type { Master } from '../types'
+import type { NavTab } from '../components/TopNavLine'
 
 type View =
   | { name: 'home' }
   | { name: 'booking'; masterId: string }
+  | { name: 'about' }
   | { name: 'privacy' }
   | { name: 'terms' }
   | { name: 'support' }
@@ -13,6 +15,7 @@ interface AppContextValue {
   view: View
   navigateHome: () => void
   navigateToMaster: (masterId: string) => void
+  navigateToAbout: () => void
   navigateToPrivacy: () => void
   navigateToTerms: () => void
   navigateToSupport: () => void
@@ -27,6 +30,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const navigateHome = useCallback(() => setView({ name: 'home' }), [])
   const navigateToMaster = useCallback((masterId: string) => setView({ name: 'booking', masterId }), [])
+  const navigateToAbout = useCallback(() => setView({ name: 'about' }), [])
   const navigateToPrivacy = useCallback(() => setView({ name: 'privacy' }), [])
   const navigateToTerms = useCallback(() => setView({ name: 'terms' }), [])
   const navigateToSupport = useCallback(() => setView({ name: 'support' }), [])
@@ -38,6 +42,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     view,
     navigateHome,
     navigateToMaster,
+    navigateToAbout,
     navigateToPrivacy,
     navigateToTerms,
     navigateToSupport,
@@ -63,6 +68,13 @@ export function useSelectedMaster() {
 }
 
 export function useAppNavigation() {
-  const { view, navigateHome, navigateToMaster, navigateToPrivacy, navigateToTerms, navigateToSupport } = useAppContext()
-  return { view, navigateHome, navigateToMaster, navigateToPrivacy, navigateToTerms, navigateToSupport }
+  const { view, navigateHome, navigateToMaster, navigateToAbout, navigateToPrivacy, navigateToTerms, navigateToSupport } =
+    useAppContext()
+  return { view, navigateHome, navigateToMaster, navigateToAbout, navigateToPrivacy, navigateToTerms, navigateToSupport }
+}
+
+/** The single "About Us" tab shown in every page's TopNavLine. */
+export function useAboutTab(): NavTab[] {
+  const { view, navigateToAbout } = useAppContext()
+  return [{ id: 'about', title: 'About Us', active: view.name === 'about', onClick: navigateToAbout }]
 }

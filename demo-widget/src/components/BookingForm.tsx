@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { t } from '../lib/i18n'
 import { useSelectedMaster } from '../context/AppContext'
 import { addBooking } from '../lib/localBookings'
+import { computeFinalPrice } from '../lib/discounts'
 import type { Procedure } from '../types'
 import type { Slot } from './SlotsList'
 
@@ -20,7 +21,7 @@ export default function BookingForm({
 }: {
   slot: Slot
   procedure: Procedure | null
-  onSuccess: () => void
+  onSuccess: (pricing: { percent: number; price: number }) => void
 }) {
   const master = useSelectedMaster()
   const [name, setName] = useState('')
@@ -30,19 +31,20 @@ export default function BookingForm({
 
   function handleSubmit() {
     if (!master || !procedure) return
+    const pricing = computeFinalPrice(procedure.priceOld, slot.startISO)
     addBooking({
       id: `${Date.now()}`,
       masterId: master.id,
       masterName: master.name,
       procedureId: procedure.id,
       procedureName: procedure.name,
-      price: procedure.price,
+      price: pricing.price,
       startISO: slot.startISO,
       endISO: slot.endISO,
       name: name.trim(),
       phone: phone.trim(),
     })
-    onSuccess()
+    onSuccess(pricing)
   }
 
   const startDate = useMemo(() => new Date(slot.startISO), [slot.startISO])
