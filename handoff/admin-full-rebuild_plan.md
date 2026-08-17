@@ -180,13 +180,13 @@ Light Theme → Dark Theme Colors. One section is missing:
 `EmailSettingsForm.tsx`, `SmtpInstructions.tsx`.
 **Target:** new `demo-widget/src/admin/pages/EmailPage.tsx`.
 
-- [ ] One `SettingsSection` "SMTP Server" card: Host, Port (587), Username,
+- [x] One `SettingsSection` "SMTP Server" card: Host, Port (587), Username,
       Password (masked), Sender Display Name, Secure Connection (SSL)
       switch. "Save Config" / "Save & Send Test Email" buttons — the latter
       opens a small dialog with an email input, inert send.
-- [ ] Sidebar instructions card (`SmtpInstructions`): collapsible `<details>`
+- [x] Sidebar instructions card (`SmtpInstructions`): collapsible `<details>`
       per provider (Gmail, Outlook, ...) with plausible host/port text.
-- [ ] All fields disabled, plausible placeholder values (blank, matching a
+- [x] All fields disabled, plausible placeholder values (blank, matching a
       salon that hasn't configured SMTP yet — real default state).
 
 ---
@@ -196,7 +196,7 @@ Light Theme → Dark Theme Colors. One section is missing:
 `SocialSettingsForm.tsx`.
 **Target:** new `demo-widget/src/admin/pages/SocialAuthPage.tsx`.
 
-- [ ] 3 `SettingsSection` cards: Google Auth (Client ID, Client Secret),
+- [x] 3 `SettingsSection` cards: Google Auth (Client ID, Client Secret),
       Telegram Auth (Bot Username, Bot Token), Apple Auth (Services ID,
       Team ID, Key ID, Private Key textarea). Single "Save Config" button,
       real page copy underneath. All disabled, all blank (unconfigured
@@ -210,7 +210,7 @@ Light Theme → Dark Theme Colors. One section is missing:
 `NotificationSettingsForm.tsx`, `TelegramRecipientsField.tsx`.
 **Target:** new `demo-widget/src/admin/pages/NotificationsPage.tsx`.
 
-- [ ] 3 `SettingsSection` cards: Email (toggle, disabled — "configure SMTP
+- [x] 3 `SettingsSection` cards: Email (toggle, disabled — "configure SMTP
       first" link to Email page), Telegram (toggle + Bot Token + dynamic
       recipient chat-ID rows, disabled), Reminders (24h/2h toggles,
       disabled).
@@ -222,11 +222,11 @@ Light Theme → Dark Theme Colors. One section is missing:
 `ClientBotSettingsForm.tsx`.
 **Target:** new `demo-widget/src/admin/pages/ClientBotPage.tsx`.
 
-- [ ] "Booking bot" card: Enable toggle, Bot token, Bot username (with
+- [x] "Booking bot" card: Enable toggle, Bot token, Bot username (with
       "Open bot in Telegram →" link), Website URL — all disabled.
-- [ ] "How to set up" card: static 4-step `<ol>` (create bot via @BotFather
+- [x] "How to set up" card: static 4-step `<ol>` (create bot via @BotFather
       → paste token → enable+save → done).
-- [ ] Note in-file: this is a client-facing Telegram chat-booking bot, not
+- [x] Note in-file: this is a client-facing Telegram chat-booking bot, not
       an n8n webhook — confirmed via source, no n8n reference exists in the
       real app at all.
 
@@ -237,7 +237,7 @@ Light Theme → Dark Theme Colors. One section is missing:
 `LegalSettingsForm.tsx`.
 **Target:** new `demo-widget/src/admin/pages/LegalDocumentsPage.tsx`.
 
-- [ ] 2 `SettingsSection` cards: Terms of Use, Privacy Policy — each a large
+- [x] 2 `SettingsSection` cards: Terms of Use, Privacy Policy — each a large
       disabled textarea (20 rows) pre-filled with the real Privacy/Terms
       copy already written for the demo's public `/privacy` and `/terms`
       pages (reuse that text, don't rewrite). Markdown-lite formatting hint

@@ -100,6 +100,23 @@ No Critical/Architectural issues.
 
 ---
 
+## Stage 4.5 — Email, Social Auth, Notifications, Booking Bot, Legal Documents (plan sections 8-12)
+**Date:** 2026-08-17
+**Verdict:** APPROVED
+
+New: `demo-widget/src/admin/shared/SettingsSection.tsx` (shared card wrapper, mirrors the existing pattern already in `SettingsPage/index.tsx` without modifying it), `pages/EmailPage/{index,SmtpInstructions}.tsx`, `pages/SocialAuthPage.tsx`, `pages/NotificationsPage/{index,TelegramRecipientsField}.tsx`, `pages/ClientBotPage.tsx`, `pages/LegalDocumentsPage.tsx`.
+
+- Field sets verified against real production source for all 5 pages — complete, structurally faithful, all inert (zero real fetch/localStorage, grep-confirmed independently by reviewer).
+- Legal copy specifically checked given this project's past paraphrasing incident: `LegalDocumentsPage.tsx` imports `termsContent`/`privacyContent` directly from `demo-widget/src/lib/legalContent.ts`, the same source already used by the demo's own public `/terms`/`/privacy` pages — verbatim reuse, not paraphrased.
+- Booking bot page correctly documents in-file that this is a real client-facing Telegram chat bot (grammy/long-polling), not n8n — addresses a documented past confusion in this project's planning.
+- `AdminApp.tsx` correctly left untouched (routing wire-up is a separate later step).
+- All files well under 500 lines. Plan checkboxes scoped to sections 8-12 only.
+- Orchestrator independently confirmed via `git diff --stat` (6 new files/folders, only plan file otherwise touched) and `npm run build` (clean).
+
+No Critical/Architectural or Minor issues.
+
+---
+
 ## Stage 4 — Settings: Security, Brand expansion, Background fields (plan section 7)
 **Date:** 2026-08-17
 **Verdict:** APPROVED
