@@ -305,13 +305,17 @@ tab state, no real routing needed for a single-page demo).
 ---
 
 ## Shared infra needed (new, used across several sections above)
-- [ ] Minimal inert **Sheet** component (right-side slide-over) — used by
+- [x] Minimal inert **Sheet** component (right-side slide-over) — used by
       Services/Discounts/Masters/Pages/Admins edit panels. Open/close only.
-- [ ] Minimal inert **Dialog** component (centered modal) — used by Email
+      Landed at `demo-widget/src/admin/shared/Sheet.tsx`.
+- [x] Minimal inert **Dialog** component (centered modal) — used by Email
       test-send, Database client edit, confirm-delete flows.
-- [ ] Minimal **Switch** component — used by several Settings-family pages
+      Landed at `demo-widget/src/admin/shared/Dialog.tsx`.
+- [x] Minimal **Switch** component — used by several Settings-family pages
       (Email secure toggle, Notifications toggles, Client Bot enable toggle).
-- [ ] Simple 2-tab underline **SubNav** — used only by Database.
+      Landed at `demo-widget/src/admin/shared/Switch.tsx`.
+- [x] Simple 2-tab underline **SubNav** — used only by Database.
+      Landed at `demo-widget/src/admin/shared/SubNav.tsx`.
 
 These are small, real-shaped, no data layer — just open/close local state,
 matching the pattern already used for the Sheet-less pages today.
