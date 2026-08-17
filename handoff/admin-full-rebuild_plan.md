@@ -285,22 +285,27 @@ tab state, no real routing needed for a single-page demo).
 **Real source:** `src/app/admin/db-browser/page.tsx`, `DbBrowserClient.tsx`.
 **Target:** new `demo-widget/src/admin/pages/DbBrowserPage.tsx`.
 
-- [ ] Left sidebar, the real 11 hardcoded table names: `user`,
+- [x] Left sidebar, the real 11 hardcoded table names: `user`,
       `masterProfile`, `service`, `masterService`, `consentRecord`,
       `schedule`, `appointment`, `dateOverride`, `tenantConfig`,
       `passwordResetToken`, `account`. Clicking one shows its row table.
-- [ ] Header: table name + "{{count}} rows total" + "SUPERADMIN only"
+- [x] Header: table name + "{{count}} rows total" + "SUPERADMIN only"
       warning badge.
-- [ ] Table columns derived from real Prisma field names, not invented —
+- [x] Table columns derived from real Prisma field names, not invented —
       **before writing this page, read `prisma/schema.prisma` in full for
       the exact field list of all 11 models** (only `tenantConfig`, `user`,
       `consentRecord` were pulled during this planning pass; the other 8
       need a direct read at implementation time, not a guess).
-  - [ ] Trailing Actions column, per-row Trash delete (inert, confirm dialog).
-- [ ] Pagination footer (Prev/Page x of y/Next) — can be real if mock data
+  - [x] Trailing Actions column, per-row Trash delete (inert, confirm dialog).
+- [x] Pagination footer (Prev/Page x of y/Next) — can be real if mock data
       is paginated client-side (harmless), otherwise static "Page 1 of 1".
-- [ ] Exception to the table→card mobile pattern: stays a horizontal-scroll
+- [x] Exception to the table→card mobile pattern: stays a horizontal-scroll
       `<table>` at all breakpoints, confirmed in real `AGENTS.md`.
+
+Implemented at `demo-widget/src/admin/pages/DbBrowserPage/index.tsx` +
+`mockDbData.ts` (182 + 162 lines). Not yet wired into `AdminApp.tsx`'s
+`renderSection` switch — that's the separate "Routing change" section below,
+still unchecked/out of scope for this pass.
 
 ---
 

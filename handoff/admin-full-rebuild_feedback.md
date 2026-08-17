@@ -136,6 +136,25 @@ No Critical/Architectural or Minor issues.
 
 ---
 
+## Stage 6 — DB Browser (plan section 15, final new page)
+**Date:** 2026-08-17
+**Verdict:** APPROVED
+
+New: `DbBrowserPage/index.tsx` (182 lines), `DbBrowserPage/mockDbData.ts` (162 lines).
+
+- **Highest-priority check passed**: all 11 tables' mock row objects verified field-by-field against `prisma/schema.prisma` directly — exact scalar-field match for every model, including the newer `appointment.discountId`/`originalPrice`/`finalPrice` triad, and correctly *not* over-including fields the model genuinely lacks (`passwordResetToken` has no `updatedAt`, `account` has no `createdAt`/`updatedAt`). No relation objects leaked, no invented fields.
+- Masking verified exact against the real API route's `MASKED_FIELDS`: `user.password`/`passwordEncrypted` → `"[REDACTED]"` (null correctly preserved for the guest user, matching production's null-skip logic), `tenantConfig.smtpPass`/`googleClientSecret`/`applePrivateKey`/`telegramBotToken` → `"[REDACTED]"`, no other field redacted.
+- Pagination genuinely functional (local `useState`, `PAGE_SIZE=5`), correctly hidden/shown per table's row count, demonstrated working on `appointment` (8 rows) and `account` (6 rows).
+- Delete flow uses the shared `Dialog`, confirmed no mutation of the mock array.
+- Confirmed the mobile-card-exception (stays horizontal-scroll table at all breakpoints) and header (name + row count + SUPERADMIN-only warning badge) both correct.
+- Two purely cosmetic, non-blocking notes (not worth a follow-up pass): a few day-off `intervals` fields use `null` instead of schema's actual `"[]"` default; a few relation IDs (`u7`-`u12`) referenced in other mock tables aren't defined in the mock `user` table — no visible bug since the page has no joins.
+- Both files well under 500 lines. Plan checkboxes scoped to section 15 only; "Routing change" section untouched.
+- Orchestrator independently confirmed via `git diff --stat` (1 new folder, only plan file otherwise touched) and `npm run build` (clean).
+
+No Critical/Architectural issues.
+
+---
+
 ## Stage 4 — Settings: Security, Brand expansion, Background fields (plan section 7)
 **Date:** 2026-08-17
 **Verdict:** APPROVED
