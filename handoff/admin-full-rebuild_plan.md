@@ -327,10 +327,11 @@ matching the pattern already used for the Sheet-less pages today.
 
 ---
 
-## Routing change
-`AdminApp.tsx`: replace all 8 `PLACEHOLDER_SECTIONS` entries in the
-`renderSection` switch with the 8 new real pages above. Delete
-`PlaceholderPage.tsx` once nothing references it.
+## Routing change — done (2026-08-17)
+`AdminApp.tsx`: all 8 `PLACEHOLDER_SECTIONS` entries in the `renderSection`
+switch replaced with the 8 new real pages. `PlaceholderPage.tsx` deleted
+(confirmed zero remaining references). Build clean, switch is exhaustive
+over `AdminSection` (no `default` case needed — tsc confirms 15/15 covered).
 
 ## Explicitly staying inert everywhere
 Every Save/Submit/Add/Delete/Withdraw/Erase button, everywhere in all 15

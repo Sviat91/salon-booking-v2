@@ -10,20 +10,15 @@ import DiscountsPage from './pages/DiscountsPage'
 import MastersPage from './pages/MastersPage'
 import PagesPage from './pages/PagesPage'
 import SettingsPage from './pages/SettingsPage'
-import PlaceholderPage from './pages/PlaceholderPage'
+import EmailPage from './pages/EmailPage'
+import SocialAuthPage from './pages/SocialAuthPage'
+import NotificationsPage from './pages/NotificationsPage'
+import ClientBotPage from './pages/ClientBotPage'
+import LegalDocumentsPage from './pages/LegalDocumentsPage'
+import DatabasePage from './pages/DatabasePage'
+import AdminsPage from './pages/AdminsPage'
+import DbBrowserPage from './pages/DbBrowserPage'
 import { useAppNavigation } from '../context/AppContext'
-import { Mail, Key, Bell, Bot, ScrollText, Database, UserCog, Table2 } from 'lucide-react'
-
-const PLACEHOLDER_SECTIONS: Partial<Record<AdminSection, { icon: typeof Mail; description: string }>> = {
-  email: { icon: Mail, description: 'SMTP configuration for booking confirmations and reminders.' },
-  social: { icon: Key, description: 'OAuth providers for client login (Google, Apple, Telegram).' },
-  notifications: { icon: Bell, description: 'Telegram notification recipients for new/changed bookings.' },
-  'client-bot': { icon: Bot, description: 'Telegram bot configuration for client-facing booking.' },
-  legal: { icon: ScrollText, description: 'Privacy Policy and Terms of Service content.' },
-  database: { icon: Database, description: 'Database connection and backup status.' },
-  admins: { icon: UserCog, description: 'Admin and superadmin accounts.' },
-  'db-browser': { icon: Table2, description: 'Raw table browser for support/debugging.' },
-}
 
 function renderSection(section: AdminSection) {
   switch (section) {
@@ -41,10 +36,22 @@ function renderSection(section: AdminSection) {
       return <PagesPage />
     case 'settings':
       return <SettingsPage />
-    default: {
-      const p = PLACEHOLDER_SECTIONS[section]!
-      return <PlaceholderPage icon={p.icon} title={sectionTitles[section]} description={p.description} />
-    }
+    case 'email':
+      return <EmailPage />
+    case 'social':
+      return <SocialAuthPage />
+    case 'notifications':
+      return <NotificationsPage />
+    case 'client-bot':
+      return <ClientBotPage />
+    case 'legal':
+      return <LegalDocumentsPage />
+    case 'database':
+      return <DatabasePage />
+    case 'admins':
+      return <AdminsPage />
+    case 'db-browser':
+      return <DbBrowserPage />
   }
 }
 
