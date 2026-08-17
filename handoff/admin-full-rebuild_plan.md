@@ -158,19 +158,19 @@ Confirmed section order already matches: Brand → Salon Contact Info →
 Calendar Settings → Business Hours → Content Languages → Homepage widget →
 Light Theme → Dark Theme Colors. One section is missing:
 
-- [ ] **Add "Security" section** (`SuperAdminCredentials.tsx`) at the very
+- [x] **Add "Security" section** (`SuperAdminCredentials.tsx`) at the very
       bottom, after an `<hr>`: two disabled cards, "Change Password"
       (current/new/confirm) and "Change email" (current password/new
       email). This was previously deliberately left out — including it now
       per "show everything, just make it inactive."
-- [ ] **Expand Brand section** — currently 3 dashed placeholder boxes. Real
+- [x] **Expand Brand section** — currently 3 dashed placeholder boxes. Real
       one has: `LogoEditor` (light/dark logo upload + position/size/pages/
       layer/fullscreen toggle controls, all disabled), Favicon upload,
       `ThemeToggleIconsSection` (custom light/dark icon upload, disabled).
-- [ ] **Add Background field** to Light Theme and Dark Theme sections
+- [x] **Add Background field** to Light Theme and Dark Theme sections
       (`BackgroundSection` — background image upload, disabled) — currently
       missing, only the color swatches are there.
-- [ ] Keep exactly two live fields: Salon Name, "Primary Button" (light),
+- [x] Keep exactly two live fields: Salon Name, "Primary Button" (light),
       "Dark Primary Button" (dark) — unchanged from current build.
 
 ---

@@ -97,3 +97,20 @@ Files modified: `ServicesPage.tsx`, `DiscountsPage.tsx`, `MastersPage.tsx`, `Pag
 - Orchestrator independently confirmed via `git diff --stat` (exactly 4 modified + 4 new files) and `npm run build` (clean).
 
 No Critical/Architectural issues.
+
+---
+
+## Stage 4 — Settings: Security, Brand expansion, Background fields (plan section 7)
+**Date:** 2026-08-17
+**Verdict:** APPROVED
+
+`SettingsPage.tsx` converted to a folder: `SettingsPage/{index,BrandSection,SecuritySection,BackgroundField}.tsx` (184/158/55/41 lines).
+
+- Reviewer traced the only three live writes anywhere in the touched files (Salon Name, light/dark accent color) directly to the untouched `useBrand()`/`BrandContext` wiring — confirmed these are the sole live state, everything else grepped clean for fetch/localStorage and is disabled/inert-by-construction.
+- `SecuritySection.tsx` copy verified against real `en.json` (`securityTitle`/`securityDesc`/`changeEmailTitle`), field sets correct.
+- `BrandSection.tsx` structurally covers LogoEditor (light/dark upload, size, layer, show-on-pages, static position preview) + Favicon + ThemeToggleIconsSection. One documented simplification: "Stretch to Full Screen" toggle renders unconditionally rather than gated on `layer === 'below'` (no such state exists in the inert port) — reasonable, flagged as a trivial comment-documentation nit only, no functional impact, not worth a follow-up fix.
+- `BackgroundField.tsx` confirmed present in both Light Theme and Dark Theme Colors sections.
+- All files well under 500 lines. Plan checkboxes scoped to section 7 only.
+- Orchestrator independently confirmed via `git diff --stat` (old flat file deleted, new folder added, only plan file otherwise touched) and `npm run build` (clean).
+
+No Critical/Architectural issues.
