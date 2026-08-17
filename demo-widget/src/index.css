@@ -18,6 +18,18 @@
   --border: #e2e8f0;
   --ring: #b35c37;
   --radius: 0.75rem;
+
+  /* Material Design 3 container tokens — ported verbatim from the real
+     src/styles/m3-tokens.css (dashboard stat tiles, calendar day-off/
+     available-slot backgrounds). */
+  --md-primary-container: #ffd9dc;
+  --md-on-primary-container: #3b0017;
+  --md-secondary-container: #ffdcca;
+  --md-on-secondary-container: #2f1509;
+  --md-tertiary-container: #ffdfa3;
+  --md-on-tertiary-container: #271900;
+  --md-surface-container-high: #f3e3e4;
+  --md-on-surface: #211a1b;
 }
 
 .dark {
@@ -35,6 +47,15 @@
   --accent-foreground: #f1f3f5;
   --border: #2d3239;
   --ring: #d0764d;
+
+  --md-primary-container: #723340;
+  --md-on-primary-container: #ffd9dc;
+  --md-secondary-container: #634432;
+  --md-on-secondary-container: #ffdcca;
+  --md-tertiary-container: #5e4200;
+  --md-on-tertiary-container: #ffdfa3;
+  --md-surface-container-high: #312829;
+  --md-on-surface: #ede1e1;
 }
 
 body {

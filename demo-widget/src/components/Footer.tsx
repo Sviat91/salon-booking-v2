@@ -1,7 +1,9 @@
 import { useAppNavigation } from '../context/AppContext'
+import { useBrand } from '../context/BrandContext'
 
 export default function Footer() {
   const { navigateToPrivacy, navigateToTerms, navigateToSupport } = useAppNavigation()
+  const { brand } = useBrand()
 
   return (
     <footer className="py-3">
@@ -20,7 +22,7 @@ export default function Footer() {
               Help Center
             </button>
             <span className="mx-4">|</span>
-            <span>© {new Date().getFullYear()} Loom & Blade. All rights reserved.</span>
+            <span>© {new Date().getFullYear()} {brand.name}. All rights reserved.</span>
           </div>
         </div>
       </div>

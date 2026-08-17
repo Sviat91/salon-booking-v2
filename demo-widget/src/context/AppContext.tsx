@@ -10,6 +10,7 @@ type View =
   | { name: 'privacy' }
   | { name: 'terms' }
   | { name: 'support' }
+  | { name: 'admin' }
 
 interface AppContextValue {
   view: View
@@ -19,6 +20,7 @@ interface AppContextValue {
   navigateToPrivacy: () => void
   navigateToTerms: () => void
   navigateToSupport: () => void
+  navigateToAdmin: () => void
   selectedMasterId: string | null
   selectedMaster: Master | null
 }
@@ -34,6 +36,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const navigateToPrivacy = useCallback(() => setView({ name: 'privacy' }), [])
   const navigateToTerms = useCallback(() => setView({ name: 'terms' }), [])
   const navigateToSupport = useCallback(() => setView({ name: 'support' }), [])
+  const navigateToAdmin = useCallback(() => setView({ name: 'admin' }), [])
 
   const selectedMasterId = view.name === 'booking' ? view.masterId : null
   const selectedMaster = useMemo(() => masters.find((m) => m.id === selectedMasterId) ?? null, [selectedMasterId])
@@ -46,6 +49,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     navigateToPrivacy,
     navigateToTerms,
     navigateToSupport,
+    navigateToAdmin,
     selectedMasterId,
     selectedMaster,
   }
@@ -68,9 +72,17 @@ export function useSelectedMaster() {
 }
 
 export function useAppNavigation() {
-  const { view, navigateHome, navigateToMaster, navigateToAbout, navigateToPrivacy, navigateToTerms, navigateToSupport } =
-    useAppContext()
-  return { view, navigateHome, navigateToMaster, navigateToAbout, navigateToPrivacy, navigateToTerms, navigateToSupport }
+  const {
+    view,
+    navigateHome,
+    navigateToMaster,
+    navigateToAbout,
+    navigateToPrivacy,
+    navigateToTerms,
+    navigateToSupport,
+    navigateToAdmin,
+  } = useAppContext()
+  return { view, navigateHome, navigateToMaster, navigateToAbout, navigateToPrivacy, navigateToTerms, navigateToSupport, navigateToAdmin }
 }
 
 /** The single "About Us" tab shown in every page's TopNavLine. */

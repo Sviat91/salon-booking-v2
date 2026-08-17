@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import TopNavLine from '../components/TopNavLine'
 import ThemeToggle from '../components/ThemeToggle'
+import LanguageToggle from '../components/LanguageToggle'
 import BrandHeader from '../components/BrandHeader'
 import { Card } from '../components/ui/card'
 import ProcedureSelect from '../components/ProcedureSelect'
@@ -76,7 +77,17 @@ export default function BookingPage() {
   return (
     <main className="px-3 py-4 sm:p-6 relative flex-1 flex flex-col w-full max-w-full box-border overflow-x-hidden">
       <div className="absolute top-2 left-0 right-0 z-20 pl-3 lg:pl-28 xl:pl-32">
-        <TopNavLine onBack={navigateHome} leadingSpaceClassName="pl-48" actions={<ThemeToggle />} tabs={tabs} />
+        <TopNavLine
+          onBack={navigateHome}
+          leadingSpaceClassName="pl-48"
+          actions={
+            <>
+              <LanguageToggle />
+              <ThemeToggle />
+            </>
+          }
+          tabs={tabs}
+        />
       </div>
 
       <LogoDisplay />

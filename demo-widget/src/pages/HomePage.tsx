@@ -1,5 +1,6 @@
 import TopNavLine from '../components/TopNavLine'
 import ThemeToggle from '../components/ThemeToggle'
+import LanguageToggle from '../components/LanguageToggle'
 import MasterSelector from '../components/MasterSelector'
 import PhotoStrip from '../components/PhotoStrip'
 import LogoDisplay from '../components/LogoDisplay'
@@ -7,16 +8,23 @@ import { useAboutTab } from '../context/AppContext'
 
 // Ported from the real HomeClient.tsx. The homepage widget-block slot is
 // DB-configured and unset in this demo (its default real-world state is to
-// render nothing), so it's omitted rather than faked. LanguageToggle is
-// likewise omitted — the real component returns null outright for a
-// single-language tenant, which this demo is.
+// render nothing), so it's omitted rather than faked.
 export default function HomePage() {
   const tabs = useAboutTab()
 
   return (
     <main className="flex-1 flex flex-col relative pb-4">
       <div className="absolute top-2 left-0 right-0 z-20 pl-3 lg:pl-28 xl:pl-32">
-        <TopNavLine leadingSpaceClassName="pl-48" actions={<ThemeToggle />} tabs={tabs} />
+        <TopNavLine
+          leadingSpaceClassName="pl-48"
+          actions={
+            <>
+              <LanguageToggle />
+              <ThemeToggle />
+            </>
+          }
+          tabs={tabs}
+        />
       </div>
 
       <LogoDisplay />

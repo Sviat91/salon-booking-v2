@@ -1,6 +1,7 @@
 import { motion, type Variants } from 'framer-motion'
 import TopNavLine from '../components/TopNavLine'
 import ThemeToggle from '../components/ThemeToggle'
+import LanguageToggle from '../components/LanguageToggle'
 import PhotoGalleryRenderer from '../components/content/PhotoGalleryRenderer'
 import { useAppNavigation, useAboutTab } from '../context/AppContext'
 import { useReducedMotion } from '../hooks/useReducedMotion'
@@ -37,7 +38,17 @@ export default function AboutPage() {
         transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.5, ease: 'easeOut' }}
         className="absolute top-2 left-0 right-0 z-20 pl-3 lg:pl-28 xl:pl-32"
       >
-        <TopNavLine onBack={navigateHome} leadingSpaceClassName="pl-48" actions={<ThemeToggle />} tabs={tabs} />
+        <TopNavLine
+          onBack={navigateHome}
+          leadingSpaceClassName="pl-48"
+          actions={
+            <>
+              <LanguageToggle />
+              <ThemeToggle />
+            </>
+          }
+          tabs={tabs}
+        />
       </motion.div>
 
       <div className="mx-auto w-full max-w-5xl px-4 pt-12">

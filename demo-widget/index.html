@@ -19,8 +19,21 @@
         // this is a dark-branded demo site, not a real tenant).
         try {
           var saved = localStorage.getItem('theme')
-          if (saved !== 'light') {
+          var isDark = saved !== 'light'
+          if (isDark) {
             document.documentElement.classList.add('dark')
+          }
+          // Pre-apply any saved Settings accent color before mount, same
+          // reasoning as the dark-class check above — avoids a flash of the
+          // default accent for a returning visitor who customized it.
+          var brandRaw = localStorage.getItem('ordiset-demo-brand')
+          if (brandRaw) {
+            var brand = JSON.parse(brandRaw)
+            var accent = isDark ? brand.darkAccent : brand.lightAccent
+            if (accent) {
+              document.documentElement.style.setProperty('--primary', accent)
+              document.documentElement.style.setProperty('--ring', accent)
+            }
           }
         } catch (e) {}
       })()
