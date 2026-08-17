@@ -3,9 +3,15 @@ import { masters } from '../data'
 export type MockAppointment = {
   id: string
   clientName: string
+  clientPhone?: string
   masterId: string
   procedureName: string
   price: number
+  originalPrice?: number
+  discountLabel?: string
+  discountPercent?: number
+  status?: string
+  notes?: string
   startISO: string
   endISO: string
 }
@@ -33,14 +39,20 @@ export const weekAppointments: MockAppointment[] = [
     masterId: marek.id,
     procedureName: "Classic Men's Haircut",
     price: 99,
+    status: 'CONFIRMED',
     ...at(0, 10, 0, 45),
   },
   {
     id: 'ap2',
     clientName: 'Tomasz Nowicki',
+    clientPhone: '+48 601 234 567',
     masterId: marek.id,
     procedureName: 'Combo: Haircut & Beard',
     price: 153,
+    originalPrice: 170,
+    discountLabel: 'Welcome Glow',
+    discountPercent: 10,
+    status: 'CONFIRMED',
     ...at(0, 14, 0, 75),
   },
   {
@@ -49,14 +61,18 @@ export const weekAppointments: MockAppointment[] = [
     masterId: anna.id,
     procedureName: 'Single-Process Color & Care',
     price: 288,
+    status: 'CONFIRMED',
     ...at(-1, 11, 0, 120),
   },
   {
     id: 'ap4',
     clientName: 'David Lewandowski',
+    clientPhone: '+48 512 345 678',
     masterId: marek.id,
     procedureName: 'Royal Shave with Hot Towel',
     price: 90,
+    status: 'CONFIRMED',
+    notes: 'Prefers unscented shaving cream.',
     ...at(2, 15, 0, 45),
   },
   {
@@ -65,6 +81,7 @@ export const weekAppointments: MockAppointment[] = [
     masterId: anna.id,
     procedureName: 'Balayage / AirTouch Coloring',
     price: 495,
+    status: 'PENDING',
     ...at(-2, 12, 0, 210),
   },
 ]
@@ -75,6 +92,10 @@ export const MASTER_COLORS: Record<string, string> = {
   marek: '#166534',
   anna: '#B35C37',
 }
+
+// Shape mirrors the real `AdminMasterListItem` (id/name/masterProfile.color)
+// consumed by CalendarToolbar's MasterSelectDropdown and BulkSettingsModal.
+export const adminMastersList = masters.map((m) => ({ id: m.id, name: m.name, color: MASTER_COLORS[m.id] ?? '#8B4A58' }))
 
 export const dashboardStats = {
   todayCount: weekAppointments.filter((a) => new Date(a.startISO).toDateString() === new Date().toDateString()).length,

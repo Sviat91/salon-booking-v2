@@ -62,26 +62,26 @@ Week-only) + new `CalendarPage/` subcomponents.
 Currently built: Week view only, toolbar present but every button inert.
 Real app has 3 real views (Month/Week/Day) and 3 real modals.
 
-- [ ] **Month view** — build a real month grid (`MonthView.tsx` structure),
+- [x] **Month view** — build a real month grid (`MonthView.tsx` structure),
       mock appointments dotted per day, click a day → jump to Day view.
-- [ ] **Day view** — same absolute-positioned hour grid as Week, single
+- [x] **Day view** — same absolute-positioned hour grid as Week, single
       column, `PIXELS_PER_MINUTE = 1.5` (already have this constant).
-- [ ] View toggle pill (Month/Week/Day) becomes **actually functional** —
+- [x] View toggle pill (Month/Week/Day) becomes **actually functional** —
       switches which of the 3 views renders. Nothing here writes data, so
       this is safe to make real.
-- [ ] **ViewAppointmentModal** — clicking an existing appointment block
+- [x] **ViewAppointmentModal** — clicking an existing appointment block
       opens a real-looking view/edit modal (client/service/master/time/
       price + discount label if any). Edit/Duplicate/Delete buttons present,
       inert.
-- [ ] **AppointmentModal** — clicking empty grid space or an "Add" affordance
+- [x] **AppointmentModal** — clicking empty grid space or an "Add" affordance
       opens the real create/edit form shell (client, service select, master,
       date/time, notes). Save button present, inert (closes modal only).
-- [ ] **BulkSettingsModal** — "Bulk Schedule Edit" button opens the real
+- [x] **BulkSettingsModal** — "Bulk Schedule Edit" button opens the real
       multi-day/multi-master schedule editor shell, inert Save.
-- [ ] `MasterSelectDropdown` — "All Masters" / "All Masters (Combined)" /
+- [x] `MasterSelectDropdown` — "All Masters" / "All Masters (Combined)" /
       per-master — **make this actually filter** which mock appointments
       show, since it's pure client-side filtering of already-local mock data.
-- [ ] "Edit Schedule" toggle — can stay inert (real one enables drag-editing
+- [x] "Edit Schedule" toggle — can stay inert (real one enables drag-editing
       of the weekly template, no meaningful mock version).
 
 Editable/functional (safe, non-persisting): view toggle, master filter,
