@@ -100,6 +100,22 @@ No Critical/Architectural issues.
 
 ---
 
+## Stage 4b — Settings corrective rewrite (fixes an invented layout from Stage 4)
+**Date:** 2026-08-17
+**Verdict:** APPROVED
+
+**Bug found by the user, not caught in Stage 4's review**: the whole Settings page was wrapped in an invented `grid-cols-[1fr,320px]` 2-column layout with a fake "Live preview" sidebar panel — traced via `git show` to the very first Settings build (2026-08-14, before this session existed), never checked against real `page.tsx`/`SettingsForm.tsx` at the time, and Stage 4 (this session) built new content inside that wrong container without re-verifying the container itself. See the `feedback_verify_container_not_just_fields` memory for the generalized lesson.
+
+**Fix**: `index.tsx` rewritten to a plain single-column `flex flex-col gap-6` stack, no grid, no preview panel — matches real `SettingsForm.tsx` exactly. Two new files added to replace one-sentence placeholders with real-shaped controls: `LanguagesSection.tsx` (real pl/uk/en checkbox list, last-enabled-can't-uncheck rule, local state) and `HomepageWidgetSection.tsx` (static photo-widget type/style indicators + 3 inert photo-slot placeholders, deliberately not a full block editor — matches the already-approved "Manage blocks →" inert precedent from `PageEditSheet.tsx`). `BackgroundField` reordered to render before the color grid in both theme sections, matching real order. Copy fixes for the top description line and "Reset to M3 defaults" button verified against `en.json`.
+
+Reviewer independently re-read real `page.tsx`, `SettingsForm.tsx`, `LanguagesSection.tsx`, `HomepageWidgetSection.tsx`, `SingleBlockSlotEditor.tsx`, `i18n-shared.ts`, and `en.json` directly (not the coder's summary) and confirmed every claim: grid/preview panel genuinely gone, section order matches line-for-line, language list and copy strings verified byte-accurate, only the two approved fields (Salon Name, light/dark accent) hold live state. `BrandSection.tsx`/`BackgroundField.tsx`/`SecuritySection.tsx` re-checked and confirmed still correct, no rebuild needed.
+
+Orchestrator independently confirmed via `git diff --stat` and `npm run build` (clean).
+
+No Critical/Architectural or Minor issues.
+
+---
+
 ## Stage 4.5 — Email, Social Auth, Notifications, Booking Bot, Legal Documents (plan sections 8-12)
 **Date:** 2026-08-17
 **Verdict:** APPROVED
