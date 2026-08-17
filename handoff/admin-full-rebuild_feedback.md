@@ -117,6 +117,25 @@ No Critical/Architectural or Minor issues.
 
 ---
 
+## Stage 5 — Database (Clients + GDPR) and Admins (plan sections 13-14)
+**Date:** 2026-08-17
+**Verdict:** APPROVED
+
+New: `DatabasePage/{index,ClientsTab,GdprTab}.tsx` (30/131/147), `AdminsPage.tsx` (110), `AdminEditSheet.tsx` (76).
+
+- Table columns/badges verified against real `ClientsTable.tsx`/`GdprTable.tsx` — GDPR phone masking confirmed genuinely last-4-only (`'****' + phoneDigits.slice(-4)`), search scope matches real GDPR table (name-only).
+- Admins card shows exactly the 6 required permission badges; "Super Admin" all-granted, second admin genuinely mixed.
+- Every inert action traced by hand to a bare `close`/no mutation of the mock arrays — confirmed the only 3 live pieces (SubNav tab switch, Clients search, GDPR search) are the only ones with real effect.
+- `Sheet`/`Dialog` correctly reused per plan's assignment (Sheet for Admins-edit, Dialog for Clients-edit/GDPR-confirm).
+- Admins edit-Sheet showing Name/Email/Password fields (which real production omits in edit mode) is a deliberate, plan-mandated "fuller field set" deviation, not an oversight.
+- No fresh instance of the known repo-wide `bg-destructive`/`border-input`/`bg-popover` styling gap; `hover:text-destructive` on row actions is consistent reuse of an already-accepted pre-existing pattern.
+- All files under 500 lines. Plan checkboxes scoped to sections 13-14 only; section 15 and Routing change untouched. `AdminApp.tsx` confirmed untouched.
+- Orchestrator independently confirmed via `git diff --stat` (3 new files/folders, only plan file otherwise touched) and `npm run build` (clean).
+
+No Critical/Architectural or Minor issues.
+
+---
+
 ## Stage 4 — Settings: Security, Brand expansion, Background fields (plan section 7)
 **Date:** 2026-08-17
 **Verdict:** APPROVED

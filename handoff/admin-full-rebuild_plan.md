@@ -252,17 +252,17 @@ Light Theme → Dark Theme Colors. One section is missing:
 **Target:** new `demo-widget/src/admin/pages/DatabasePage.tsx` (internal
 tab state, no real routing needed for a single-page demo).
 
-- [ ] 2-tab underline sub-nav: Clients / GDPR.
-- [ ] **Clients tab**: search box (client-side filter over mock rows is
+- [x] 2-tab underline sub-nav: Clients / GDPR.
+- [x] **Clients tab**: search box (client-side filter over mock rows is
       fine, harmless), table (Name/Phone/Email/Registered/Type badge
       Guest|Registered/Actions). Mock ~5 plausible client rows (can reuse
       names already invented for `mockAdminData.ts` appointments — Kasia
       Wiśniewska, Tomasz Nowicki, etc. — plus a couple more).
-  - [ ] Edit action opens a small dialog (name/phone/email), inert save.
-- [ ] **GDPR tab**: search box, table (Name/Phone masked `****last4`/
+  - [x] Edit action opens a small dialog (name/phone/email), inert save.
+- [x] **GDPR tab**: search box, table (Name/Phone masked `****last4`/
       Consent Date/Status badge Active|Withdrawn|Erased/Actions). Mock ~4
       rows matching the same mock clients where sensible.
-  - [ ] Withdraw/Erase buttons open the real confirm-dialog pattern, inert.
+  - [x] Withdraw/Erase buttons open the real confirm-dialog pattern, inert.
 
 ---
 
@@ -271,12 +271,12 @@ tab state, no real routing needed for a single-page demo).
 `AdminForm.tsx`.
 **Target:** new `demo-widget/src/admin/pages/AdminsPage.tsx`.
 
-- [ ] Flex-card list (same family as Masters): name/email, edit/delete icon
+- [x] Flex-card list (same family as Masters): name/email, edit/delete icon
       buttons, bottom row of 6 permission badges (Clients: View/Edit/Delete,
       GDPR: View/Withdraw/Erase — green=granted/muted=not). One card for
       the current "S" superadmin (all granted), one invented second admin
       with partial permissions for visual variety.
-- [ ] Edit Sheet: Full Name/Email/Password (create-only fields shown),
+- [x] Edit Sheet: Full Name/Email/Password (create-only fields shown),
       permission checklists (Clients group, GDPR group). Inert save.
 
 ---
