@@ -355,5 +355,14 @@ as approved.
 
 ## Status
 2026-08-14 — plan written per user request, no implementation started.
-Awaiting go-ahead on scope (all of the above vs. a trimmed subset) and
-timing (today vs. tomorrow, per usage limits).
+
+**2026-08-17 — done.** All 15 sections + shared infra + routing wired,
+built stage-by-stage (coder → reviewer → orchestrator build/diff verify →
+commit), each stage APPROVED — see `handoff/admin-full-rebuild_feedback.md`
+for the full per-stage record. Final cross-cutting audit: zero `fetch()`
+anywhere in `demo-widget/src/admin/`; the only `localStorage` write left is
+`AdminThemeToggle.tsx`'s pre-existing light/dark theme preference (unrelated
+to this plan, not a form field). The only two live/persisting fields in the
+whole rebuilt admin panel remain Salon Name and the light/dark accent
+colors via `BrandContext`, exactly as approved. `PlaceholderPage.tsx`
+deleted. Final `npm run build` clean, working tree clean.
