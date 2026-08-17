@@ -79,3 +79,21 @@ User requested the Week/Day grid show 08:00–21:00 instead of the full 00:00–
 Reviewer traced the arithmetic by hand (concrete examples: 14:30 now-line lands at the same pixel as a 14:30 appointment block; 07:00/22:00 correctly fall outside the visible bounds and hide the now-line) — no drift between the four position calculations. Confirmed `MonthView.tsx`, `CalendarToolbar.tsx`, all three modals, `MasterSelectDropdown.tsx`, `index.tsx`, and `mockAdminData.ts` untouched; `PIXELS_PER_MINUTE` unchanged. Orchestrator independently confirmed via `git diff --stat` that only the 3 claimed files changed, and ran `npm run build` clean.
 
 No issues found.
+
+---
+
+## Stage 3 — Edit Sheets for Services/Discounts/Masters/Pages (plan sections 3-6)
+**Date:** 2026-08-17
+**Verdict:** APPROVED
+
+Files modified: `ServicesPage.tsx`, `DiscountsPage.tsx`, `MastersPage.tsx`, `PagesPage.tsx`. Files created: `ServiceEditSheet.tsx` (82 lines), `DiscountEditSheet.tsx` (147 lines), `MasterEditSheet.tsx` (131 lines), `PageEditSheet.tsx` (63 lines) — all in `demo-widget/src/admin/pages/`.
+
+- All four Sheets correctly reuse the shared `Sheet` primitive. No fetch/localStorage anywhere; every Save closes only.
+- Two explicitly-scoped interactive pieces verified safe: Discounts status-badge toggle and the "require promo code" conditional reveal are both local component state only, non-persisting.
+- Spot-checked against real production forms (`ServiceForm.tsx`, `DiscountForm.tsx`+`DiscountScopeFields.tsx`+`DiscountWindowFields.tsx`, `MasterForm.tsx`+`MasterFooterBlockField.tsx`, `PageFormSheet.tsx`) — all plan-required fields present, including the two specifically flagged for verification (per-master price-override input in Services, "Manage pages"+"Access Recovery" block in Masters).
+- Two trivial, non-blocking field-completeness gaps noted for optional future polish (not plan violations): `DiscountEditSheet.tsx` omits a standalone "Active" checkbox present in the real form (redundant with the table's own status toggle); `PageEditSheet.tsx` shows the visibility checklist unconditionally rather than only for globally-scoped pages (harmless for the demo's single mock page).
+- All files well under the 500-line limit (largest 147).
+- Plan checkboxes scoped correctly to sections 3-6 only.
+- Orchestrator independently confirmed via `git diff --stat` (exactly 4 modified + 4 new files) and `npm run build` (clean).
+
+No Critical/Architectural issues.

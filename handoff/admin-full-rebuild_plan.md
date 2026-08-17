@@ -94,9 +94,9 @@ modal open/close. Everything that would *save* stays inert.
 `ServiceForm.tsx`.
 **Target:** `demo-widget/src/admin/pages/ServicesPage.tsx` (existing).
 
-- [ ] Confirmed correct: flat merged catalog, Name/Duration/Price/Special
+- [x] Confirmed correct: flat merged catalog, Name/Duration/Price/Special
       Prices badges/Actions. No changes needed to the table itself.
-- [ ] **Add the edit Sheet** — clicking Pencil (or "+ Add Service") opens
+- [x] **Add the edit Sheet** — clicking Pencil (or "+ Add Service") opens
       the real `ServiceForm` shell: localized Name, Duration, Default Price,
       "Assign to Masters" checklist with per-master price-override inputs.
       Save button inert (closes only).
@@ -109,11 +109,11 @@ modal open/close. Everything that would *save* stays inert.
 `DiscountWindowFields.tsx`.
 **Target:** `demo-widget/src/admin/pages/DiscountsPage.tsx` (existing).
 
-- [ ] Confirmed correct: table columns and all 3 rows.
-- [ ] Status badge (Active/Inactive) — **make actually clickable/toggling**
+- [x] Confirmed correct: table columns and all 3 rows.
+- [x] Status badge (Active/Inactive) — **make actually clickable/toggling**
       local state only, since that's the real interaction and it's harmless
       (nothing persists past a refresh).
-- [ ] **Add the edit Sheet**: label, discount %, "require promo code"
+- [x] **Add the edit Sheet**: label, discount %, "require promo code"
       checkbox → conditional code field, "one use per client" checkbox,
       scope fields (All/Selected services), window fields (day toggles +
       time range), active from/until dates. Save inert.
@@ -125,9 +125,9 @@ modal open/close. Everything that would *save* stays inert.
 `MasterForm.tsx`, `MasterFooterBlockField.tsx`.
 **Target:** `demo-widget/src/admin/pages/MastersPage.tsx` (existing).
 
-- [ ] Confirmed correct: flex-card list (not table), ring-colored avatar,
+- [x] Confirmed correct: flex-card list (not table), ring-colored avatar,
       visibility badge.
-- [ ] **Add the edit Sheet**: avatar upload, Full Name, Email, localized
+- [x] **Add the edit Sheet**: avatar upload, Full Name, Email, localized
       Bio/Title, Appointment Color picker, "Show on homepage" checkbox,
       footer-block field. Inside the same Sheet, below the form: "Manage
       pages" button (inert — no nested page-list to fake) and "Access
@@ -140,9 +140,9 @@ modal open/close. Everything that would *save* stays inert.
 `PageFormSheet.tsx`.
 **Target:** `demo-widget/src/admin/pages/PagesPage.tsx` (existing).
 
-- [ ] Confirmed correct: drag handle/Title/Slug/Blocks/Visibility/Status/
+- [x] Confirmed correct: drag handle/Title/Slug/Blocks/Visibility/Status/
       Actions.
-- [ ] **Add the edit Sheet**: title/enabled/visibility fields + "Manage
+- [x] **Add the edit Sheet**: title/enabled/visibility fields + "Manage
       blocks →" (inert — no block editor built, single real page doesn't
       need it demonstrated).
 

@@ -1,7 +1,9 @@
+import { useState } from 'react'
 import { Plus, Pencil, Trash2 } from 'lucide-react'
 import { masters } from '../../data'
 import AdminCard from '../AdminCard'
 import Badge from '../../components/ui/badge'
+import ServiceEditSheet, { type EditableService } from './ServiceEditSheet'
 
 type MergedService = {
   id: string
@@ -37,6 +39,8 @@ function mergeServices(): MergedService[] {
 
 export default function ServicesPage() {
   const services = mergeServices()
+  const [editTarget, setEditTarget] = useState<EditableService | null>(null)
+  const [sheetOpen, setSheetOpen] = useState(false)
 
   return (
     <div>
@@ -45,7 +49,13 @@ export default function ServicesPage() {
           <p className="text-xs font-medium uppercase tracking-wider text-primary">Services</p>
           <p className="mt-1 text-sm text-muted-foreground">Shared catalog — every service offered by any master.</p>
         </div>
-        <button className="flex h-10 items-center gap-2 rounded-full bg-primary px-5 text-sm font-medium text-primary-foreground hover:opacity-90 transition-opacity">
+        <button
+          onClick={() => {
+            setEditTarget({ id: 'new', name: '', durationMin: 60, price: 0 })
+            setSheetOpen(true)
+          }}
+          className="flex h-10 items-center gap-2 rounded-full bg-primary px-5 text-sm font-medium text-primary-foreground hover:opacity-90 transition-opacity"
+        >
           <Plus className="h-4 w-4" />
           Add Service
         </button>
@@ -83,7 +93,13 @@ export default function ServicesPage() {
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex items-center justify-end gap-1">
-                    <button className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground">
+                    <button
+                      onClick={() => {
+                        setEditTarget(s)
+                        setSheetOpen(true)
+                      }}
+                      className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
+                    >
                       <Pencil className="h-4 w-4" />
                     </button>
                     <button className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-destructive">
@@ -96,6 +112,8 @@ export default function ServicesPage() {
           </tbody>
         </table>
       </AdminCard>
+
+      <ServiceEditSheet open={sheetOpen} service={editTarget} onClose={() => setSheetOpen(false)} />
     </div>
   )
 }

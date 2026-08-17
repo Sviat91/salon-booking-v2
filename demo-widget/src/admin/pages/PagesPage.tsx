@@ -1,12 +1,18 @@
+import { useState } from 'react'
 import { Plus, Pencil, Trash2, GripVertical } from 'lucide-react'
 import AdminCard from '../AdminCard'
 import Badge from '../../components/ui/badge'
+import PageEditSheet, { type EditablePage } from './PageEditSheet'
+
+const ABOUT_PAGE: EditablePage = { title: 'About Us', enabled: true, visibleHome: false, visibleBooking: false }
 
 // Ported from the real PageListClient.tsx table structure (drag handle,
 // Title, Slug, Blocks, Visibility, Status, Actions). Real list supports
 // drag-to-reorder via dnd-kit — with a single row here there's nothing to
 // reorder, but the handle icon is kept for visual fidelity.
 export default function PagesPage() {
+  const [sheetOpen, setSheetOpen] = useState(false)
+
   return (
     <div>
       <div className="mb-6 flex items-center justify-between">
@@ -47,7 +53,10 @@ export default function PagesPage() {
               </td>
               <td className="px-4 py-3">
                 <div className="flex items-center justify-end gap-1">
-                  <button className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground">
+                  <button
+                    onClick={() => setSheetOpen(true)}
+                    className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
+                  >
                     <Pencil className="h-4 w-4" />
                   </button>
                   <button className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-destructive">
@@ -59,6 +68,8 @@ export default function PagesPage() {
           </tbody>
         </table>
       </AdminCard>
+
+      <PageEditSheet open={sheetOpen} page={ABOUT_PAGE} onClose={() => setSheetOpen(false)} />
     </div>
   )
 }
