@@ -65,3 +65,17 @@ User reported (with screenshot of the real production calendar as reference): da
 - Orchestrator independently ran `git status`/`git diff --stat` (exactly the 6 claimed files, no extraneous changes) and `npm run build` (clean) to close the gap left by the reviewer's missing Bash access.
 
 No Critical/Architectural or Minor issues found.
+
+---
+
+## Stage 2c — Calendar hour range restricted to 08:00–21:00
+**Date:** 2026-08-17
+**Verdict:** APPROVED
+
+Files: `demo-widget/src/admin/pages/CalendarPage/{calendarUtils,WeekView,DayView}.tsx`.
+
+User requested the Week/Day grid show 08:00–21:00 instead of the full 00:00–23:00. Added shared `START_HOUR = 8` / `END_HOUR = 21` constants in `calendarUtils.ts`; `HOURS` now produces `[8..20]` (13 labels), `CONTAINER_HEIGHT = 13 * 60 * PIXELS_PER_MINUTE`. Hour labels, the step-based gridlines, the "now" red line, and appointment-block positioning were all re-derived relative to `START_HOUR` so all four share one coordinate system.
+
+Reviewer traced the arithmetic by hand (concrete examples: 14:30 now-line lands at the same pixel as a 14:30 appointment block; 07:00/22:00 correctly fall outside the visible bounds and hide the now-line) — no drift between the four position calculations. Confirmed `MonthView.tsx`, `CalendarToolbar.tsx`, all three modals, `MasterSelectDropdown.tsx`, `index.tsx`, and `mockAdminData.ts` untouched; `PIXELS_PER_MINUTE` unchanged. Orchestrator independently confirmed via `git diff --stat` that only the 3 claimed files changed, and ran `npm run build` clean.
+
+No issues found.

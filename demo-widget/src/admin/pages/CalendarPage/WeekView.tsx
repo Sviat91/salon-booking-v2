@@ -1,9 +1,9 @@
 import { masters } from '../../../data'
 import { MASTER_COLORS, type MockAppointment } from '../../mockAdminData'
-import { PIXELS_PER_MINUTE, appointmentsOnDay, formatTime, startOfWeek } from './calendarUtils'
+import { END_HOUR, PIXELS_PER_MINUTE, START_HOUR, appointmentsOnDay, formatTime, startOfWeek } from './calendarUtils'
 
-const HOURS = Array.from({ length: 24 }, (_, i) => i)
-const CONTAINER_HEIGHT = 24 * 60 * PIXELS_PER_MINUTE
+const HOURS = Array.from({ length: END_HOUR - START_HOUR }, (_, i) => START_HOUR + i)
+const CONTAINER_HEIGHT = (END_HOUR - START_HOUR) * 60 * PIXELS_PER_MINUTE
 
 interface WeekViewProps {
   currentDate: Date
@@ -29,12 +29,13 @@ export default function WeekView({ currentDate, appointments, onAppointmentClick
   })
   const todayKey = new Date().toDateString()
   const now = new Date()
-  const nowMinutes = now.getHours() * 60 + now.getMinutes()
+  const nowMinutes = now.getHours() * 60 + now.getMinutes() - START_HOUR * 60
   const nowPixels = nowMinutes * PIXELS_PER_MINUTE
 
-  // Step-based minute gridlines (24h * 60/step + 1 lines), matching the real
-  // WeekView.tsx: hour-boundary lines solid, sub-hour lines dashed/fainter.
-  const timeLines = Array.from({ length: 24 * Math.floor(60 / step) + 1 }, (_, i) => {
+  // Step-based minute gridlines ((END_HOUR-START_HOUR)h * 60/step + 1 lines),
+  // matching the real WeekView.tsx: hour-boundary lines solid, sub-hour lines
+  // dashed/fainter.
+  const timeLines = Array.from({ length: (END_HOUR - START_HOUR) * Math.floor(60 / step) + 1 }, (_, i) => {
     const currentMin = i * step
     const top = currentMin * PIXELS_PER_MINUTE
     const isHourLine = currentMin % 60 === 0
@@ -76,7 +77,7 @@ export default function WeekView({ currentDate, appointments, onAppointmentClick
         <div className="flex" style={{ height: CONTAINER_HEIGHT }}>
           <div className="w-16 shrink-0 border-r border-border bg-card relative z-10">
             {HOURS.map((h) => (
-              <div key={h} className="absolute px-2 text-right text-xs text-muted-foreground font-medium w-full" style={{ top: h * 60 * PIXELS_PER_MINUTE + 12 }}>
+              <div key={h} className="absolute px-2 text-right text-xs text-muted-foreground font-medium w-full" style={{ top: (h - START_HOUR) * 60 * PIXELS_PER_MINUTE + 12 }}>
                 {String(h).padStart(2, '0')}:00
               </div>
             ))}
@@ -103,7 +104,7 @@ export default function WeekView({ currentDate, appointments, onAppointmentClick
                   {dayAppointments.map((a) => {
                     const start = new Date(a.startISO)
                     const end = new Date(a.endISO)
-                    const top = (start.getHours() * 60 + start.getMinutes()) * PIXELS_PER_MINUTE
+                    const top = (start.getHours() * 60 + start.getMinutes() - START_HOUR * 60) * PIXELS_PER_MINUTE
                     const height = Math.max(24, ((end.getTime() - start.getTime()) / 60_000) * PIXELS_PER_MINUTE)
                     const master = masters.find((m) => m.id === a.masterId)
                     const color = MASTER_COLORS[a.masterId] ?? '#8B4A58'

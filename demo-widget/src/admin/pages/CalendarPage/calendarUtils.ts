@@ -5,6 +5,11 @@ import type { MockAppointment } from '../../mockAdminData'
 // Week/Day view.
 export const PIXELS_PER_MINUTE = 1.5
 
+// Visible hour-grid range for Week/Day view — 08:00 to 21:00 (13-hour span),
+// matching typical salon business hours.
+export const START_HOUR = 8
+export const END_HOUR = 21
+
 export type ViewType = 'Month' | 'Week' | 'Day'
 
 export function startOfWeek(d: Date) {
