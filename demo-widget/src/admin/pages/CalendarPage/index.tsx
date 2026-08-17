@@ -23,6 +23,7 @@ export default function CalendarPage() {
   const [view, setView] = useState<ViewType>('Week')
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedMasterId, setSelectedMasterId] = useState('all')
+  const [step, setStep] = useState(15)
   const [showBulkModal, setShowBulkModal] = useState(false)
   const [viewingAppointment, setViewingAppointment] = useState<MockAppointment | null>(null)
   const [bookingModal, setBookingModal] = useState<BookingModalState>(null)
@@ -57,6 +58,8 @@ export default function CalendarPage() {
         masters={adminMastersList}
         onMasterChange={setSelectedMasterId}
         onBulkClick={() => setShowBulkModal(true)}
+        step={step}
+        setStep={setStep}
       />
 
       <div className="min-h-0 flex-1">
@@ -69,6 +72,7 @@ export default function CalendarPage() {
             appointments={appointments}
             onAppointmentClick={setViewingAppointment}
             onDayClick={goToDay}
+            step={step}
           />
         )}
         {view === 'Day' && (
@@ -77,6 +81,7 @@ export default function CalendarPage() {
             appointments={appointments}
             onAppointmentClick={setViewingAppointment}
             onAddClick={(d) => setBookingModal({ mode: 'create', date: d })}
+            step={step}
           />
         )}
       </div>

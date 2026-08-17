@@ -3,20 +3,20 @@
 @tailwind utilities;
 
 :root {
-  --background: #f8f9fa;
-  --foreground: #1a1d20;
-  --card: #ffffff;
-  --card-foreground: #1a1d20;
-  --primary: #b35c37;
-  --primary-foreground: #1a1d20;
-  --secondary: #eaecee;
-  --secondary-foreground: #1a1d20;
-  --muted: #eaecee;
-  --muted-foreground: #6c757d;
-  --accent: #eaecee;
-  --accent-foreground: #1a1d20;
-  --border: #e2e8f0;
-  --ring: #b35c37;
+  --background: 248 249 250;
+  --foreground: 26 29 32;
+  --card: 255 255 255;
+  --card-foreground: 26 29 32;
+  --primary: 179 92 55;
+  --primary-foreground: 26 29 32;
+  --secondary: 234 236 238;
+  --secondary-foreground: 26 29 32;
+  --muted: 234 236 238;
+  --muted-foreground: 108 117 125;
+  --accent: 234 236 238;
+  --accent-foreground: 26 29 32;
+  --border: 226 232 240;
+  --ring: 179 92 55;
   --radius: 0.75rem;
 
   /* Material Design 3 container tokens — ported verbatim from the real
@@ -33,20 +33,20 @@
 }
 
 .dark {
-  --background: #121417;
-  --foreground: #f1f3f5;
-  --card: #1a1d22;
-  --card-foreground: #f1f3f5;
-  --primary: #d0764d;
-  --primary-foreground: #f1f3f5;
-  --secondary: #22262b;
-  --secondary-foreground: #f1f3f5;
-  --muted: #22262b;
-  --muted-foreground: #8b95a1;
-  --accent: #22262b;
-  --accent-foreground: #f1f3f5;
-  --border: #2d3239;
-  --ring: #d0764d;
+  --background: 18 20 23;
+  --foreground: 241 243 245;
+  --card: 26 29 34;
+  --card-foreground: 241 243 245;
+  --primary: 208 118 77;
+  --primary-foreground: 241 243 245;
+  --secondary: 34 38 43;
+  --secondary-foreground: 241 243 245;
+  --muted: 34 38 43;
+  --muted-foreground: 139 149 161;
+  --accent: 34 38 43;
+  --accent-foreground: 241 243 245;
+  --border: 45 50 57;
+  --ring: 208 118 77;
 
   --md-primary-container: #723340;
   --md-on-primary-container: #ffd9dc;
@@ -61,8 +61,8 @@
 body {
   margin: 0;
   font-family: 'Roboto', system-ui, sans-serif;
-  color: var(--foreground);
-  background-color: var(--background);
+  color: rgb(var(--foreground));
+  background-color: rgb(var(--background));
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
@@ -71,19 +71,19 @@ body {
   @apply rounded-full px-4 py-2 text-sm font-medium transition-colors disabled:opacity-50;
 }
 .btn-primary {
-  background-color: var(--primary);
-  color: var(--foreground);
+  background-color: rgb(var(--primary));
+  color: rgb(var(--foreground));
 }
 .btn-primary:hover {
   opacity: 0.9;
 }
 .btn-outline {
-  border: 1px solid var(--border);
-  color: var(--foreground);
+  border: 1px solid rgb(var(--border));
+  color: rgb(var(--foreground));
   background: transparent;
 }
 .btn-outline:hover {
-  background-color: var(--accent);
+  background-color: rgb(var(--accent));
 }
 
 .animate-marquee:hover {
@@ -128,7 +128,7 @@ body {
 .rdp-weekday {
   font-weight: 500 !important;
   font-size: 12px !important;
-  color: var(--muted-foreground) !important;
+  color: rgb(var(--muted-foreground)) !important;
 }
 
 .rdp-day_button {
@@ -145,14 +145,14 @@ body {
    cell, not the nested button — same pattern the library's own stylesheet
    uses for `.rdp-selected .rdp-day_button`. */
 .rdp-available .rdp-day_button {
-  background-color: color-mix(in oklab, var(--accent) 40%, transparent) !important;
+  background-color: color-mix(in oklab, rgb(var(--accent)) 40%, transparent) !important;
 }
 .rdp-available .rdp-day_button:hover {
-  background-color: color-mix(in oklab, var(--accent) 60%, transparent) !important;
+  background-color: color-mix(in oklab, rgb(var(--accent)) 60%, transparent) !important;
 }
 .rdp-selected .rdp-day_button {
-  background-color: var(--primary) !important;
-  color: var(--foreground) !important;
+  background-color: rgb(var(--primary)) !important;
+  color: rgb(var(--foreground)) !important;
 }
 .rdp-disabled .rdp-day_button {
   opacity: 0.3 !important;

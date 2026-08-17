@@ -11,6 +11,8 @@ interface CalendarToolbarProps {
   masters: { id: string; name: string; color: string }[]
   onMasterChange: (id: string) => void
   onBulkClick: () => void
+  step: number
+  setStep: (n: number) => void
 }
 
 // Ported from the real CalendarToolbar.tsx (desktop layout only — the real
@@ -19,7 +21,7 @@ interface CalendarToolbarProps {
 // widths like the rest of the admin). Today/prev/next stay inert (always
 // showing the current week/month/day, same as before); view toggle and the
 // master filter are the two genuinely functional controls per the plan.
-export default function CalendarToolbar({ view, setView, headerLabel, todayLabel, selectedMasterId, masters, onMasterChange, onBulkClick }: CalendarToolbarProps) {
+export default function CalendarToolbar({ view, setView, headerLabel, todayLabel, selectedMasterId, masters, onMasterChange, onBulkClick, step, setStep }: CalendarToolbarProps) {
   return (
     <div className="min-h-[4rem] py-2 border-b border-border/60 px-4 shrink-0">
       <div className="flex flex-wrap items-center justify-between gap-y-3 gap-x-4">
@@ -57,12 +59,19 @@ export default function CalendarToolbar({ view, setView, headerLabel, todayLabel
       </div>
 
       <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 mt-3">
-        <button
-          disabled={view === 'Month'}
-          className="flex items-center gap-1 h-auto w-auto rounded-md bg-transparent hover:bg-muted px-3 py-1.5 text-sm font-medium shadow-sm border border-border disabled:opacity-40 disabled:cursor-not-allowed"
-        >
-          15 min <SelectChevron className="h-3.5 w-3.5 opacity-60" />
-        </button>
+        <div className="relative flex items-center">
+          <select
+            value={step}
+            onChange={(e) => setStep(Number(e.target.value))}
+            disabled={view === 'Month'}
+            className="appearance-none flex items-center gap-1 h-auto w-auto rounded-md bg-transparent hover:bg-muted px-3 py-1.5 pr-7 text-sm font-medium shadow-sm border border-border disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            {[5, 10, 15, 30, 60].map((s) => (
+              <option key={s} value={s}>{s} min</option>
+            ))}
+          </select>
+          <SelectChevron className="h-3.5 w-3.5 opacity-60 absolute right-2 pointer-events-none" />
+        </div>
         <div className="h-6 w-px bg-border" />
         <button className="flex items-center gap-2 rounded-md border border-border bg-transparent px-3 py-1.5 text-sm font-medium text-foreground hover:bg-muted transition-colors">
           <Edit3 className="w-4 h-4" />

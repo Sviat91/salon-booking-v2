@@ -10,6 +10,7 @@ interface WeekViewProps {
   appointments: MockAppointment[]
   onAppointmentClick: (a: MockAppointment) => void
   onDayClick: (d: Date) => void
+  step: number
 }
 
 // Ported from the original CalendarPage.tsx week grid (itself a port of the
@@ -19,7 +20,7 @@ interface WeekViewProps {
 // appointments never overlap by construction). New here: appointment blocks
 // open ViewAppointmentModal, and empty day-column space jumps to Day view —
 // both match the real WeekView.tsx behavior.
-export default function WeekView({ currentDate, appointments, onAppointmentClick, onDayClick }: WeekViewProps) {
+export default function WeekView({ currentDate, appointments, onAppointmentClick, onDayClick, step }: WeekViewProps) {
   const weekStart = startOfWeek(currentDate)
   const days = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(weekStart)
@@ -31,30 +32,47 @@ export default function WeekView({ currentDate, appointments, onAppointmentClick
   const nowMinutes = now.getHours() * 60 + now.getMinutes()
   const nowPixels = nowMinutes * PIXELS_PER_MINUTE
 
+  // Step-based minute gridlines (24h * 60/step + 1 lines), matching the real
+  // WeekView.tsx: hour-boundary lines solid, sub-hour lines dashed/fainter.
+  const timeLines = Array.from({ length: 24 * Math.floor(60 / step) + 1 }, (_, i) => {
+    const currentMin = i * step
+    const top = currentMin * PIXELS_PER_MINUTE
+    const isHourLine = currentMin % 60 === 0
+    return (
+      <div
+        key={`line-${i}`}
+        className={`absolute w-full border-t pointer-events-none ${isHourLine ? 'border-border/60' : 'border-border/20 border-dashed'}`}
+        style={{ top }}
+      />
+    )
+  })
+
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      {/* Day header row */}
-      <div className="flex border-b border-border shrink-0 bg-card pr-2">
-        <div className="w-16 shrink-0 border-r border-border" />
-        <div className="flex-1 grid grid-cols-7">
-          {days.map((d) => {
-            const isToday = d.toDateString() === todayKey
-            return (
-              <div key={d.toDateString()} className="pt-2 pb-1 px-1 flex flex-col items-center border-r last:border-r-0 border-border">
-                <span className={`text-[11px] font-medium uppercase tracking-wider ${isToday ? 'text-primary' : 'text-muted-foreground'}`}>
-                  {d.toLocaleDateString('en-US', { weekday: 'short' })}
-                </span>
-                <span className={`text-lg font-medium h-8 w-8 flex items-center justify-center rounded-full mt-0.5 ${isToday ? 'bg-primary text-primary-foreground' : ''}`}>
-                  {d.getDate()}
-                </span>
-              </div>
-            )
-          })}
-        </div>
-      </div>
-
-      {/* Scrollable grid body */}
+      {/* Scrollable container — the day-header row lives inside it (sticky-pinned)
+          so both the header and the grid body divide the exact same available
+          width into 7 columns; no more guessing at the browser's scrollbar width. */}
       <div className="flex-1 overflow-y-auto relative">
+        {/* Day header row — sticky to top of the scroll view */}
+        <div className="flex border-b border-border sticky top-0 z-20 bg-card">
+          <div className="w-16 shrink-0 border-r border-border" />
+          <div className="flex-1 grid grid-cols-7">
+            {days.map((d) => {
+              const isToday = d.toDateString() === todayKey
+              return (
+                <div key={d.toDateString()} className="pt-2 pb-1 px-1 flex flex-col items-center border-r last:border-r-0 border-border">
+                  <span className={`text-[11px] font-medium uppercase tracking-wider ${isToday ? 'text-primary' : 'text-muted-foreground'}`}>
+                    {d.toLocaleDateString('en-US', { weekday: 'short' })}
+                  </span>
+                  <span className={`text-lg font-medium h-8 w-8 flex items-center justify-center rounded-full mt-0.5 ${isToday ? 'bg-primary text-primary-foreground' : ''}`}>
+                    {d.getDate()}
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
         <div className="flex" style={{ height: CONTAINER_HEIGHT }}>
           <div className="w-16 shrink-0 border-r border-border bg-card relative z-10">
             {HOURS.map((h) => (
@@ -70,9 +88,7 @@ export default function WeekView({ currentDate, appointments, onAppointmentClick
               const dayAppointments = appointmentsOnDay(appointments, d)
               return (
                 <div key={d.toDateString()} className="relative border-r last:border-r-0 border-border/80">
-                  {HOURS.map((h) => (
-                    <div key={h} className="absolute w-full border-t border-border/60 pointer-events-none" style={{ top: h * 60 * PIXELS_PER_MINUTE }} />
-                  ))}
+                  {timeLines}
 
                   {/* Empty-space click jumps to Day view, same as the real WeekView.tsx */}
                   <div className="absolute inset-0 z-[1] cursor-pointer hover:bg-primary/5 transition-colors" onClick={() => onDayClick(d)} />

@@ -39,3 +39,29 @@ Files: `demo-widget/src/admin/pages/CalendarPage/{index,CalendarToolbar,MasterSe
 - `ViewAppointmentModal.tsx` hand-rolls its own "Delete booking?" confirm overlay instead of reusing the shared `Dialog` primitive from Stage 1, despite matching its prop shape. Cosmetic/DRY nit only — left as-is per surgical-scope rule (not part of this task's brief, no functional impact).
 
 No Critical/Architectural issues at either stage.
+
+---
+
+## Stage 2b — Calendar bug-fix pass (dark-theme lines, header/grid alignment, step selector)
+**Date:** 2026-08-17
+**Verdict:** APPROVED
+
+Files: `demo-widget/src/index.css`, `demo-widget/tailwind.config.ts`, `demo-widget/src/admin/pages/CalendarPage/{WeekView,DayView,CalendarToolbar,index}.tsx`.
+
+User reported (with screenshot of the real production calendar as reference): dark-theme grid lines rendered bright white instead of subtle, the day-header column dividers drifted out of alignment with the grid body's dividers, and the toolbar's minute-step selector did nothing.
+
+### Root causes (diagnosed by orchestrator before dispatch, verified against compiled CSS)
+1. `tailwind.config.ts` defined semantic colors as bare `var(--x)` strings — Tailwind 3.4 cannot generate opacity-modifier classes (`border-border/60`, `bg-muted/40`, etc.) from a bare `var()` color. Confirmed via grepping the built `dist/assets/*.css`: these classes generated no CSS at all, so affected elements fell back to inherited `currentColor` (near-white in dark mode).
+2. Day-header row and hour-grid body were separate containers, header guessing scrollbar width via `pr-2` (8px) while the body's real browser scrollbar consumed a different amount — column boundaries drifted, worse to the right.
+3. The step/interval selector button had no `onClick` at all — purely decorative, unlike production's functional 5/10/15/30/60-minute control.
+
+### Fix
+1. Converted `index.css` CSS custom properties from hex to space-separated RGB triplets, wrapped `tailwind.config.ts`'s color map in `rgb(var(--x) / <alpha-value>)` (standard shadcn/Tailwind pattern) — root-cause fix, also correctly resolves the same silent-no-op bug on every other already-built page (Services/Discounts/Masters/Pages/Settings/shared primitives), not just Calendar. Audited and rewrapped all 13 raw `var(--x)` usages elsewhere in `index.css`; confirmed zero raw usages remain in either `.css` or `.tsx` (independently grepped by both orchestrator-dispatched coder and reviewer).
+2. Restructured `WeekView.tsx`/`DayView.tsx` so the header row lives inside the same scrolling container as the grid body, pinned via `position: sticky` — guarantees identical column-width math instead of guessing scrollbar width.
+3. Lifted `step` state to `CalendarPage/index.tsx` (`useState(15)`, no localStorage per this demo's no-persistence policy), wired a real native `<select>` (5/10/15/30/60) into `CalendarToolbar.tsx`, and made `WeekView.tsx`/`DayView.tsx` gridlines follow production's formula (`24 * Math.floor(60/step) + 1` lines, hour lines solid, sub-hour lines dashed).
+
+### Verification
+- Reviewer (static-only, no Bash access this pass) confirmed all RGB triplets valid, Tailwind wrapping correct, zero raw `var()` leaks, sticky-header restructure preserves click-to-open/appointment-click/now-line/hour-labels, step wiring correct end-to-end, Month-view disabling preserved.
+- Orchestrator independently ran `git status`/`git diff --stat` (exactly the 6 claimed files, no extraneous changes) and `npm run build` (clean) to close the gap left by the reviewer's missing Bash access.
+
+No Critical/Architectural or Minor issues found.

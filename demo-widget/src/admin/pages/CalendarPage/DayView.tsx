@@ -11,6 +11,7 @@ interface DayViewProps {
   appointments: MockAppointment[]
   onAppointmentClick: (a: MockAppointment) => void
   onAddClick: (d: Date) => void
+  step: number
 }
 
 // Structural port of the real DayView.tsx: same absolute-positioned
@@ -20,39 +21,57 @@ interface DayViewProps {
 // "+ New Booking" opens AppointmentModal in create mode, matching the real
 // onAddClick wiring; clicking empty grid space does too (plan explicitly
 // allows either affordance).
-export default function DayView({ currentDate, appointments, onAppointmentClick, onAddClick }: DayViewProps) {
+export default function DayView({ currentDate, appointments, onAppointmentClick, onAddClick, step }: DayViewProps) {
   const dayAppointments = appointmentsOnDay(appointments, currentDate)
   const isToday = currentDate.toDateString() === new Date().toDateString()
   const isPast = currentDate < new Date(new Date().setHours(0, 0, 0, 0))
   const now = new Date()
   const nowPixels = (now.getHours() * 60 + now.getMinutes()) * PIXELS_PER_MINUTE
 
+  // Step-based minute gridlines (24h * 60/step + 1 lines), matching the real
+  // DayView.tsx: hour-boundary lines solid, sub-hour lines dashed/fainter.
+  const timeLines = Array.from({ length: 24 * Math.floor(60 / step) + 1 }, (_, i) => {
+    const currentMin = i * step
+    const top = currentMin * PIXELS_PER_MINUTE
+    const isHourLine = currentMin % 60 === 0
+    return (
+      <div
+        key={`line-${i}`}
+        className={`absolute w-full border-t pointer-events-none ${isHourLine ? 'border-border/60' : 'border-border/20 border-dashed'}`}
+        style={{ top }}
+      />
+    )
+  })
+
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      <div className="flex border-b border-border shrink-0 bg-card pr-2">
-        <div className="w-16 shrink-0 border-r border-border" />
-        <div className="flex-1 py-3 px-4 flex items-center justify-between">
-          <div className="flex flex-col items-start">
-            <span className={`text-xs font-medium uppercase tracking-wider ${isToday ? 'text-primary' : 'text-muted-foreground'}`}>
-              {currentDate.toLocaleDateString('en-US', { weekday: 'long' })}
-            </span>
-            <span className={`text-2xl font-bold mt-1 ${isToday ? 'text-primary' : ''}`}>
-              {currentDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
-            </span>
-          </div>
-
-          {!isPast && (
-            <button
-              onClick={() => onAddClick(currentDate)}
-              className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-full font-semibold text-sm hover:bg-primary/90 transition-colors shadow-sm"
-            >
-              <Plus className="h-4 w-4" /> New Booking
-            </button>
-          )}
-        </div>
-      </div>
-
+      {/* Scrollable container — the header row lives inside it (sticky-pinned),
+          same pattern as WeekView, so the "New Booking" header stays pinned
+          while scrolling the hour grid beneath it. */}
       <div className="flex-1 overflow-y-auto relative">
+        <div className="flex border-b border-border sticky top-0 z-20 bg-card">
+          <div className="w-16 shrink-0 border-r border-border" />
+          <div className="flex-1 py-3 px-4 flex items-center justify-between">
+            <div className="flex flex-col items-start">
+              <span className={`text-xs font-medium uppercase tracking-wider ${isToday ? 'text-primary' : 'text-muted-foreground'}`}>
+                {currentDate.toLocaleDateString('en-US', { weekday: 'long' })}
+              </span>
+              <span className={`text-2xl font-bold mt-1 ${isToday ? 'text-primary' : ''}`}>
+                {currentDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
+              </span>
+            </div>
+
+            {!isPast && (
+              <button
+                onClick={() => onAddClick(currentDate)}
+                className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-full font-semibold text-sm hover:bg-primary/90 transition-colors shadow-sm"
+              >
+                <Plus className="h-4 w-4" /> New Booking
+              </button>
+            )}
+          </div>
+        </div>
+
         <div className="flex" style={{ height: CONTAINER_HEIGHT }}>
           <div className="w-16 shrink-0 border-r border-border bg-card relative z-10">
             {HOURS.map((h) => (
@@ -63,9 +82,7 @@ export default function DayView({ currentDate, appointments, onAppointmentClick,
           </div>
 
           <div className="flex-1 relative">
-            {HOURS.map((h) => (
-              <div key={h} className="absolute w-full border-t border-border/60 pointer-events-none" style={{ top: h * 60 * PIXELS_PER_MINUTE }} />
-            ))}
+            {timeLines}
 
             <div className="absolute inset-0 z-[1] cursor-pointer hover:bg-primary/5 transition-colors" onClick={() => !isPast && onAddClick(currentDate)} />
 
