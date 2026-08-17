@@ -38,7 +38,7 @@ export default function DayView({ currentDate, appointments, onAppointmentClick,
     return (
       <div
         key={`line-${i}`}
-        className={`absolute w-full border-t pointer-events-none ${isHourLine ? 'border-border/60' : 'border-border/20 border-dashed'}`}
+        className={`absolute w-full border-t pointer-events-none ${isHourLine ? 'border-muted-foreground/50' : 'border-muted-foreground/25 border-dashed'}`}
         style={{ top }}
       />
     )
