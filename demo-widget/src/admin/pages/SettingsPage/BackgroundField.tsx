@@ -1,11 +1,15 @@
-import { Upload, ImageIcon } from 'lucide-react'
+import { useBrand } from '../../../context/BrandContext'
 
 const tabs = ['Solid', 'Gradient', 'Picture']
 
-// Structural, inert port of BackgroundSection.tsx — the tab pill is shown
-// for visual fidelity (Picture pre-selected) but isn't clickable, matching
-// the "background-image upload field, disabled" scope for this section.
-export default function BackgroundField() {
+// Structural, inert port of BackgroundSection.tsx — default tab fixed to
+// Solid (matching real component's default bgType), only Solid-tab content
+// rendered since the tabs aren't clickable. The light-instance Solid color
+// is genuinely live (drives --background via BrandContext's draft/save
+// flow), matching the same field (TenantConfig.secondaryColor) that drives
+// the light page background in production.
+export default function BackgroundField({ dark = false }: { dark?: boolean }) {
+  const { draft, updateDraft } = useBrand()
   return (
     <div className="grid gap-3">
       <span className="text-sm text-muted-foreground">Page Background</span>
@@ -14,28 +18,33 @@ export default function BackgroundField() {
           <span
             key={tab}
             className={`rounded-md px-3 py-1.5 text-sm font-medium ${
-              tab === 'Picture' ? 'bg-muted text-foreground shadow-sm' : 'text-muted-foreground'
+              tab === 'Solid' ? 'bg-muted text-foreground shadow-sm' : 'text-muted-foreground'
             }`}
           >
             {tab}
           </span>
         ))}
       </div>
-      <div className="flex items-start gap-4">
-        <div className="flex h-16 w-28 items-center justify-center gap-1.5 rounded-lg border border-dashed border-border bg-muted/20 text-xs text-muted-foreground">
-          <ImageIcon className="h-4 w-4" />
-          None
-        </div>
-        <button
-          type="button"
-          disabled
-          className="flex items-center gap-2 rounded-md border border-input bg-transparent px-3 py-2 text-sm text-muted-foreground cursor-not-allowed"
-        >
-          <Upload className="h-4 w-4" />
-          Upload
-        </button>
-      </div>
-      <p className="text-xs text-muted-foreground">Image will be centered and cover the full page background.</p>
+      {!dark && (
+        <label className="flex flex-col gap-1.5 max-w-sm">
+          <span className="text-sm text-muted-foreground">Background Color</span>
+          <div className="flex items-center gap-2">
+            <input
+              type="color"
+              value={draft.secondaryColor}
+              onChange={(e) => updateDraft({ secondaryColor: e.target.value })}
+              className="h-9 w-9 shrink-0 cursor-pointer rounded-md border border-border bg-transparent"
+            />
+            <input
+              value={draft.secondaryColor}
+              onChange={(e) => updateDraft({ secondaryColor: e.target.value })}
+              pattern="^#[0-9A-Fa-f]{6}$"
+              className="w-full rounded-xl border border-border bg-transparent px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+          </div>
+          <span className="text-xs text-muted-foreground">Main background color of pages</span>
+        </label>
+      )}
     </div>
   )
 }

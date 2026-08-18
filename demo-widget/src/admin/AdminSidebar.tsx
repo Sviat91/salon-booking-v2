@@ -1,4 +1,4 @@
-import { Menu, LogOut, ArrowLeft, ChevronRight, Scissors } from 'lucide-react'
+import { Menu, LogOut, ArrowLeft, ChevronRight, Scissors, Save } from 'lucide-react'
 import { adminNavItems, type AdminSection } from './adminNavItems'
 import AdminThemeToggle from './AdminThemeToggle'
 import { useBrand } from '../context/BrandContext'
@@ -16,7 +16,7 @@ interface AdminSidebarProps {
 // labels hidden entirely when collapsed (not just clipped), theme toggle +
 // user block in the footer (not the topbar — matches the real split).
 export default function AdminSidebar({ section, onNavigate, open, onToggleOpen, onBackToSite }: AdminSidebarProps) {
-  const { brand } = useBrand()
+  const { brand, isDirty, saveDraft } = useBrand()
   return (
     <aside
       className={cn(
@@ -79,6 +79,27 @@ export default function AdminSidebar({ section, onNavigate, open, onToggleOpen, 
           </button>
         </div>
       </nav>
+
+      {/* Save button — only on settings page, sibling of <nav> (not inside
+          its scrollable area) so it stays visible regardless of scroll
+          position, matching real AdminSidebar.tsx. */}
+      {section === 'settings' && (
+        <div className="px-3 pb-2">
+          <button
+            onClick={saveDraft}
+            disabled={!isDirty}
+            title={!open ? 'Save changes' : undefined}
+            className={cn(
+              'flex w-full items-center gap-2 overflow-hidden whitespace-nowrap rounded-md py-2 text-sm font-medium transition-colors',
+              open ? 'px-3' : 'justify-center px-0',
+              isDirty ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'text-muted-foreground cursor-not-allowed opacity-50'
+            )}
+          >
+            <Save className="h-4 w-4 shrink-0" />
+            {open && 'Save changes'}
+          </button>
+        </div>
+      )}
 
       <div className="border-t border-border px-3 py-3 space-y-2">
         <div className={cn('flex items-center gap-2', !open && 'justify-center')}>

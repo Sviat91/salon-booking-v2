@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { useBrand } from '../../../context/BrandContext'
-import { DEFAULT_BRAND } from '../../../lib/brandSettings'
+import { M3_LIGHT_DEFAULTS, M3_DARK_DEFAULTS, type BrandSettings } from '../../../lib/brandSettings'
 import BrandSection from './BrandSection'
 import BackgroundField from './BackgroundField'
 import LanguagesSection from './LanguagesSection'
@@ -12,13 +12,14 @@ import SecuritySection from './SecuritySection'
 // order as the real page.tsx/SettingsForm.tsx (Brand, Salon Contact Info,
 // Calendar Settings, Business Hours, Content Languages, Homepage widget,
 // Light Theme, Dark Theme Colors, then Security below an <hr>). Every field
-// the real page has is shown with its real label; only Salon Name and the
-// two accent colors ("Primary Button" / "Dark Primary Button" — the real
-// field names) are actually editable, matching what was asked. Everything
-// else (Brand's logo/favicon/theme-toggle-icon controls, the Background
-// fields, Content Languages, Homepage widget, and Security) is visually
-// present but fully inert — see BrandSection.tsx, BackgroundField.tsx,
-// LanguagesSection.tsx, HomepageWidgetSection.tsx and SecuritySection.tsx.
+// the real page has is shown with its real label. Salon Name and all 13
+// Light/Dark Theme color fields are genuinely editable via BrandContext's
+// draft/save flow (Save button lives in the sidebar, see AdminSidebar.tsx).
+// Everything else (Brand's logo/favicon/theme-toggle-icon controls, the
+// Background fields, Calendar Settings colors, Content Languages, Homepage
+// widget, and Security) is visually present but fully inert — see
+// BrandSection.tsx, BackgroundField.tsx, LanguagesSection.tsx,
+// HomepageWidgetSection.tsx and SecuritySection.tsx.
 function Section({ title, description, action, children }: { title: string; description?: string; action?: ReactNode; children: ReactNode }) {
   return (
     <section className="bg-card border border-border rounded-[20px] shadow-sm overflow-hidden">
@@ -59,14 +60,27 @@ function ColorField({ label, value }: { label: string; value: string }) {
   )
 }
 
-function EditableColorField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+function DraftColorRow({ field, label, description }: { field: keyof BrandSettings; label: string; description: string }) {
+  const { draft, updateDraft } = useBrand()
+  const value = draft[field]
   return (
     <label className="flex flex-col gap-1.5">
       <span className="text-sm font-medium text-foreground">{label}</span>
       <div className="flex items-center gap-2">
-        <input type="color" value={value} onChange={(e) => onChange(e.target.value)} className="h-9 w-9 cursor-pointer rounded-md border border-border bg-transparent" />
-        <span className="text-sm text-muted-foreground">{value}</span>
+        <input
+          type="color"
+          value={value}
+          onChange={(e) => updateDraft({ [field]: e.target.value } as Partial<BrandSettings>)}
+          className="h-9 w-9 shrink-0 cursor-pointer rounded-md border border-border bg-transparent"
+        />
+        <input
+          value={value}
+          onChange={(e) => updateDraft({ [field]: e.target.value } as Partial<BrandSettings>)}
+          pattern="^#[0-9A-Fa-f]{6}$"
+          className="w-full rounded-xl border border-border bg-transparent px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+        />
       </div>
+      <p className="text-xs text-muted-foreground">{description}</p>
     </label>
   )
 }
@@ -84,7 +98,7 @@ function ResetToM3({ onClick }: { onClick: () => void }) {
 }
 
 export default function SettingsPage() {
-  const { brand, updateBrand } = useBrand()
+  const { draft, updateDraft } = useBrand()
 
   return (
     <div className="flex flex-col gap-6">
@@ -97,8 +111,8 @@ export default function SettingsPage() {
         <label className="flex flex-col gap-1.5 max-w-sm">
           <span className="text-sm font-medium text-foreground">Salon Name</span>
           <input
-            value={brand.name}
-            onChange={(e) => updateBrand({ name: e.target.value })}
+            value={draft.name}
+            onChange={(e) => updateDraft({ name: e.target.value })}
             className="w-full rounded-xl border border-border bg-transparent px-3 py-2 text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
           />
           <span className="text-xs text-muted-foreground">Shown in the browser tab title and meta tags.</span>
@@ -135,28 +149,28 @@ export default function SettingsPage() {
       <LanguagesSection />
       <HomepageWidgetSection />
 
-      <Section title="Light Theme" action={<ResetToM3 onClick={() => updateBrand({ lightAccent: DEFAULT_BRAND.lightAccent })} />}>
+      <Section title="Light Theme" action={<ResetToM3 onClick={() => updateDraft(M3_LIGHT_DEFAULTS)} />}>
         <BackgroundField />
         <div className="grid gap-4 sm:grid-cols-3">
-          <ColorField label="Secondary Tint" value="#eaecee" />
-          <ColorField label="Card Background" value="#ffffff" />
-          <EditableColorField label="Primary Button" value={brand.lightAccent} onChange={(v) => updateBrand({ lightAccent: v })} />
-          <ColorField label="Body Text" value="#1a1d20" />
-          <ColorField label="Muted Text" value="#6c757d" />
-          <ColorField label="Borders" value="#e2e8f0" />
+          <DraftColorRow field="primaryColor" label="Secondary Tint" description="Accent backgrounds, hover states" />
+          <DraftColorRow field="cardColor" label="Card Background" description="Background for cards and panels" />
+          <DraftColorRow field="accentColor" label="Primary Button" description="Buttons and highlighted elements" />
+          <DraftColorRow field="textColor" label="Body Text" description="Main text color" />
+          <DraftColorRow field="mutedColor" label="Muted Text" description="Subtitles, placeholders" />
+          <DraftColorRow field="borderColor" label="Borders" description="Color of dividers and outlines" />
         </div>
       </Section>
 
-      <Section title="Dark Theme Colors" action={<ResetToM3 onClick={() => updateBrand({ darkAccent: DEFAULT_BRAND.darkAccent })} />}>
-        <BackgroundField />
+      <Section title="Dark Theme Colors" action={<ResetToM3 onClick={() => updateDraft(M3_DARK_DEFAULTS)} />}>
+        <BackgroundField dark />
         <div className="grid gap-4 sm:grid-cols-3">
-          <ColorField label="Dark Background" value="#121417" />
-          <ColorField label="Dark Secondary Tint" value="#22262b" />
-          <ColorField label="Dark Card" value="#1a1d22" />
-          <EditableColorField label="Dark Primary Button" value={brand.darkAccent} onChange={(v) => updateBrand({ darkAccent: v })} />
-          <ColorField label="Dark Text" value="#f1f3f5" />
-          <ColorField label="Dark Muted Text" value="#8b95a1" />
-          <ColorField label="Dark Borders" value="#2d3239" />
+          <DraftColorRow field="darkBgColor" label="Dark Background" description="Main background in dark theme" />
+          <DraftColorRow field="darkPrimaryColor" label="Dark Secondary Tint" description="Accent backgrounds, hover states" />
+          <DraftColorRow field="darkCardColor" label="Dark Card" description="Card / panel background" />
+          <DraftColorRow field="darkAccentColor" label="Dark Primary Button" description="Buttons and highlighted elements" />
+          <DraftColorRow field="darkTextColor" label="Dark Text" description="Main text on dark background" />
+          <DraftColorRow field="darkMutedColor" label="Dark Muted Text" description="Subtitles on dark background" />
+          <DraftColorRow field="darkBorderColor" label="Dark Borders" description="Dividers in dark theme" />
         </div>
       </Section>
 

@@ -1,36 +1,48 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
-import { getBrandSettings, saveBrandSettings, applyBrandColors, type BrandSettings } from '../lib/brandSettings'
+import { getBrandSettings, saveBrandSettings, applyThemeColors, type BrandSettings } from '../lib/brandSettings'
 
 interface BrandContextValue {
   brand: BrandSettings
-  updateBrand: (next: Partial<BrandSettings>) => void
+  draft: BrandSettings
+  isDirty: boolean
+  updateDraft: (next: Partial<BrandSettings>) => void
+  saveDraft: () => void
 }
 
 const BrandContext = createContext<BrandContextValue | null>(null)
 
 export function BrandProvider({ children }: { children: ReactNode }) {
   const [brand, setBrand] = useState<BrandSettings>(() => getBrandSettings())
+  const [draft, setDraft] = useState<BrandSettings>(brand)
+  const [isDirty, setIsDirty] = useState(false)
 
   useEffect(() => {
-    applyBrandColors(brand)
-    // Accent depends on which theme is active — re-apply whenever the
+    applyThemeColors(brand)
+    // Colors depend on which theme is active — re-apply whenever the
     // `dark` class toggles, from either ThemeToggle (public) or
     // AdminThemeToggle (admin), without those needing to know about brand
     // colors at all.
-    const observer = new MutationObserver(() => applyBrandColors(brand))
+    const observer = new MutationObserver(() => applyThemeColors(brand))
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
     return () => observer.disconnect()
   }, [brand])
 
-  function updateBrand(next: Partial<BrandSettings>) {
-    setBrand((prev) => {
-      const merged = { ...prev, ...next }
-      saveBrandSettings(merged)
-      return merged
-    })
+  function updateDraft(next: Partial<BrandSettings>) {
+    setDraft((prev) => ({ ...prev, ...next }))
+    setIsDirty(true)
   }
 
-  return <BrandContext.Provider value={{ brand, updateBrand }}>{children}</BrandContext.Provider>
+  function saveDraft() {
+    setBrand(draft)
+    saveBrandSettings(draft)
+    setIsDirty(false)
+  }
+
+  return (
+    <BrandContext.Provider value={{ brand, draft, isDirty, updateDraft, saveDraft }}>
+      {children}
+    </BrandContext.Provider>
+  )
 }
 
 export function useBrand() {
