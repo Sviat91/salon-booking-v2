@@ -120,6 +120,7 @@
       "email": "Email",
       "socialAuth": "Social Auth",
       "notifications": "Notifications",
+      "reminderTemplates": "Reminder templates",
       "clientBot": "Booking bot",
       "legal": "Legal Documents",
       "database": "Database",
@@ -841,6 +842,68 @@
         "reminder2hLabel": "2-hour reminder",
         "reminder2hDesc": "Remind clients two hours before their appointment."
       },
+      "sms": {
+        "sectionTitle": "SMS",
+        "sectionDesc": "Send SMS appointment reminders using your own Twilio or SMSAPI.pl account.",
+        "toggleLabel": "Send SMS reminders",
+        "toggleDesc": "Requires an SMS provider configured below.",
+        "providerLabel": "SMS provider",
+        "providerTwilio": "Twilio",
+        "providerSmsApi": "SMSAPI.pl",
+        "twilioAccountSidLabel": "Account SID",
+        "twilioAccountSidDesc": "Found in your Twilio Console. Encrypted at rest.",
+        "twilioAuthTokenLabel": "Auth Token",
+        "twilioAuthTokenDesc": "Found in your Twilio Console. Encrypted at rest.",
+        "twilioFromNumberLabel": "Sender number",
+        "twilioFromNumberDesc": "Your Twilio number in E.164 format, e.g. +14155551234.",
+        "smsApiTokenLabel": "OAuth2 token",
+        "smsApiTokenDesc": "Generate it in your SMSAPI.pl panel. Encrypted at rest.",
+        "smsApiSenderLabel": "Sender name",
+        "smsApiSenderDesc": "Your registered sender name in SMSAPI.pl.",
+        "testSendBtn": "Send test SMS",
+        "testSendSuccess": "Test SMS sent",
+        "testSendError": "Failed to send test SMS",
+        "testSendSaveFirstHint": "Save settings before sending a test SMS.",
+        "help": {
+          "title": "How to set this up",
+          "subtitle": "A few steps to get SMS reminders running.",
+          "twilioTitle": "Twilio",
+          "twilioStep1": "Create an account at twilio.com and open the Twilio Console.",
+          "twilioStep2": "Your Account SID and Auth Token are on the Console dashboard — copy them into the fields above.",
+          "twilioStep3": "Buy or activate a sender number under Phone Numbers and enter it in E.164 format, e.g. +14155551234.",
+          "twilioStep4": "A trial account can only send SMS to numbers verified in the Console — add a test number there, or upgrade to a paid account.",
+          "smsApiTitle": "SMSAPI.pl",
+          "smsApiStep1": "Log in to the SMSAPI.pl panel and open the API/OAuth section to generate an OAuth2 token.",
+          "smsApiStep2": "Paste the generated token into the \"OAuth2 token\" field above.",
+          "smsApiStep3": "The sender name must be registered and approved in the SMSAPI.pl panel (Senders section) — enter it exactly as it appears there.",
+          "smsApiStep4": "Without an approved sender name, messages may be rejected or sent from a default, random number.",
+          "enableTitle": "Enabling and disabling",
+          "enableStep1": "Save the provider credentials first — the test-send button stays disabled while the form has unsaved changes.",
+          "enableStep2": "Send a test SMS to your own number to confirm the credentials work.",
+          "enableStep3": "Turn on \"Send SMS reminders\" and save again.",
+          "enableStep4": "The 24h/2h reminder toggles above (in the notification settings) must also be on. Turning this toggle off stops SMS immediately — the provider credentials stay saved."
+        }
+      },
+      "reminderTemplates": {
+        "pageDesc": "Edit the reminder message for each channel and enabled language.",
+        "section24hTitle": "24-hour reminder",
+        "section2hTitle": "2-hour reminder",
+        "transactionalOnlyNote": "Transactional content only (appointment reminder) — no promotional content.",
+        "resetToDefault": "Reset to default",
+        "channelSms": "SMS",
+        "channelEmail": "Email",
+        "channelTelegram": "Telegram",
+        "channelSmsDesc": "SMS is billed per segment — shorter text and avoiding Polish/Ukrainian diacritics lowers the cost.",
+        "channelEmailDesc": "Only the message text is editable — the email header, branding, and footer stay unchanged.",
+        "channelTelegramDesc": "The full message text sent to the client's Telegram chat.",
+        "segmentCounter": "{{chars}} chars · {{encoding}} · {{segments}} SMS",
+        "encodingGsm7": "GSM-7",
+        "encodingUcs2": "UCS-2",
+        "diacriticsHint": "Polish/Ukrainian diacritics force UCS-2 encoding (70 chars/SMS instead of 160) — removing them roughly halves the cost.",
+        "loadFailed": "Failed to load templates",
+        "saveFailed": "Save failed",
+        "saveSuccess": "Templates saved"
+      },
       "clientBot": {
         "pageDesc": "Configure the interactive Telegram bot that lets clients book appointments directly in chat.",
         "sectionTitle": "Booking bot",
@@ -1339,6 +1402,7 @@
     "DISCOUNT_INVALID": "This promo code is not valid for this booking.",
     "TURNSTILE_TOKEN_REQUIRED": "Please complete the security verification and try again.",
     "TURNSTILE_FAILED": "Security verification failed. Please try again.",
+    "TEMPLATE_UNKNOWN_PLACEHOLDER": "The template contains an unknown placeholder.",
     "generic": "An unexpected error occurred.",
     "network": "Connection error. Check your internet connection and try again.",
     "boundaryTitle": "Something went wrong",
@@ -1460,11 +1524,7 @@
       "back": "‹ Back",
       "noLongerAvailable": "This option is no longer available. Please try again."
     },
-    "reminder": {
-      "heading24h": "⏰ Reminder: your appointment is tomorrow",
-      "heading2h": "⏰ Reminder: your appointment is in 2 hours",
-      "details": "👤 Specialist: {{master}}\n💇 Service: {{service}}\n📅 Date: {{date}}\n🕐 Time: {{time}}"
-    }
+    "reminder": {}
   },
   "emailNotif": {
     "confirmation": {
@@ -1479,8 +1539,6 @@
     },
     "reminder": {
       "subject": "{{brandName}} — Reminder: appointment {{when}}",
-      "heading": "Appointment Reminder",
-      "greeting": "Hi {{name}}, this is a reminder about your appointment {{when}}!",
       "whenTomorrow": "tomorrow",
       "whenSoon": "in 2 hours",
       "footer": "© {{year}} {{brandName}}"

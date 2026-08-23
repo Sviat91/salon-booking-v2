@@ -1,7 +1,7 @@
 /// <reference types='vitest' />
 
 import { describe, expect, it } from 'vitest'
-import { actorLabel, buildBookingUpdateMessage } from '../../src/lib/notifications/internal'
+import { actorLabel, buildBookingUpdateMessage, appointmentStartUtc } from '../../src/lib/notifications/internal'
 
 describe('actorLabel', () => {
   it('returns "Klient" for client', () => {
@@ -77,5 +77,17 @@ describe('buildBookingUpdateMessage', () => {
     })
 
     expect(msg).toBeNull()
+  })
+})
+
+describe('appointmentStartUtc', () => {
+  it('converts a CEST (UTC+2) Warsaw local time to the correct UTC instant', () => {
+    const result = appointmentStartUtc(new Date('2026-08-15T00:00:00.000Z'), '14:00')
+    expect(result.toISOString()).toBe('2026-08-15T12:00:00.000Z')
+  })
+
+  it('converts a CET (UTC+1) Warsaw local time to the correct UTC instant', () => {
+    const result = appointmentStartUtc(new Date('2026-01-15T00:00:00.000Z'), '14:00')
+    expect(result.toISOString()).toBe('2026-01-15T13:00:00.000Z')
   })
 })

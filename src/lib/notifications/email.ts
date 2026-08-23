@@ -16,6 +16,7 @@
 
 import { sendEmail } from '@/lib/email'
 import { emailT } from './email-i18n'
+import { escapeHtml } from './templates'
 import type { Language } from '@/lib/i18n-shared'
 
 export interface BookingData {
@@ -135,7 +136,7 @@ export async function sendBookingConfirmationToAdmin(
 
 export async function sendBookingReminderToClient(
   to: string,
-  data: BookingData,
+  body: string, // already rendered + placeholder-substituted plain text
   hoursAhead: 24 | 2,
   brandName: string,
   lang: Language
@@ -155,17 +156,7 @@ export async function sendBookingReminderToClient(
   <span style="font-size:22px;font-weight:700;color:#1a1a1a;">${brandName}</span>
 </td></tr>
 <tr><td style="padding-top:28px;">
-  <p style="margin:0 0 8px;font-size:18px;font-weight:600;color:#1a1a1a;">${t('emailNotif.reminder.heading')}</p>
-  <p style="margin:0 0 24px;font-size:14px;color:#555;line-height:1.6;">
-    ${t('emailNotif.reminder.greeting', { name: data.name, when: `<strong>${when}</strong>` })}
-  </p>
-  <table width="100%" cellpadding="0" cellspacing="0"
-         style="background:#f9f9f9;border-radius:8px;padding:16px;margin-bottom:24px;">
-    <tr><td style="padding:4px 0;font-size:14px;color:#555;"><strong>${t('emailNotif.confirmation.serviceLabel')}:</strong> ${data.service}</td></tr>
-    <tr><td style="padding:4px 0;font-size:14px;color:#555;"><strong>${t('emailNotif.confirmation.masterLabel')}:</strong> ${data.master}</td></tr>
-    <tr><td style="padding:4px 0;font-size:14px;color:#555;"><strong>${t('emailNotif.confirmation.dateLabel')}:</strong> ${data.date}</td></tr>
-    <tr><td style="padding:4px 0;font-size:14px;color:#555;"><strong>${t('emailNotif.confirmation.timeLabel')}:</strong> ${data.time}</td></tr>
-  </table>
+  <p style="margin:0;font-size:14px;color:#555;line-height:1.6;white-space:pre-wrap;">${escapeHtml(body)}</p>
 </td></tr>
 <tr><td style="padding-top:28px;border-top:1px solid #eee;text-align:center;">
   <p style="margin:0;font-size:12px;color:#bbb;">${t('emailNotif.reminder.footer', { year, brandName })}</p>

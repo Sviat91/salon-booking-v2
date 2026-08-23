@@ -120,6 +120,7 @@
       "email": "E-mail",
       "socialAuth": "Logowanie społecznościowe",
       "notifications": "Powiadomienia",
+      "reminderTemplates": "Szablony przypomnień",
       "clientBot": "Bot rezerwacyjny",
       "legal": "Dokumenty prawne",
       "database": "Baza danych",
@@ -841,6 +842,68 @@
         "reminder2hLabel": "Przypomnienie 2-godzinne",
         "reminder2hDesc": "Przypomnij klientom dwie godziny przed wizytą."
       },
+      "sms": {
+        "sectionTitle": "SMS",
+        "sectionDesc": "Wysyłaj przypomnienia o wizytach SMS-em za pomocą własnego konta Twilio lub SMSAPI.pl.",
+        "toggleLabel": "Wysyłaj przypomnienia SMS",
+        "toggleDesc": "Wymaga skonfigurowanego dostawcy SMS poniżej.",
+        "providerLabel": "Dostawca SMS",
+        "providerTwilio": "Twilio",
+        "providerSmsApi": "SMSAPI.pl",
+        "twilioAccountSidLabel": "Account SID",
+        "twilioAccountSidDesc": "Znajdziesz go w panelu Twilio Console. Szyfrowane przy zapisie.",
+        "twilioAuthTokenLabel": "Auth Token",
+        "twilioAuthTokenDesc": "Znajdziesz go w panelu Twilio Console. Szyfrowane przy zapisie.",
+        "twilioFromNumberLabel": "Numer nadawcy",
+        "twilioFromNumberDesc": "Numer Twilio w formacie E.164, np. +14155551234.",
+        "smsApiTokenLabel": "Token OAuth2",
+        "smsApiTokenDesc": "Wygeneruj go w panelu SMSAPI.pl. Szyfrowane przy zapisie.",
+        "smsApiSenderLabel": "Nazwa nadawcy",
+        "smsApiSenderDesc": "Zarejestrowana nazwa nadawcy w SMSAPI.pl.",
+        "testSendBtn": "Wyślij testowy SMS",
+        "testSendSuccess": "Testowy SMS został wysłany",
+        "testSendError": "Nie udało się wysłać testowego SMS-a",
+        "testSendSaveFirstHint": "Zapisz ustawienia przed wysłaniem testowego SMS-a.",
+        "help": {
+          "title": "Jak to skonfigurować",
+          "subtitle": "Kilka kroków, aby uruchomić przypomnienia SMS.",
+          "twilioTitle": "Twilio",
+          "twilioStep1": "Załóż konto na twilio.com i przejdź do Twilio Console.",
+          "twilioStep2": "Account SID i Auth Token znajdziesz na stronie głównej Console — skopiuj je do pól powyżej.",
+          "twilioStep3": "Numer nadawcy kup lub aktywuj w sekcji Phone Numbers i wpisz go w formacie E.164, np. +14155551234.",
+          "twilioStep4": "Konto testowe (trial) wysyła SMS-y tylko na numery zweryfikowane w Console — dodaj tam numer testowy albo uaktualnij konto do płatnego.",
+          "smsApiTitle": "SMSAPI.pl",
+          "smsApiStep1": "Zaloguj się do panelu SMSAPI.pl i przejdź do sekcji API/OAuth, aby wygenerować token OAuth2.",
+          "smsApiStep2": "Wklej wygenerowany token w pole „Token OAuth2” powyżej.",
+          "smsApiStep3": "Nazwa nadawcy musi być zarejestrowana i zatwierdzona w panelu SMSAPI.pl (sekcja Nadawcy) — wpisz ją dokładnie tak, jak widnieje tam.",
+          "smsApiStep4": "Bez zatwierdzonej nazwy nadawcy wiadomości mogą zostać odrzucone lub wysłane z domyślnego, losowego numeru.",
+          "enableTitle": "Włączanie i wyłączanie",
+          "enableStep1": "Najpierw zapisz dane dostawcy — przycisk testowego SMS-a jest zablokowany, dopóki formularz ma niezapisane zmiany.",
+          "enableStep2": "Wyślij testowy SMS na własny numer, aby potwierdzić, że dane są poprawne.",
+          "enableStep3": "Włącz „Wysyłaj przypomnienia SMS” i zapisz ponownie.",
+          "enableStep4": "Przełączniki przypomnień 24h/2h powyżej (w ustawieniach powiadomień) też muszą być włączone. Wyłączenie tego przełącznika natychmiast zatrzymuje SMS-y — dane dostawcy pozostają zapisane."
+        }
+      },
+      "reminderTemplates": {
+        "pageDesc": "Edytuj treść przypomnień o wizytach dla każdego kanału i włączonego języka.",
+        "section24hTitle": "Przypomnienie 24-godzinne",
+        "section2hTitle": "Przypomnienie 2-godzinne",
+        "transactionalOnlyNote": "Wyłącznie treści transakcyjne (przypomnienie o wizycie) — bez treści marketingowych.",
+        "resetToDefault": "Przywróć domyślny",
+        "channelSms": "SMS",
+        "channelEmail": "Email",
+        "channelTelegram": "Telegram",
+        "channelSmsDesc": "SMS jest rozliczany za segment — krótsze treści i unikanie polskich/ukraińskich znaków diakrytycznych obniżają koszt.",
+        "channelEmailDesc": "Edytowalna jest tylko treść wiadomości — nagłówek, branding i stopka e-maila pozostają bez zmian.",
+        "channelTelegramDesc": "Pełna treść wiadomości wysyłanej na czat klienta w Telegramie.",
+        "segmentCounter": "{{chars}} znaków · {{encoding}} · {{segments}} SMS",
+        "encodingGsm7": "GSM-7",
+        "encodingUcs2": "UCS-2",
+        "diacriticsHint": "Polskie/ukraińskie znaki diakrytyczne wymuszają kodowanie UCS-2 (70 znaków/SMS zamiast 160) — usunięcie ich obniża koszt o połowę.",
+        "loadFailed": "Nie udało się załadować szablonów",
+        "saveFailed": "Zapis nie powiódł się",
+        "saveSuccess": "Szablony zostały zapisane"
+      },
       "clientBot": {
         "pageDesc": "Skonfiguruj interaktywnego bota Telegram, który pozwala klientom rezerwować wizyty bezpośrednio na czacie.",
         "sectionTitle": "Bot rezerwacyjny",
@@ -1339,6 +1402,7 @@
     "DISCOUNT_INVALID": "Ten kod rabatowy jest nieprawidłowy dla tej rezerwacji.",
     "TURNSTILE_TOKEN_REQUIRED": "Potwierdź weryfikację zabezpieczającą i spróbuj ponownie.",
     "TURNSTILE_FAILED": "Weryfikacja zabezpieczająca nie powiodła się. Spróbuj ponownie.",
+    "TEMPLATE_UNKNOWN_PLACEHOLDER": "Szablon zawiera nieznany symbol zastępczy.",
     "generic": "Wystąpił nieoczekiwany błąd.",
     "network": "Błąd połączenia. Sprawdź internet i spróbuj ponownie.",
     "boundaryTitle": "Coś poszło nie tak",
@@ -1460,11 +1524,7 @@
       "back": "‹ Wstecz",
       "noLongerAvailable": "Ta opcja nie jest już dostępna. Spróbuj ponownie."
     },
-    "reminder": {
-      "heading24h": "⏰ Przypomnienie: Twoja wizyta jest jutro",
-      "heading2h": "⏰ Przypomnienie: Twoja wizyta jest za 2 godziny",
-      "details": "👤 Specjalista: {{master}}\n💇 Usługa: {{service}}\n📅 Data: {{date}}\n🕐 Godzina: {{time}}"
-    }
+    "reminder": {}
   },
   "emailNotif": {
     "confirmation": {
@@ -1479,8 +1539,6 @@
     },
     "reminder": {
       "subject": "{{brandName}} — Przypomnienie: wizyta {{when}}",
-      "heading": "Przypomnienie o wizycie",
-      "greeting": "Cześć {{name}}, przypominamy o Twojej wizycie {{when}}!",
       "whenTomorrow": "jutro",
       "whenSoon": "za 2 godziny",
       "footer": "© {{year}} {{brandName}}"

@@ -3,17 +3,11 @@
  * Plain text (no HTML parse mode) — mirrors the client bot's `ctx.reply` style
  * and avoids breaking on `&`/`<`/`>` in admin-entered service names.
  * Uses native fetch — no extra dependencies. Never throws.
+ *
+ * Takes a pre-rendered plain-text body (composed by `reminders.ts` from
+ * `NotificationTemplate` / `DEFAULT_REMINDER_BODIES.telegram`); this module
+ * is transport only.
  */
-
-import { botT } from '@/lib/telegram-bot/i18n'
-import type { Language } from '@/lib/i18n-shared'
-
-interface ReminderLabels extends Record<string, string> {
-  master: string
-  service: string
-  date: string
-  time: string
-}
 
 async function postPlainText(botToken: string, chatId: string, text: string): Promise<Error | null> {
   try {
@@ -41,12 +35,7 @@ async function postPlainText(botToken: string, chatId: string, text: string): Pr
 export async function sendClientBookingReminder(params: {
   botToken: string
   chatId: string
-  lang: Language
-  hours: 24 | 2
-  labels: ReminderLabels
+  text: string
 }): Promise<Error | null> {
-  const t = botT(params.lang)
-  const heading = params.hours === 24 ? t('bot.reminder.heading24h') : t('bot.reminder.heading2h')
-  const details = t('bot.reminder.details', params.labels)
-  return postPlainText(params.botToken, params.chatId, `${heading}\n\n${details}`)
+  return postPlainText(params.botToken, params.chatId, params.text)
 }

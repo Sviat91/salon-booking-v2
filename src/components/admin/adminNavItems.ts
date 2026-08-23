@@ -14,6 +14,7 @@ import {
   FileText,
   Percent,
   ScrollText,
+  MessageSquare,
   type LucideIcon,
 } from "lucide-react"
 
@@ -76,6 +77,11 @@ export const adminNavItems: NavItem[] = [
     labelKey: "admin.nav.notifications",
     href: "/admin/settings/notifications",
     icon: Bell,
+  },
+  {
+    labelKey: "admin.nav.reminderTemplates",
+    href: "/admin/settings/reminder-templates",
+    icon: MessageSquare,
   },
   {
     labelKey: "admin.nav.clientBot",

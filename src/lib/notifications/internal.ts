@@ -4,6 +4,18 @@
 
 import prisma from '@/lib/prisma'
 import { sendTelegramMessage } from './telegram'
+import { fromZonedTime } from 'date-fns-tz'
+import { SCHEDULE_TZ } from '@/lib/schedule-utils'
+
+/**
+ * Reconstructs an appointment's absolute UTC instant from its stored
+ * `date` (UTC midnight) + `startTime` ("HH:MM", Warsaw local wall-clock
+ * as written by booking-service.ts). DST-aware.
+ */
+export function appointmentStartUtc(date: Date, startTime: string): Date {
+  const dateStr = date.toISOString().slice(0, 10)
+  return fromZonedTime(`${dateStr}T${startTime}:00`, SCHEDULE_TZ)
+}
 
 export async function logNotification(params: {
   type: string

@@ -357,6 +357,16 @@ model TenantConfig {
   notifReminder24hEnabled Boolean  @default(false)
   notifReminder2hEnabled  Boolean  @default(false)
 
+  // SMS channel — BYO provider credentials (same pattern as SMTP above).
+  // Secrets are encrypted at rest via src/lib/encryption.ts.
+  notifSmsEnabled  Boolean @default(false)
+  smsProvider      String  @default("twilio") // "twilio" | "smsapi"
+  twilioAccountSid String?  // encrypted
+  twilioAuthToken  String?  // encrypted
+  twilioFromNumber String?  // plaintext, E.164 sender number
+  smsApiToken      String?  // encrypted — SMSAPI.pl OAuth2 API token
+  smsApiSender     String?  // plaintext, registered SMSAPI sender name
+
   enabledLocales  String   @default("[\"pl\",\"en\",\"uk\"]")
   homepageWidgetBlock String? // JSON: {"type":"photoWidget","config":{...}} — single block shown on the homepage
 
@@ -376,7 +386,7 @@ model TelegramNotificationRecipient {
 model NotificationLog {
   id            String   @id @default(cuid())
   type          String   // BOOKING_CONFIRMATION | BOOKING_REMINDER_24H | BOOKING_REMINDER_2H | BOOKING_CANCELLATION | BOOKING_UPDATE | CONTACT_FORM
-  channel       String   // email | telegram | telegram_client
+  channel       String   // email | telegram | telegram_client | sms
   appointmentId String?
   recipientId   String?
   status        String   // sent | failed | skipped
@@ -384,6 +394,21 @@ model NotificationLog {
   sentAt        DateTime @default(now())
 
   @@index([appointmentId, type])
+}
+
+// Admin-editable notification body text. One row per (type, language, channel).
+// An absent row means "use the built-in default" — the table starts empty and
+// is never seeded; saving an empty body deletes the row (reset to default).
+model NotificationTemplate {
+  id        String   @id @default(cuid())
+  type      String   // BOOKING_REMINDER_24H | BOOKING_REMINDER_2H (mirrors NotificationLog.type)
+  language  String   // pl | en | uk (SUPPORTED_LANGUAGES)
+  channel   String   // sms | email | telegram (REMINDER_CHANNELS in src/lib/notifications/templates.ts)
+  body      String   // free text with {{placeholder}} tokens, see src/lib/notifications/templates.ts
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([type, language, channel])
 }
 
 // One-time-use token for password reset emails.

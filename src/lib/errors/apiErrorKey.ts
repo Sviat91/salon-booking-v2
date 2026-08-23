@@ -42,6 +42,7 @@ export const KNOWN_ERROR_CODES = new Set([
   'DISCOUNT_INVALID',
   'TURNSTILE_TOKEN_REQUIRED',
   'TURNSTILE_FAILED',
+  'TEMPLATE_UNKNOWN_PLACEHOLDER',
 ])
 
 export function apiErrorKey(code?: string): string {
