@@ -124,7 +124,7 @@ export default function MasterSelector({ onNavigateAway }: MasterSelectorProps) 
             type="button"
             onClick={scrollLeft} 
             aria-label="Scroll left"
-            className="hidden lg:flex absolute -left-12 xl:-left-16 z-20 w-14 h-14 bg-background/60 hover:bg-secondary backdrop-blur-md rounded-full shadow-md items-center justify-center text-foreground transition-all duration-300 opacity-0 group-hover/slider:opacity-100 hover:scale-105"
+            className="hidden lg:flex absolute -left-12 xl:-left-16 z-20 w-14 h-14 bg-card/60 hover:bg-secondary backdrop-blur-md rounded-full shadow-md items-center justify-center text-foreground transition-all duration-300 opacity-0 group-hover/slider:opacity-100 hover:scale-105"
           >
             <ChevronLeft className="w-7 h-7" />
           </button>
@@ -233,7 +233,7 @@ export default function MasterSelector({ onNavigateAway }: MasterSelectorProps) 
             type="button"
             onClick={scrollRight} 
             aria-label="Scroll right"
-            className="hidden lg:flex absolute -right-12 xl:-right-16 z-20 w-14 h-14 bg-background/60 hover:bg-secondary backdrop-blur-md rounded-full shadow-md items-center justify-center text-foreground transition-all duration-300 opacity-0 group-hover/slider:opacity-100 hover:scale-105"
+            className="hidden lg:flex absolute -right-12 xl:-right-16 z-20 w-14 h-14 bg-card/60 hover:bg-secondary backdrop-blur-md rounded-full shadow-md items-center justify-center text-foreground transition-all duration-300 opacity-0 group-hover/slider:opacity-100 hover:scale-105"
           >
             <ChevronRight className="w-7 h-7" />
           </button>

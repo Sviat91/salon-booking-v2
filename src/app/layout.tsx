@@ -115,21 +115,28 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         })()}
         {/* Dark theme bg override */}
         {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-        {(config as any).darkBgType !== 'solid' && (() => {
+        {(() => {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const cfg = config as any
-          if (cfg.darkBgType === 'gradient') {
-            const grad = `linear-gradient(${cfg.darkBgGradientAngle}deg, ${cfg.darkBgGradientFrom}, ${cfg.darkBgGradientTo}) fixed`
+          const useLightBg = cfg.bgApplyToDark && cfg.bgType !== 'solid'
+          const effectiveDarkBgType = useLightBg ? cfg.bgType : cfg.darkBgType
+          const effectiveDarkBgImageUrl = useLightBg ? cfg.bgImageUrl : cfg.darkBgImageUrl
+          const effectiveDarkBgGradientAngle = useLightBg ? cfg.bgGradientAngle : cfg.darkBgGradientAngle
+          const effectiveDarkBgGradientFrom = useLightBg ? cfg.bgGradientFrom : cfg.darkBgGradientFrom
+          const effectiveDarkBgGradientTo = useLightBg ? cfg.bgGradientTo : cfg.darkBgGradientTo
+          if (effectiveDarkBgType === 'solid') return null
+          if (effectiveDarkBgType === 'gradient') {
+            const grad = `linear-gradient(${effectiveDarkBgGradientAngle}deg, ${effectiveDarkBgGradientFrom}, ${effectiveDarkBgGradientTo}) fixed`
             return (
               <style dangerouslySetInnerHTML={{
                 __html: `.dark body { background: ${grad} !important; } .dark body::before { display: none !important; } .dark .admin-layout, .dark .admin-layout main { background: transparent !important; }`
               }} />
             )
           }
-          if (cfg.darkBgType === 'picture' && cfg.darkBgImageUrl) {
+          if (effectiveDarkBgType === 'picture' && effectiveDarkBgImageUrl) {
             return (
               <style dangerouslySetInnerHTML={{
-                __html: `.dark body { background: url('${cfg.darkBgImageUrl}') center/cover no-repeat fixed !important; } .dark body::before { display: none !important; } .dark .admin-layout, .dark .admin-layout main { background: transparent !important; }`
+                __html: `.dark body { background: url('${effectiveDarkBgImageUrl}') center/cover no-repeat fixed !important; } .dark body::before { display: none !important; } .dark .admin-layout, .dark .admin-layout main { background: transparent !important; }`
               }} />
             )
           }

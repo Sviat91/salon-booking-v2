@@ -162,8 +162,10 @@ export default function BackgroundSection({ config, onBgImageUpload, prefix = ''
         <div className="flex flex-col gap-3">
           <div className="flex items-start gap-4">
             {bgImagePreview ? (
-              <div className="relative h-16 w-28 rounded-lg border border-border overflow-hidden">
-                <img src={bgImagePreview} alt="Background" className="absolute inset-0 h-full w-full object-cover" />
+              <div className="relative h-16 w-28">
+                <div className="h-16 w-28 rounded-lg border border-border overflow-hidden">
+                  <img src={bgImagePreview} alt="Background" className="absolute inset-0 h-full w-full object-cover" />
+                </div>
                 <button type="button" onClick={() => { setBgImagePreview(null); setBgImageUrl('') }}
                   className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-destructive-foreground shadow">
                   <X className="h-3 w-3" />
