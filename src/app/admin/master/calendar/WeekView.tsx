@@ -12,6 +12,7 @@ import { resolveLocalized } from "@/lib/localized-content"
 import { dateFnsLocale } from "@/lib/utils/date-fns-locale"
 import { groupOverlappingAppointments, pluralize, parseTime } from "./calendar-utils"
 import WeekDayEditPopover from "./WeekDayEditPopover"
+import WeekMobileGroup from "./WeekMobileGroup"
 
 interface WeekViewProps {
   currentDate: Date
@@ -164,15 +165,31 @@ export default function WeekView({ currentDate, appointments, templates, overrid
     const dateStr = format(day, "yyyy-MM-dd")
     const isSaving = savingDate === dateStr
 
-    return (
-      <div key={i} className={`pt-2 pb-1 ${isMobile ? 'px-0' : 'px-1'} flex flex-col items-center border-r last:border-r-0 border-border relative`}>
-        {isSaving && <div className="absolute inset-0 bg-background/50 z-10 animate-pulse" />}
+    const label = (
+      <>
         <span className={`${isMobile ? 'text-[10px] tracking-normal' : 'text-[11px] tracking-wider'} font-medium uppercase ${isCurr ? 'text-primary' : 'text-muted-foreground'}`}>
           {format(day, "EEE", { locale })}
         </span>
         <span className={`${isMobile ? 'text-base h-7 w-7' : 'text-lg h-8 w-8'} font-medium flex items-center justify-center rounded-full mt-0.5 ${isCurr ? 'bg-primary text-primary-foreground' : ''}`}>
           {format(day, "d")}
         </span>
+      </>
+    )
+
+    return (
+      <div key={i} className={`pt-2 pb-1 ${isMobile ? 'px-0' : 'px-1'} flex flex-col items-center border-r last:border-r-0 border-border relative`}>
+        {isSaving && <div className="absolute inset-0 bg-background/50 z-10 animate-pulse" />}
+        {isMobile ? (
+          <button
+            type="button"
+            onClick={() => onDayClick(day)}
+            disabled={isEditMode}
+            aria-label={format(day, "EEEE, d MMMM", { locale })}
+            className="flex flex-col items-center touch-manipulation disabled:cursor-default"
+          >
+            {label}
+          </button>
+        ) : label}
 
         {isEditMode && !isPastDay && (
           <button
@@ -254,7 +271,7 @@ export default function WeekView({ currentDate, appointments, templates, overrid
           )
         })}
 
-        {!isEditMode && !isPastDay && !status.isDayOff && (
+        {!isEditMode && !isPastDay && !status.isDayOff && !isMobile && (
           <div className="absolute inset-0 z-[1] cursor-pointer hover:bg-primary/5 transition-colors" onClick={() => onDayClick(day)} />
         )}
 
@@ -318,17 +335,15 @@ export default function WeekView({ currentDate, appointments, templates, overrid
           }
 
           if (isMobile) {
-            const groupColor = group[0].master?.masterProfile?.color || "#8B4A58"
             return (
-              <div
+              <WeekMobileGroup
                 key={`group-${groupIdx}`}
-                onClick={(e) => { e.stopPropagation(); onDayClick(day); }}
-                className="absolute z-10 rounded-md cursor-pointer backdrop-blur-sm text-foreground p-0.5 flex items-center gap-0.5"
-                style={{ top: `${top}px`, left: "2px", width: "calc(100% - 4px)", backgroundColor: groupColor + "26", borderLeft: "3px solid " + groupColor }}
-              >
-                <Users className="w-3 h-3 shrink-0" />
-                <span className="text-[10px] font-semibold">{group.length}</span>
-              </div>
+                group={group}
+                top={top}
+                expanded={isExpanded}
+                onToggle={() => toggleExpand(dateStr, groupIdx)}
+                onAppointmentClick={onAppointmentClick}
+              />
             )
           }
 
