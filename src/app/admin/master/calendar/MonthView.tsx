@@ -8,7 +8,7 @@ import { Plus, PowerOff, X, ChevronDown, Clock } from "lucide-react"
 import { TimePickerDropdown } from "@/components/TimePickerDropdown"
 import { useCurrentLanguage } from "@/contexts/LanguageContext"
 import { dateFnsLocale } from "@/lib/utils/date-fns-locale"
-import { pluralize } from "./calendar-utils"
+import { pluralize, entryPrimaryLabel } from "./calendar-utils"
 
 interface MonthViewProps {
   currentDate: Date
@@ -186,12 +186,12 @@ export default function MonthView({ currentDate, appointments, templates, overri
                         <div 
                           key={a.id} 
                           onClick={(e) => { e.stopPropagation(); onAppointmentClick(a); setExpanded({ type: null, dateStr: null }); }}
-                          className="text-xs px-2 py-1.5 rounded text-foreground transition-colors cursor-pointer flex items-center gap-2 shadow-sm"
+                          className={`text-xs px-2 py-1.5 rounded text-foreground transition-colors cursor-pointer flex items-center gap-2 shadow-sm${a.hasConflict ? ' ring-2 ring-[var(--md-error)]' : ''}`}
                           style={{ backgroundColor: (a.master?.masterProfile?.color || "#8B4A58") + "26", borderLeft: "3px solid " + (a.master?.masterProfile?.color || "#8B4A58") }}
                         >
                           <Clock className="w-3 h-3 shrink-0" />
                           <span className="font-medium">{a.startTime}</span>
-                          <span className="truncate">{a.client.name || t('admin.calendar.clientFallback')}</span>
+                          <span className="truncate">{entryPrimaryLabel(a, t('admin.calendar.clientFallback'), t)}</span>
                         </div>
                       ))}
                     </div>

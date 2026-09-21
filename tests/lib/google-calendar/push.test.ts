@@ -120,6 +120,17 @@ describe('processSyncTask - stale event (master reassignment)', () => {
   })
 })
 
+describe('processSyncTask - pull cursor', () => {
+  it('a successful push marks status ok but never writes googleSyncedAt', async () => {
+    const res = await processSyncTask(task({}))
+    expect(res).toEqual({ ok: true })
+    expect(mockPrisma.masterProfile.updateMany).toHaveBeenCalledWith({
+      where: { userId: 'new-master' },
+      data: { googleSyncStatus: 'ok', googleSyncError: null },
+    })
+  })
+})
+
 describe('processSyncTask - stale edge cases', () => {
   const stale = { staleCalendarId: 'old@x.com', staleGoogleEventId: 'old-ev' }
 

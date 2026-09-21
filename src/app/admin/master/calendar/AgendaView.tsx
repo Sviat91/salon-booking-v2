@@ -4,9 +4,9 @@ import { useEffect, useMemo, useRef } from "react"
 import { format, isToday } from "date-fns"
 import { useTranslation } from "react-i18next"
 import { useCurrentLanguage } from "@/contexts/LanguageContext"
-import { resolveLocalized } from "@/lib/localized-content"
 import { dateFnsLocale } from "@/lib/utils/date-fns-locale"
 import type { Appointment } from "./ModernCalendar"
+import { entryPrimaryLabel, entrySecondaryLabel } from "./calendar-utils"
 
 interface AgendaViewProps {
   currentDate: Date
@@ -84,12 +84,12 @@ export default function AgendaView({ currentDate, appointments, isAdminView = fa
                     key={a.id}
                     type="button"
                     onClick={() => onAppointmentClick(a)}
-                    className="block w-full text-left rounded-md p-2 mb-2 text-foreground"
+                    className={`block w-full text-left rounded-md p-2 mb-2 text-foreground${a.hasConflict ? ' ring-2 ring-[var(--md-error)]' : ''}`}
                     style={{ backgroundColor: color + "26", borderLeft: "3px solid " + color }}
                   >
                     <div className="font-semibold">{a.startTime} – {a.endTime}</div>
-                    <div className="truncate">{a.client.name || t('admin.calendar.clientFallback')}</div>
-                    <div className="text-xs opacity-80 truncate">{resolveLocalized({ pl: a.service.name_pl, en: a.service.name_en, uk: a.service.name_uk }, language)}</div>
+                    <div className="truncate">{entryPrimaryLabel(a, t('admin.calendar.clientFallback'), t)}</div>
+                    <div className="text-xs opacity-80 truncate">{entrySecondaryLabel(a, language, t)}</div>
                     {isAdminView && selectedMasterId === "all" && a.master?.name && (
                       <div className="text-xs opacity-80 truncate">{a.master.name}</div>
                     )}

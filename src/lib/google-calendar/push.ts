@@ -29,7 +29,7 @@ async function masterCalendarId(masterId: string): Promise<string | null> {
 async function markOk(masterId: string): Promise<void> {
   await prisma.masterProfile.updateMany({
     where: { userId: masterId },
-    data: { googleSyncStatus: 'ok', googleSyncError: null, googleSyncedAt: new Date() },
+    data: { googleSyncStatus: 'ok', googleSyncError: null },
   })
 }
 

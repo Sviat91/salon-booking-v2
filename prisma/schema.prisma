@@ -33,6 +33,7 @@ model User {
   masterProfile MasterProfile?
   appointmentsAsClient Appointment[] @relation("ClientAppointments")
   appointmentsAsMaster Appointment[] @relation("MasterAppointments")
+  externalBlocks ExternalCalendarBlock[] @relation("MasterExternalBlocks")
   schedules            Schedule[]    @relation("MasterSchedules")
   dateOverrides        DateOverride[] @relation("MasterDateOverrides")
   createdServices      Service[]     @relation("MasterCreatedServices")
@@ -62,6 +63,7 @@ model MasterProfile {
   googleSyncStatus String?   // "ok" | "error" | null (never connected)
   googleSyncError  String?
   googleSyncedAt   DateTime?
+  googleFullSyncAt DateTime?   // last completed FULL sync; a weekly forced full sync re-widens the time window
 
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -419,7 +421,7 @@ model TelegramNotificationRecipient {
 
 model NotificationLog {
   id            String   @id @default(cuid())
-  type          String   // BOOKING_CONFIRMATION | BOOKING_REMINDER_24H | BOOKING_REMINDER_2H | BOOKING_CANCELLATION | BOOKING_UPDATE | CONTACT_FORM
+  type          String   // BOOKING_CONFIRMATION | BOOKING_REMINDER_24H | BOOKING_REMINDER_2H | BOOKING_CANCELLATION | BOOKING_UPDATE | CONTACT_FORM | CALENDAR_CONFLICT
   channel       String   // email | telegram | telegram_client | sms
   appointmentId String?
   recipientId   String?
@@ -511,4 +513,33 @@ model Account {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
+}
+
+// A Google Calendar event created directly in Google (not by this site).
+// Read-only mirror: blocks availability and renders in the calendar, but has
+// no client, no service, no price, no reminders and no GDPR linkage.
+// date/startTime/endTime deliberately use the exact same convention as
+// Appointment (date = UTC midnight of the Warsaw-local day, times = "HH:MM"
+// Warsaw wall clock) so fetchBusyRanges() and the calendar views need no
+// special casing. A multi-day event produces one row per local day.
+model ExternalCalendarBlock {
+  id                 String    @id @default(cuid())
+  masterId           String
+  googleCalendarId   String
+  googleEventId      String
+  title              String?   // raw Google summary; null -> localized fallback at display time
+  description        String?   // raw Google description; null -> localized fallback at display time
+  date               DateTime
+  startTime          String
+  endTime            String
+  allDay             Boolean   @default(false)
+  conflictNotifiedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  master User @relation("MasterExternalBlocks", fields: [masterId], references: [id], onDelete: Cascade)
+
+  @@unique([masterId, googleEventId, date])
+  @@index([masterId, date])
 }

@@ -23,6 +23,11 @@ const { mockPrisma } = vi.hoisted(() => {
       create: vi.fn(),
       findUnique: vi.fn(),
     },
+    // Google Calendar external blocks (Stage 2): read on availability/conflict/calendar paths.
+    externalCalendarBlock: {
+      findFirst: vi.fn().mockResolvedValue(null),
+      findMany: vi.fn().mockResolvedValue([]),
+    },
     // Discounts (prisma/AGENTS.md: a schema change requires updating mocks).
     masterProfile: {
       findUnique: vi.fn(),

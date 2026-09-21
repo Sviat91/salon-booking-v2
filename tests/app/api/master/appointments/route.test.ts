@@ -7,6 +7,11 @@ const { mockPrisma, mockAuth } = vi.hoisted(() => ({
     appointment: {
       findMany: vi.fn(),
     },
+    // Google Calendar external blocks (Stage 2): read on availability/conflict/calendar paths.
+    externalCalendarBlock: {
+      findFirst: vi.fn().mockResolvedValue(null),
+      findMany: vi.fn().mockResolvedValue([]),
+    },
     masterProfile: {
       findUnique: vi.fn(),
     },

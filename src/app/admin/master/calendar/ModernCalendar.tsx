@@ -14,8 +14,10 @@ import DayView from "./DayView"
 import BulkSettingsModal from "./BulkSettingsModal"
 import AppointmentModal from "./AppointmentModal"
 import ViewAppointmentModal from "./ViewAppointmentModal"
+import ViewExternalBlockModal from "./ViewExternalBlockModal"
 import AgendaView from "./AgendaView"
 import { useSwipeNavigation } from "./useSwipeNavigation"
+import { markConflicts } from "./calendar-utils"
 
 export type ViewType = "Month" | "Week" | "Day" | "Agenda"
 
@@ -32,6 +34,12 @@ export type Appointment = {
   master?: { id: string, name: string | null, masterProfile?: { color?: string | null } }
   originalPrice?: number | null
   discount?: { label: string; percent: number } | null
+  // Google-origin read-only blocks (synthetic entries, id prefixed "ext:")
+  isExternal?: boolean
+  externalTitle?: string | null
+  externalDescription?: string | null
+  allDay?: boolean
+  hasConflict?: boolean // computed client-side (markConflicts), never from the API
 }
 export type Template = { dayOfWeek: number; isDayOff: boolean; intervals: Interval[] }
 export type Override = { date: string; isDayOff: boolean; intervals: Interval[] }
@@ -73,6 +81,7 @@ export default function ModernCalendar({
   // Appointment Booking State
   const [bookingDate, setBookingDate] = useState<Date | null>(null)
   const [viewingAppointment, setViewingAppointment] = useState<Appointment | null>(null)
+  const [viewingExternal, setViewingExternal] = useState<Appointment | null>(null)
   const [editingAppointment, setEditingAppointment] = useState<{ appt: Appointment, mode: "edit" | "copy" } | null>(null)
   
   // Grid Hours
@@ -82,6 +91,8 @@ export default function ModernCalendar({
   // Data
   const [loading, setLoading] = useState(false)
   const [appointments, setAppointments] = useState<Appointment[]>([])
+  // Overlaps are computed client-side over everything fetched (appointments + Google blocks).
+  const entries = useMemo(() => markConflicts(appointments), [appointments])
   const [templates, setTemplates] = useState<Template[]>([])
   const [overrides, setOverrides] = useState<Override[]>([])
 
@@ -202,6 +213,8 @@ export default function ModernCalendar({
     fetchData()
   }
 
+  const openEntry = (a: Appointment) => (a.isExternal ? setViewingExternal(a) : setViewingAppointment(a))
+
   const swipe = useSwipeNavigation({
     enabled: isMobile && !isEditMode,
     onPrev: () => navigate("prev"),
@@ -240,7 +253,7 @@ export default function ModernCalendar({
         {effectiveView === "Month" && (
           <MonthView
             currentDate={currentDate}
-            appointments={appointments}
+            appointments={entries}
             templates={templates}
             overrides={overrides}
             isEditMode={isEditMode}
@@ -251,14 +264,14 @@ export default function ModernCalendar({
             selectedMasterId={selectedMasterId}
             isMobile={isMobile}
             onDayClick={(d) => { setView("Day"); setCurrentDate(d); }}
-            onAppointmentClick={(a) => setViewingAppointment(a)}
+            onAppointmentClick={openEntry}
             onDataChange={fetchData}
           />
         )}
         {effectiveView === "Week" && (
           <WeekView
             currentDate={currentDate}
-            appointments={appointments}
+            appointments={entries}
             templates={templates}
             overrides={overrides}
             step={step}
@@ -272,23 +285,23 @@ export default function ModernCalendar({
             selectedMasterId={selectedMasterId}
             isMobile={isMobile}
             onDayClick={(d) => { setView("Day"); setCurrentDate(d); }}
-            onAppointmentClick={(a) => setViewingAppointment(a)}
+            onAppointmentClick={openEntry}
             onDataChange={fetchData}
           />
         )}
         {effectiveView === "Agenda" && (
           <AgendaView
             currentDate={currentDate}
-            appointments={appointments}
+            appointments={entries}
             isAdminView={isAdminView}
             selectedMasterId={selectedMasterId}
-            onAppointmentClick={(a) => setViewingAppointment(a)}
+            onAppointmentClick={openEntry}
           />
         )}
         {effectiveView === "Day" && (
           <DayView
             currentDate={currentDate}
-            appointments={appointments}
+            appointments={entries}
             templates={templates}
             overrides={overrides}
             step={step}
@@ -301,7 +314,7 @@ export default function ModernCalendar({
             isAdminView={isAdminView}
             selectedMasterId={selectedMasterId}
             onAddClick={(d) => setBookingDate(d)}
-            onAppointmentClick={(a) => setViewingAppointment(a)}
+            onAppointmentClick={openEntry}
             onDataChange={fetchData}
           />
         )}
@@ -330,6 +343,10 @@ export default function ModernCalendar({
           onClose={() => { setBookingDate(null); setEditingAppointment(null); }}
           onSuccess={() => { setBookingDate(null); setEditingAppointment(null); fetchData(); }}
         />
+      )}
+
+      {viewingExternal && (
+        <ViewExternalBlockModal block={viewingExternal} onClose={() => setViewingExternal(null)} />
       )}
 
       {viewingAppointment && (

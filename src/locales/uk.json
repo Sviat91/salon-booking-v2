@@ -255,6 +255,16 @@
         "selectDateAlert": "Виберіть принаймні одну дату.",
         "selectMasterAlert": "Виберіть принаймні одного спеціаліста, до якого застосувати зміни.",
         "saveErrorPrefix": "Помилка збереження: {{message}}"
+      },
+      "external": {
+        "titleFallback": "Подія з Google Календаря",
+        "descriptionFallback": "Додано через Google Календар",
+        "sourceLabel": "З Google Календаря",
+        "modalTitle": "Зовнішня подія",
+        "readOnlyNote": "Ця подія походить з Google Календаря і доступна лише для читання. Змініть або видаліть її в Google Календарі.",
+        "allDayLabel": "Весь день",
+        "conflictBadge": "Конфлікт часу",
+        "conflictTooltip": "Цей запис перетинається з іншим записом у календарі"
       }
     },
     "database": {

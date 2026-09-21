@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 const { mockPrisma, mockOutbox } = vi.hoisted(() => ({
   mockPrisma: {
     masterProfile: { findUnique: vi.fn(), findFirst: vi.fn(), update: vi.fn() },
+    externalCalendarBlock: { deleteMany: vi.fn() },
   },
   mockOutbox: { clearMasterEventIds: vi.fn(), enqueueBackfillForMaster: vi.fn() },
 }))
@@ -47,5 +48,25 @@ describe('setMasterCalendarId', () => {
     )
     expect(mockOutbox.clearMasterEventIds).toHaveBeenCalledWith('m1')
     expect(mockOutbox.enqueueBackfillForMaster).toHaveBeenCalledWith('m1')
+  })
+
+  it('id change deletes the master blocks and nulls the sync token', async () => {
+    mockPrisma.masterProfile.findFirst.mockResolvedValue(null)
+    await setMasterCalendarId('m1', 'free@x.com')
+    expect(mockPrisma.masterProfile.update).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ googleSyncToken: null }) }),
+    )
+    expect(mockPrisma.externalCalendarBlock.deleteMany).toHaveBeenCalledWith({ where: { masterId: 'm1' } })
+  })
+
+  it('disconnect deletes the master blocks and nulls the sync token', async () => {
+    const res = await setMasterCalendarId('m1', '  ')
+    expect(res).toEqual({ ok: true, queued: 0 })
+    expect(mockPrisma.masterProfile.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ googleCalendarId: null, googleSyncToken: null }),
+      }),
+    )
+    expect(mockPrisma.externalCalendarBlock.deleteMany).toHaveBeenCalledWith({ where: { masterId: 'm1' } })
   })
 })

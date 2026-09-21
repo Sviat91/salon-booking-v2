@@ -19,6 +19,10 @@ describe('actorLabel', () => {
   it('returns "Mistrz" for master with no name', () => {
     expect(actorLabel('master', null)).toBe('Mistrz')
   })
+
+  it('returns "Kalendarz Google" for google', () => {
+    expect(actorLabel('google')).toBe('Kalendarz Google')
+  })
 })
 
 describe('buildBookingUpdateMessage', () => {

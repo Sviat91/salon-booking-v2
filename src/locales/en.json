@@ -255,6 +255,16 @@
         "selectDateAlert": "Please select at least one date.",
         "selectMasterAlert": "Please select at least one master to apply changes to.",
         "saveErrorPrefix": "Error saving: {{message}}"
+      },
+      "external": {
+        "titleFallback": "Google Calendar event",
+        "descriptionFallback": "Added via Google Calendar",
+        "sourceLabel": "From Google Calendar",
+        "modalTitle": "External event",
+        "readOnlyNote": "This event comes from Google Calendar and is read-only. Change or delete it in Google Calendar.",
+        "allDayLabel": "All day",
+        "conflictBadge": "Time conflict",
+        "conflictTooltip": "This entry overlaps another entry in the calendar"
       }
     },
     "database": {

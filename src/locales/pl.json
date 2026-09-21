@@ -255,6 +255,16 @@
         "selectDateAlert": "Wybierz co najmniej jedną datę.",
         "selectMasterAlert": "Wybierz co najmniej jednego specjalistę, do którego zastosować zmiany.",
         "saveErrorPrefix": "Błąd zapisu: {{message}}"
+      },
+      "external": {
+        "titleFallback": "Wydarzenie z Google Calendar",
+        "descriptionFallback": "Dodane przez Google Calendar",
+        "sourceLabel": "Z Kalendarza Google",
+        "modalTitle": "Wydarzenie zewnętrzne",
+        "readOnlyNote": "To wydarzenie pochodzi z Kalendarza Google i jest tylko do odczytu. Zmień lub usuń je w Kalendarzu Google.",
+        "allDayLabel": "Cały dzień",
+        "conflictBadge": "Konflikt terminów",
+        "conflictTooltip": "Ten wpis nakłada się na inny wpis w kalendarzu"
       }
     },
     "database": {

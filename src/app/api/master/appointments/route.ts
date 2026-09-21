@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma"
 import { z } from "zod"
 import { notifyBookingConfirmation } from "@/lib/notifications"
 import { enqueueAppointmentSync } from "@/lib/google-calendar/outbox"
+import { externalBlockToCalendarEntry, listExternalBlocks } from "@/lib/google-calendar/blocks"
 import { resolveBasePrice } from "@/lib/discounts/server"
 import { resolveAppointmentPrice } from "@/lib/discounts/shared"
 
@@ -65,7 +66,7 @@ export async function GET(req: NextRequest) {
           discount: { select: { label: true, percent: true } },
           service: { select: { id: true, name_pl: true, name_en: true, name_uk: true, duration: true, price: true } },
           client: { select: { id: true, name: true, phone: true, email: true } },
-          master: { select: { masterProfile: { select: { color: true } } } },
+          master: { select: { id: true, masterProfile: { select: { color: true } } } },
         },
         orderBy: [{ date: "asc" }, { startTime: "asc" }],
       }),
@@ -109,7 +110,11 @@ export async function GET(req: NextRequest) {
       }
     })
 
-    return NextResponse.json({ appointments: appointmentsWithEffectivePrice })
+    const externalBlocks = await listExternalBlocks(session.user.id, dateFilter.gte, dateFilter.lte)
+
+    return NextResponse.json({
+      appointments: [...appointmentsWithEffectivePrice, ...externalBlocks.map(externalBlockToCalendarEntry)],
+    })
   } catch (error) {
     console.error("Error fetching master appointments:", error)
     return NextResponse.json(

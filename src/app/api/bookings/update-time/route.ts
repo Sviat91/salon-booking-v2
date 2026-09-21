@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma"
 import { phonesMatchE164 } from "@/lib/utils/phone-normalization"
 import { canModifyBooking } from "@/lib/booking-helpers"
 import { notifyBookingUpdate } from "@/lib/notifications"
+import { hasExternalOverlap } from "@/lib/google-calendar/blocks"
 import { enqueueAppointmentSync } from "@/lib/google-calendar/outbox"
 import { rateLimit } from "@/lib/cache"
 import { getRequestIp } from "@/lib/consent-service"
@@ -158,6 +159,14 @@ export async function POST(req: NextRequest) {
     // ── Check for time conflict at the new slot ────────────────────────────
     // Use the appointment's masterId (canonical source of truth)
     const targetMasterId = appointment.masterId
+
+    // External (Google) blocks are scheduler-written; checked before (not inside) the transaction.
+    if (await hasExternalOverlap(targetMasterId, new Date(newDate), newStartTime, newEndTime)) {
+      return NextResponse.json(
+        { error: "Wybrany termin jest już zajęty.", code: "CONFLICT" },
+        { status: 409 }
+      )
+    }
 
     const hasConflict = await prisma.$transaction(async (tx) => {
       const conflicting = await tx.appointment.findFirst({

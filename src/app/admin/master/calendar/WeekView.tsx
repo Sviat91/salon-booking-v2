@@ -8,9 +8,8 @@ import { useDayPopoverPosition } from "./useDayPopoverPosition"
 import type { Appointment, Template, Override, Interval } from "./ModernCalendar"
 import { Clock, ChevronDown, Users } from "lucide-react"
 import { useCurrentLanguage } from "@/contexts/LanguageContext"
-import { resolveLocalized } from "@/lib/localized-content"
 import { dateFnsLocale } from "@/lib/utils/date-fns-locale"
-import { groupOverlappingAppointments, pluralize, parseTime } from "./calendar-utils"
+import { groupOverlappingAppointments, pluralize, parseTime, entryPrimaryLabel, entrySecondaryLabel } from "./calendar-utils"
 import WeekDayEditPopover from "./WeekDayEditPopover"
 import WeekMobileGroup from "./WeekMobileGroup"
 
@@ -315,15 +314,15 @@ export default function WeekView({ currentDate, appointments, templates, overrid
               <div
                 key={a.id}
                 onClick={(e) => { e.stopPropagation(); onAppointmentClick(a); }}
-                className={`absolute ${isMobile ? 'w-[calc(100%-4px)] p-0.5' : 'w-[calc(100%-8px)] p-1'} rounded-md text-xs overflow-hidden hover:z-30 hover:shadow-md hover:ring-2 ring-primary/40 transition-all cursor-pointer backdrop-blur-sm text-foreground`}
+                className={`absolute ${isMobile ? 'w-[calc(100%-4px)] p-0.5' : 'w-[calc(100%-8px)] p-1'} rounded-md text-xs overflow-hidden hover:z-30 hover:shadow-md hover:ring-2 ring-primary/40 transition-all cursor-pointer backdrop-blur-sm text-foreground${a.hasConflict ? ' ring-2 ring-[var(--md-error)]' : ''}`}
                 style={{ top: `${top}px`, minHeight: `${Math.max(height, 24)}px`, left: isMobile ? "2px" : "4px", zIndex: 10, backgroundColor: (a.master?.masterProfile?.color || "#8B4A58") + "26", borderLeft: "3px solid " + (a.master?.masterProfile?.color || "#8B4A58") }}
               >
                 {isMobile ? (
-                  <div className="break-words leading-[1.15] text-[10px] font-semibold">{a.client.name || t('admin.calendar.clientFallback')}</div>
+                  <div className="break-words leading-[1.15] text-[10px] font-semibold">{entryPrimaryLabel(a, t('admin.calendar.clientFallback'), t)}</div>
                 ) : (
                   <>
-                    <div className="font-semibold leading-tight truncate">{a.client.name || t('admin.calendar.clientFallback')}</div>
-                    <div className="opacity-90 leading-tight truncate mt-0.5">{resolveLocalized({ pl: a.service.name_pl, en: a.service.name_en, uk: a.service.name_uk }, language)}</div>
+                    <div className="font-semibold leading-tight truncate">{entryPrimaryLabel(a, t('admin.calendar.clientFallback'), t)}</div>
+                    <div className="opacity-90 leading-tight truncate mt-0.5">{entrySecondaryLabel(a, language, t)}</div>
                     <div className="opacity-75 leading-tight text-[10px] mt-0.5 flex items-center gap-1">
                       <Clock className="w-3 h-3 shrink-0" />
                       {a.startTime}
@@ -360,15 +359,15 @@ export default function WeekView({ currentDate, appointments, templates, overrid
                     <div
                       key={a.id}
                       onClick={(e) => { e.stopPropagation(); onAppointmentClick(a); }}
-                      className="p-2 border-b last:border-b-0 border-border hover:bg-muted/50 transition-colors cursor-pointer"
+                      className={`p-2 border-b last:border-b-0 border-border hover:bg-muted/50 transition-colors cursor-pointer${a.hasConflict ? ' ring-2 ring-[var(--md-error)]' : ''}`}
                       style={{ borderLeft: `4px solid ${a.master?.masterProfile?.color || "#8B4A58"}` }}
                     >
                       <div className="flex items-center gap-2">
                         <Clock className="w-3 h-3 text-muted-foreground shrink-0" />
                         <span className="font-medium text-sm">{a.startTime}</span>
-                        <span className="text-sm truncate">{a.client.name || t('admin.calendar.clientFallback')}</span>
+                        <span className="text-sm truncate">{entryPrimaryLabel(a, t('admin.calendar.clientFallback'), t)}</span>
                       </div>
-                      <div className="text-xs text-muted-foreground mt-0.5 ml-5 truncate">{resolveLocalized({ pl: a.service.name_pl, en: a.service.name_en, uk: a.service.name_uk }, language)}</div>
+                      <div className="text-xs text-muted-foreground mt-0.5 ml-5 truncate">{entrySecondaryLabel(a, language, t)}</div>
                     </div>
                   ))}
                 </div>

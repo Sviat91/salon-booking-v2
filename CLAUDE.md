@@ -55,8 +55,8 @@ Roles: `CLIENT | MASTER | ADMIN | SUPERADMIN`. New registrations default to `CLI
 ### Booking System
 
 1. Client visits `/[masterId]` — master IDs are validated dynamically against `GET /api/masters` (DB-backed, any `User` with `role: MASTER`). There is no hardcoded master list.
-2. `GET /api/availability` runs `src/lib/availability.ts` — combines `Schedule` (weekly template), `DateOverride` (day-off or custom hours), and existing `Appointment` records.
-3. `POST /api/book` creates the `Appointment` row and sends a confirmation via `src/lib/notifications.ts`. The DB stays the source of truth; when Google Calendar sync is enabled, every appointment mutation also enqueues a push (`src/lib/google-calendar/`) that mirrors the booking into the master's own Google Calendar.
+2. `GET /api/availability` runs `src/lib/availability.ts` — combines `Schedule` (weekly template), `DateOverride` (day-off or custom hours), and existing `Appointment` records and Google-origin `ExternalCalendarBlock` rows (unioned once, inside `fetchBusyRanges()`).
+3. `POST /api/book` creates the `Appointment` row and sends a confirmation via `src/lib/notifications.ts`. The DB stays the source of truth; when Google Calendar sync is enabled, every appointment mutation also enqueues a push (`src/lib/google-calendar/`) that mirrors the booking into the master's own Google Calendar, and a 60s pull reads the master's Google-side edits back (events created in Google become read-only external blocks that block availability; a Google-side move/delete of a site-made event updates/cancels the appointment).
 4. Each master has isolated cache keys: `procedures:v2:<masterId>`, `availability:<masterId>:<dates>`.
 
 ### Caching
@@ -88,7 +88,7 @@ A single `TenantConfig` row drives: CSS theme variables, logo, OAuth provider cr
 | `src/lib/cache.ts`             | Redis + in-memory cache wrapper                      |
 | `src/lib/prisma.ts`            | Prisma client singleton                              |
 | `src/lib/tenant.ts`            | TenantConfig retrieval helper                        |
-| `src/lib/google-calendar/`     | Google Calendar push sync (outbox, REST client)      |
+| `src/lib/google-calendar/`     | Google Calendar two-way sync (outbox, pull, client)  |
 
 ## Environment Variables
 

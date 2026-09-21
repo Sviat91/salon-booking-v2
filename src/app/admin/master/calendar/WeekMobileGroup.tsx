@@ -3,6 +3,7 @@
 import { useTranslation } from "react-i18next"
 import { Users } from "lucide-react"
 import type { Appointment } from "./ModernCalendar"
+import { entryPrimaryLabel } from "./calendar-utils"
 
 interface WeekMobileGroupProps {
   group: Appointment[]
@@ -30,11 +31,11 @@ export default function WeekMobileGroup({ group, top, expanded, onToggle, onAppo
             <div
               key={a.id}
               onClick={(e) => { e.stopPropagation(); onAppointmentClick(a) }}
-              className="p-1 border-b last:border-b-0 border-border cursor-pointer"
+              className={`p-1 border-b last:border-b-0 border-border cursor-pointer${a.hasConflict ? ' ring-2 ring-[var(--md-error)]' : ''}`}
               style={{ borderLeft: "3px solid " + (a.master?.masterProfile?.color || FALLBACK_COLOR) }}
             >
               <div className="text-[10px] font-semibold">{a.startTime}</div>
-              <div className="text-[10px] leading-[1.15] break-words">{a.client.name || t('admin.calendar.clientFallback')}</div>
+              <div className="text-[10px] leading-[1.15] break-words">{entryPrimaryLabel(a, t('admin.calendar.clientFallback'), t)}</div>
             </div>
           ))}
         </div>

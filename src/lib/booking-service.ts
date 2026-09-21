@@ -5,6 +5,7 @@ import { normalizePhoneToE164 } from "@/lib/utils/phone-normalization"
 import { isValidLanguage, DEFAULT_LANGUAGE } from "@/lib/i18n-shared"
 import { evaluateDiscount } from "@/lib/discounts/server"
 import { enqueueAppointmentSync } from "@/lib/google-calendar/outbox"
+import { hasExternalOverlap } from "@/lib/google-calendar/blocks"
 
 /**
  * Framework-free booking-creation transaction, shared by `POST /api/book`
@@ -131,6 +132,9 @@ export async function createBooking(input: CreateBookingInput): Promise<CreateBo
     if (existingAppointment) {
       return { ok: false, code: "CONFLICT", message: "Time slot is already booked" }
     }
+    if (await hasExternalOverlap(masterId, new Date(dateOnly), startTime, endTime)) {
+      return { ok: false, code: "CONFLICT", message: "Time slot is already booked" }
+    }
 
     // 2. Find or create client user
     let clientUser = null;
@@ -242,6 +246,12 @@ export async function createBooking(input: CreateBookingInput): Promise<CreateBo
 
     if (input.discountCode && evaluation.codeStatus !== 'valid') {
       return { ok: false, code: "DISCOUNT_INVALID", message: "Promo code is not valid for this booking" }
+    }
+
+    // External (Google) blocks are written only by the scheduler, so this re-check runs
+    // outside the transaction (keeps it short; a second connection inside it could stall).
+    if (await hasExternalOverlap(masterId, new Date(dateOnly), startTime, endTime)) {
+      return { ok: false, code: "CONFLICT", message: "Time slot is already booked" }
     }
 
     // 5. Create the appointment — re-check conflict atomically to close the race window

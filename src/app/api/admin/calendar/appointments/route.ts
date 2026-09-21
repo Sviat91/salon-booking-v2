@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma"
 import { z } from "zod"
 import { notifyBookingConfirmation } from "@/lib/notifications"
 import { enqueueAppointmentSync } from "@/lib/google-calendar/outbox"
+import { externalBlockToCalendarEntry, listExternalBlocks } from "@/lib/google-calendar/blocks"
 import { resolveBasePrice } from "@/lib/discounts/server"
 import { resolveAppointmentPrice } from "@/lib/discounts/shared"
 
@@ -80,7 +81,15 @@ export async function GET(req: NextRequest) {
       },
     }))
 
-    return NextResponse.json({ appointments: appointmentsWithEffectivePrice })
+    const externalBlocks = await listExternalBlocks(
+      masterId && masterId !== "all" ? masterId : null,
+      dateFilter.gte,
+      dateFilter.lte,
+    )
+
+    return NextResponse.json({
+      appointments: [...appointmentsWithEffectivePrice, ...externalBlocks.map(externalBlockToCalendarEntry)],
+    })
   } catch (error) {
     console.error("Error fetching admin appointments:", error)
     return NextResponse.json({ error: "Failed to fetch appointments" }, { status: 500 })

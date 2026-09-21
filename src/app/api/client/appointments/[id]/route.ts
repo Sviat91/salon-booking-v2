@@ -6,6 +6,7 @@ import { auth } from "@/auth"
 import { notifyBookingCancellation, notifyBookingUpdate } from "@/lib/notifications"
 import { resnapshotAppointmentPrice } from "@/lib/discounts/server"
 import { enqueueAppointmentSync } from "@/lib/google-calendar/outbox"
+import { hasExternalOverlap } from "@/lib/google-calendar/blocks"
 
 export const runtime = "nodejs"
 
@@ -150,7 +151,7 @@ export async function PATCH(
         },
       })
 
-      if (conflicting) {
+      if (conflicting || (await hasExternalOverlap(appointment.masterId, new Date(newDate), newStartTime, newEndTime))) {
         return NextResponse.json(
           { error: "Selected time slot is already occupied", code: "CONFLICT" },
           { status: 409 }

@@ -68,7 +68,7 @@ export async function broadcastTelegram(
   return { anySuccess, lastError }
 }
 
-export type BookingActor = 'client' | 'master' | 'admin'
+export type BookingActor = 'client' | 'master' | 'admin' | 'google'
 
 export function actorLabel(actor: BookingActor, masterName?: string | null): string {
   switch (actor) {
@@ -78,6 +78,8 @@ export function actorLabel(actor: BookingActor, masterName?: string | null): str
       return 'Administrator'
     case 'master':
       return masterName ? `Mistrz ${masterName}` : 'Mistrz'
+    case 'google':
+      return 'Kalendarz Google'
   }
 }
 

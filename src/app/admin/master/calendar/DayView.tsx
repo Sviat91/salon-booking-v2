@@ -7,9 +7,8 @@ import type { Appointment, Template, Override, Interval } from "./ModernCalendar
 import { Clock, Phone, Scissors, User, Plus, PowerOff, X, ChevronDown, Users } from "lucide-react"
 import { TimePickerDropdown } from "@/components/TimePickerDropdown"
 import { useCurrentLanguage } from "@/contexts/LanguageContext"
-import { resolveLocalized } from "@/lib/localized-content"
 import { dateFnsLocale } from "@/lib/utils/date-fns-locale"
-import { groupOverlappingAppointments, pluralize, parseTime } from "./calendar-utils"
+import { groupOverlappingAppointments, pluralize, parseTime, entryPrimaryLabel, entrySecondaryLabel } from "./calendar-utils"
 
 interface DayViewProps {
   currentDate: Date
@@ -38,6 +37,7 @@ export default function DayView({ currentDate, appointments, templates, override
   const locale = dateFnsLocale(language)
   const containerRef = useRef<HTMLDivElement>(null)
   const statusLabel = (status: string) => {
+    if (status === "EXTERNAL") return ""
     if (status === "PENDING") return t('profile.statusPending')
     if (status === "CONFIRMED") return t('profile.statusConfirmed')
     if (status.startsWith("CANCELLED")) return t('profile.statusCancelled')
@@ -283,7 +283,7 @@ export default function DayView({ currentDate, appointments, templates, override
                     <div 
                       key={a.id} 
                       onClick={(e) => { e.stopPropagation(); onAppointmentClick(a); }}
-                      className="absolute w-[calc(100%-30px)] rounded-lg text-foreground p-3 shadow-md border-l-[3px] overflow-hidden hover:z-30 hover:shadow-xl transition-all cursor-pointer flex gap-4 backdrop-blur-sm"
+                      className={`absolute w-[calc(100%-30px)] rounded-lg text-foreground p-3 shadow-md border-l-[3px] overflow-hidden hover:z-30 hover:shadow-xl transition-all cursor-pointer flex gap-4 backdrop-blur-sm${a.hasConflict ? ' ring-2 ring-[var(--md-error)]' : ''}`}
                       style={{ top: `${top}px`, minHeight: `${Math.max(height, 60)}px`, left: "8px", zIndex: 10, backgroundColor: (a.master?.masterProfile?.color || "#8B4A58") + "26", borderLeftColor: a.master?.masterProfile?.color || "#8B4A58" }}
                     >
                       <div className="flex flex-col gap-1 w-[110px] sm:w-[150px] shrink-0 border-r border-foreground/10 pr-2 sm:pr-4">
@@ -295,13 +295,13 @@ export default function DayView({ currentDate, appointments, templates, override
                       <div className="flex-1 flex flex-col gap-2 min-w-0">
                         <h3 className="font-semibold text-base truncate flex items-center gap-2">
                           <User className="w-4 h-4 opacity-70" />
-                          {a.client.name || t('admin.appointments.unknownClient')}
+                          {entryPrimaryLabel(a, t('admin.appointments.unknownClient'), t)}
                         </h3>
 
                         <div className="flex items-center gap-2 sm:gap-4 text-sm opacity-90">
                           <div className="flex items-center gap-1.5 min-w-0">
                             <Scissors className="w-3.5 h-3.5 shrink-0" />
-                            <span className="truncate">{resolveLocalized({ pl: a.service.name_pl, en: a.service.name_en, uk: a.service.name_uk }, language)}</span>
+                            <span className="truncate">{entrySecondaryLabel(a, language, t)}</span>
                           </div>
                           {a.client.phone && (
                             <div className="flex items-center gap-1.5 shrink-0">
@@ -328,7 +328,7 @@ export default function DayView({ currentDate, appointments, templates, override
                           <div 
                             key={a.id}
                             onClick={(e) => { e.stopPropagation(); onAppointmentClick(a); }}
-                            className="p-3 border-b last:border-b-0 border-border hover:bg-muted/50 transition-colors cursor-pointer flex gap-4"
+                            className={`p-3 border-b last:border-b-0 border-border hover:bg-muted/50 transition-colors cursor-pointer flex gap-4${a.hasConflict ? ' ring-2 ring-[var(--md-error)]' : ''}`}
                             style={{ borderLeft: `6px solid ${a.master?.masterProfile?.color || "#8B4A58"}` }}
                           >
                             <div className="flex flex-col gap-1 w-[80px] sm:w-[100px] shrink-0">
@@ -339,13 +339,13 @@ export default function DayView({ currentDate, appointments, templates, override
                             <div className="flex-1 flex flex-col gap-2 min-w-0">
                               <h3 className="font-semibold text-base truncate flex items-center gap-2">
                                 <User className="w-4 h-4 text-muted-foreground" />
-                                {a.client.name || t('admin.appointments.unknownClient')}
+                                {entryPrimaryLabel(a, t('admin.appointments.unknownClient'), t)}
                               </h3>
 
                               <div className="flex items-center gap-2 sm:gap-4 text-sm text-muted-foreground">
                                 <div className="flex items-center gap-1.5 min-w-0">
                                   <Scissors className="w-3.5 h-3.5 shrink-0" />
-                                  <span className="truncate">{resolveLocalized({ pl: a.service.name_pl, en: a.service.name_en, uk: a.service.name_uk }, language)}</span>
+                                  <span className="truncate">{entrySecondaryLabel(a, language, t)}</span>
                                 </div>
                                 {a.client.phone && (
                                   <div className="flex items-center gap-1.5 shrink-0">

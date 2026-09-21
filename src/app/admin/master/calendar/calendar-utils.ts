@@ -1,4 +1,6 @@
 import type { Appointment } from "./ModernCalendar"
+import { resolveLocalized } from "@/lib/localized-content"
+import type { Language } from "@/lib/i18n-shared"
 
 /** Shared helpers used by MonthView/WeekView/DayView — hoisted to remove duplication. */
 
@@ -61,4 +63,50 @@ export function resolveDayScheduleState(
   const template = templates.find(t => t.dayOfWeek === dayOfWeek)
   if (template) return template.isDayOff ? "dayoff" : "working"
   return null
+}
+
+const EXTERNAL_SUMMARY_MAX = 80
+
+/** First non-empty line of a Google description, trimmed and truncated to 80 chars with "…". */
+export function externalSummaryLine(description: string | null | undefined): string | null {
+  const first = (description ?? "").split(/\r?\n/).map(l => l.trim()).find(l => l.length > 0)
+  if (!first) return null
+  return first.length > EXTERNAL_SUMMARY_MAX ? `${first.slice(0, EXTERNAL_SUMMARY_MAX - 1).trimEnd()}…` : first
+}
+
+/** Line 1 of a calendar block: Google title (or localized fallback) / client name. */
+export function entryPrimaryLabel(a: Appointment, clientFallback: string, t: (k: string) => string): string {
+  if (a.isExternal) return a.externalTitle?.trim() || t("admin.calendar.external.titleFallback")
+  return a.client.name || clientFallback
+}
+
+/** Line 2 of a calendar block: first description line (or localized fallback) / service name. */
+export function entrySecondaryLabel(a: Appointment, language: Language, t: (k: string) => string): string {
+  if (a.isExternal) return externalSummaryLine(a.externalDescription) ?? t("admin.calendar.external.descriptionFallback")
+  return resolveLocalized({ pl: a.service.name_pl, en: a.service.name_en, uk: a.service.name_uk }, language)
+}
+
+/** Flags every entry involved in an overlapping pair (same master + same day) with hasConflict. */
+export function markConflicts(entries: Appointment[]): Appointment[] {
+  const groups = new Map<string, Appointment[]>()
+  for (const e of entries) {
+    const key = `${e.master?.id ?? ""}|${String(e.date).slice(0, 10)}`
+    const list = groups.get(key)
+    if (list) list.push(e)
+    else groups.set(key, [e])
+  }
+  const conflicted = new Set<string>()
+  for (const list of groups.values()) {
+    for (let i = 0; i < list.length; i++) {
+      for (let j = i + 1; j < list.length; j++) {
+        const a = list[i]
+        const b = list[j]
+        if (parseTime(a.startTime) < parseTime(b.endTime) && parseTime(a.endTime) > parseTime(b.startTime)) {
+          conflicted.add(a.id)
+          conflicted.add(b.id)
+        }
+      }
+    }
+  }
+  return entries.map(e => (conflicted.has(e.id) ? { ...e, hasConflict: true } : e))
 }

@@ -27,6 +27,7 @@ export async function setMasterCalendarId(
         googleSyncError: null,
       },
     })
+    await prisma.externalCalendarBlock.deleteMany({ where: { masterId } })
     await clearMasterEventIds(masterId)
     return { ok: true, queued: 0 }
   }
@@ -50,6 +51,7 @@ export async function setMasterCalendarId(
       googleSyncStatus: null,
     },
   })
+  await prisma.externalCalendarBlock.deleteMany({ where: { masterId } })
   await clearMasterEventIds(masterId)
   const { queued } = await enqueueBackfillForMaster(masterId)
   return { ok: true, queued }

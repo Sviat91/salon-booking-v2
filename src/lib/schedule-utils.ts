@@ -10,6 +10,7 @@
 
 import { format } from 'date-fns'
 import prisma from './prisma'
+import { getExternalRangesForDay } from './google-calendar/blocks'
 
 export const SCHEDULE_TZ = 'Europe/Warsaw'
 
@@ -159,7 +160,7 @@ export async function readOverridesFromDb(
 }
 
 /**
- * Fetch busy (booked) time ranges from the Appointments table for a given day.
+ * Fetch busy time ranges (Appointments + external Google blocks) for a given day.
  *
  * @param masterId         - filter by master
  * @param dateISO          - date in "YYYY-MM-DD" format
@@ -184,13 +185,16 @@ export async function fetchBusyRanges(
     select: { startTime: true, endTime: true },
   })
 
-  return appointments
+  const appointmentRanges = appointments
     .map((a) => {
       const start = t2m(a.startTime)
       const end   = t2m(a.endTime)
       return { start, end }
     })
     .filter((r) => Number.isFinite(r.start) && Number.isFinite(r.end) && r.end > r.start)
+
+  // Google-origin blocks also occupy the master's time.
+  return [...appointmentRanges, ...(await getExternalRangesForDay(masterId, dateISO))]
 }
 
 /**
