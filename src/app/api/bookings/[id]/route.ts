@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma"
 import { phonesMatchE164 } from "@/lib/utils/phone-normalization"
 import { notifyBookingUpdate } from "@/lib/notifications"
 import { resnapshotAppointmentPrice } from "@/lib/discounts/server"
+import { enqueueAppointmentSync } from "@/lib/google-calendar/outbox"
 import { rateLimit } from "@/lib/cache"
 import { getRequestIp } from "@/lib/consent-service"
 
@@ -208,6 +209,8 @@ export async function PATCH(
     if (newProcedureId && newProcedureId !== appointment.serviceId) {
       await resnapshotAppointmentPrice(appointmentId)
     }
+
+    enqueueAppointmentSync(appointmentId).catch(console.error)
 
     notifyBookingUpdate(
       appointmentId,

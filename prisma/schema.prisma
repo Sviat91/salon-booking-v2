@@ -57,6 +57,11 @@ model MasterProfile {
   showOnHomepage  Boolean  @default(true)
   color           String?  @default("#166534")
   footerBlock     String?  // JSON: {"type":"photoWidget"|"text","config":{...}} — single block shown at the bottom of this master's booking page
+  googleCalendarId String?   // empty/null = not connected
+  googleSyncToken  String?   // null = do a full sync on the next tick
+  googleSyncStatus String?   // "ok" | "error" | null (never connected)
+  googleSyncError  String?
+  googleSyncedAt   DateTime?
 
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -217,6 +222,7 @@ model Appointment {
   status      String   @default("PENDING")
   notes       String?
   clientLanguage String @default("pl")
+  googleEventId String?  // id of the mirrored Google event; null = never pushed
 
   // Price snapshot taken at creation time (AD-2). Null only for rows created
   // before the discounts feature; readers fall back to the live service price.
@@ -232,6 +238,27 @@ model Appointment {
   service     Service  @relation(fields: [serviceId], references: [id])
   discount           Discount?           @relation(fields: [discountId], references: [id], onDelete: SetNull)
   discountRedemption DiscountRedemption?
+}
+
+// Outbox for site -> Google Calendar pushes. One row per appointment max:
+// an UPSERT followed by a DELETE overwrites (DELETE wins), and a DELETE can
+// never be followed by an UPSERT because the appointment is gone.
+model CalendarSyncTask {
+  id            String   @id @default(cuid())
+  appointmentId String   @unique
+  masterId      String
+  operation     String   // "UPSERT" | "DELETE"
+  googleEventId String?  // required for DELETE (captured before the row was deleted)
+  calendarId    String?  // snapshot, so a later disconnect doesn't orphan the delete
+  staleCalendarId    String? // previous master's calendar when an UPSERT reassigned the master
+  staleGoogleEventId String? // event to delete in staleCalendarId before the upsert
+  attempts      Int      @default(0)
+  nextAttemptAt DateTime @default(now())
+  lastError     String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([nextAttemptAt])
 }
 
 // Replaces DayOff model. Represents specific date overrides (day-off or custom intervals).
@@ -366,6 +393,13 @@ model TenantConfig {
   twilioFromNumber String?  // plaintext, E.164 sender number
   smsApiToken      String?  // encrypted — SMSAPI.pl OAuth2 API token
   smsApiSender     String?  // plaintext, registered SMSAPI sender name
+
+  // Google Calendar sync — one service account per salon instance.
+  // googleServiceAccountKey is the full JSON key, encrypted via src/lib/encryption.ts.
+  // googleServiceAccountEmail is NOT a secret: masters must share their calendar with it.
+  googleCalendarEnabled     Boolean @default(false)
+  googleServiceAccountKey   String?  // encrypted
+  googleServiceAccountEmail String?  // plaintext, extracted from the key at save time
 
   enabledLocales  String   @default("[\"pl\",\"en\",\"uk\"]")
   homepageWidgetBlock String? // JSON: {"type":"photoWidget","config":{...}} — single block shown on the homepage

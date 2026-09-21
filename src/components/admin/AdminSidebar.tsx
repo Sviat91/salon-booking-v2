@@ -36,6 +36,7 @@ const SETTINGS_SAVE_BRIDGE_ROUTES = [
   '/admin/settings',
   '/admin/settings/client-bot',
   '/admin/settings/notifications',
+  '/admin/settings/google-calendar',
 ]
 
 function NavLink({ item, open }: { item: NavItem; open: boolean }) {

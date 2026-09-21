@@ -3,6 +3,7 @@ import { auth } from "@/auth"
 import prisma from "@/lib/prisma"
 import { z } from "zod"
 import { notifyBookingConfirmation } from "@/lib/notifications"
+import { enqueueAppointmentSync } from "@/lib/google-calendar/outbox"
 import { resolveBasePrice } from "@/lib/discounts/server"
 import { resolveAppointmentPrice } from "@/lib/discounts/shared"
 
@@ -157,6 +158,7 @@ export async function POST(req: NextRequest) {
       })
       createdAppointments.push(appt)
       notifyBookingConfirmation(appt.id, 'admin').catch(console.error)
+      enqueueAppointmentSync(appt.id).catch(console.error)
     }
 
     return NextResponse.json({ success: true, count: createdAppointments.length })

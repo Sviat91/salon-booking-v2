@@ -4,6 +4,7 @@ import { notifyBookingConfirmation } from "@/lib/notifications"
 import { normalizePhoneToE164 } from "@/lib/utils/phone-normalization"
 import { isValidLanguage, DEFAULT_LANGUAGE } from "@/lib/i18n-shared"
 import { evaluateDiscount } from "@/lib/discounts/server"
+import { enqueueAppointmentSync } from "@/lib/google-calendar/outbox"
 
 /**
  * Framework-free booking-creation transaction, shared by `POST /api/book`
@@ -298,6 +299,7 @@ export async function createBooking(input: CreateBookingInput): Promise<CreateBo
 
     const created = outcome.appointment
     notifyBookingConfirmation(created.id, 'client').catch(console.error)
+    enqueueAppointmentSync(created.id).catch(console.error)
     return {
       ok: true,
       appointmentId: created.id,

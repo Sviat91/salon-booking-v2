@@ -7,6 +7,7 @@ import prisma from "@/lib/prisma"
 import { encrypt, decrypt } from "@/lib/encryption"
 import { auth } from "@/auth"
 import { getServerT } from "@/lib/i18n-server"
+import { enqueueAppointmentDelete } from "@/lib/google-calendar/outbox"
 
 // Avatar/logo paths are relative: "/uploads/filename.jpg" — not absolute URLs
 const pathOrEmpty = z.string().optional().default("")
@@ -199,7 +200,37 @@ export async function deleteMaster(id: string): Promise<void> {
     throw new Error(t('errors.UNAUTHORIZED'))
   }
 
+  // Snapshot before the cascade: the profile and appointment rows vanish with the user.
+  const profile = await prisma.masterProfile.findUnique({
+    where: { userId: id },
+    select: { googleCalendarId: true },
+  })
+  const events = await prisma.appointment.findMany({
+    where: { OR: [{ masterId: id }, { clientId: id }], googleEventId: { not: null } },
+    select: { id: true, masterId: true, googleEventId: true, clientId: true },
+  })
+
   await prisma.user.delete({ where: { id } })
+
+  for (const e of events) {
+    if (e.masterId === id) {
+      // Profile is gone with the cascade: use the snapshotted calendar id.
+      if (!profile?.googleCalendarId) continue
+      enqueueAppointmentDelete({
+        appointmentId: e.id,
+        masterId: id,
+        googleEventId: e.googleEventId,
+        calendarId: profile.googleCalendarId,
+      }).catch(console.error)
+    } else {
+      // The deleted user was only the client; the other master's profile still exists.
+      enqueueAppointmentDelete({
+        appointmentId: e.id,
+        masterId: e.masterId,
+        googleEventId: e.googleEventId,
+      }).catch(console.error)
+    }
+  }
   revalidatePath("/admin/masters")
   revalidatePath("/")
 }

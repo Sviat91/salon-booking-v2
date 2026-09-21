@@ -6,6 +6,7 @@ import { phonesMatchE164 } from "@/lib/utils/phone-normalization"
 import { canModifyBooking } from "@/lib/booking-helpers"
 import { notifyBookingUpdate } from "@/lib/notifications"
 import { resnapshotAppointmentPrice } from "@/lib/discounts/server"
+import { enqueueAppointmentSync } from "@/lib/google-calendar/outbox"
 import { rateLimit } from "@/lib/cache"
 import { getRequestIp } from "@/lib/consent-service"
 
@@ -161,6 +162,8 @@ export async function POST(req: NextRequest) {
     if (newProcedureId !== appointment.serviceId) {
       await resnapshotAppointmentPrice(eventId)
     }
+
+    enqueueAppointmentSync(eventId).catch(console.error)
 
     notifyBookingUpdate(
       eventId,

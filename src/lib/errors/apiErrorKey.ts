@@ -43,6 +43,11 @@ export const KNOWN_ERROR_CODES = new Set([
   'TURNSTILE_TOKEN_REQUIRED',
   'TURNSTILE_FAILED',
   'TEMPLATE_UNKNOWN_PLACEHOLDER',
+  'GOOGLE_KEY_INVALID',
+  'GOOGLE_CALENDAR_NOT_FOUND',
+  'GOOGLE_NO_ACCESS',
+  'GOOGLE_API_ERROR',
+  'CALENDAR_ID_IN_USE',
 ])
 
 export function apiErrorKey(code?: string): string {

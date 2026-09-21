@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
 import prisma from "@/lib/prisma"
 import { z } from "zod"
+import { enqueueAppointmentDelete } from "@/lib/google-calendar/outbox"
 
 const patchSchema = z.object({
   adminPermissions: z.object({
@@ -49,7 +50,35 @@ export async function DELETE(
     return NextResponse.json({ error: "Cannot delete yourself" }, { status: 400 })
   }
 
+  // Snapshot before the cascade: the profile and appointment rows vanish with the user.
+  const profile = await prisma.masterProfile.findUnique({
+    where: { userId: params.id },
+    select: { googleCalendarId: true },
+  })
+  const events = await prisma.appointment.findMany({
+    where: { OR: [{ clientId: params.id }, { masterId: params.id }], googleEventId: { not: null } },
+    select: { id: true, masterId: true, googleEventId: true },
+  })
+
   await prisma.user.delete({ where: { id: params.id } })
+
+  for (const e of events) {
+    if (e.masterId === params.id) {
+      if (!profile?.googleCalendarId) continue
+      enqueueAppointmentDelete({
+        appointmentId: e.id,
+        masterId: params.id,
+        googleEventId: e.googleEventId,
+        calendarId: profile.googleCalendarId,
+      }).catch(console.error)
+    } else {
+      enqueueAppointmentDelete({
+        appointmentId: e.id,
+        masterId: e.masterId,
+        googleEventId: e.googleEventId,
+      }).catch(console.error)
+    }
+  }
 
   return NextResponse.json({ success: true })
 }

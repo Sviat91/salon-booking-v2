@@ -5,6 +5,7 @@ import { auth } from "@/auth"
 import prisma from "@/lib/prisma"
 import { getPermissionsForRole } from "@/lib/admin-permissions"
 import { z } from "zod"
+import { enqueueAppointmentDelete } from "@/lib/google-calendar/outbox"
 
 const patchSchema = z.object({
   name: z.string().min(1).max(100).optional(),
@@ -79,7 +80,20 @@ export async function DELETE(
     return NextResponse.json({ error: "Not found" }, { status: 404 })
   }
 
+  const events = await prisma.appointment.findMany({
+    where: { clientId: id, googleEventId: { not: null } },
+    select: { id: true, masterId: true, googleEventId: true },
+  })
+
   await prisma.user.delete({ where: { id } })
+
+  for (const e of events) {
+    enqueueAppointmentDelete({
+      appointmentId: e.id,
+      masterId: e.masterId,
+      googleEventId: e.googleEventId,
+    }).catch(console.error)
+  }
 
   return NextResponse.json({ success: true })
 }

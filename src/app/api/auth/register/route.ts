@@ -5,6 +5,7 @@ import { getRequestIp, saveConsentRecord } from "@/lib/consent-service"
 import { rateLimit } from "@/lib/cache"
 import { validateTurnstileForAPI } from "@/lib/turnstile"
 import { z } from "zod"
+import { enqueueSyncForUsers } from "@/lib/google-calendar/outbox"
 
 const registerSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters").max(100),
@@ -150,6 +151,8 @@ export async function POST(req: NextRequest) {
 
       return user
     })
+
+    enqueueSyncForUsers([createdUser.id]).catch(console.error)
 
     return NextResponse.json(
       {

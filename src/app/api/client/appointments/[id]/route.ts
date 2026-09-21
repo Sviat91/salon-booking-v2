@@ -5,6 +5,7 @@ import prisma from "@/lib/prisma"
 import { auth } from "@/auth"
 import { notifyBookingCancellation, notifyBookingUpdate } from "@/lib/notifications"
 import { resnapshotAppointmentPrice } from "@/lib/discounts/server"
+import { enqueueAppointmentSync } from "@/lib/google-calendar/outbox"
 
 export const runtime = "nodejs"
 
@@ -190,6 +191,8 @@ export async function PATCH(
       await resnapshotAppointmentPrice(appointment.id)
     }
 
+    enqueueAppointmentSync(appointment.id).catch(console.error)
+
     notifyBookingUpdate(
       appointment.id,
       {
@@ -258,6 +261,7 @@ export async function DELETE(
     })
 
     notifyBookingCancellation(updated, 'client').catch(console.error)
+    enqueueAppointmentSync(updated.id).catch(console.error)
 
     return NextResponse.json({ success: true })
   } catch (error) {

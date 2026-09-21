@@ -3,6 +3,7 @@ import { auth } from "@/auth"
 import prisma from "@/lib/prisma"
 import { notifyBookingCancellation, notifyBookingUpdate } from "@/lib/notifications"
 import { resnapshotAppointmentPrice } from "@/lib/discounts/server"
+import { enqueueAppointmentDelete, enqueueAppointmentSync } from "@/lib/google-calendar/outbox"
 
 export const runtime = "nodejs"
 
@@ -63,6 +64,7 @@ export async function PATCH(
     })
 
     notifyBookingCancellation(updated, 'master').catch(console.error)
+    enqueueAppointmentSync(updated.id).catch(console.error)
 
     return NextResponse.json({ appointment: updated })
   } catch (error) {
@@ -109,6 +111,12 @@ export async function DELETE(
     await prisma.appointment.delete({
       where: { id },
     })
+
+    enqueueAppointmentDelete({
+      appointmentId: id,
+      masterId: appointment.masterId,
+      googleEventId: appointment.googleEventId,
+    }).catch(console.error)
 
     return NextResponse.json({ success: true })
   } catch (error) {
@@ -197,6 +205,8 @@ export async function PUT(
     if (finalServiceId !== appointment.serviceId) {
       await resnapshotAppointmentPrice(id)
     }
+
+    enqueueAppointmentSync(updated.id).catch(console.error)
 
     notifyBookingUpdate(
       updated.id,

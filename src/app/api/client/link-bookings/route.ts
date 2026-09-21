@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
 import prisma from "@/lib/prisma"
 import { z } from "zod"
+import { enqueueSyncForUsers } from "@/lib/google-calendar/outbox"
 
 const linkBookingsSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -78,6 +79,8 @@ export async function POST(req: NextRequest) {
 
       return { linkedAppointments, linkedConsents }
     })
+
+    enqueueSyncForUsers([currentUserId]).catch(console.error)
 
     return NextResponse.json({
       success: true,

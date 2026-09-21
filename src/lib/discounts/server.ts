@@ -7,6 +7,7 @@
  * Telegram bot (in-process, never via HTTP self-call).
  */
 import prisma from '@/lib/prisma'
+import { enqueueAppointmentSync } from '@/lib/google-calendar/outbox'
 import { normalizePhoneToE164 } from '@/lib/utils/phone-normalization'
 import { pickBestDiscount, explainCode, type EligibilityContext } from './eligibility'
 import {
@@ -292,4 +293,6 @@ export async function resnapshotAppointmentPrice(appointmentId: string): Promise
     data: { originalPrice, finalPrice: originalPrice, discountId: null },
   })
   await prisma.discountRedemption.deleteMany({ where: { appointmentId } })
+  // Price line in the mirrored Google event description changed.
+  enqueueAppointmentSync(appointmentId).catch(console.error)
 }

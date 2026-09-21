@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma"
 import { phonesMatchE164 } from "@/lib/utils/phone-normalization"
 import { canModifyBooking } from "@/lib/booking-helpers"
 import { notifyBookingCancellation } from "@/lib/notifications"
+import { enqueueAppointmentSync } from "@/lib/google-calendar/outbox"
 import { rateLimit } from "@/lib/cache"
 import { getRequestIp } from "@/lib/consent-service"
 
@@ -120,6 +121,7 @@ export async function POST(req: NextRequest) {
     })
 
     notifyBookingCancellation(updated, 'client').catch(console.error)
+    enqueueAppointmentSync(updated.id).catch(console.error)
 
     return NextResponse.json({ success: true })
   } catch (error) {

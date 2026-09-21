@@ -15,6 +15,7 @@ import {
   Percent,
   ScrollText,
   MessageSquare,
+  CalendarCheck,
   type LucideIcon,
 } from "lucide-react"
 
@@ -89,6 +90,11 @@ export const adminNavItems: NavItem[] = [
     icon: Bot,
   },
   {
+    labelKey: "admin.nav.googleCalendar",
+    href: "/admin/settings/google-calendar",
+    icon: CalendarCheck,
+  },
+  {
     labelKey: "admin.nav.legal",
     href: "/admin/settings/legal",
     icon: ScrollText,
@@ -140,6 +146,11 @@ export const masterNavItems: NavItem[] = [
     labelKey: "admin.nav.pages",
     href: "/admin/master/pages",
     icon: FileText,
+  },
+  {
+    labelKey: "admin.nav.googleCalendar",
+    href: "/admin/master/google-calendar",
+    icon: CalendarCheck,
   },
 ]
 

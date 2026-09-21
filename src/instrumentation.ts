@@ -24,5 +24,11 @@ export async function register() {
       // A bad token or misconfiguration must never crash server boot.
       console.error('[instrumentation] failed to start client bot:', err)
     }
+    try {
+      const { startCalendarScheduler } = await import('@/lib/google-calendar/scheduler')
+      startCalendarScheduler()
+    } catch (err) {
+      console.error('[instrumentation] failed to start calendar scheduler:', err)
+    }
   }
 }

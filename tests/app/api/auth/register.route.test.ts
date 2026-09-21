@@ -41,6 +41,10 @@ vi.mock("@/lib/cache", () => ({
   rateLimit: (...args: unknown[]) => mockRateLimit(...args),
 }))
 
+vi.mock("@/lib/google-calendar/outbox", () => ({
+  enqueueSyncForUsers: vi.fn().mockResolvedValue(undefined),
+}))
+
 import { POST } from "../../../../src/app/api/auth/register/route"
 
 function createRequest(body: unknown) {
