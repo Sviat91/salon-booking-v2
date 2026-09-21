@@ -34,8 +34,6 @@ interface WeekViewProps {
 }
 
 const HOURS = Array.from({ length: 24 }).map((_, i) => i)
-// Mobile: fixed per-day column width inside the horizontally-scrollable week grid.
-const MOBILE_DAY_COL_WIDTH = 110
 
 interface ExpandedState {
   dateStr: string | null
@@ -56,13 +54,11 @@ export default function WeekView({ currentDate, appointments, templates, overrid
   // drives the "click outside to close" effect below and must point only at the outer
   // component wrapper).
   const bodyContainerRef = useRef<HTMLDivElement>(null)
-  const headerScrollRef = useRef<HTMLDivElement>(null)
-  const bodyScrollRef = useRef<HTMLDivElement>(null)
   // The day-edit popover is portaled to document.body and positioned via fixed viewport
   // coordinates (mirrors TimePickerDropdown.tsx / MasterSelectDropdown.tsx) rather than
-  // CSS `position: absolute` relative to its narrow (110px on mobile) day-column trigger
-  // — absolute positioning inside that narrow, horizontally-scrolled column caused the
-  // popover to render off-screen instead of under the tapped date.
+  // CSS `position: absolute` relative to its narrow day-column trigger — absolute
+  // positioning inside a narrow column can render the popover off-screen instead of under
+  // the tapped date.
   const editButtonRef = useRef<HTMLButtonElement>(null)
   const editPopoverRef = useRef<HTMLDivElement>(null)
   const totalHours = endHour - startHour
@@ -94,36 +90,9 @@ export default function WeekView({ currentDate, appointments, templates, overrid
 
   // Fixed-viewport-coordinate positioning for the day-edit popover, computed from its
   // trigger button (see useDayPopoverPosition.ts) — the popover is portaled to
-  // document.body since CSS `position: absolute` relative to its narrow, horizontally-
-  // scrolled day-column trigger caused it to render off-screen on mobile.
+  // document.body since CSS `position: absolute` relative to a narrow day-column trigger
+  // can render it off-screen on mobile.
   const editPopoverStyle = useDayPopoverPosition(editButtonRef, editingDay.dateStr)
-
-  // Mobile: keep the day-name header row and the grid body scrolling horizontally as one
-  // synced unit, while the hours gutter (a separate sibling column in each) stays pinned.
-  const handleHeaderScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    if (bodyScrollRef.current) bodyScrollRef.current.scrollLeft = e.currentTarget.scrollLeft
-  }
-  const handleBodyScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    if (headerScrollRef.current) headerScrollRef.current.scrollLeft = e.currentTarget.scrollLeft
-  }
-
-  // Reset horizontal scroll whenever the displayed week changes, so a scrolled position
-  // from a prior week doesn't carry over on navigation. If the displayed week contains
-  // today, scroll to today's column instead of Monday (Google-Calendar-mobile style).
-  // Keyed on a formatted string (not the `startDate` Date object, which is a new
-  // reference on every render) so this only fires when the week actually changes.
-  const weekKey = format(startDate, "yyyy-MM-dd")
-  useEffect(() => {
-    let scrollLeft = 0
-    for (let i = 0; i < 7; i++) {
-      if (isToday(addDays(startDate, i))) {
-        scrollLeft = i * MOBILE_DAY_COL_WIDTH
-        break
-      }
-    }
-    if (headerScrollRef.current) headerScrollRef.current.scrollLeft = scrollLeft
-    if (bodyScrollRef.current) bodyScrollRef.current.scrollLeft = scrollLeft
-  }, [weekKey])
 
   const days = useMemo(() => {
     const d = []
@@ -187,8 +156,8 @@ export default function WeekView({ currentDate, appointments, templates, overrid
     }
   }
 
-  // Shared between the desktop grid-cols-7 header row and the mobile fixed-width scroller.
-  const renderDayHeaderCell = (day: Date, i: number, widthClass = "") => {
+  // Shared between the desktop and mobile grid-cols-7 header rows.
+  const renderDayHeaderCell = (day: Date, i: number) => {
     const isCurr = isToday(day)
     const isPastDay = day < new Date(new Date().setHours(0,0,0,0))
     const status = getDayStatus(day)
@@ -196,12 +165,12 @@ export default function WeekView({ currentDate, appointments, templates, overrid
     const isSaving = savingDate === dateStr
 
     return (
-      <div key={i} className={`${widthClass ? widthClass + ' ' : ''}pt-2 pb-1 px-1 flex flex-col items-center border-r last:border-r-0 border-border relative`}>
+      <div key={i} className={`pt-2 pb-1 ${isMobile ? 'px-0' : 'px-1'} flex flex-col items-center border-r last:border-r-0 border-border relative`}>
         {isSaving && <div className="absolute inset-0 bg-background/50 z-10 animate-pulse" />}
-        <span className={`text-[11px] font-medium uppercase tracking-wider ${isCurr ? 'text-primary' : 'text-muted-foreground'}`}>
+        <span className={`${isMobile ? 'text-[10px] tracking-normal' : 'text-[11px] tracking-wider'} font-medium uppercase ${isCurr ? 'text-primary' : 'text-muted-foreground'}`}>
           {format(day, "EEE", { locale })}
         </span>
-        <span className={`text-lg font-medium h-8 w-8 flex items-center justify-center rounded-full mt-0.5 ${isCurr ? 'bg-primary text-primary-foreground' : ''}`}>
+        <span className={`${isMobile ? 'text-base h-7 w-7' : 'text-lg h-8 w-8'} font-medium flex items-center justify-center rounded-full mt-0.5 ${isCurr ? 'bg-primary text-primary-foreground' : ''}`}>
           {format(day, "d")}
         </span>
 
@@ -209,7 +178,7 @@ export default function WeekView({ currentDate, appointments, templates, overrid
           <button
             ref={editingDay.dateStr === dateStr ? editButtonRef : undefined}
             onClick={() => setEditingDay({ dateStr })}
-            className={`mt-2 w-full text-[10px] px-2 py-1 rounded font-medium transition-colors touch-manipulation ${
+            className={`mt-2 w-full ${isMobile ? 'truncate px-0.5 text-[9px]' : 'px-2 text-[10px]'} py-1 rounded font-medium transition-colors touch-manipulation ${
               status.isDayOff
                 ? 'bg-[var(--md-error-container)] text-[var(--md-on-error-container)]'
                 : status.intervals.length > 0
@@ -255,8 +224,8 @@ export default function WeekView({ currentDate, appointments, templates, overrid
     )
   }
 
-  // Shared between the desktop grid-cols-7 body and the mobile fixed-width scroller.
-  const renderDayColumn = (day: Date, i: number, widthClass = "") => {
+  // Shared between the desktop and mobile grid-cols-7 bodies.
+  const renderDayColumn = (day: Date, i: number) => {
     const dateStr = format(day, "yyyy-MM-dd")
     const status = getDayStatus(day)
     const dayAppts = appointments.filter(a => a.date.startsWith(dateStr))
@@ -268,7 +237,7 @@ export default function WeekView({ currentDate, appointments, templates, overrid
     const groups = groupOverlappingAppointments(dayAppts)
 
     return (
-      <div key={i} className={`${widthClass ? widthClass + ' ' : ''}relative border-r last:border-r-0 border-border/80 ${status.isDayOff ? 'bg-muted/40' : 'bg-transparent'}`}>
+      <div key={i} className={`relative border-r last:border-r-0 border-border/80 ${status.isDayOff ? 'bg-muted/40' : 'bg-transparent'}`}>
 
         {!status.isDayOff && status.intervals.map((inv, idx) => {
           const s = parseTime(inv.start)
@@ -329,15 +298,36 @@ export default function WeekView({ currentDate, appointments, templates, overrid
               <div
                 key={a.id}
                 onClick={(e) => { e.stopPropagation(); onAppointmentClick(a); }}
-                className="absolute w-[calc(100%-8px)] rounded-md p-1 text-xs overflow-hidden hover:z-30 hover:shadow-md hover:ring-2 ring-primary/40 transition-all cursor-pointer backdrop-blur-sm text-foreground"
-                style={{ top: `${top}px`, minHeight: `${Math.max(height, 24)}px`, left: "4px", zIndex: 10, backgroundColor: (a.master?.masterProfile?.color || "#8B4A58") + "26", borderLeft: "3px solid " + (a.master?.masterProfile?.color || "#8B4A58") }}
+                className={`absolute ${isMobile ? 'w-[calc(100%-4px)] p-0.5' : 'w-[calc(100%-8px)] p-1'} rounded-md text-xs overflow-hidden hover:z-30 hover:shadow-md hover:ring-2 ring-primary/40 transition-all cursor-pointer backdrop-blur-sm text-foreground`}
+                style={{ top: `${top}px`, minHeight: `${Math.max(height, 24)}px`, left: isMobile ? "2px" : "4px", zIndex: 10, backgroundColor: (a.master?.masterProfile?.color || "#8B4A58") + "26", borderLeft: "3px solid " + (a.master?.masterProfile?.color || "#8B4A58") }}
               >
-                <div className="font-semibold leading-tight truncate">{a.client.name || t('admin.calendar.clientFallback')}</div>
-                <div className="opacity-90 leading-tight truncate mt-0.5">{resolveLocalized({ pl: a.service.name_pl, en: a.service.name_en, uk: a.service.name_uk }, language)}</div>
-                <div className="opacity-75 leading-tight text-[10px] mt-0.5 flex items-center gap-1">
-                  <Clock className="w-3 h-3 shrink-0" />
-                  {a.startTime}
-                </div>
+                {isMobile ? (
+                  <div className="break-words leading-[1.15] text-[10px] font-semibold">{a.client.name || t('admin.calendar.clientFallback')}</div>
+                ) : (
+                  <>
+                    <div className="font-semibold leading-tight truncate">{a.client.name || t('admin.calendar.clientFallback')}</div>
+                    <div className="opacity-90 leading-tight truncate mt-0.5">{resolveLocalized({ pl: a.service.name_pl, en: a.service.name_en, uk: a.service.name_uk }, language)}</div>
+                    <div className="opacity-75 leading-tight text-[10px] mt-0.5 flex items-center gap-1">
+                      <Clock className="w-3 h-3 shrink-0" />
+                      {a.startTime}
+                    </div>
+                  </>
+                )}
+              </div>
+            )
+          }
+
+          if (isMobile) {
+            const groupColor = group[0].master?.masterProfile?.color || "#8B4A58"
+            return (
+              <div
+                key={`group-${groupIdx}`}
+                onClick={(e) => { e.stopPropagation(); onDayClick(day); }}
+                className="absolute z-10 rounded-md cursor-pointer backdrop-blur-sm text-foreground p-0.5 flex items-center gap-0.5"
+                style={{ top: `${top}px`, left: "2px", width: "calc(100% - 4px)", backgroundColor: groupColor + "26", borderLeft: "3px solid " + groupColor }}
+              >
+                <Users className="w-3 h-3 shrink-0" />
+                <span className="text-[10px] font-semibold">{group.length}</span>
               </div>
             )
           }
@@ -405,25 +395,22 @@ export default function WeekView({ currentDate, appointments, templates, overrid
   })
 
   if (isMobile) {
-    const gridWidth = MOBILE_DAY_COL_WIDTH * days.length
     return (
       <div className="flex flex-col h-full overflow-hidden bg-background animate-in fade-in duration-200" ref={containerRef}>
         <div className="flex border-b border-border shrink-0 bg-card">
-          <div className="w-16 shrink-0 border-r border-border" />
-          <div className="flex-1 overflow-x-auto custom-scrollbar" ref={headerScrollRef} onScroll={handleHeaderScroll}>
-            <div className="flex" style={{ width: `${gridWidth}px` }}>
-              {days.map((day, i) => renderDayHeaderCell(day, i, "w-[110px] shrink-0"))}
-            </div>
+          <div className="w-11 shrink-0 border-r border-border" />
+          <div className="flex-1 grid grid-cols-7">
+            {days.map((day, i) => renderDayHeaderCell(day, i))}
           </div>
         </div>
 
         <div className="flex-1 overflow-y-auto relative custom-scrollbar bg-background" ref={bodyContainerRef}>
           <div className="flex" style={{ height: `${containerHeight + 40}px` }}>
-            <div className="w-16 shrink-0 border-r border-border bg-card relative z-10">
+            <div className="w-11 shrink-0 border-r border-border bg-card relative z-10">
               {HOURS.slice(startHour, endHour + 1).map(hour => (
                 <div
                   key={hour}
-                  className="absolute px-2 text-right text-xs text-muted-foreground font-medium w-full"
+                  className="absolute px-1 text-right text-[10px] text-muted-foreground font-medium w-full"
                   style={{ top: `${(hour - startHour) * 60 * PIXELS_PER_MINUTE + 12}px` }}
                 >
                   {hour.toString().padStart(2, "0")}:00
@@ -431,12 +418,13 @@ export default function WeekView({ currentDate, appointments, templates, overrid
               ))}
             </div>
 
-            <div className="flex-1 relative overflow-x-auto custom-scrollbar" ref={bodyScrollRef} onScroll={handleBodyScroll}>
-              <div className="relative" style={{ width: `${gridWidth}px`, top: '20px', height: `${containerHeight}px` }}>
+            <div className="flex-1 relative">
+              <div
+                className="absolute left-0 right-0 grid grid-cols-7"
+                style={{ top: '20px', height: `${containerHeight}px` }}
+              >
                 {timeLines()}
-                <div className="flex h-full">
-                  {days.map((day, i) => renderDayColumn(day, i, "w-[110px] shrink-0"))}
-                </div>
+                {days.map((day, i) => renderDayColumn(day, i))}
               </div>
             </div>
           </div>

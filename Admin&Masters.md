@@ -1,7 +1,7 @@
 ## SuperAdmin
 
-- Email: s.upirov91@gmail.com\
-- Password: Start123\
+- Email: admin@salon.local
+- Пароль: Local12345
 
 ## Admin
 

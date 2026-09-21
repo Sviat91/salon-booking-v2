@@ -31,6 +31,7 @@ pnpm-debug.log*
 # Local-only docs
 PLAN.MD
 TASK.md
+DEPLOY_SOMIQUE.md
 
 # TypeScript build cache
 *.tsbuildinfo

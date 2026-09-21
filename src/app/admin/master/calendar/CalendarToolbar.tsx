@@ -1,7 +1,7 @@
 "use client"
 
 import { useTranslation } from "react-i18next"
-import { ChevronLeft, ChevronRight, Edit3, Save, Calendar, SlidersHorizontal } from "lucide-react"
+import { ChevronLeft, ChevronRight, Edit3, Save, Calendar, Menu } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem, SelectItemText } from "@/components/ui/select"
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
@@ -50,63 +50,67 @@ export default function CalendarToolbar({
   const [showMobileControls, setShowMobileControls] = useState(false)
 
   if (isMobile) {
+    const masterName = selectedMasterId === "all"
+      ? t('admin.calendar.allMasters')
+      : adminMastersList?.find(m => m.id === selectedMasterId)?.name
+    const viewOptions: { v: ViewType; label: string }[] = [
+      { v: "Month", label: t('admin.calendar.monthView') },
+      { v: "Week", label: t('admin.calendar.weekView') },
+      { v: "Day", label: t('admin.calendar.dayView') },
+      { v: "Agenda", label: t('admin.calendar.agendaView') },
+    ]
     return (
-      <div className="min-h-[4rem] py-2 border-b border-border/60 px-3 shrink-0 z-10 transition-colors shadow-sm">
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-1">
-            <Button variant="ghost" size="icon" onClick={() => navigate("prev")} className="hover:bg-muted"><ChevronLeft className="h-4 w-4" /></Button>
-            <Button variant="ghost" size="icon" onClick={() => navigate("next")} className="hover:bg-muted"><ChevronRight className="h-4 w-4" /></Button>
-            <Button variant="outline" size="sm" onClick={() => navigate("today")} className="bg-transparent border-border hover:bg-muted shrink-0">{t('admin.calendar.todayBtn')}</Button>
+      <div className="border-b border-border/60 px-3 py-1 min-h-[3rem] shrink-0 z-10 transition-colors shadow-sm">
+        <div className="relative flex items-center gap-1">
+          <Button variant="ghost" size="icon" onClick={() => navigate("prev")} className="hover:bg-muted"><ChevronLeft className="h-4 w-4" /></Button>
+          <Button variant="ghost" size="icon" onClick={() => navigate("next")} className="hover:bg-muted"><ChevronRight className="h-4 w-4" /></Button>
+
+          <div className="flex-1 min-w-0 px-1">
+            <h2 className="text-sm font-semibold truncate">{headerDisplay}</h2>
+            {isAdminView && (
+              <div className="text-[11px] text-muted-foreground truncate">{masterName}</div>
+            )}
           </div>
 
-          <h2 className="text-base font-semibold truncate min-w-0 flex-1 text-center px-1">{headerDisplay}</h2>
-
-          <div className="flex items-center gap-1">
-            <div className={`h-3.5 w-3.5 rounded-full border-2 border-primary border-t-transparent animate-spin transition-opacity ${loading ? 'opacity-100' : 'opacity-0'}`}></div>
-            <Button
-              variant="outline"
-              size="icon"
-              aria-label={t('admin.calendar.mobileControlsAria')}
-              onClick={() => setShowMobileControls(true)}
-              className="bg-transparent border-border hover:bg-muted shrink-0"
-            >
-              <SlidersHorizontal className="h-4 w-4" />
-            </Button>
+          {/* Zero-width slot between the label and Today: the spinner hangs off its right edge
+              into the label's padding instead of overlapping the burger button. */}
+          <div className="relative w-0 shrink-0">
+            <div className={`absolute right-1 top-1/2 -translate-y-1/2 h-3 w-3 rounded-full border-2 border-primary border-t-transparent animate-spin transition-opacity pointer-events-none ${loading ? 'opacity-100' : 'opacity-0'}`}></div>
           </div>
-        </div>
 
-        <div className="flex rounded-full border border-border bg-transparent p-0.5 gap-0.5 mt-2 w-full">
-          {(["Month", "Week", "Day"] as ViewType[]).map((v) => (
-            <button
-              key={v}
-              onClick={() => setView(v)}
-              className={`flex-1 px-3 py-1.5 text-sm font-medium transition-colors rounded-full ${
-                view === v
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
-              }`}
-            >
-              {v === "Month" ? t('admin.calendar.monthView') : v === "Week" ? t('admin.calendar.weekView') : t('admin.calendar.dayView')}
-            </button>
-          ))}
+          <Button variant="outline" size="sm" onClick={() => navigate("today")} className="h-8 px-2 text-xs bg-transparent border-border hover:bg-muted shrink-0">{t('admin.calendar.todayBtn')}</Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label={t('admin.calendar.mobileControlsAria')}
+            onClick={() => setShowMobileControls(true)}
+            className="hover:bg-muted shrink-0"
+          >
+            <Menu className="h-4 w-4" />
+          </Button>
         </div>
 
         <Sheet open={showMobileControls} onOpenChange={setShowMobileControls}>
-          <SheetContent side="bottom" className="max-h-[80vh] overflow-y-auto">
+          <SheetContent side="right" className="overflow-y-auto">
             <SheetHeader>
               <SheetTitle>{t('admin.calendar.mobileControlsTitle')}</SheetTitle>
             </SheetHeader>
             <div className="px-4 pb-4 flex flex-col gap-4">
-              <Select value={String(step)} onValueChange={(v) => setStep(Number(v ?? step))} disabled={view === "Month"}>
-                <SelectTrigger className="h-auto w-full bg-transparent hover:bg-muted px-3 py-2 text-sm font-medium shadow-sm border border-border">
-                  <SelectValue>{(v: string) => t('admin.calendar.minutesOption', { count: Number(v) })}</SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {[5, 10, 15, 30, 60].map(s => (
-                    <SelectItem key={s} value={String(s)}><SelectItemText>{t('admin.calendar.minutesOption', { count: s })}</SelectItemText></SelectItem>
+              <div className="flex flex-col gap-2">
+                <span className="text-xs font-medium text-muted-foreground">{t('admin.calendar.viewLabel')}</span>
+                <div className="grid grid-cols-2 gap-2">
+                  {viewOptions.map(({ v, label }) => (
+                    <Button
+                      key={v}
+                      variant={view === v ? "default" : "outline"}
+                      onClick={() => { setView(v); setShowMobileControls(false) }}
+                      className={view === v ? "bg-primary text-primary-foreground" : "bg-transparent border-border hover:bg-muted"}
+                    >
+                      {label}
+                    </Button>
                   ))}
-                </SelectContent>
-              </Select>
+                </div>
+              </div>
 
               {isAdminView && adminMastersList && onMasterChange && (
                 <div className="pb-2 border-b border-border/50">
@@ -118,10 +122,21 @@ export default function CalendarToolbar({
                 </div>
               )}
 
+              <Select value={String(step)} onValueChange={(v) => setStep(Number(v ?? step))} disabled={view === "Month" || view === "Agenda"}>
+                <SelectTrigger className="h-auto w-full bg-transparent hover:bg-muted px-3 py-2 text-sm font-medium shadow-sm border border-border">
+                  <SelectValue>{(v: string) => t('admin.calendar.minutesOption', { count: Number(v) })}</SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  {[5, 10, 15, 30, 60].map(s => (
+                    <SelectItem key={s} value={String(s)}><SelectItemText>{t('admin.calendar.minutesOption', { count: s })}</SelectItemText></SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
               <Button
                 variant={isEditMode ? "default" : "outline"}
                 onClick={() => setIsEditMode(!isEditMode)}
-                disabled={isAdminView && selectedMasterId === "all"}
+                disabled={(isAdminView && selectedMasterId === "all") || view === "Agenda"}
                 className={`w-full gap-2 justify-center transition-all ${isEditMode ? 'bg-primary text-primary-foreground shadow shadow-primary/20' : 'bg-transparent border-border hover:bg-muted'}`}
               >
                 {isEditMode ? <Save className="w-4 h-4" /> : <Edit3 className="w-4 h-4" />}

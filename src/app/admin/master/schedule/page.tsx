@@ -12,7 +12,7 @@ export default async function MasterSchedulePage() {
   }
 
   return (
-    <div className="flex h-[calc(100vh-8rem)] min-h-[600px] overflow-hidden bg-card border border-border rounded-[20px] shadow-sm">
+    <div className="flex -mx-4 -my-4 h-[calc(100dvh-4rem)] overflow-hidden bg-card lg:mx-0 lg:my-0 lg:h-[calc(100vh-8rem)] lg:min-h-[600px] lg:border lg:border-border lg:rounded-[20px] lg:shadow-sm">
       <div className="flex-1 overflow-hidden flex flex-col relative w-full h-full">
         <ModernCalendar
           masterId={session.user.id}

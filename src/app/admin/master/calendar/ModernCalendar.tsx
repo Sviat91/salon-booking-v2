@@ -14,8 +14,10 @@ import DayView from "./DayView"
 import BulkSettingsModal from "./BulkSettingsModal"
 import AppointmentModal from "./AppointmentModal"
 import ViewAppointmentModal from "./ViewAppointmentModal"
+import AgendaView from "./AgendaView"
+import { useSwipeNavigation } from "./useSwipeNavigation"
 
-export type ViewType = "Month" | "Week" | "Day"
+export type ViewType = "Month" | "Week" | "Day" | "Agenda"
 
 export type Interval = { start: string; end: string }
 export type Appointment = {
@@ -98,12 +100,17 @@ export default function ModernCalendar({
     }
   }, [view, step, isMounted])
 
+  // Agenda is mobile-only; a stored "Agenda" opened on desktop falls back to Week.
+  const effectiveView: ViewType = view === "Agenda" && !isMobile ? "Week" : view
+  // Agenda fetches and navigates exactly like Month.
+  const rangeView = effectiveView === "Agenda" ? "Month" : effectiveView
+
   const dateRange = useMemo(() => {
     let from, to
-    if (view === "Month") {
+    if (rangeView === "Month") {
       from = startOfWeek(startOfMonth(currentDate), { weekStartsOn: 1 })
       to = endOfWeek(endOfMonth(currentDate), { weekStartsOn: 1 })
-    } else if (view === "Week") {
+    } else if (rangeView === "Week") {
       from = startOfWeek(currentDate, { weekStartsOn: 1 })
       to = endOfWeek(currentDate, { weekStartsOn: 1 })
     } else {
@@ -114,7 +121,7 @@ export default function ModernCalendar({
       from: format(from, "yyyy-MM-dd"),
       to: format(to, "yyyy-MM-dd")
     }
-  }, [currentDate, view])
+  }, [currentDate, rangeView])
 
   const fetchData = async () => {
     setLoading(true)
@@ -162,21 +169,23 @@ export default function ModernCalendar({
       return
     }
     const modifier = direction === "next" ? 1 : -1
-    if (view === "Month") setCurrentDate(d => addMonths(d, modifier))
-    else if (view === "Week") setCurrentDate(d => addWeeks(d, modifier))
+    if (rangeView === "Month") setCurrentDate(d => addMonths(d, modifier))
+    else if (rangeView === "Week") setCurrentDate(d => addWeeks(d, modifier))
     else setCurrentDate(d => addDays(d, modifier))
   }
 
   const headerDisplay = useMemo(() => {
     const locale = dateFnsLocale(language)
-    if (view === "Month") return format(currentDate, "MMMM yyyy", { locale })
-    if (view === "Week") {
+    if (rangeView === "Month") return format(currentDate, "MMMM yyyy", { locale })
+    if (rangeView === "Week") {
       const start = startOfWeek(currentDate, { weekStartsOn: 1 })
       const end = endOfWeek(currentDate, { weekStartsOn: 1 })
+      if (isMobile) return `${format(start, "d MMM", { locale })} – ${format(end, "d MMM", { locale })}`
       return `${format(start, "MMM d", { locale })} - ${format(end, "MMM d, yyyy", { locale })}`
     }
+    if (isMobile) return format(currentDate, "EEE, d MMM", { locale })
     return format(currentDate, "EEEE, MMMM d, yyyy", { locale })
-  }, [currentDate, view, language])
+  }, [currentDate, rangeView, language, isMobile])
 
   const todayDisplay = useMemo(() => {
     return format(new Date(), "d MMM", { locale: dateFnsLocale(language) })
@@ -193,12 +202,18 @@ export default function ModernCalendar({
     fetchData()
   }
 
+  const swipe = useSwipeNavigation({
+    enabled: isMobile && !isEditMode,
+    onPrev: () => navigate("prev"),
+    onNext: () => navigate("next"),
+  })
+
   if (!isMounted) return <div className="animate-pulse bg-muted rounded-xl h-full w-full" />
 
   return (
     <div className="flex flex-col h-full w-full bg-card text-card-foreground overflow-hidden relative">
       <CalendarToolbar
-        view={view}
+        view={effectiveView}
         setView={setView}
         step={step}
         setStep={setStep}
@@ -216,8 +231,13 @@ export default function ModernCalendar({
         onMasterChange={onMasterChange}
       />
 
-      <div className="flex-1 overflow-hidden relative">
-        {view === "Month" && (
+      <div
+        className={`flex-1 overflow-hidden relative${isMobile ? " touch-pan-y" : ""}`}
+        onTouchStart={swipe.onTouchStart}
+        onTouchEnd={swipe.onTouchEnd}
+        onTouchCancel={swipe.onTouchCancel}
+      >
+        {effectiveView === "Month" && (
           <MonthView
             currentDate={currentDate}
             appointments={appointments}
@@ -235,7 +255,7 @@ export default function ModernCalendar({
             onDataChange={fetchData}
           />
         )}
-        {view === "Week" && (
+        {effectiveView === "Week" && (
           <WeekView
             currentDate={currentDate}
             appointments={appointments}
@@ -256,7 +276,16 @@ export default function ModernCalendar({
             onDataChange={fetchData}
           />
         )}
-        {view === "Day" && (
+        {effectiveView === "Agenda" && (
+          <AgendaView
+            currentDate={currentDate}
+            appointments={appointments}
+            isAdminView={isAdminView}
+            selectedMasterId={selectedMasterId}
+            onAppointmentClick={(a) => setViewingAppointment(a)}
+          />
+        )}
+        {effectiveView === "Day" && (
           <DayView
             currentDate={currentDate}
             appointments={appointments}
