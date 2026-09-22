@@ -280,8 +280,12 @@ export default function Page({ params }: PageProps) {
       {/* pt-12: clears the absolutely-positioned nav bar above so the avatar never sits under it */}
       <div className="mx-auto w-full max-w-5xl px-0 pt-12">
         <BrandHeader onLogoClick={closeBookingManagement} />
+        {/* Fixed 24rem tracks (= the `max-w-sm` both columns already declare). `auto` tracks
+            were sized from content max-content width, so any text-length change (procedures
+            loading, panel switch, slots appearing, language switch) resized both columns and
+            slid the centred grid sideways. */}
         <motion.div
-          className="mt-4 space-y-6 lg:grid lg:grid-cols-[auto,auto] lg:items-start lg:justify-center lg:gap-6 lg:space-y-0"
+          className="mt-4 space-y-6 lg:grid lg:grid-cols-[24rem_24rem] lg:items-start lg:justify-center lg:gap-6 lg:space-y-0"
           initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={prefersReducedMotion ? { duration: 0 } : { 
