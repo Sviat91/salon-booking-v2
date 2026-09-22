@@ -1,10 +1,13 @@
 import prisma from '@/lib/prisma'
 import { getTenantConfig } from '@/lib/tenant'
-import { SYNC_WINDOW_DAYS, isGoogleSyncEnabled } from './config'
+import { SYNC_WINDOW_DAYS, isGoogleSyncEnabled, normalizeCalendarId } from './config'
+import { listEvents } from './client'
+import { SALON_APPOINTMENT_KEY } from './event-mapping'
 import { processSyncTask } from './push'
 
 const MAX_ATTEMPTS = 8
 const ENQUEUE_CAP = 500
+const MAX_PAGES = 20
 
 const KEY = Symbol.for('salon.googleCalendar.outbox')
 
@@ -158,20 +161,56 @@ export async function enqueueSyncForUsers(userIds: string[]): Promise<void> {
   }
 }
 
+async function fetchExistingEventIds(calendarId: string, from: Date, to: Date): Promise<Map<string, string>> {
+  const map = new Map<string, string>()
+  try {
+    let pageToken: string | undefined
+    for (let page = 0; page < MAX_PAGES; page++) {
+      const res = await listEvents(calendarId, {
+        timeMin: from.toISOString(),
+        timeMax: to.toISOString(),
+        singleEvents: 'true',
+        maxResults: '250',
+        ...(pageToken ? { pageToken } : {}),
+      })
+      for (const item of res.items ?? []) {
+        if (item.status === 'cancelled') continue
+        const id = item.extendedProperties?.private?.[SALON_APPOINTMENT_KEY]
+        if (id) map.set(id, item.id)
+      }
+      pageToken = res.nextPageToken
+      if (!pageToken) break
+    }
+  } catch (err) {
+    // Never blocks connect: worst case we fall back to today's insert-everything behavior.
+    console.error('[google-calendar outbox] fetchExistingEventIds failed:', err)
+  }
+  return map
+}
+
 export async function enqueueBackfillForMaster(masterId: string): Promise<{ queued: number }> {
   try {
     const from = todayUtcMidnight()
     const to = new Date(from.getTime() + SYNC_WINDOW_DAYS * 24 * 60 * 60 * 1000)
     const appts = await prisma.appointment.findMany({
-      where: {
-        masterId,
-        status: { not: 'CANCELLED' },
-        date: { gte: from, lte: to },
-      },
+      where: { masterId, status: { not: 'CANCELLED' }, date: { gte: from, lte: to } },
       select: { id: true },
     })
+    if (appts.length === 0) return { queued: 0 }
+
+    const profile = await prisma.masterProfile.findUnique({
+      where: { userId: masterId },
+      select: { googleCalendarId: true },
+    })
+    const calendarId = normalizeCalendarId(profile?.googleCalendarId)
+    const existing = calendarId ? await fetchExistingEventIds(calendarId, from, to) : new Map<string, string>()
+    for (const a of appts) {
+      const eventId = existing.get(a.id)
+      if (eventId) await prisma.appointment.update({ where: { id: a.id }, data: { googleEventId: eventId } })
+    }
+
     for (const a of appts) await upsertTask(a.id, masterId)
-    if (appts.length > 0) kickOutbox()
+    kickOutbox()
     return { queued: appts.length }
   } catch (err) {
     console.error('[google-calendar outbox] enqueueBackfillForMaster failed:', err)

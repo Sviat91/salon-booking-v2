@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { mockPrisma, mockProcess, mockConfig } = vi.hoisted(() => ({
+const { mockPrisma, mockProcess, mockConfig, mockList } = vi.hoisted(() => ({
   mockPrisma: {
     calendarSyncTask: {
       findUnique: vi.fn(),
@@ -9,22 +9,29 @@ const { mockPrisma, mockProcess, mockConfig } = vi.hoisted(() => ({
       deleteMany: vi.fn(),
       updateMany: vi.fn(),
     },
-    appointment: { findUnique: vi.fn(), findMany: vi.fn(), updateMany: vi.fn() },
+    appointment: { findUnique: vi.fn(), findMany: vi.fn(), updateMany: vi.fn(), update: vi.fn() },
     masterProfile: { findUnique: vi.fn(), updateMany: vi.fn() },
   },
   mockProcess: vi.fn(),
   mockConfig: vi.fn(),
+  mockList: vi.fn(),
 }))
 
 vi.mock('@/lib/prisma', () => ({ default: mockPrisma }))
 vi.mock('@/lib/tenant', () => ({ getTenantConfig: mockConfig }))
 vi.mock('@/lib/google-calendar/push', () => ({ processSyncTask: mockProcess }))
+vi.mock('@/lib/google-calendar/client', async (importActual) => ({
+  ...(await importActual<typeof import('@/lib/google-calendar/client')>()),
+  listEvents: mockList,
+}))
 
 import {
   drainOutbox,
   enqueueAppointmentDelete,
   enqueueAppointmentSync,
+  enqueueBackfillForMaster,
 } from '@/lib/google-calendar/outbox'
+import { SALON_APPOINTMENT_KEY } from '@/lib/google-calendar/event-mapping'
 
 const T0 = new Date('2026-09-21T10:00:00.000Z')
 
@@ -50,6 +57,7 @@ beforeEach(() => {
   mockPrisma.calendarSyncTask.deleteMany.mockResolvedValue({ count: 1 })
   mockPrisma.calendarSyncTask.updateMany.mockResolvedValue({ count: 1 })
   mockPrisma.masterProfile.updateMany.mockResolvedValue({ count: 1 })
+  mockPrisma.appointment.update.mockResolvedValue({})
 })
 
 describe('enqueueAppointmentSync', () => {
@@ -158,6 +166,57 @@ describe('enqueueAppointmentDelete', () => {
   it('skips when there is no google event id', async () => {
     await enqueueAppointmentDelete({ appointmentId: 'a1', masterId: 'm1', googleEventId: null })
     expect(mockPrisma.calendarSyncTask.upsert).not.toHaveBeenCalled()
+  })
+})
+
+describe('enqueueBackfillForMaster', () => {
+  beforeEach(() => {
+    mockPrisma.appointment.findMany.mockResolvedValue([{ id: 'a1' }, { id: 'a2' }])
+  })
+
+  it('adopts an existing Google event by salonAppointmentId marker and still queues a normal UPSERT', async () => {
+    mockPrisma.masterProfile.findUnique.mockResolvedValue({ googleCalendarId: 'cal@x.com' })
+    mockList.mockResolvedValue({
+      items: [
+        {
+          id: 'gEv1',
+          status: 'confirmed',
+          extendedProperties: { private: { [SALON_APPOINTMENT_KEY]: 'a1' } },
+        },
+      ],
+    })
+
+    const result = await enqueueBackfillForMaster('m1')
+
+    expect(mockPrisma.appointment.update).toHaveBeenCalledWith({
+      where: { id: 'a1' },
+      data: { googleEventId: 'gEv1' },
+    })
+    expect(mockPrisma.appointment.update).toHaveBeenCalledTimes(1)
+    expect(mockPrisma.calendarSyncTask.upsert).toHaveBeenCalledTimes(2)
+    expect(result).toEqual({ queued: 2 })
+  })
+
+  it('falls back to insert-everything (none adopted) when listEvents throws', async () => {
+    mockPrisma.masterProfile.findUnique.mockResolvedValue({ googleCalendarId: 'cal@x.com' })
+    mockList.mockRejectedValue(new Error('network down'))
+
+    const result = await enqueueBackfillForMaster('m1')
+
+    expect(mockPrisma.appointment.update).not.toHaveBeenCalled()
+    expect(mockPrisma.calendarSyncTask.upsert).toHaveBeenCalledTimes(2)
+    expect(result).toEqual({ queued: 2 })
+  })
+
+  it('skips the Google call entirely when the master has no googleCalendarId', async () => {
+    mockPrisma.masterProfile.findUnique.mockResolvedValue({ googleCalendarId: null })
+
+    const result = await enqueueBackfillForMaster('m1')
+
+    expect(mockList).not.toHaveBeenCalled()
+    expect(mockPrisma.appointment.update).not.toHaveBeenCalled()
+    expect(mockPrisma.calendarSyncTask.upsert).toHaveBeenCalledTimes(2)
+    expect(result).toEqual({ queued: 2 })
   })
 })
 
