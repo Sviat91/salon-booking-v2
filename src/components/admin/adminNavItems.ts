@@ -11,6 +11,7 @@ import {
   Table2,
   Bell,
   Bot,
+  BotMessageSquare,
   FileText,
   Percent,
   ScrollText,
@@ -151,6 +152,11 @@ export const masterNavItems: NavItem[] = [
     labelKey: "admin.nav.googleCalendar",
     href: "/admin/master/google-calendar",
     icon: CalendarCheck,
+  },
+  {
+    labelKey: "admin.nav.notificationBots",
+    href: "/admin/master/notification-bots",
+    icon: BotMessageSquare,
   },
 ]
 

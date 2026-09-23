@@ -5,10 +5,12 @@
  */
 import { getTenantConfig } from '@/lib/tenant'
 import { sendEmail } from '@/lib/email'
-import { logNotification, getTelegramRecipients, broadcastTelegram } from './internal'
+import { logNotification } from './internal'
+import { broadcastToMasterBots } from './bots'
 import { escapeHtml } from './templates'
 
 export interface CalendarConflictInput {
+  masterId: string
   masterName: string
   dateLabel: string
   first: { label: string; time: string }
@@ -18,22 +20,14 @@ export interface CalendarConflictInput {
 export async function notifyCalendarConflict(input: CalendarConflictInput): Promise<void> {
   try {
     const config = await getTenantConfig()
-    const { masterName, dateLabel, first, second } = input
+    const { masterId, masterName, dateLabel, first, second } = input
 
-    if (config.notifTelegramEnabled && config.telegramBotToken) {
-      const recipients = await getTelegramRecipients()
-      if (recipients.length > 0) {
-        const msg =
-          `<b>⚠️ Konflikt w kalendarzu</b>\n👩‍🎨 ${escapeHtml(masterName)}\n📅 ${escapeHtml(dateLabel)}\n` +
-          `• ${escapeHtml(first.label)} (${escapeHtml(first.time)})\n• ${escapeHtml(second.label)} (${escapeHtml(second.time)})`
-        const { anySuccess, lastError } = await broadcastTelegram(config.telegramBotToken, recipients, msg)
-        await logNotification({
-          type: 'CALENDAR_CONFLICT',
-          channel: 'telegram',
-          status: anySuccess ? 'sent' : 'failed',
-          error: lastError?.message,
-        })
-      }
+    if (config.notifTelegramEnabled) {
+      const msg =
+        `<b>⚠️ Konflikt w kalendarzu</b>\n👩‍🎨 ${escapeHtml(masterName)}\n📅 ${escapeHtml(dateLabel)}\n` +
+        `• ${escapeHtml(first.label)} (${escapeHtml(first.time)})\n• ${escapeHtml(second.label)} (${escapeHtml(second.time)})`
+
+      await broadcastToMasterBots({ masterId, html: msg, type: 'CALENDAR_CONFLICT' })
     }
 
     if (config.notifEmailEnabled && config.salonEmail) {

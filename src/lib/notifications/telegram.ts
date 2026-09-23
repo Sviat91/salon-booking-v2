@@ -31,3 +31,25 @@ export async function sendTelegramMessage(
     return err instanceof Error ? err : new Error(String(err))
   }
 }
+
+/**
+ * Calls Telegram's `getMe` to validate a bot token and fetch its username.
+ * Never throws, never logs the token. `status: 0` means a network/timeout failure.
+ */
+export async function getTelegramBotInfo(
+  botToken: string
+): Promise<{ ok: true; username: string | null } | { ok: false; status: number }> {
+  try {
+    const url = `https://api.telegram.org/bot${botToken}/getMe`
+    const res = await fetch(url, { signal: AbortSignal.timeout(10_000) })
+
+    if (!res.ok) {
+      return { ok: false, status: res.status }
+    }
+
+    const body = await res.json()
+    return { ok: true, username: body?.result?.username ?? null }
+  } catch {
+    return { ok: false, status: 0 }
+  }
+}

@@ -86,6 +86,7 @@ export async function detectAndNotifyConflicts(
       if (appointmentId === undefined && externals.every((e) => notified.get(e.id) || stamp.has(e.id))) continue
 
       await notifyCalendarConflict({
+        masterId,
         masterName: master?.name ?? 'Mistrz',
         dateLabel: formatDate(date),
         first: { label: a.label, time: `${a.startTime}–${a.endTime}` },

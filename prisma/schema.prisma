@@ -42,6 +42,8 @@ model User {
   accounts             Account[]
   pages                Page[]
   createdDiscounts     Discount[]    @relation("MasterCreatedDiscounts")
+  ownedNotificationBots   NotificationBot[]       @relation("MasterOwnedNotificationBots")
+  notificationBotScopes   NotificationBotMaster[] @relation("MasterNotificationBotScopes")
 
   @@index([phone])
   @@index([email])
@@ -419,10 +421,59 @@ model TelegramNotificationRecipient {
   createdAt DateTime @default(now())
 }
 
+// The only salon Telegram notification mechanism. TenantConfig.telegramBotToken/
+// telegramBotUsername + TelegramNotificationRecipient (above) are legacy: they are
+// retained only because telegramBotToken/telegramBotUsername still back the
+// Telegram login widget (api/auth/[...nextauth]/route.ts). Their notification
+// data was migrated into this table by 20260923090000_unify_general_telegram_bot.
+model NotificationBot {
+  id       String  @id @default(cuid())
+  label    String
+  token    String  // encrypted via src/lib/encryption.ts — never returned by an API
+  username String? // plaintext, from Telegram getMe; not a secret
+  enabled  Boolean @default(true)
+  scope    String  @default("SELECTED") // "ALL" | "SELECTED"
+
+  ownerId  String? // null = admin/salon-owned; filled = that master's own bot — mirrors Service.masterId / Discount.masterId
+  owner    User?   @relation("MasterOwnedNotificationBots", fields: [ownerId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  masters    NotificationBotMaster[]
+  recipients NotificationBotRecipient[]
+
+  @@index([ownerId])
+}
+
+model NotificationBotMaster {
+  id       String @id @default(cuid())
+  botId    String
+  masterId String
+
+  bot    NotificationBot @relation(fields: [botId], references: [id], onDelete: Cascade)
+  master User            @relation("MasterNotificationBotScopes", fields: [masterId], references: [id], onDelete: Cascade)
+
+  @@unique([botId, masterId])
+  @@index([masterId])
+}
+
+model NotificationBotRecipient {
+  id        String   @id @default(cuid())
+  botId     String
+  chatId    String
+  label     String?
+  createdAt DateTime @default(now())
+
+  bot NotificationBot @relation(fields: [botId], references: [id], onDelete: Cascade)
+
+  @@index([botId])
+}
+
 model NotificationLog {
   id            String   @id @default(cuid())
   type          String   // BOOKING_CONFIRMATION | BOOKING_REMINDER_24H | BOOKING_REMINDER_2H | BOOKING_CANCELLATION | BOOKING_UPDATE | CONTACT_FORM | CALENDAR_CONFLICT
-  channel       String   // email | telegram | telegram_client | sms
+  channel       String   // email | telegram | telegram_client | telegram_bot | sms
   appointmentId String?
   recipientId   String?
   status        String   // sent | failed | skipped

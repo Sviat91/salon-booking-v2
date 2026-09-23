@@ -45,11 +45,6 @@ export function formatDate(date: Date): string {
   return date.toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric' })
 }
 
-export async function getTelegramRecipients(): Promise<string[]> {
-  const rows = await prisma.telegramNotificationRecipient.findMany({ select: { chatId: true } })
-  return rows.map((r) => r.chatId)
-}
-
 export async function broadcastTelegram(
   botToken: string,
   recipients: string[],

@@ -9,7 +9,6 @@ const PatchSchema = z.object({
   notifTelegramEnabled: z.boolean().optional(),
   notifReminder24hEnabled: z.boolean().optional(),
   notifReminder2hEnabled: z.boolean().optional(),
-  telegramBotToken: z.string().trim().max(256).nullable().optional(),
 })
 
 export async function GET() {
@@ -25,7 +24,6 @@ export async function GET() {
     notifTelegramEnabled: config?.notifTelegramEnabled ?? false,
     notifReminder24hEnabled: config?.notifReminder24hEnabled ?? false,
     notifReminder2hEnabled: config?.notifReminder2hEnabled ?? false,
-    telegramBotToken: config?.telegramBotToken ?? '',
   })
 }
 
@@ -46,7 +44,6 @@ export async function PATCH(req: Request) {
     if (data.notifTelegramEnabled !== undefined) updateData.notifTelegramEnabled = data.notifTelegramEnabled
     if (data.notifReminder24hEnabled !== undefined) updateData.notifReminder24hEnabled = data.notifReminder24hEnabled
     if (data.notifReminder2hEnabled !== undefined) updateData.notifReminder2hEnabled = data.notifReminder2hEnabled
-    if (data.telegramBotToken !== undefined) updateData.telegramBotToken = data.telegramBotToken || null
 
     if (!existing) {
       await prisma.tenantConfig.create({ data: updateData as Parameters<typeof prisma.tenantConfig.create>[0]['data'] })

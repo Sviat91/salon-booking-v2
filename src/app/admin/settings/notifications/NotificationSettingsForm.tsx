@@ -8,29 +8,17 @@ import { z } from 'zod'
 import { toast } from 'sonner'
 import { Trans, useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
+import { Form, FormField, FormItem, FormMessage } from '@/components/ui/form'
 import { SettingsSection } from '@/app/admin/settings/FormFields'
 import { apiErrorKey } from '@/lib/errors/apiErrorKey'
 import FormSkeleton from '@/components/admin/skeletons/FormSkeleton'
-import TelegramRecipientsField from './TelegramRecipientsField'
+import NotificationBotsManager from '@/components/admin/notification-bots/NotificationBotsManager'
 import SmsSettingsSection from './SmsSettingsSection'
-import { recipientSchema, type RecipientRow } from './recipient-schema'
-import { diffRecipients } from './recipient-diff'
 
 const formSchema = z.object({
   notifEmailEnabled: z.boolean(),
   notifTelegramEnabled: z.boolean(),
-  telegramBotToken: z.string().trim().max(256).optional(),
   notifReminder24hEnabled: z.boolean(),
   notifReminder2hEnabled: z.boolean(),
   notifSmsEnabled: z.boolean(),
@@ -40,25 +28,9 @@ const formSchema = z.object({
   twilioFromNumber: z.string().trim().max(32).optional(),
   smsApiToken: z.string().trim().max(256).optional(),
   smsApiSender: z.string().trim().max(32).optional(),
-  recipients: z.array(recipientSchema),
 })
 
 export type FormValues = z.infer<typeof formSchema>
-
-// Always includes at least one blank row so the form always has an editable
-// slot on screen (see TelegramRecipientsField.tsx) — called both on initial
-// load and after save, so this blank row becomes part of `defaultValues`
-// too and never falsely marks the form dirty on its own.
-async function fetchRecipients(): Promise<RecipientRow[]> {
-  const res = await fetch('/api/admin/notification-settings/recipients')
-  const data = await res.json()
-  const recipients = (data.recipients ?? []).map((r: { id: string; chatId: string; label: string | null }) => ({
-    dbId: r.id,
-    chatId: r.chatId,
-    label: r.label ?? '',
-  }))
-  return recipients.length > 0 ? recipients : [{ dbId: null, chatId: '', label: '' }]
-}
 
 export function ToggleRow({
   label,
@@ -103,7 +75,6 @@ export default function NotificationSettingsForm() {
     defaultValues: {
       notifEmailEnabled: false,
       notifTelegramEnabled: false,
-      telegramBotToken: '',
       notifReminder24hEnabled: false,
       notifReminder2hEnabled: false,
       notifSmsEnabled: false,
@@ -113,7 +84,6 @@ export default function NotificationSettingsForm() {
       twilioFromNumber: '',
       smsApiToken: '',
       smsApiSender: '',
-      recipients: [],
     },
   })
 
@@ -132,11 +102,10 @@ export default function NotificationSettingsForm() {
   React.useEffect(() => {
     async function load() {
       try {
-        const [notifRes, emailRes, smsRes, recipients] = await Promise.all([
+        const [notifRes, emailRes, smsRes] = await Promise.all([
           fetch('/api/admin/notification-settings'),
           fetch('/api/admin/email-settings'),
           fetch('/api/admin/sms-settings'),
-          fetchRecipients(),
         ])
         const notifData = await notifRes.json()
         const emailData = await emailRes.json()
@@ -145,7 +114,6 @@ export default function NotificationSettingsForm() {
         form.reset({
           notifEmailEnabled: notifData.notifEmailEnabled ?? false,
           notifTelegramEnabled: notifData.notifTelegramEnabled ?? false,
-          telegramBotToken: notifData.telegramBotToken ?? '',
           notifReminder24hEnabled: notifData.notifReminder24hEnabled ?? false,
           notifReminder2hEnabled: notifData.notifReminder2hEnabled ?? false,
           notifSmsEnabled: smsData.notifSmsEnabled ?? false,
@@ -155,7 +123,6 @@ export default function NotificationSettingsForm() {
           twilioFromNumber: smsData.twilioFromNumber ?? '',
           smsApiToken: smsData.smsApiToken ?? '',
           smsApiSender: smsData.smsApiSender ?? '',
-          recipients,
         })
       } catch {
         toast.error(t('admin.settings.notifications.loadFailed'))
@@ -170,7 +137,6 @@ export default function NotificationSettingsForm() {
     setIsSaving(true)
     try {
       const {
-        recipients,
         notifSmsEnabled,
         smsProvider,
         twilioAccountSid,
@@ -208,38 +174,7 @@ export default function NotificationSettingsForm() {
         throw new Error(err.code ? t(apiErrorKey(err.code)) : t('admin.settings.notifications.saveFailed'))
       }
 
-      const { toCreate, toUpdate, toDeleteIds } = diffRecipients(
-        form.formState.defaultValues?.recipients ?? [],
-        recipients
-      )
-
-      const results = await Promise.allSettled([
-        ...toCreate.map((r) =>
-          fetch('/api/admin/notification-settings/recipients', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ chatId: r.chatId, label: r.label || undefined }),
-          })
-        ),
-        ...toUpdate.map((r) =>
-          fetch(`/api/admin/notification-settings/recipients/${r.dbId}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ chatId: r.chatId, label: r.label || undefined }),
-          })
-        ),
-        ...toDeleteIds.map((id) =>
-          fetch(`/api/admin/notification-settings/recipients/${id}`, { method: 'DELETE' })
-        ),
-      ])
-      if (results.some((r) => r.status === 'rejected' || (r.status === 'fulfilled' && !r.value.ok))) {
-        throw new Error(t('admin.settings.notifications.saveFailed'))
-      }
-
-      const [freshRecipients, freshSmsData] = await Promise.all([
-        fetchRecipients(),
-        fetch('/api/admin/sms-settings').then((r) => r.json()),
-      ])
+      const freshSmsData = await fetch('/api/admin/sms-settings').then((r) => r.json())
       form.reset({
         ...settings,
         notifSmsEnabled: freshSmsData.notifSmsEnabled ?? false,
@@ -249,7 +184,6 @@ export default function NotificationSettingsForm() {
         twilioFromNumber: freshSmsData.twilioFromNumber ?? '',
         smsApiToken: freshSmsData.smsApiToken ?? '',
         smsApiSender: freshSmsData.smsApiSender ?? '',
-        recipients: freshRecipients,
       })
       toast.success(t('admin.settings.notifications.saveSuccess'))
     } catch (err) {
@@ -338,29 +272,7 @@ export default function NotificationSettingsForm() {
             )}
           />
 
-          <FormField
-            control={form.control}
-            name="telegramBotToken"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t('admin.settings.notifications.botTokenLabel')}</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="1234567890:ABCdef..."
-                    type="password"
-                    autoComplete="off"
-                    {...field}
-                  />
-                </FormControl>
-                <FormDescription>
-                  <Trans i18nKey="admin.settings.notifications.botTokenDesc" components={{ code: <code /> }} />
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <TelegramRecipientsField control={form.control} />
+          <NotificationBotsManager apiBase="/api/admin/notification-bots" canEditScope telegramEnabled={telegramEnabled} />
         </SettingsSection>
 
         {/* SMS channel */}

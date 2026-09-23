@@ -48,6 +48,9 @@ export const KNOWN_ERROR_CODES = new Set([
   'GOOGLE_NO_ACCESS',
   'GOOGLE_API_ERROR',
   'CALENDAR_ID_IN_USE',
+  'BOT_TOKEN_INVALID',
+  'BOT_SCOPE_REQUIRED',
+  'TELEGRAM_API_ERROR',
 ])
 
 export function apiErrorKey(code?: string): string {
