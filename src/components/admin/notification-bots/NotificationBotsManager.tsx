@@ -6,7 +6,11 @@ import { useTranslation } from 'react-i18next'
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import FormSkeleton from '@/components/admin/skeletons/FormSkeleton'
-import NotificationBotCard, { type Bot, type MasterOption } from './NotificationBotCard'
+import NotificationBotCard, {
+  type Bot,
+  type MasterOption,
+  type NotificationBotCardHandle,
+} from './NotificationBotCard'
 
 interface Props {
   apiBase: string
@@ -19,6 +23,17 @@ interface Props {
    * its own — the fetched value is used there (U-10).
    */
   telegramEnabled?: boolean
+  /** Aggregated across all rendered cards (bots + drafts) — true iff any card
+   * has unsaved local changes. Used by the admin settings page to light up
+   * the sidebar/inline "Save Settings" buttons. */
+  onDirtyChange?: (dirty: boolean) => void
+}
+
+export interface NotificationBotsManagerHandle {
+  /** Saves every card whose own computed `isDirty` is true, in parallel, then
+   * reloads the list once. Each card's own `save()` already toasts its own
+   * success/failure — no error aggregation here. */
+  saveAllDirty: () => Promise<void>
 }
 
 let draftSeq = 0
@@ -28,12 +43,30 @@ let draftSeq = 0
  * `NotificationSettingsForm.tsx` on `/admin/settings/notifications`, and
  * rendered standalone (own page) on `/admin/master/notification-bots` (AD-11).
  */
-export default function NotificationBotsManager({ apiBase, canEditScope, telegramEnabled }: Props) {
+const NotificationBotsManager = React.forwardRef<NotificationBotsManagerHandle, Props>(
+  function NotificationBotsManager({ apiBase, canEditScope, telegramEnabled, onDirtyChange }, ref) {
   const { t } = useTranslation()
   const [fetchedTelegramEnabled, setFetchedTelegramEnabled] = React.useState<boolean | null>(null)
   const [masters, setMasters] = React.useState<MasterOption[]>([])
   const [bots, setBots] = React.useState<Bot[]>([])
   const [drafts, setDrafts] = React.useState<string[]>([])
+  const [dirtyIds, setDirtyIds] = React.useState<Set<string>>(new Set())
+  const cardRefs = React.useRef<Map<string, NotificationBotCardHandle>>(new Map())
+
+  function setCardDirty(key: string, dirty: boolean) {
+    setDirtyIds((prev) => {
+      const has = prev.has(key)
+      if (dirty === has) return prev
+      const next = new Set(prev)
+      if (dirty) next.add(key)
+      else next.delete(key)
+      return next
+    })
+  }
+
+  React.useEffect(() => {
+    onDirtyChange?.(dirtyIds.size > 0)
+  }, [dirtyIds, onDirtyChange])
 
   const load = React.useCallback(async () => {
     try {
@@ -48,6 +81,16 @@ export default function NotificationBotsManager({ apiBase, canEditScope, telegra
     }
   }, [apiBase, t])
 
+  React.useImperativeHandle(ref, () => ({
+    saveAllDirty: async () => {
+      const toSave = Array.from(cardRefs.current.entries())
+        .filter(([, handle]) => handle.isDirty)
+        .map(([, handle]) => handle.save())
+      await Promise.all(toSave)
+      await load()
+    },
+  }))
+
   React.useEffect(() => {
     load()
   }, [load])
@@ -59,6 +102,10 @@ export default function NotificationBotsManager({ apiBase, canEditScope, telegra
 
   function removeDraft(id: string) {
     setDrafts((d) => d.filter((x) => x !== id))
+    // The card unmounts as part of this same state update, without a final
+    // onDirtyChange(false) report — clear its tracked dirty state here so a
+    // saved/cancelled draft can't leave Save Settings stuck enabled.
+    setCardDirty(id, false)
   }
 
   function onDraftSaved(id: string) {
@@ -83,23 +130,33 @@ export default function NotificationBotsManager({ apiBase, canEditScope, telegra
       {bots.map((bot) => (
         <NotificationBotCard
           key={bot.id}
+          ref={(handle) => {
+            if (handle) cardRefs.current.set(bot.id, handle)
+            else cardRefs.current.delete(bot.id)
+          }}
           bot={bot}
           masters={masters}
           canEditScope={canEditScope}
           apiBase={apiBase}
           onSaved={load}
+          onDirtyChange={(dirty) => setCardDirty(bot.id, dirty)}
         />
       ))}
 
       {drafts.map((id) => (
         <NotificationBotCard
           key={id}
+          ref={(handle) => {
+            if (handle) cardRefs.current.set(id, handle)
+            else cardRefs.current.delete(id)
+          }}
           bot={null}
           masters={masters}
           canEditScope={canEditScope}
           apiBase={apiBase}
           onSaved={() => onDraftSaved(id)}
           onCancel={() => removeDraft(id)}
+          onDirtyChange={(dirty) => setCardDirty(id, dirty)}
         />
       ))}
 
@@ -111,4 +168,8 @@ export default function NotificationBotsManager({ apiBase, canEditScope, telegra
       </div>
     </div>
   )
-}
+  }
+)
+
+NotificationBotsManager.displayName = 'NotificationBotsManager'
+export default NotificationBotsManager

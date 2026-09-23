@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem, SelectItemText } from '@/components/ui/select'
+import { Checkbox } from '@/components/ui/checkbox'
 import { useConfirm } from '@/components/ConfirmDialogProvider'
 import { apiErrorKey } from '@/lib/errors/apiErrorKey'
 import BotRecipientsField, { type BotRecipient } from './BotRecipientsField'
@@ -45,6 +45,28 @@ interface Props {
   apiBase: string
   onSaved: () => void
   onCancel?: () => void
+  /** Reports this card's own computed `isDirty` on every change, so the parent
+   * manager can aggregate across all cards without knowing their internals. */
+  onDirtyChange?: (dirty: boolean) => void
+}
+
+export interface NotificationBotCardHandle {
+  isDirty: boolean
+  save: () => Promise<void>
+}
+
+function idsEqual(a: string[], b: string[]) {
+  if (a.length !== b.length) return false
+  const sa = [...a].sort()
+  const sb = [...b].sort()
+  return sa.every((v, i) => v === sb[i])
+}
+
+function recipientsEqual(a: BotRecipient[], b: { chatId: string; label: string | null }[]) {
+  if (a.length !== b.length) return false
+  return a.every(
+    (r, i) => r.chatId.trim() === b[i].chatId.trim() && r.label.trim() === (b[i].label ?? '').trim()
+  )
 }
 
 /**
@@ -52,7 +74,10 @@ interface Props {
  * full-replace PATCH makes a diff/field-array unnecessary). `bot === null`
  * means an unsaved draft appended by "Add bot".
  */
-export default function NotificationBotCard({ bot, masters, canEditScope, apiBase, onSaved, onCancel }: Props) {
+const NotificationBotCard = React.forwardRef<NotificationBotCardHandle, Props>(function NotificationBotCard(
+  { bot, masters, canEditScope, apiBase, onSaved, onCancel, onDirtyChange },
+  ref
+) {
   const { t } = useTranslation()
   const confirm = useConfirm()
   const labelId = React.useId()
@@ -67,6 +92,21 @@ export default function NotificationBotCard({ bot, masters, canEditScope, apiBas
     bot?.recipients.map((r) => ({ chatId: r.chatId, label: r.label ?? '' })) ?? []
   )
   const [busy, setBusy] = React.useState<'save' | 'test' | 'delete' | null>(null)
+
+  const isDirty = bot
+    ? label.trim() !== bot.label ||
+      token.trim() !== '' ||
+      enabled !== bot.enabled ||
+      (canEditScope && (scope !== bot.scope || !idsEqual(masterIds, bot.masterIds))) ||
+      !recipientsEqual(recipients, bot.recipients)
+    : label.trim() !== '' ||
+      token.trim() !== '' ||
+      recipients.some((r) => r.chatId.trim() !== '') ||
+      (canEditScope && scope === 'SELECTED' && masterIds.length > 0)
+
+  React.useEffect(() => {
+    onDirtyChange?.(isDirty)
+  }, [isDirty, onDirtyChange])
 
   async function save() {
     const trimmedLabel = label.trim()
@@ -127,6 +167,8 @@ export default function NotificationBotCard({ bot, masters, canEditScope, apiBas
     }
   }
 
+  React.useImperativeHandle(ref, () => ({ isDirty, save }), [isDirty, save])
+
   async function test() {
     if (!bot) return
     setBusy('test')
@@ -168,6 +210,10 @@ export default function NotificationBotCard({ bot, masters, canEditScope, apiBas
         return
       }
       toast.success(t('admin.settings.notificationBots.deleteSuccess'))
+      // Unmounting (once the parent's list drops this id) never re-fires the
+      // isDirty-reporting effect's cleanup, so tell the parent explicitly —
+      // otherwise a dirty-then-deleted bot leaves Save Settings stuck lit.
+      onDirtyChange?.(false)
       onSaved()
     } catch {
       toast.error(t('errors.generic'))
@@ -238,22 +284,35 @@ export default function NotificationBotCard({ bot, masters, canEditScope, apiBas
       {canEditScope ? (
         <div className="grid gap-1.5">
           <Label>{t('admin.settings.notificationBots.scopeLabel')}</Label>
-          <Select value={scope} onValueChange={(v) => setScope(v as 'ALL' | 'SELECTED')}>
-            <SelectTrigger className="h-9 max-w-xs">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ALL">
-                <SelectItemText>{t('admin.settings.notificationBots.scopeAll')}</SelectItemText>
-              </SelectItem>
-              <SelectItem value="SELECTED">
-                <SelectItemText>{t('admin.settings.notificationBots.scopeSelected')}</SelectItemText>
-              </SelectItem>
-            </SelectContent>
-          </Select>
-          {scope === 'SELECTED' && (
-            <MasterMultiSelect masters={masters} selectedIds={masterIds} onChange={setMasterIds} />
-          )}
+          <div className="flex flex-col gap-1.5">
+            <label className="flex items-center gap-2 text-sm cursor-pointer">
+              <Checkbox
+                checked={scope === 'ALL'}
+                onCheckedChange={(checked) => {
+                  if (checked) {
+                    setScope('ALL')
+                    setMasterIds([])
+                  }
+                }}
+              />
+              {t('admin.settings.notificationBots.scopeAll')}
+            </label>
+            <label className="flex items-center gap-2 text-sm cursor-pointer">
+              <Checkbox
+                checked={scope === 'SELECTED'}
+                onCheckedChange={(checked) => checked && setScope('SELECTED')}
+              />
+              {t('admin.settings.notificationBots.scopeSelected')}
+            </label>
+          </div>
+          {/* Always mounted (never conditionally hidden) so the card's height
+              doesn't jump when switching scope — disabled + cleared instead. */}
+          <MasterMultiSelect
+            masters={masters}
+            selectedIds={masterIds}
+            onChange={setMasterIds}
+            disabled={scope === 'ALL'}
+          />
         </div>
       ) : (
         <div className="grid gap-1">
@@ -294,4 +353,7 @@ export default function NotificationBotCard({ bot, masters, canEditScope, apiBas
       </div>
     </div>
   )
-}
+})
+
+NotificationBotCard.displayName = 'NotificationBotCard'
+export default NotificationBotCard

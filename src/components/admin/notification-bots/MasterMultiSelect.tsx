@@ -10,6 +10,10 @@ interface Props {
   masters: MasterOption[]
   selectedIds: string[]
   onChange: (ids: string[]) => void
+  /** Disabled (e.g. scope is ALL) but still rendered — the caller keeps this
+   * element mounted rather than conditionally hiding it, so the card's height
+   * doesn't jump when switching scope (2026-09-23). */
+  disabled?: boolean
 }
 
 /**
@@ -22,10 +26,15 @@ interface Props {
  * Trigger/panel/animation classes are copied from `ui/select.tsx` so this
  * reads as the same site-wide dropdown, not a bespoke one (2026-09-23).
  */
-export default function MasterMultiSelect({ masters, selectedIds, onChange }: Props) {
+export default function MasterMultiSelect({ masters, selectedIds, onChange, disabled }: Props) {
   const { t } = useTranslation()
   const [open, setOpen] = React.useState(false)
   const wrapperRef = React.useRef<HTMLDivElement>(null)
+  const isDisabled = disabled || masters.length === 0
+
+  React.useEffect(() => {
+    if (disabled) setOpen(false)
+  }, [disabled])
 
   React.useEffect(() => {
     if (!open) return
@@ -57,7 +66,7 @@ export default function MasterMultiSelect({ masters, selectedIds, onChange }: Pr
     <div ref={wrapperRef} className="relative max-w-xs">
       <button
         type="button"
-        disabled={masters.length === 0}
+        disabled={isDisabled}
         aria-haspopup="listbox"
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
@@ -66,7 +75,7 @@ export default function MasterMultiSelect({ masters, selectedIds, onChange }: Pr
         <span className="truncate">{summary}</span>
         <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform duration-150 group-aria-expanded:rotate-180" aria-hidden />
       </button>
-      {masters.length === 0 && (
+      {!disabled && masters.length === 0 && (
         <p className="mt-1.5 text-xs text-muted-foreground">{t('admin.settings.notificationBots.noMasters')}</p>
       )}
       {open && (

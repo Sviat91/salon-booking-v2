@@ -13,7 +13,9 @@ import { Form, FormField, FormItem, FormMessage } from '@/components/ui/form'
 import { SettingsSection } from '@/app/admin/settings/FormFields'
 import { apiErrorKey } from '@/lib/errors/apiErrorKey'
 import FormSkeleton from '@/components/admin/skeletons/FormSkeleton'
-import NotificationBotsManager from '@/components/admin/notification-bots/NotificationBotsManager'
+import NotificationBotsManager, {
+  type NotificationBotsManagerHandle,
+} from '@/components/admin/notification-bots/NotificationBotsManager'
 import SmsSettingsSection from './SmsSettingsSection'
 
 const formSchema = z.object({
@@ -69,6 +71,8 @@ export default function NotificationSettingsForm() {
   const [isLoading, setIsLoading] = React.useState(true)
   const [isSaving, setIsSaving] = React.useState(false)
   const [smtpConfigured, setSmtpConfigured] = React.useState(false)
+  const botsManagerRef = React.useRef<NotificationBotsManagerHandle>(null)
+  const [botsDirty, setBotsDirty] = React.useState(false)
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -92,12 +96,11 @@ export default function NotificationSettingsForm() {
   const telegramEnabled = watch('notifTelegramEnabled')
   const smsEnabled = watch('notifSmsEnabled')
   const anyChannelEnabled = emailEnabled || telegramEnabled || smsEnabled
+  const isDirty = formState.isDirty || botsDirty
 
   React.useEffect(() => {
-    document.dispatchEvent(
-      new CustomEvent('settings-dirty', { detail: { isDirty: formState.isDirty } })
-    )
-  }, [formState.isDirty])
+    document.dispatchEvent(new CustomEvent('settings-dirty', { detail: { isDirty } }))
+  }, [isDirty])
 
   React.useEffect(() => {
     async function load() {
@@ -186,6 +189,7 @@ export default function NotificationSettingsForm() {
         smsApiSender: freshSmsData.smsApiSender ?? '',
       })
       toast.success(t('admin.settings.notifications.saveSuccess'))
+      await botsManagerRef.current?.saveAllDirty()
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t('admin.settings.notifications.saveFailed'))
     } finally {
@@ -272,7 +276,13 @@ export default function NotificationSettingsForm() {
             )}
           />
 
-          <NotificationBotsManager apiBase="/api/admin/notification-bots" canEditScope telegramEnabled={telegramEnabled} />
+          <NotificationBotsManager
+            ref={botsManagerRef}
+            apiBase="/api/admin/notification-bots"
+            canEditScope
+            telegramEnabled={telegramEnabled}
+            onDirtyChange={setBotsDirty}
+          />
         </SettingsSection>
 
         {/* SMS channel */}
@@ -325,7 +335,7 @@ export default function NotificationSettingsForm() {
         </SettingsSection>
 
         <div className="flex border-t pt-4">
-          <Button type="submit" disabled={isSaving || !formState.isDirty}>
+          <Button type="submit" disabled={isSaving || !isDirty}>
             {isSaving ? t('common.saving') : t('admin.nav.saveSettings')}
           </Button>
         </div>
